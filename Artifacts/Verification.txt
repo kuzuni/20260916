@@ -1,0 +1,2 @@
+PASS: pointer raycast hit tests for independent anvil, forge management, auto, frameless events, chat and all five navigation buttons; separate forge management without spending; forge cost and level increment; locked item excluded; auto toggle; item detail modal; all navigation actions; empty slot reset; independent icon rebind; lock and notification states; insufficient currency guard.
+Unity 6000.3.8f1

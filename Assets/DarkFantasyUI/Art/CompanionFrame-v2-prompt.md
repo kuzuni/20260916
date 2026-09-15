@@ -1,0 +1,5 @@
+# CompanionFrame-v2.png
+
+Generated with the built-in image_gen tool from the user's visual reference. Empty reusable companion slot background; item icon remains separate.
+
+Use case: stylized-concept / reusable UI asset. From the supplied reference, recreate ONLY the wide teal companion equipment slot frame seen around the beetle at lower-right inventory. Create an EMPTY WIDE 2:1 rectangular panel with clipped small 45-degree corners, a thin very bright mint-cyan double beveled border, dark teal-green interior with subtle misty ruined cathedral silhouettes on the far left and right edges. The center is dark unobtrusive green so an independent beetle icon can be placed there later. Absolutely NO beetle, NO item, NO icons, NO star, NO text, NO level, NO notification badge. Match the reference exactly in color mood: luminous turquoise/mint rim and deep emerald-green background, NOT royal blue. Frame fills entire canvas except small transparent margins at clipped corners. Clean hand-painted 2D fantasy game UI, designed for 9-slice reuse, decorations confined near outer edges.

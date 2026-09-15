@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fd59a8ac40893a749ba504c676048a8a, type: 3}
+  m_Name: Item_05
+  m_EditorClassIdentifier: Assembly-CSharp::Moonlit.UI.ItemDefinition
+  displayName: "\uD0DC\uC591\uC758 \uB0A0\uAC1C"
+  icon: {fileID: 2062302244, guid: c14997d8ab837e542ab3a893c6bf0f17, type: 3}
+  categoryBadgeIcon: {fileID: 1617300636, guid: f605fa8fac55df74f8ef25b99dd0db6b, type: 3}
+  rarity: 3
+  startingLevel: 74
+  description: "\uB2EC\uBE5B \uD3D0\uD5C8\uC758 \uD798\uC774 \uAE43\uB4E0 \uC804\uC124
+    \uC7A5\uBE44."

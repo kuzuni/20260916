@@ -1,0 +1,6 @@
+{
+    "name": "Moonlit.UI",
+    "rootNamespace": "Moonlit.UI",
+    "references": ["UnityEngine.UI", "Unity.InputSystem"],
+    "autoReferenced": true
+}
