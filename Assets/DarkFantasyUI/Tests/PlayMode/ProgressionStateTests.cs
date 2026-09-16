@@ -248,6 +248,42 @@ namespace Moonlit.UI.Tests
             finally { Object.DestroyImmediate(item); }
         }
 
+        [UnityTest]
+        public IEnumerator OfflineRewards_IllustrationsAndDisplayedTotals_MatchSingleClaim()
+        {
+            ForgeScreenModule.Register(host.Registry);
+            assets.interfaceIcons = new[] { PopupSkin.CloseArt };
+            var screen = root.GetComponent<MainScreen>();
+            int goldBefore = screen.gold, oreBefore = screen.ore;
+            host.SetPreviewMetrics(new Vector2Int(1080, 1920), new Rect(0, 60, 1080, 1740));
+            host.Registry.Open("offline-rewards"); yield return null;
+            var layer = GameObject.Find("Popup Layer offline-rewards");
+            var illustrations = layer.GetComponentsInChildren<Image>()
+                .Where(image => image.name == "Reward illustration").ToArray();
+            Assert.AreEqual(2, illustrations.Length);
+            Assert.IsTrue(illustrations.All(image => image.sprite && image.preserveAspect && !image.raycastTarget));
+            Assert.AreEqual("RewardHammer-v1", illustrations[1].sprite.name);
+            Assert.AreNotSame(illustrations[1].sprite.texture,
+                illustrations[1].transform.parent.GetComponent<Image>().sprite.texture);
+            int goldShown = int.Parse(GameObject.Find("Gold total").GetComponent<Text>().text);
+            int oreShown = int.Parse(GameObject.Find("Forge total").GetComponent<Text>().text);
+            var claim = GameObject.Find("수집").GetComponent<Button>();
+            claim.onClick.Invoke(); claim.onClick.Invoke();
+            yield return null;
+            Assert.AreEqual(goldBefore + goldShown, screen.gold);
+            Assert.AreEqual(oreBefore + oreShown, screen.ore);
+            Assert.IsFalse(claim.interactable);
+            host.CloseTop(); yield return null;
+            host.SetPreviewMetrics(new Vector2Int(1080, 2280), new Rect(36, 84, 1008, 2076));
+            host.Registry.Open("offline-rewards"); yield return null;
+            var claimed = GameObject.Find("수집 완료").GetComponent<Button>();
+            Assert.IsFalse(claimed.interactable);
+            Assert.AreEqual(goldBefore + goldShown, screen.gold);
+            Assert.AreEqual(oreBefore + oreShown, screen.ore);
+            host.CloseTop(); yield return null;
+            Assert.AreEqual(0, host.ModalDepth);
+        }
+
         static string[] ResultNames()
         {
             return GameObject.Find("Summon result cards").transform.Cast<Transform>()
