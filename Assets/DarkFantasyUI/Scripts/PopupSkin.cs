@@ -7,7 +7,7 @@ namespace Moonlit.UI
     /// <summary>Shared reusable popup artwork. Labels, icons and hit targets remain independent.</summary>
     public static class PopupSkin
     {
-        static Sprite panel, action, close, crest, crimson, ribbon;
+        static Sprite panel, action, close, crest, crimson, ribbon, parchmentRibbon;
         static Sprite[] switchParts;
         static Sprite Load(ref Sprite cached, string name, Vector4 border, Rect? sourceRect = null, Vector2? sourceSize = null)
         {
@@ -34,6 +34,8 @@ namespace Moonlit.UI
         public static Sprite CrimsonActionArt => Load(ref crimson, "CrimsonAction-v1", new Vector4(240, 150, 240, 150),
             new Rect(48, 116, 2076, 504), new Vector2(2172, 724));
         public static Sprite RibbonArt => Load(ref ribbon, "EquippedRibbon-v1", Vector4.zero,
+            new Rect(96, 235, 1752, 350), new Vector2(1942, 809));
+        public static Sprite ParchmentRibbonArt => Load(ref parchmentRibbon, "EquippedParchment-v1", Vector4.zero,
             new Rect(96, 235, 1752, 350), new Vector2(1942, 809));
         public static Sprite CloseArt => Load(ref close, "CrimsonClose-v1", Vector4.zero);
         public static Sprite CrestArt => Load(ref crest, "PanelCrest-v1", Vector4.zero);
