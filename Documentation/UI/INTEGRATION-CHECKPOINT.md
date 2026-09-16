@@ -1,5 +1,11 @@
 # Integration checkpoint
 
+## Latest checkpoint — 2026-09-16 18:20 KST
+
+Reviewed/applied progression cloud task task_e_6aaa5c620df8832988a95fa79042550e, including coordinator fixes (see PROGRESSION-STATE-REVIEW.md). Do not apply again. Generated and wired all four dungeon paintings with independent sprite metadata and proportional cropped display; exact prompts in ART-GENERATION.md and per-image prompt files. Local commits b14ae06 (art) and 543ff5a (progression) preserve the state/CI baseline 3d6dd2d.
+
+CI run 35077607384 tests commit 3d6dd2d and was still running at this checkpoint; no compile/test pass claimed. Subsequent CI should validate the newer commits. Concurrency now preserves a running validation and queues the latest PR update, avoiding repeated cancellation during integration. Social task task_e_6aaa5cb3f8608329a8f710daae4691ff remains in progress; inspect/apply its returned diff without overwriting progression or new artwork. Next required work: inspect actual NUnit/log evidence and graphics captures, fix failures, review social diff, continue missing skill/reward/shop/PvP art and all 24 reference layouts before merge. Main implementation remains unmerged.
+
 Four cloud drafts are assembled and their 24 routes are wired on codex/ui-24-integration. They are NOT accepted yet. See the latest dated section below for the current source and CI state. Do not merge main until real cloud compilation, interaction and visual checks pass.
 
 Baseline Unity license + Linux player build succeeded: https://github.com/kuzuni/20260916/actions/runs/35067009693 . Job 104699606811 completed successfully, including artifact upload. This baseline does not contain the 24 new screens.

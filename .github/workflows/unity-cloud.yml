@@ -11,7 +11,9 @@ on:
 
 concurrency:
   group: unity-${{ github.ref }}
-  cancel-in-progress: true
+  # Keep useful compilation/activation evidence while coordinator integrates artwork.
+  # GitHub retains only the latest pending run for this PR.
+  cancel-in-progress: false
 
 permissions:
   contents: read
