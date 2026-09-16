@@ -70,8 +70,9 @@ namespace Moonlit.UI
             var equippedY = ctx.Height - 840;
             state.content = Ui.Rect("Tab content", root, 48, 205, 984, Mathf.Min(620, equippedY-225));
             var equippedPanel=PopupSkin.Panel("Equipped panel",root,88,equippedY,904,132).rectTransform;
-            Ui.Image("Equipped ribbon",equippedPanel,-2,18,228,49,PopupSkin.RibbonArt);
-            Ui.Text("Equipped label",equippedPanel,8,18,206,49,"장착됨",31,font,new Color(.06f,.045f,.025f));
+            Ui.Image("Equipped ribbon",equippedPanel,-2,18,228,49,PopupSkin.ParchmentRibbonArt);
+            var equippedLabel=Ui.Text("Equipped label",equippedPanel,8,18,206,49,"장착됨",31,font,new Color(.06f,.045f,.025f));
+            equippedLabel.GetComponent<Outline>().effectColor=new Color(1,1,1,.2f);
             state.equipped = Ui.Rect("Equipped skills", equippedPanel, 440, 8, 440, 116);
             RenderEquipped(state, font);
             PopupSkin.Button("Upgrade all", root, 242, equippedY + 162, 282, 88, "모두 업그레이드", font,

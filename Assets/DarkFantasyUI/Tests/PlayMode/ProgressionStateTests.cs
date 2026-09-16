@@ -67,6 +67,11 @@ namespace Moonlit.UI.Tests
                 var label=GameObject.Find("Equipped label").GetComponent<RectTransform>();
                 var slots=GameObject.Find("Equipped skills").GetComponent<RectTransform>();
                 Assert.AreSame(equipped,label.parent);
+                var ribbon=GameObject.Find("Equipped ribbon").GetComponent<Image>();
+                Assert.IsNotNull(ribbon.sprite);
+                Assert.AreSame(PopupSkin.ParchmentRibbonArt,ribbon.sprite);
+                Assert.AreNotSame(PopupSkin.RibbonArt.texture,ribbon.sprite.texture);
+                Assert.IsFalse(ribbon.raycastTarget);
                 Assert.Less(label.anchoredPosition.x+label.rect.width,slots.anchoredPosition.x);
                 var back=GameObject.Find("Return to main").GetComponent<RectTransform>();
                 Assert.Greater(-back.anchoredPosition.y,-equipped.anchoredPosition.y+equipped.rect.height);
