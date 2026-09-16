@@ -58,7 +58,7 @@ namespace Moonlit.UI
             activeCollection = state;
             state.root = root;
             state.tab = selectedCollectionTab;
-            Ui.Button("Return to main", root, 34, 34, 150, 70, "‹ 메인", font, ctx.Close, Stone, 25);
+            PopupSkin.Button("Return to main", root, 34, 34, 150, 70, "‹ 메인", font, ctx.Close, Stone, 25);
             var header = Panel(root, 210, 26, 828, 100, "✦  스킬 15/18  ✦", font, 42);
             state.summary = Ui.Text("Summary", root, 105, 126, 870, 52, "+10.3m 기본 피해  +82.8m 기본 체력", 25, font, Ui.Ivory);
             // Reserve a fixed interaction rail (equipped row, actions, summon and tabs)
@@ -68,9 +68,9 @@ namespace Moonlit.UI
             Panel(root, 48, 186 + bodyHeight, 984, 112, "장착됨", font, 27);
             state.equipped = Ui.Rect("Equipped skills", root, 510, 197 + bodyHeight, 420, 112);
             RenderEquipped(state, font);
-            Ui.Button("Upgrade all", root, 245, 318 + bodyHeight, 280, 76, "모두 업그레이드", font,
+            PopupSkin.Button("Upgrade all", root, 245, 318 + bodyHeight, 280, 76, "모두 업그레이드", font,
                 () => { foreach (var s in Skills) s.level++; RenderTab(ctx, state); RenderEquipped(state, font); ctx.Toast("보유 스킬을 업그레이드했습니다."); }, Blue, 26);
-            Ui.Button("Quick equip", root, 555, 318 + bodyHeight, 280, 76, "빠른 장착", font,
+            PopupSkin.Button("Quick equip", root, 555, 318 + bodyHeight, 280, 76, "빠른 장착", font,
                 () => {
                     var candidates = new List<int>();
                     for (var i = 0; i < Skills.Length; i++) if (Skills[i].owned) candidates.Add(i);
@@ -80,7 +80,7 @@ namespace Moonlit.UI
                     ctx.Toast("레벨이 가장 높은 스킬 3개를 장착했습니다.");
                 }, Blue, 26);
             var summonY = 410 + bodyHeight;
-            var summon = Ui.Button("Summon five", root, 330, summonY, 420, 104, "소환 x5\n◆ 160", font, null, Blue, 30);
+            var summon = PopupSkin.Button("Summon five", root, 330, summonY, 420, 104, "소환 x5\n◆ 160", font, null, Blue, 30);
             state.summon = summon;
             summon.onClick.AddListener(() => {
                 if (!summon.IsInteractable() || state.lastSummonFrame == Time.frameCount) return;
@@ -92,13 +92,13 @@ namespace Moonlit.UI
                 RefreshCollection(ctx, state);
                 ctx.Open("summon-result", session);
             });
-            Ui.Button("Probability", root, 770, summonY + 8, 76, 76, "!", font, () => ctx.Open("summon-probability"), Stone, 32);
+            PopupSkin.Button("Probability", root, 770, summonY + 8, 76, 76, "!", font, () => ctx.Open("summon-probability"), Stone, 32);
             state.currency = Ui.Text("Currency", root, 70, summonY + 17, 230, 60, "◆ " + summonCurrency.ToString("N0"), 28, font, Green, TextAnchor.MiddleLeft);
             var tabY = summonY + 118;
             string[] tabs = { "스킬", "펫", "영웅" };
             for (var i = 0; i < tabs.Length; i++) {
                 var index = i;
-                state.tabs[i] = Ui.Button("Tab " + tabs[i], root, 48 + i * 328, tabY, 328, 74, tabs[i], font, () => { state.tab = selectedCollectionTab = index; RenderTab(ctx, state); }, i == state.tab ? Blue : Stone, 28);
+                state.tabs[i] = PopupSkin.Button("Tab " + tabs[i], root, 48 + i * 328, tabY, 328, 74, tabs[i], font, () => { state.tab = selectedCollectionTab = index; RenderTab(ctx, state); }, i == state.tab ? Blue : Stone, 28);
             }
             RenderTab(ctx, state);
         }
@@ -127,7 +127,7 @@ namespace Moonlit.UI
             ClearChildren(state.content);
             string[] summaries = { "+10.3m 기본 피해  +82.8m 기본 체력", "+24.6m 동료 피해  +31.2m 동료 체력", "+18.4m 영웅 피해  +96.7m 영웅 체력" };
             state.summary.text = summaries[state.tab];
-            for (var i = 0; i < 3; i++) state.tabs[i].targetGraphic.color = i == state.tab ? Blue : Stone;
+            for (var i = 0; i < 3; i++) PopupSkin.Select(state.tabs[i], i == state.tab);
             if (state.tab == 0) {
                 var scroll = Scroll(state.content, 0, 0, state.content.rect.width, state.content.rect.height);
                 for (var i = 0; i < Skills.Length; i++) {
@@ -168,7 +168,7 @@ namespace Moonlit.UI
             Ui.Text("Passive", panel, 60, 330, 800, 50, "패시브:", 28, font, Ui.Gold, TextAnchor.MiddleLeft);
             Panel(panel, 60, 388, 800, 92, skill.passive, font, 25);
             var description = Ui.Text("Description", panel, 305, 155, 540, 130, "전장에 마력을 펼쳐 모든 적에게 강력한 피해를 줍니다.\n현재 레벨 " + skill.level, 25, font, Ui.Ivory, TextAnchor.UpperLeft);
-            Ui.Button("Upgrade", panel, 80, h - 150, 350, 86, "업그레이드", font, () => {
+            PopupSkin.Button("Upgrade", panel, 80, h - 150, 350, 86, "업그레이드", font, () => {
                 if (!skill.owned) { ctx.Toast("먼저 스킬을 획득하세요."); return; }
                 skill.level++;
                 description.text = "전장에 마력을 펼쳐 모든 적에게 강력한 피해를 줍니다.\n현재 레벨 " + skill.level;
@@ -176,7 +176,7 @@ namespace Moonlit.UI
                 RefreshSkillLabels(panel);
                 ctx.Toast("레벨 " + skill.level + " 달성");
             }, Stone, 28);
-            Ui.Button("Equip", panel, 490, h - 150, 350, 86, "장착", font, () => {
+            PopupSkin.Button("Equip", panel, 490, h - 150, 350, 86, "장착", font, () => {
                 if (!skill.owned) { ctx.Toast("먼저 스킬을 획득하세요."); return; }
                 Equip(skill);
                 RefreshCollection(ctx, parent);
@@ -190,7 +190,7 @@ namespace Moonlit.UI
             var font = ctx.Assets.font;
             var h = Mathf.Min(980, ctx.Height - 150);
             var panel = Panel(ctx.Root, 90, (ctx.Height - h) / 2, 900, h, "레벨 68\n소환 확률", font, 36);
-            Ui.Button("Details", panel, 790, 105, 64, 64, "i", font, () => ctx.Open("summon-probability-details"), Stone, 28);
+            PopupSkin.Button("Details", panel, 790, 105, 64, 64, "i", font, () => ctx.Open("summon-probability-details"), Stone, 28);
             var labels = new[] { "일반 ★", "희귀한 ★", "서사시 ★", "전설 ★", "궁극의 ★", "신화 ★" };
             var rates = new[] { "17.50%", "16.50%", "16.50%", "36.48%", "12.99%", "0.03%" };
             for (var i = 0; i < labels.Length; i++) {
@@ -235,12 +235,12 @@ namespace Moonlit.UI
             }
             AddBackdrop(ctx.Root, ctx);
             UnityEngine.Events.UnityAction close = () => { RefreshCollection(ctx, session.parent); ctx.Close(); };
-            Ui.Button("Return to collection", ctx.Root, 34, 34, 150, 70, "‹ 이전", font, close, Stone, 25);
+            PopupSkin.Button("Return to collection", ctx.Root, 34, 34, 150, 70, "‹ 이전", font, close, Stone, 25);
             Ui.Text("Title", ctx.Root, 90, 80, 900, 90, "소환 결과", 46, font, Ui.Gold);
             Ui.Text("Subtitle", ctx.Root, 90, 170, 900, 60, "새로운 힘이 달빛 아래 깨어납니다", 24, font);
             var results = Ui.Rect("Summon result cards", ctx.Root, 0, 0, ctx.Width, ctx.Height);
             RenderSummonResults(ctx, results, session);
-            var again = Ui.Button("Again", ctx.Root, 170, ctx.Height - 250, 340, 88, "다시 소환 x5", font, null, Blue, 28);
+            var again = PopupSkin.Button("Again", ctx.Root, 170, ctx.Height - 250, 340, 88, "다시 소환 x5", font, null, Blue, 28);
             again.onClick.AddListener(() => {
                 if (session.resolving || session.lastDecisionFrame == Time.frameCount) return;
                 if (summonCurrency < 160) { ctx.Toast("소환권이 부족합니다."); return; }
@@ -253,7 +253,7 @@ namespace Moonlit.UI
                 session.resolving = false;
                 ctx.Toast("새 소환 결과를 확인하세요.");
             });
-            Ui.Button("Return", ctx.Root, 570, ctx.Height - 250, 340, 88, "돌아가기", font, close, Stone, 28);
+            PopupSkin.Button("Return", ctx.Root, 570, ctx.Height - 250, 340, 88, "돌아가기", font, close, Stone, 28);
         }
 
         static void Equip(SkillData skill)
@@ -335,7 +335,7 @@ namespace Moonlit.UI
         {
             var font = ctx.Assets.font;
             AddBackdrop(ctx.Root, ctx);
-            Ui.Button("Return to main", ctx.Root, 34, 34, 150, 70, "‹ 메인", font, ctx.Close, Stone, 25);
+            PopupSkin.Button("Return to main", ctx.Root, 34, 34, 150, 70, "‹ 메인", font, ctx.Close, Stone, 25);
             Panel(ctx.Root, 220, 36, 640, 100, "던전", font, 44);
             Ui.Text("Reset", ctx.Root, 120, 145, 840, 86, "던전 열쇠는 매일 09:00에 보충됩니다.\n열쇠는 던전을 완료할 때만 소모됩니다.", 25, font);
             var available = ctx.Height - 450;
@@ -355,7 +355,7 @@ namespace Moonlit.UI
                 if (!banner) Ui.Text("Locale", row.transform, 305, 76, 360, 48, dungeon.locale, 22, font, Ui.Gold, TextAnchor.MiddleLeft);
                 Ui.Text("Keys", row.transform, 680, 25, 190, 50, "⚿  2/2", 27, font);
                 var index = i;
-                Ui.Button("Open", row.transform, 650, 104, 220, 78, "열기", font, () => { selectedDungeon = index; ctx.Open("dungeon-details", Dungeons[index]); }, Blue, 28);
+                PopupSkin.Button("Open", row.transform, 650, 104, 220, 78, "열기", font, () => { selectedDungeon = index; ctx.Open("dungeon-details", Dungeons[index]); }, Blue, 28);
             }
             scroll.content.sizeDelta = new Vector2(0, Dungeons.Length * 250);
         }
@@ -373,8 +373,8 @@ namespace Moonlit.UI
             Ui.Text("Difficulty", panel, 100, 500, 670, 72, "◀     난이도  " + dungeon.stage + "     ▶", 30, font, Ui.Gold);
             Panel(panel, 120, 592, 630, 86, "보상:  " + dungeon.reward, font, 27);
             Ui.Text("Keys", panel, 280, 690, 310, 65, "🔑  2/2", 31, font);
-            Ui.Button("Previous", panel, 55, h - 150, 350, 88, "이전 스테이지\n소탕", font, () => ctx.Toast("이전 스테이지 보상을 확인했습니다."), Blue, 26);
-            Ui.Button("Enter", panel, 465, h - 150, 350, 88, "입장", font, () => ctx.Toast("로컬 데모: " + dungeon.name + " 입장 준비"), Blue, 29);
+            PopupSkin.Button("Previous", panel, 55, h - 150, 350, 88, "이전 스테이지\n소탕", font, () => ctx.Toast("이전 스테이지 보상을 확인했습니다."), Blue, 26);
+            PopupSkin.Button("Enter", panel, 465, h - 150, 350, 88, "입장", font, () => ctx.Toast("로컬 데모: " + dungeon.name + " 입장 준비"), Blue, 29);
             Close(panel, 385, h - 48, font, ctx.Close);
         }
 
@@ -406,17 +406,15 @@ namespace Moonlit.UI
 
         static RectTransform Panel(Transform parent, float x, float y, float w, float h, string title, Font font, int size)
         {
-            var p = Ui.Panel("Ornate stone panel", parent, x, y, w, h, Ink).rectTransform;
+            var p = PopupSkin.Panel("Ornate stone panel", parent, x, y, w, h).rectTransform;
             p.GetComponent<Image>().raycastTarget = true;
-            Ui.Border(p, w, h, new Color(.7f,.47f,.2f), 5);
-            Ui.Image("Top ornament", p, w * .5f - 45, -9, 90, 18, null, Ui.Gold);
             if (!string.IsNullOrEmpty(title)) Ui.Text("Title", p, 20, 10, w - 40, Mathf.Min(100, h - 20), title, size, font, Ui.Ivory);
             return p;
         }
 
         static Button Close(Transform parent, float x, float y, Font font, Action close)
         {
-            return Ui.Button("Close", parent, x, y, 100, 100, "×", font, () => close(), Red, 52);
+            return PopupSkin.Button("Close", parent, x, y, 100, 100, "×", font, () => close(), Red, 52);
         }
 
         static ScrollRect Scroll(Transform parent, float x, float y, float w, float h)
