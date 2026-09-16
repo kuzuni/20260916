@@ -85,3 +85,13 @@ Two bounded cloud tasks started from 3d6dd2d:
 - https://chatgpt.com/codex/tasks/task_e_6aaa5c620df8832988a95fa79042550e owns ProgressionScreenModule live skill equip/upgrade/summon state, dedicated regression tests and PROGRESSION-STATE-REVIEW.md.
 - https://chatgpt.com/codex/tasks/task_e_6aaa5cb3f8608329a8f710daae4691ff owns Social module existing-sprite visual fidelity and mobile layout/nav clearance, dedicated regression tests and SOCIAL-VISUAL-REVIEW.md.
 Do not duplicate edits in their owned code until reviewing their returned diffs. Coordinator owns new artwork and CI. GhostVillage banner image generation started during this heartbeat; check integration ART-GENERATION.md and resources for final saved result. Other illustrations remain unfinished, and per-screen captures still must be inspected before acceptance/merge.
+
+## Heartbeat continuation — generated art and skill state integrated
+
+Remote integration source of truth: fe50805e9ff190a7402ef44cbebd25d625ac00d6, draft PR #1. Commits b14ae06 and 543ff5a added three generated paintings (Ghost Village, Invasion, Zombie Rush), proportional cropped art display, and reviewed progression live state fixes. All four dungeon paintings now live in Resources/Moonlit/Dungeons with separate runtime frames/text/buttons. Built-in generation completed; no image request remains running. Exact prompts and notes are committed under Documentation/UI.
+
+Progression task task_e_6aaa5c620df8832988a95fa79042550e was reviewed and applied with a clean three-way merge, preserving the art. Do NOT apply again. Coordinator corrected system-back summon lockout, direct preview free-shard mutation, owned-only equip/upgrade, current detail level refresh, and repeated action guards. New tests remain unrun until CI.
+
+Actual CI: https://github.com/kuzuni/20260916/actions/runs/35077607384 is still running on earlier 3d6dd2d; https://github.com/kuzuni/20260916/actions/runs/35078727676 is pending on fe50805. Workflow now preserves active runs and queues the latest pending PR update to avoid losing activation/compile evidence. Read both results when available; never claim tests passed from a queued/in-progress state.
+
+Social task task_e_6aaa5cb3f8608329a8f710daae4691ff still needs result review/application. Main implementation not merged; local Unity never run. Next heartbeat: inspect CI evidence and social result, fix actual failures, continue missing skill/shop/reward/portrait art and all 24 full-resolution reference/capture checks. The integration worktree is the source of implementation checkpoints.
