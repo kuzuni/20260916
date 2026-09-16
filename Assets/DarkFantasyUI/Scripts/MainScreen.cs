@@ -13,7 +13,7 @@ namespace Moonlit.UI
         public Transform toastRoot;
         public EquipmentSlot[] equipment;
         public Button forgeButton, autoButton, goldButton, gemButton, profileButton, stageButton, eventButton, fairyButton, chatButton;
-        public Button forgeLevelButton;
+        public Button forgeLevelButton, playerDetailsButton;
         public Image autoIcon;
         public Button[] navigation;
         public Text oreText, powerText, goldText, gemText, autoText, stageText;
@@ -34,16 +34,17 @@ namespace Moonlit.UI
         void Start()
         {
             foreach (var slot in equipment) slot.Clicked += Inspect;
-            forgeButton.onClick.AddListener(Forge);
-            if(forgeLevelButton) forgeLevelButton.onClick.AddListener(ForgeManagement);
-            autoButton.onClick.AddListener(ToggleAuto);
+            forgeButton.onClick.AddListener(() => screens.Open("forge-comparison"));
+            if(forgeLevelButton) forgeLevelButton.onClick.AddListener(() => screens.Open("forge-probability"));
+            if(playerDetailsButton) playerDetailsButton.onClick.AddListener(OpenLocalPlayerDetails);
+            autoButton.onClick.AddListener(() => screens.Open("auto-forge"));
             goldButton.onClick.AddListener(() => Currency(false));
             gemButton.onClick.AddListener(() => Currency(true));
-            profileButton.onClick.AddListener(Profile);
+            profileButton.onClick.AddListener(() => screens.Open("profile"));
             stageButton.onClick.AddListener(Stage);
-            eventButton.onClick.AddListener(() => ShowInfo("심연의 축제", "이벤트 종료까지 5일 3시간\n\n어둠 속에서 횃불을 모으고\n전설 장비를 찾아보세요.", "일일 보상 받기", ClaimEvent));
-            fairyButton.onClick.AddListener(() => ShowInfo("달빛 요정의 선물", "모험가를 위한 작은 축복\n\n요정이 강화석 300개를 준비했어요.", "선물 받기", ClaimFairy));
-            chatButton.onClick.AddListener(() => ShowInfo("월드 채팅 · 미리보기", "Tacoma : 오늘도 전설 장비 도전!\nGuest 41194 : 달빛 폐허 분위기 좋네요.\n\n현재는 로컬 UI 데모입니다.", "확인", Close));
+            eventButton.onClick.AddListener(() => screens.Open("offline-rewards"));
+            fairyButton.onClick.AddListener(() => screens.Open("progress-pass"));
+            chatButton.onClick.AddListener(() => screens.Open("chat"));
             for (int i=0;i<navigation.Length;i++) { int index=i; navigation[i].onClick.AddListener(()=>Navigate(index)); }
             Refresh();
         }
@@ -83,6 +84,20 @@ namespace Moonlit.UI
         public void Inspect(EquipmentSlot slot)
         {
             if(slot.item == null) { Toast("비어 있는 장비 슬롯입니다"); return; }
+            inspected=slot; slot.SetSelected(true); slot.SetNotification(false);
+            screens.Open("equipment-details", slot);
+        }
+
+        void OpenLocalPlayerDetails()
+        {
+            screens.Open("player-details", new System.Collections.Generic.Dictionary<string, object> {
+                { "name", "moonzsanf" }, { "power", powerText.text }, { "rank", 389 }, { "avatarIndex", 0 }
+            });
+        }
+
+        // Retained for the unsupplied quest route only.
+        void InspectLegacy(EquipmentSlot slot)
+        {
             Close(); inspected=slot; slot.SetSelected(true); slot.SetNotification(false);
             var p=Modal(slot.item.displayName,680);
             Ui.Text("Rarity",p,36,84,668,42,slot.item.rarity==ItemRarity.Companion ? "동료  ·  달빛의 수호자" : "전설  ·  장착 중",24,font,Ui.Gold);
@@ -112,11 +127,11 @@ namespace Moonlit.UI
         {
             selectedMenu=index;
             for(int i=0;i<navigation.Length;i++) navigation[i].targetGraphic.color=i==index ? Color.white : new Color(.9f,.9f,.9f,1);
-            if(index==0) { Close(); return; }
-            if(index==1) ShowInfo("던전", "달빛 폐허\n어려움 4-"+stage+"\n\n현재 전투력 "+powerText.text,"스테이지 보기",Stage);
-            if(index==2) Inspect(equipment[equipment.Length-1]);
+            if(index==0) screens.Open("pvp");
+            if(index==1) screens.Open("dungeons");
+            if(index==2) screens.Open("skills-pets-heroes");
             if(index==3) ShowInfo("모험 퀘스트", "장비 강화  "+successfulForges+" / 10\n\n대장간에서 장비를 강화해 보세요.\n퀘스트 보상 : 루비 10개","보상 받기",ClaimQuest);
-            if(index==4) ShowInfo("교환소", "강화석 보급 상자\n\n골드 10,000 → 강화석 500\n보유 골드 "+gold.ToString("N0"),"교환하기",()=>{ if(gold<10000) { Toast("골드가 부족합니다"); return; } gold-=10000; ore+=500; Refresh(); Close(); Toast("강화석 500개를 받았습니다"); });
+            if(index==4) screens.Open("shop");
         }
         bool questClaimed;
         void ClaimQuest() { if(questClaimed) { Toast("이미 받은 보상입니다"); return; } if(successfulForges<10) { Toast("장비를 10회 강화하면 받을 수 있습니다"); return; } questClaimed=true; gems+=10; Refresh(); Close(); Toast("루비 +10"); }

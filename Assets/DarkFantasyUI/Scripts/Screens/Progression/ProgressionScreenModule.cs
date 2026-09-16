@@ -99,9 +99,10 @@ namespace Moonlit.UI
                     : new[] { "검은 방랑자", "성채의 마녀", "망령 기사", "심연 사냥꾼", "별의 예언자", "피의 군주" };
                 Ui.Text("Inferred title", state.content, 0, 12, 984, 58, title + "  6/12", 34, ctx.Assets.font, Ui.Gold);
                 for (var i = 0; i < names.Length; i++) {
+                    var selectedName = names[i];
                     var skill = new SkillData(names[i], 30 + i * 7, (i + 2) % 8, i + state.tab, "+동료 전투력 " + (12 + i * 3) + "%");
                     SkillSlot(state.content, 105 + (i % 3) * 280, 90 + (i / 3) * 285, 190, skill, ctx.Assets.font,
-                        () => ctx.Toast(names[i] + " 선택"), false);
+                        () => ctx.Toast(selectedName + " 선택"), false);
                 }
                 Ui.Text("Inference note", state.content, 80, state.content.rect.height - 96, 824, 70,
                     "보유한 " + (state.tab == 1 ? "펫" : "영웅") + "을 선택해 편성할 수 있습니다.", 23, ctx.Assets.font, Ui.Ivory);
@@ -193,10 +194,16 @@ namespace Moonlit.UI
             for (var i = 0; i < Dungeons.Length; i++) {
                 var dungeon = Dungeons[i];
                 var row = Ui.Panel("Dungeon " + dungeon.name, scroll.content, 10, i * 250, 920, 220, new Color(.025f,.085f,.12f,.98f));
+                var banner = DungeonBanner(dungeon);
+                if (banner) {
+                    Ui.Image("Generated dungeon banner", row.transform, 5, 5, 910, 210, banner);
+                    Ui.Image("Readable action scrim", row.transform, 650, 5, 265, 210, null, new Color(0,.015f,.025f,.6f));
+                    Ui.Border(row.transform,920,220,Gold,3);
+                }
                 var icon = GetIcon(ctx.Assets, dungeon.icon);
-                Ui.Image("Illustration", row.transform, 20, 25, 260, 170, icon, new Color(.55f,.75f,.85f));
-                Ui.Text("Name", row.transform, 305, 18, 360, 58, dungeon.name, 32, font, Ui.Ivory, TextAnchor.MiddleLeft);
-                Ui.Text("Locale", row.transform, 305, 76, 360, 48, dungeon.locale, 22, font, Ui.Gold, TextAnchor.MiddleLeft);
+                if (!banner) Ui.Image("Illustration", row.transform, 20, 25, 260, 170, icon, new Color(.55f,.75f,.85f));
+                Ui.Text("Name", row.transform, banner ? 30 : 305, 18, 360, 58, dungeon.name, 32, font, Ui.Ivory, TextAnchor.MiddleLeft);
+                if (!banner) Ui.Text("Locale", row.transform, 305, 76, 360, 48, dungeon.locale, 22, font, Ui.Gold, TextAnchor.MiddleLeft);
                 Ui.Text("Keys", row.transform, 680, 25, 190, 50, "⚿  2/2", 27, font);
                 var index = i;
                 Ui.Button("Open", row.transform, 650, 104, 220, 78, "열기", font, () => { selectedDungeon = index; ctx.Open("dungeon-details", Dungeons[index]); }, Blue, 28);
@@ -210,7 +217,8 @@ namespace Moonlit.UI
             var font = ctx.Assets.font;
             var h = Mathf.Min(1050, ctx.Height - 180);
             var panel = Panel(ctx.Root, 105, (ctx.Height - h) / 2, 870, h, dungeon.name, font, 38);
-            Ui.Image("Dungeon art", panel, 45, 120, 780, 300, GetIcon(ctx.Assets, dungeon.icon), new Color(.45f,.7f,.83f));
+            var banner = DungeonBanner(dungeon);
+            Ui.Image("Dungeon art", panel, 45, 120, 780, 300, banner ? banner : GetIcon(ctx.Assets, dungeon.icon), banner ? Color.white : new Color(.45f,.7f,.83f));
             Ui.Text("Locale", panel, 55, 420, 760, 65, dungeon.locale, 34, font, Ui.Ivory);
             Ui.Text("Difficulty", panel, 100, 500, 670, 72, "◀     난이도  " + dungeon.stage + "     ▶", 30, font, Ui.Gold);
             Panel(panel, 120, 592, 630, 86, "보상:  " + dungeon.reward, font, 27);
@@ -218,6 +226,11 @@ namespace Moonlit.UI
             Ui.Button("Previous", panel, 55, h - 150, 350, 88, "이전 스테이지\n소탕", font, () => ctx.Toast("이전 스테이지 보상을 확인했습니다."), Blue, 26);
             Ui.Button("Enter", panel, 465, h - 150, 350, 88, "입장", font, () => ctx.Toast("로컬 데모: " + dungeon.name + " 입장 준비"), Blue, 29);
             Close(panel, 385, h - 48, font, ctx.Close);
+        }
+
+        static Sprite DungeonBanner(DungeonData dungeon)
+        {
+            return dungeon == Dungeons[0] ? Resources.Load<Sprite>("Moonlit/Dungeons/HammerThief-v1") : null;
         }
 
         static void AddBackdrop(Transform root, ScreenContext ctx)

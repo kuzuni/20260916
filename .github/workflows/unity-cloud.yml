@@ -13,6 +13,10 @@ concurrency:
   group: unity-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+  checks: write
+
 jobs:
   tests:
     name: Compile and PlayMode tests
@@ -70,27 +74,20 @@ jobs:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         run: test -n "$UNITY_EMAIL" && test -n "$UNITY_LICENSE" && test -n "$UNITY_PASSWORD"
-      - name: Prepare license file without exposing its value
+      - name: Activate Unity and capture with graphics enabled
+        uses: game-ci/unity-builder@v4
         env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-        run: |
-          install -d -m 700 "$RUNNER_TEMP/unity-home/.local/share/unity3d/Unity"
-          printf '%s' "$UNITY_LICENSE" > "$RUNNER_TEMP/unity-home/.local/share/unity3d/Unity/Unity_lic.ulf"
-          chmod 600 "$RUNNER_TEMP/unity-home/.local/share/unity3d/Unity/Unity_lic.ulf"
-      - name: Capture under a virtual graphics display
-        env:
-          UNITY_IMAGE: unityci/editor:ubuntu-6000.3.8f1-linux-il2cpp-3
-        run: |
-          docker run --rm \
-            --user "$(id -u):$(id -g)" \
-            -e HOME=/home/unity \
-            -v "$PWD:/project" \
-            -v "$RUNNER_TEMP/unity-home:/home/unity" \
-            -w /project "$UNITY_IMAGE" \
-            xvfb-run -a unity-editor -batchmode \
-              -projectPath /project \
-              -logFile /project/Artifacts/CloudCapture.log \
-              -executeMethod Moonlit.Editor.CloudVerification.Run
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          unityVersion: 6000.3.8f1
+          targetPlatform: StandaloneLinux64
+          buildMethod: Moonlit.Editor.CloudVerification.Run
+          manualExit: true
+          enableGpu: true
+          versioning: Custom
+          version: 0.1.0
       - name: Upload captures and logs
         if: always()
         uses: actions/upload-artifact@v4

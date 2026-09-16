@@ -13,3 +13,47 @@ Next cloud integration work:
 - Make cloud workflows actually activate using the proven GameCI configuration, run meaningful tests and capture all 24 routes in 9:16 and 9:19 plus notch/side inset cases. Existing capture covers only main and is insufficient.
 - Explicitly list missing bespoke artwork. Coordinator will supply generated images separately. Do not claim placeholders are finished art.
 - Return reviewable diff and actual checks. Keep checkpoint updated. No local Unity.
+
+## Integration implementation (current branch)
+
+The three feature modules are now registered explicitly by the runtime factory. Main-screen entry
+points use the required route keys: profile, offline rewards, progress pass, forge probability,
+comparison, auto-forge settings, chat, equipment details, and the four supplied bottom-navigation
+pages. The small main information button is the shared `player-details` entry with the local player
+payload; ranking and PvP continue to use that same route with their own payloads.
+
+The old immediate anvil upgrade and auto-toggle listeners are no longer attached. Comparison now
+requires a sell/equip decision, applies its local demo result once, and closes without trapping a
+resolved modal. Auto-forge rarity/stat choices, hammer quantity, and continue choice persist across
+opens; Start is the only control that enables the existing local automatic-forge loop.
+
+Cloud verification now requests every one of the 24 routes at both 1080x1920 and 1080x2280 with
+notch/side safe insets, in addition to the six main-screen resize cases. The graphics container is
+given the same three masked GameCI activation environment variables as the proven baseline rather
+than relying on a manually installed license file. PlayMode coverage still checks modal top-only
+pop/focus restoration, duplicate opens, page replacement/input blocking, and live safe-area refits.
+
+Checks performed in this integration container: all 24 reference files and module reports were
+located; representative full-resolution references were visually re-audited; route registrations,
+main listener mappings, metadata presence, brace balance, and whitespace were checked statically.
+`git diff --check` passes. Unity is intentionally not run locally, so Unity compilation, PlayMode
+results, and the 48 route captures remain **unverified until the GitHub Actions run completes**.
+
+Remaining artwork limitations are unchanged and must not be called finished: unique catalogue item
+paintings, pass treasure/reward paintings, skill and dungeon illustrations, character portraits,
+league crests, gem/product piles, banners, and several bespoke filigree/frame treatments are not in
+the shared asset catalog. Current drafts reuse independent existing sprites and runtime ornamentation;
+coordinator-provided generated assets are still required for final reference fidelity.
+
+## Coordinator review 2026-09-16 17:30 KST
+
+Applied task_e_6aaa4b7d4a2c8329938a738ce3607eff patch (7 files) and reviewed it. The cloud patch did not fix all requested defects. Coordinator corrections:
+- Move PageHost outside the disabled MainCanvas CanvasGroup so page controls remain usable.
+- Close page contexts and back from a page to main; deactivate closing layers before deferred destruction to prevent stale overlays in same-frame actions/captures.
+- Fix pet/hero loop callback capture (names[i] was out of range after the loop).
+- Replace raw docker capture invocation with actual game-ci/unity-builder activation, custom capture method, manualExit and enableGpu. Raw editor env vars alone did not invoke GameCI activation.
+- Persist capture lifecycle via SessionState and InitializeOnLoad across Unity domain reload. Reject stale report from prior runs.
+- Add page-close/input and actual modal backdrop raycast tests.
+- Generate and wire the first independent dungeon painting, HammerThief-v1. Provenance: ART-GENERATION.md. Other bespoke art remains pending.
+
+Static whitespace validation passed. Unity test/capture execution pending PR CI, never claimed as passed. Remaining important review items: screenshot bounds/content clipping and active safe-area relayout, meaningful sell/equip state (equip currently only reports a result), stopping/configuring automatic forge, parent scroll/tab preservation, remaining artwork, and original reference fidelity for every route. Do not merge until resolved.

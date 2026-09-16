@@ -82,6 +82,53 @@ namespace Moonlit.UI.Tests
         }
 
         [UnityTest]
+        public IEnumerator PageCanReceiveInputAndCloseBackToMain()
+        {
+            ScreenContext pageContext = null;
+            Button button = null;
+            host.Registry.Register("page", ScreenPresentation.Page, context => {
+                pageContext = context;
+                var rect = Child("page action", context.Root);
+                rect.gameObject.AddComponent<Image>().raycastTarget = true;
+                button = rect.gameObject.AddComponent<Button>();
+            });
+            host.Registry.Open("page"); yield return null;
+            Assert.IsTrue(button.IsInteractable());
+            Assert.IsTrue(navigation.interactable);
+            Assert.IsFalse(main.interactable);
+            pageContext.Close(); yield return null;
+            Assert.IsNull(host.ActivePageKey);
+            Assert.IsTrue(main.interactable);
+            host.Registry.Open("page"); host.CloseTop(); yield return null;
+            Assert.IsNull(host.ActivePageKey);
+        }
+
+        [UnityTest]
+        public IEnumerator ModalDimInterceptsPointerOutsideSafeArea()
+        {
+            navigation.gameObject.AddComponent<Canvas>().overrideSorting = true;
+            navigation.GetComponent<Canvas>().sortingOrder = 100;
+            navigation.gameObject.AddComponent<GraphicRaycaster>();
+            var navRect = Child("full nav button", navigation.transform);
+            navRect.gameObject.AddComponent<Image>().raycastTarget = true;
+            var navButton = navRect.gameObject.AddComponent<Button>();
+            int clicks = 0;
+            navButton.onClick.AddListener(() => clicks++);
+            host.Registry.Register("modal", ScreenPresentation.Modal, context => { });
+            host.SetPreviewMetrics(new Vector2Int(1080,1920), new Rect(0,120,1080,1700));
+            host.Registry.Open("modal"); yield return null;
+            Canvas.ForceUpdateCanvases();
+            var pointer = new PointerEventData(EventSystem.current) { position = new Vector2(2,2) };
+            var hits = new System.Collections.Generic.List<RaycastResult>();
+            EventSystem.current.RaycastAll(pointer,hits);
+            Assert.IsNotEmpty(hits);
+            Assert.AreEqual("Dim",hits[0].gameObject.name);
+            ExecuteEvents.Execute(hits[0].gameObject,pointer,ExecuteEvents.pointerClickHandler);
+            Assert.AreEqual(0,clicks);
+            Assert.AreEqual(0,host.ModalDepth);
+        }
+
+        [UnityTest]
         public IEnumerator SafeAreaChange_RefitsEveryOpenLayerWithoutRebuilding()
         {
             RectTransform parent = null, child = null;

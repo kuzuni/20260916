@@ -54,11 +54,11 @@ namespace Moonlit.UI
             Ui.Text("Forge level timer",parent,675,1550,175,31,"1일 7시",21,font);
             Ui.Image("Silver ingot",main.forgeButton.transform,105,193,41,40,referenceIcons[2]).preserveAspect=true;
             main.oreText=Ui.Text("Stone amount",main.forgeButton.transform,150,190,145,45,"40351",31,font,Ui.Ivory,TextAnchor.MiddleLeft);
-            var info=Ui.ArtButton("Forge help",parent,110,1347,45,45);
+            var info=Ui.ArtButton("Player details",parent,110,1347,45,45);
+            main.playerDetailsButton=info;
             Ui.Image("Info bronze rim",info.transform,0,0,45,45,circle,Ui.Gold);
             Ui.Image("Info dark center",info.transform,3,3,39,39,circle,new Color(.04f,.035f,.03f));
             Ui.Text("Info letter",info.transform,0,-1,45,45,"i",28,font);
-            info.onClick.AddListener(main.ForgeManagement);
             main.chatButton=Ui.ArtButton("World chat",parent,0,1610,1080,112,panels[1],true,8);
             ((Image)main.chatButton.targetGraphic).fillCenter=false;
             var chatStone=Ui.Image("Chat stone texture",main.chatButton.transform,8,8,1064,96,panels[4],new Color(.53f,.53f,.53f)); chatStone.type=Image.Type.Tiled; chatStone.transform.SetAsFirstSibling();

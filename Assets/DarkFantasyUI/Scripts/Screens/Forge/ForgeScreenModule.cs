@@ -15,7 +15,10 @@ namespace Moonlit.UI
         static readonly Color Red = new Color(.38f, .035f, .035f);
         static readonly Color Orange = new Color(1f, .52f, .12f);
         static bool offlineClaimed;
-        static bool comparisonResolved;
+        static readonly bool[] autoKeep = { false, false, false, true };
+        static readonly bool[] autoFilters = { true, true, false, false, false, true };
+        static int autoHammerCount = 22;
+        static bool autoContinue = true;
         static readonly HashSet<int> passClaims = new HashSet<int>();
 
         static readonly string[] Tiers =
@@ -185,10 +188,9 @@ namespace Moonlit.UI
             Frame(c, "장비 비교", 820, 810, out var b, false);
             ComparisonCard(c, b, 10, 10, "장착됨", "[신성한] 머큐리 샌들", "1.79b 체력  ▲\n+8.48% 치명타 확률\n+13.2% 체력", 1, Orange);
             ComparisonCard(c, b, 10, 285, "새로운!", "[양자] 반중력 부츠", "110m 체력  ▼\n+5.27% 생명력 흡수\n+15% 더블 찬스", 2, new Color(.75f,.35f,1f));
-            var status = Ui.Text("Decision", b, 0, 565, b.rect.width, 38, comparisonResolved ? "결정 완료" : "판매 또는 장착을 선택하세요.", 22, Font(c));
-            var sell = Action(c, b, 20, 612, 320, 96, "판매", () => ResolveComparison(c, status, "새 장비를 판매했습니다. +120 망치"), Red);
-            var equip = Action(c, b, 380, 612, 320, 96, "장착", () => ResolveComparison(c, status, "새 장비를 장착했습니다."), Blue);
-            if (comparisonResolved) { sell.interactable = false; equip.interactable = false; }
+            var status = Ui.Text("Decision", b, 0, 565, b.rect.width, 38, "판매 또는 장착을 선택하세요.", 22, Font(c));
+            Action(c, b, 20, 612, 320, 96, "판매", () => ResolveComparison(c, status, false), Red);
+            Action(c, b, 380, 612, 320, 96, "장착", () => ResolveComparison(c, status, true), Blue);
         }
 
         static void ComparisonCard(ScreenContext c, Transform p, float x, float y, string tag, string name, string stats, int icon, Color color)
@@ -201,11 +203,13 @@ namespace Moonlit.UI
             Ui.Text("Stats", card.transform, 185, 100, 500, 126, stats, 24, Font(c), Ui.Ivory, TextAnchor.UpperLeft);
         }
 
-        static void ResolveComparison(ScreenContext c, Text status, string message)
+        static void ResolveComparison(ScreenContext c, Text status, bool equip)
         {
-            if (comparisonResolved) return;
-            comparisonResolved = true; status.text = message; c.Toast(message);
+            var message = equip ? "새 장비를 장착했습니다." : "새 장비를 판매했습니다. 강화석 +120";
+            if (!equip) { c.Main.ore += 120; c.Main.Refresh(); }
+            status.text = message; c.Toast(message);
             foreach (var button in status.transform.parent.GetComponentsInChildren<Button>()) button.interactable = false;
+            c.Close();
         }
 
         static void BuildOfflineRewards(ScreenContext c)
@@ -242,7 +246,10 @@ namespace Moonlit.UI
             for (var i = 0; i < 4; i++)
             {
                 var row = Ui.Panel("Keep " + Tiers[6+i], b, 10, 55 + i*76, b.rect.width-20, 64, TierColors[6+i]);
-                keep.Add(Check(c, row.transform, 12, 9, i == 3));
+                var index = i;
+                var toggle = Check(c, row.transform, 12, 9, autoKeep[i]);
+                toggle.onValueChanged.AddListener(value => autoKeep[index] = value);
+                keep.Add(toggle);
                 Ui.Text("Name", row.transform, 78, 2, 430, 60, Glyph(6+i) + "  " + Tiers[6+i] + " ★", 25, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
                 Ui.Text("Rate", row.transform, 540, 2, 120, 60, Rates33[6+i], 25, Font(c), Ui.Ivory, TextAnchor.MiddleRight);
             }
@@ -251,19 +258,22 @@ namespace Moonlit.UI
             for (var i=0;i<filters.Length;i++)
             {
                 var row=Ui.Panel("Filter "+filters[i],b,10,420+i*70,b.rect.width-20,58,Slate);
-                Check(c,row.transform,12,6,i==0||i==1||i==5);
+                var index=i;
+                var toggle=Check(c,row.transform,12,6,autoFilters[i]);
+                toggle.onValueChanged.AddListener(value=>autoFilters[index]=value);
                 Ui.Text("Label",row.transform,78,0,row.rectTransform.rect.width-90,58,filters[i],24,Font(c),Ui.Ivory,TextAnchor.MiddleLeft);
             }
             Ui.Text("Hammer label",b,15,860,430,55,"한 번에 사용된 망치 수",24,Font(c),Ui.Ivory,TextAnchor.MiddleLeft);
-            var amount=Ui.Text("Hammer count",b,510,860,135,55,"22",30,Font(c));
-            Action(c,b,650,860,50,27,"▲",()=> { amount.text=(Mathf.Min(99,int.Parse(amount.text)+1)).ToString(); },Slate,18);
-            Action(c,b,650,888,50,27,"▼",()=> { amount.text=(Mathf.Max(1,int.Parse(amount.text)-1)).ToString(); },Slate,18);
+            var amount=Ui.Text("Hammer count",b,510,860,135,55,autoHammerCount.ToString(),30,Font(c));
+            Action(c,b,650,860,50,27,"▲",()=> { autoHammerCount=Mathf.Min(99,autoHammerCount+1); amount.text=autoHammerCount.ToString(); },Slate,18);
+            Action(c,b,650,888,50,27,"▼",()=> { autoHammerCount=Mathf.Max(1,autoHammerCount-1); amount.text=autoHammerCount.ToString(); },Slate,18);
             Ui.Text("Continue",b,15,935,570,58,"목표 장비를 찾으면 제련 계속하기",22,Font(c),Ui.Ivory,TextAnchor.MiddleLeft);
-            Check(c,b,630,944,true);
+            var continueToggle=Check(c,b,630,944,autoContinue);
+            continueToggle.onValueChanged.AddListener(value=>autoContinue=value);
             Action(c,b,190,1025,350,100,"시작",()=>
             {
                 if (!keep.Exists(t=>t.isOn)) c.Toast("유지할 등급을 하나 이상 선택하세요.");
-                else c.Toast(amount.text+"개 망치로 자동 제련을 시작합니다.");
+                else { c.Main.autoForge=true; c.Main.Refresh(); c.Toast(amount.text+"개 망치로 자동 제련을 시작합니다."); c.Close(); }
             });
         }
 

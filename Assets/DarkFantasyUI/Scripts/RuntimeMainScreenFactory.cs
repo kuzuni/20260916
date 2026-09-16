@@ -65,7 +65,7 @@ namespace Moonlit.UI
             BuildMotes(world);
             var safe=canvas.gameObject.AddComponent<PortraitSafeArea>(); safe.canvasRect=canvas.GetComponent<RectTransform>(); safe.safeFrame=safeFrame;
             safe.design=design; safe.bottomPanel=bottom; safe.battleViewport=world; safe.battleArt=worldArt.rectTransform;
-            var pageHost=Ui.Rect("PageHost",mainCanvas.transform,0,0,1080,1920); Ui.Stretch(pageHost);
+            var pageHost=Ui.Rect("PageHost",canvas.transform,0,0,1080,1920); Ui.Stretch(pageHost);
             var popupRoot=Ui.Rect("PopupRoot",canvas.transform,0,0,1080,1920); Ui.Stretch(popupRoot);
             var toastCanvas=LayerCanvas("ToastCanvas",canvas.transform,1000); toastCanvas.GetComponent<GraphicRaycaster>().enabled=false;
             var toastSafe=Ui.Rect("Device Safe Area",toastCanvas.transform,0,0,1080,1920); Ui.Stretch(toastSafe);
@@ -73,6 +73,9 @@ namespace Moonlit.UI
             safe.additionalSafeFrames=new[]{navigationSafe,toastSafe}; safe.additionalDesigns=new[]{navigationDesign,toastDesign}; safe.additionalBottomPanels=new[]{navigationBottom,(RectTransform)null};
             var host=canvas.gameObject.AddComponent<UiScreenHost>(); host.Initialize(assets,main,popupRoot,pageHost,mainInput,navigationInput);
             main.screens=host.Registry;
+            ForgeScreenModule.Register(host.Registry);
+            ProgressionScreenModule.Register(host.Registry);
+            SocialScreenModule.Register(host.Registry);
             if(!Object.FindFirstObjectByType<EventSystem>()) {
                 var events=new GameObject("Runtime EventSystem",typeof(EventSystem),typeof(InputSystemUIInputModule)); events.transform.SetParent(root,false);
             }

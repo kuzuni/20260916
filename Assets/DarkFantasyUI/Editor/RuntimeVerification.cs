@@ -54,6 +54,8 @@ namespace Moonlit.Editor
                     if(hardware) { Object.DestroyImmediate(hardware); hardware=null; }
                 } catch(Exception e) { report.Add("FAIL "+names[i]+": "+e); success=false; break; }
             }
+            if(success) yield return CaptureAllRoutes(screen, screenHost, safe, canvas, camera, report,
+                value => { target = value; camera.targetTexture = value; }, () => target, () => success=false);
             if(success) {
                 try { VerifyInteractions(screen); report.Add("PASS runtime slot binding, forge, lock exclusion, auto toggle, independent management, navigation, insufficient-resource handling"); }
                 catch(Exception e) { report.Add("FAIL interactions: "+e); success=false; }
@@ -68,14 +70,45 @@ namespace Moonlit.Editor
             else Debug.LogError("[Moonlit] Validation failed; see Artifacts/Verification.txt");
             EditorApplication.isPlaying=false;
         }
+
+        static IEnumerator CaptureAllRoutes(MainScreen screen, UiScreenHost host, PortraitSafeArea safe,
+            Canvas canvas, Camera camera, List<string> report, Action<RenderTexture> setTarget,
+            Func<RenderTexture> getTarget, Action fail)
+        {
+            string[] routes={
+                "forge-probability","forge-probability-details","forge-item-details","dungeon-details",
+                "progress-pass","profile","settings","equipment-details","forge-comparison","offline-rewards",
+                "player-details","auto-forge","chat","skill-details","summon-probability",
+                "summon-probability-details","summon-result","power-ranking","skills-pets-heroes","dungeons",
+                "shop","pvp-opponents","pvp","pvp-rewards"
+            };
+            int[] heights={1920,2280};
+            Rect[] areas={new Rect(0,60,1080,1740),new Rect(36,84,1008,2076)};
+            foreach(var route in routes) foreach(var aspect in new[]{0,1})
+            {
+                var old=getTarget(); if(old) { camera.targetTexture=null; old.Release(); Object.DestroyImmediate(old); }
+                var target=new RenderTexture(1080,heights[aspect],24); setTarget(target);
+                safe.SetPreviewMetrics(new Vector2Int(1080,heights[aspect]),areas[aspect]);
+                host.SetPreviewMetrics(new Vector2Int(1080,heights[aspect]),areas[aspect]);
+                host.Registry.ShowMainPage(); host.Registry.Open(route);
+                yield return null; yield return null; Canvas.ForceUpdateCanvases();
+                var layer=GameObject.Find((host.ActivePageKey==route ? "Page — " : "Popup Layer ")+route);
+                var routeRoot=layer ? layer.transform.Find("SafeArea") as RectTransform : null;
+                if(!layer || !routeRoot || routeRoot.rect.height<=0 || (host.ActivePageKey!=route && host.ModalDepth!=1))
+                { report.Add("FAIL route "+route+" did not build in a resized safe layer"); fail(); yield break; }
+                SaveCamera(camera,"Artifacts/Runtime-"+route+"-"+(aspect==0?"9x16":"9x19")+".png",1080,heights[aspect]);
+                report.Add("PASS route "+route+" "+(aspect==0?"9:16 notch":"9:19 side-insets"));
+                host.Registry.ShowMainPage();
+            }
+        }
         static void VerifyInteractions(MainScreen screen)
         {
             int ore=screen.ore,total=screen.equipment.Sum(s=>s.level),locked=screen.equipment[0].level;
-            screen.forgeLevelButton.onClick.Invoke(); if(screen.ore!=ore || screen.screens.ModalDepth!=1) throw new Exception("Forge management failed"); screen.Close();
-            screen.forgeButton.onClick.Invoke(); if(screen.ore!=ore-100 || screen.equipment.Sum(s=>s.level)!=total+1 || screen.equipment[0].level!=locked) throw new Exception("Forge cost / locked item exclusion failed");
-            screen.autoButton.onClick.Invoke(); if(!screen.autoForge) throw new Exception("Auto toggle failed"); screen.autoButton.onClick.Invoke();
+            screen.forgeLevelButton.onClick.Invoke(); if(screen.ore!=ore || screen.screens.ModalDepth!=1) throw new Exception("Forge probability route failed"); screen.Close();
+            screen.forgeButton.onClick.Invoke(); if(screen.ore!=ore || screen.screens.ModalDepth!=1) throw new Exception("Comparison route bypassed its decision UI"); screen.Close();
+            screen.autoButton.onClick.Invoke(); if(screen.autoForge || screen.screens.ModalDepth!=1) throw new Exception("Auto settings route conflicted with the old immediate toggle"); screen.Close();
             screen.equipment[1].Button.onClick.Invoke(); if(screen.screens.ModalDepth!=1) throw new Exception("Runtime slot click handler missing"); screen.Close();
-            foreach(var nav in screen.navigation) { nav.onClick.Invoke(); screen.Close(); }
+            for(int i=0;i<screen.navigation.Length;i++) { screen.navigation[i].onClick.Invoke(); if(i!=3 && string.IsNullOrEmpty(Object.FindFirstObjectByType<UiScreenHost>().ActivePageKey)) throw new Exception("Navigation route missing at index "+i); screen.screens.ShowMainPage(); }
             var blank=Object.Instantiate(screen.equipment[1],screen.design); blank.Bind(null);
             if(blank.icon.enabled || blank.levelLabel.text!="" || blank.lockedBadge.activeSelf || blank.notificationBadge.activeSelf) throw new Exception("Empty slot retains stale content");
             blank.Bind(screen.equipment[2].item,8,true,true);

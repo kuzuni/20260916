@@ -158,15 +158,16 @@ namespace Moonlit.UI
 
         internal void Close(int id)
         {
+            if (stack.Count == 0 && page != null && page.id == id) { ClosePage(); return; }
             if (stack.Count == 0 || stack[stack.Count - 1].id != id) return;
             CloseTop();
         }
 
         public void CloseTop()
         {
-            if (stack.Count == 0) return;
+            if (stack.Count == 0) { if (page != null) ClosePage(); return; }
             var entry = stack[stack.Count - 1]; stack.RemoveAt(stack.Count - 1);
-            SetGroup(entry.group, false); Destroy(entry.layer); SetInputState();
+            SetGroup(entry.group, false); entry.layer.SetActive(false); Destroy(entry.layer); SetInputState();
             if (entry.opener && entry.opener.activeInHierarchy && EventSystem.current)
                 EventSystem.current.SetSelectedGameObject(entry.opener);
         }
@@ -176,7 +177,7 @@ namespace Moonlit.UI
         public void ClosePage()
         {
             CloseAllModals();
-            if (page != null) { SetGroup(page.group, false); Destroy(page.layer); page = null; }
+            if (page != null) { SetGroup(page.group, false); page.layer.SetActive(false); Destroy(page.layer); page = null; }
             SetInputState();
         }
 
