@@ -34,6 +34,13 @@ namespace Moonlit.UI
 
         public static Image Panel(string name, Transform parent, float x, float y, float width, float height)
         {
+            // Generated stone has slightly translucent interior pixels. An opaque inset
+            // prevents equipment labels from ghosting through the modal, while preserving
+            // the illustrated frame's transparent outer corners and independent hit target.
+            if (height > 200)
+                Ui.Image(name + " opaque backing", parent, x + 20, y + 20,
+                    Mathf.Max(1, width - 40), Mathf.Max(1, height - 40), null,
+                    new Color(.02f, .03f, .04f, 1)).raycastTarget = false;
             var image = Ui.Image(name, parent, x, y, width, height, PanelArt);
             image.type = Image.Type.Sliced;
             image.pixelsPerUnitMultiplier = height > 200 ? 3 : 7;
