@@ -66,6 +66,8 @@ namespace Moonlit.UI
             var safe=canvas.gameObject.AddComponent<PortraitSafeArea>(); safe.canvasRect=canvas.GetComponent<RectTransform>(); safe.safeFrame=safeFrame;
             safe.design=design; safe.bottomPanel=bottom; safe.battleViewport=world; safe.battleArt=worldArt.rectTransform;
             var pageHost=Ui.Rect("PageHost",canvas.transform,0,0,1080,1920); Ui.Stretch(pageHost);
+            // Keep hierarchy order consistent with canvas sort order for dynamic page canvases.
+            pageHost.SetSiblingIndex(navigationCanvas.transform.GetSiblingIndex());
             var popupRoot=Ui.Rect("PopupRoot",canvas.transform,0,0,1080,1920); Ui.Stretch(popupRoot);
             var toastCanvas=LayerCanvas("ToastCanvas",canvas.transform,1000); toastCanvas.GetComponent<GraphicRaycaster>().enabled=false;
             var toastSafe=Ui.Rect("Device Safe Area",toastCanvas.transform,0,0,1080,1920); Ui.Stretch(toastSafe);
