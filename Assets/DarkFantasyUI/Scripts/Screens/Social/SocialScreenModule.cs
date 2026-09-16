@@ -15,6 +15,8 @@ namespace Moonlit.UI
         static readonly Color Red = new Color(.42f, .035f, .045f, 1f);
         static readonly Color Green = new Color(.25f, 1f, .28f, 1f);
         const float NavigationReserve = 210f;
+        static int profileAvatar = 2;
+        static Sprite[] avatarPortraits;
 
         public static void Register(UiScreenRegistry registry)
         {
@@ -86,9 +88,27 @@ namespace Moonlit.UI
         static Image Avatar(ScreenContext c, Transform parent, float x, float y, float size, int index)
         {
             var bg = Ui.Panel("Avatar " + index, parent, x, y, size, size, new Color(.08f, .11f, .13f));
-            var art = Ui.Image("Avatar artwork", bg.transform, 8, 8, size - 16, size - 16, Icon(c, index));
+            var art = Ui.Image("Avatar artwork", bg.transform, 8, 8, size - 16, size - 16, AvatarPortrait(index));
             art.preserveAspect = true;
             return bg;
+        }
+
+        static Sprite AvatarPortrait(int index)
+        {
+            if (avatarPortraits == null || !avatarPortraits[0])
+            {
+                var atlas = Resources.Load<Texture2D>("Moonlit/Social/AvatarPortraits-v1");
+                if (!atlas) return null;
+                avatarPortraits = new Sprite[9];
+                int width = atlas.width / 3, height = atlas.height / 3;
+                for (int i = 0; i < avatarPortraits.Length; i++)
+                {
+                    avatarPortraits[i] = Sprite.Create(atlas, new Rect(i % 3 * width, (2 - i / 3) * height, width, height),
+                        new Vector2(.5f, .5f), 100, 0, SpriteMeshType.FullRect);
+                    avatarPortraits[i].name = "Avatar portrait " + i;
+                }
+            }
+            return avatarPortraits[Mathf.Abs(index) % avatarPortraits.Length];
         }
 
         static void BuildProfile(ScreenContext c, bool settingsFirst)
@@ -114,14 +134,16 @@ namespace Moonlit.UI
 
         static void BuildProfileTab(ScreenContext c, Transform root, float w, float h)
         {
-            var portrait = Avatar(c, root, 52, 38, 190, 0);
-            if (c.Assets != null && c.Assets.equipmentIcons != null && c.Assets.equipmentIcons.Length > 0)
-                portrait.transform.Find("Avatar artwork").GetComponent<Image>().sprite = c.Assets.equipmentIcons[0];
+            var portrait = Avatar(c, root, 52, 38, 190, profileAvatar);
             Ui.Text("Name label", root, 275, 32, 170, 48, "이름:", 27, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
             var name = Input(c, root, 275, 80, w - 320, 64, "moonzzanf");
             Ui.Text("Gender label", root, 275, 156, 170, 44, "성별:", 27, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
             var gender = Input(c, root, 275, 202, w - 320, 64, "♂");
-            Action(c, root, 52, 240, 190, 54, "아바타 변경", () => c.Toast("아바타가 로컬 미리보기에서 변경되었습니다."));
+            Action(c, root, 52, 240, 190, 54, "아바타 변경", () => {
+                profileAvatar = (profileAvatar + 1) % 9;
+                portrait.transform.Find("Avatar artwork").GetComponent<Image>().sprite = AvatarPortrait(profileAvatar);
+                c.Toast("아바타가 로컬 미리보기에서 변경되었습니다.");
+            });
             Action(c, root, w - 150, 80, 110, 64, "저장", () => c.Toast("프로필 미리보기를 저장했습니다: " + name.text));
             Action(c, root, w - 150, 202, 110, 64, "변경", () => { gender.text = gender.text == "♂" ? "♀" : "♂"; });
             Ui.Image("Divider", root, 55, 330, w - 110, 3, null, Ui.Gold);
@@ -184,7 +206,7 @@ namespace Moonlit.UI
             string power = Get(payload, "power", "65.5b");
             int rank = GetInt(payload, "rank", 11);
             float w, h; var frame = Frame(c, "플레이어 정보", 1370, out w, out h);
-            Avatar(c, frame, 52, 120, 146, GetInt(payload, "avatarIndex", 0));
+            Avatar(c, frame, 52, 120, 146, GetInt(payload, "avatarIndex", profileAvatar));
             Ui.Text("Player", frame, 220, 116, w - 270, 48, player + "  ♂", 34, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
             Ui.Image("Power icon", frame, 220, 169, 36, 36, Icon(c, 12)).preserveAspect = true;
             Ui.Text("Power", frame, 266, 166, w - 316, 44, power + "     서버 순위 " + rank, 29, Font(c), Ui.Gold, TextAnchor.MiddleLeft);
@@ -196,7 +218,7 @@ namespace Moonlit.UI
                 float sw = (w - 136) / 5f;
                 int row = i / 5, col = i % 5;
                 var slot = Ui.Panel("Equipment slot " + i, frame, 52 + col * sw, 520 + row * 142, sw - 12, 126, new Color(.26f,.11f,.025f));
-                Ui.Image("Icon", slot.transform, 13, 9, sw - 38, 79, Icon(c, i)).preserveAspect = true;
+                Ui.Image("Icon", slot.transform, 13, 9, sw - 38, 79, c.Assets.equipmentIcons != null && i < c.Assets.equipmentIcons.Length ? c.Assets.equipmentIcons[i] : null).preserveAspect = true;
                 Ui.Text("Level", slot.transform, 4, 88, sw - 20, 34, "Lv." + (108 - i), 20, Font(c));
             }
             for (int i = 0; i < 6; i++)
