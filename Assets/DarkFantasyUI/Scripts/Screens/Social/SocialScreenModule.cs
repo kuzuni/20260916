@@ -19,7 +19,7 @@ namespace Moonlit.UI
         static string profileName = "moonzzanf";
         static bool profileFemale;
         static readonly bool[] settingValues = { false, false, false, true, false, false };
-        static Sprite[] avatarPortraits;
+        static Sprite[] avatarPortraits, settingsIcons;
 
         public static void Register(UiScreenRegistry registry)
         {
@@ -165,6 +165,34 @@ namespace Moonlit.UI
             }
         }
 
+        static Sprite SettingsIcon(int index)
+        {
+            if (settingsIcons == null || !settingsIcons[0])
+            {
+                var atlas = Resources.Load<Texture2D>("Moonlit/Social/SettingsIcons-v1");
+                if (!atlas) return null;
+                settingsIcons = new Sprite[10];
+                float cellWidth = atlas.width / 5f, cellHeight = atlas.height / 2f;
+                for (int i = 0; i < settingsIcons.Length; i++)
+                {
+                    settingsIcons[i] = Sprite.Create(atlas,
+                        new Rect(i % 5 * cellWidth, (1 - i / 5) * cellHeight, cellWidth, cellHeight),
+                        new Vector2(.5f, .5f), 100, 0, SpriteMeshType.FullRect);
+                    settingsIcons[i].name = "Settings symbol " + i;
+                }
+            }
+            return settingsIcons[index];
+        }
+
+        static void SettingsRowArt(Transform root, float w, float y, int index)
+        {
+            var icon = Ui.Image("Settings icon " + index, root, 52, y + 6, 64, 64, SettingsIcon(index));
+            icon.preserveAspect = true;
+            icon.raycastTarget = false;
+            Ui.Image("Rule", root, 36, y + 82, w - 72, 2, null,
+                new Color(Ui.Gold.r, Ui.Gold.g, Ui.Gold.b, .45f)).raycastTarget = false;
+        }
+
         static void BuildSettingsTab(ScreenContext c, Transform root, float w, float h)
         {
             string[] names = { "진동", "음악", "사운드 효과", "채팅 표시", "채팅 다크 모드", "클랜 채팅 미리보기" };
@@ -172,15 +200,22 @@ namespace Moonlit.UI
             {
                 int index = i;
                 float y = i * 86;
-                Ui.Text("Setting " + names[i], root, 52, y, w - 230, 78, names[i], 27, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
+                SettingsRowArt(root, w, y, i);
+                Ui.Text("Setting " + names[i], root, 132, y, w - 310, 78, names[i], 27, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
                 Toggle(c, root, w - 170, y + 13, names[i], settingValues[i], on => settingValues[index] = on);
-                Ui.Image("Rule", root, 36, y + 82, w - 72, 2, null, new Color(Ui.Gold.r, Ui.Gold.g, Ui.Gold.b, .45f));
             }
             string[] links = { "언어", "계정 (로컬 데모)", "차단 목록", "개인정보 보호" };
             for (int i = 0; i < links.Length; i++)
             {
                 int index = i;
-                Action(c, root, 42, 532 + i * 72, w - 84, 58, links[i], () => c.Toast(links[index] + " 화면은 연결되지 않은 데모입니다."));
+                float y = (6 + i) * 86;
+                var hit = Ui.Image("Settings link " + i, root, 36, y, w - 72, 82, null, Color.clear);
+                hit.raycastTarget = true;
+                var button = hit.gameObject.AddComponent<Button>();
+                button.targetGraphic = hit;
+                button.onClick.AddListener(() => c.Toast(links[index] + " 화면은 연결되지 않은 데모입니다."));
+                SettingsRowArt(root, w, y, 6 + i);
+                Ui.Text("Setting " + links[i], root, 132, y, w - 310, 78, links[i], 27, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
             }
         }
 
