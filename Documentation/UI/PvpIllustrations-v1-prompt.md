@@ -23,4 +23,3 @@ Use case: stylized-concept. Create one single production game UI icon for a dark
 Both originals are 1254 x 1254 ARGB PNGs with transparent outer corners verified by read-only pixel inspection. Imported as single sprites, no mipmaps, original dimensions, alpha preserved. Runtime loads them from Resources/Moonlit/Social. Artwork ignores raycasts; the season reward button owns the hit target and opens pvp-rewards.
 
 The generated shield and gift replace unsupported font emoji, not exact pixel copies of the reference. Row decoration and many other 24-screen visual details remain unfinished. The nine portrait illustrations currently differ from the original PvP character lineup. New runtime import, interactions and captures await hosted Unity validation. No local Unity execution.
-
