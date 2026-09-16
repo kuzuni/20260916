@@ -14,6 +14,7 @@ namespace Moonlit.UI
         static readonly Color Blue = new Color(.02f, .23f, .48f, 1f);
         static readonly Color Red = new Color(.42f, .035f, .045f, 1f);
         static readonly Color Green = new Color(.25f, 1f, .28f, 1f);
+        const float NavigationReserve = 210f;
 
         public static void Register(UiScreenRegistry registry)
         {
@@ -30,6 +31,7 @@ namespace Moonlit.UI
 
         static Font Font(ScreenContext c) => c.Assets != null ? c.Assets.font : null;
         static Sprite PanelSprite(ScreenContext c) => c.Assets != null && c.Assets.panels != null && c.Assets.panels.Length > 1 ? c.Assets.panels[1] : null;
+        static Sprite PanelSprite(ScreenContext c, int index) => c.Assets != null && c.Assets.panels != null && c.Assets.panels.Length > index ? c.Assets.panels[index] : null;
         static Sprite Icon(ScreenContext c, int index)
         {
             var icons = c.Assets != null ? c.Assets.interfaceIcons : null;
@@ -42,7 +44,8 @@ namespace Moonlit.UI
             height = Mathf.Min(preferredHeight, c.Height - 72f);
             float x = (c.Width - width) * .5f;
             float y = Mathf.Max(24f, (c.Height - height) * .5f);
-            var frame = Ui.Panel(title + " frame", c.Root, x, y, width, height, Ink);
+            var frame = SpritePanel(c, title + " frame", c.Root, x, y, width, height, 2, Color.white);
+            frame.raycastTarget = true;
             Ui.Border(frame.transform, width, height, new Color(.42f, .29f, .14f), 8);
             Ui.Border(frame.transform, width, height, Ui.Gold, 2);
             Ui.Text("Title", frame.transform, 70, 18, width - 140, 70, title, 44, Font(c), Ui.Ivory);
@@ -58,7 +61,27 @@ namespace Moonlit.UI
         }
 
         static Button Action(ScreenContext c, Transform parent, float x, float y, float w, float h, string label, UnityAction action)
-            => Ui.Button(label, parent, x, y, w, h, label, Font(c), action, Blue, 28);
+        {
+            var button = Ui.ArtButton(label, parent, x, y, w, h, PanelSprite(c, 0), true, 5);
+            Ui.Text("Label", button.transform, 12, 4, w - 24, h - 8, label, 28, Font(c));
+            if (action != null) button.onClick.AddListener(action);
+            return button;
+        }
+
+        static Image SpritePanel(ScreenContext c, string name, Transform parent, float x, float y, float w, float h, int spriteIndex, Color tint)
+        {
+            var panel = Ui.Image(name, parent, x, y, w, h, PanelSprite(c, spriteIndex), tint);
+            panel.type = Image.Type.Sliced;
+            panel.pixelsPerUnitMultiplier = 5;
+            return panel;
+        }
+
+        static void Currency(ScreenContext c, Transform parent, float x, float y, float iconSize, int iconIndex, string value, Color? color = null)
+        {
+            var icon = Ui.Image(value + " icon", parent, x, y, iconSize, iconSize, Icon(c, iconIndex));
+            icon.preserveAspect = true;
+            Ui.Text(value + " value", parent, x + iconSize + 8, y, 170, iconSize, value, 28, Font(c), color ?? Ui.Ivory, TextAnchor.MiddleLeft);
+        }
 
         static Image Avatar(ScreenContext c, Transform parent, float x, float y, float size, int index)
         {
@@ -154,7 +177,8 @@ namespace Moonlit.UI
             float w, h; var frame = Frame(c, "플레이어 정보", 1370, out w, out h);
             Avatar(c, frame, 52, 120, 146, GetInt(payload, "avatarIndex", 0));
             Ui.Text("Player", frame, 220, 116, w - 270, 48, player + "  ♂", 34, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
-            Ui.Text("Power", frame, 220, 166, w - 270, 44, "⚔ " + power + "     서버 순위 " + rank, 29, Font(c), Ui.Gold, TextAnchor.MiddleLeft);
+            Ui.Image("Power icon", frame, 220, 169, 36, 36, Icon(c, 12)).preserveAspect = true;
+            Ui.Text("Power", frame, 266, 166, w - 316, 44, power + "     서버 순위 " + rank, 29, Font(c), Ui.Gold, TextAnchor.MiddleLeft);
             Ui.Text("Stats", frame, w - 310, 210, 260, 100, "Lv. 33 대장간\n1.46b 총 피해\n15.5b 총 체력", 22, Font(c), Ui.Ivory, TextAnchor.UpperRight);
             var scene = Ui.Panel("Companion scene", frame, 52, 288, w - 104, 210, new Color(.015f,.16f,.22f));
             Ui.Text("Scene", scene.transform, 20, 20, w - 144, 170, "☾  전투 동료 편성  ⚔  ✦", 42, Font(c), new Color(.35f,.85f,1));
@@ -166,7 +190,11 @@ namespace Moonlit.UI
                 Ui.Image("Icon", slot.transform, 13, 9, sw - 38, 79, Icon(c, i)).preserveAspect = true;
                 Ui.Text("Level", slot.transform, 4, 88, sw - 20, 34, "Lv." + (108 - i), 20, Font(c));
             }
-            Ui.Text("Skills", frame, 50, 814, w - 100, 48, "⚡ Lv.20   ◈ Lv.17   ✹ Lv.19   ☽ Lv.78   ✦ Lv.3", 27, Font(c), Ui.Gold);
+            for (int i = 0; i < 6; i++)
+            {
+                Ui.Image("Skill icon " + i, frame, 98 + i * 126, 806, 48, 48, Icon(c, (i + 3) % 16)).preserveAspect = true;
+                Ui.Text("Skill level " + i, frame, 78 + i * 126, 850, 88, 30, "Lv." + new[] { 20, 17, 19, 78, 3, 3 }[i], 18, Font(c), Ui.Gold);
+            }
             Ui.Image("Stats rule", frame, 60, 872, w - 120, 2, null, Ui.Gold);
             Ui.Text("Bonuses", frame, 92, 900, w - 184, 250, "+38.9% 치명타 확률  (상한 80%)\n+169% 치명타 피해\n+7.27% 블록 확률\n+1% 체력 재생\n+6% 생명력 흡수\n+39.6% 더블 찬스\n+45.2% 근접 피해", 25, Font(c), Ui.Ivory, TextAnchor.UpperLeft);
             Close(c, frame, w, h);
@@ -205,9 +233,11 @@ namespace Moonlit.UI
             Ui.Text("Rank number", row.transform, 12, 8, 90, 90, (index + 1).ToString(), 34, Font(c), index < 3 ? Ui.Gold : Ui.Ivory);
             Avatar(c, row.transform, 104, 9, 90, index);
             Ui.Text("Name", row.transform, 212, 10, width - 230, 42, name, 28, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
-            Ui.Text("Power", row.transform, 212, 53, width - 230, 40, "⚔ " + power, 26, Font(c), Ui.Gold, TextAnchor.MiddleLeft);
+            Ui.Image("Power icon", row.transform, 212, 57, 34, 34, Icon(c, 12)).preserveAspect = true;
+            Ui.Text("Power", row.transform, 254, 53, width - 272, 40, power, 26, Font(c), Ui.Gold, TextAnchor.MiddleLeft);
             var data = new Dictionary<string, object> { { "name", name }, { "power", power }, { "rank", index + 1 }, { "avatarIndex", index } };
             var button = row.gameObject.AddComponent<Button>(); button.targetGraphic = row; button.onClick.AddListener(() => c.Open("player-details", data));
+            row.raycastTarget = true;
         }
 
         static void BuildChat(ScreenContext c)
@@ -244,10 +274,10 @@ namespace Moonlit.UI
             var root = Ui.Panel("Shop page", c.Root, 0, 0, w, h, new Color(.015f,.045f,.06f,.97f)).rectTransform;
             Action(c, root, 28, 24, 150, 70, "‹ 메인", c.Close);
             Ui.Text("Shop title", root, 450, 24, 310, 80, "상점", 46, Font(c), Ui.Gold);
-            Ui.Text("Wallet", root, 190, 30, 250, 60, "♛ 1.59m", 29, Font(c), Ui.Ivory);
-            Ui.Text("Gems", root, w - 280, 30, 250, 60, "♦ 21", 29, Font(c), new Color(1,.16f,.35f));
-            Scroll(c, root, 38, 120, w - 76, h - 145, 1830, out var content);
-            Deal(c, content, 0, "자원 거래", "♛ 1k     ◈ 150\n🎟 200     ▣ 50\n⚗ 50      ⚿ 62", "₩2,800", w - 76);
+            Currency(c, root, 188, 28, 56, 0, "1.59m");
+            Currency(c, root, w - 270, 28, 56, 1, "21", new Color(1,.55f,.65f));
+            Scroll(c, root, 38, 120, w - 76, Mathf.Max(360, h - 120 - NavigationReserve), 1830, out var content);
+            Deal(c, content, 0, "자원 거래", "      1k        방패 150\n티켓 200     주괴 50\n물약 50      열쇠 62", "₩2,800", w - 76);
             Deal(c, content, 300, "펫 거래", "◉ 660\n▣ 200\n◇ 20", "₩9,500", w - 76);
             Deal(c, content, 600, "던전 거래", "⚿ 2     🔑 2\n🔑 2     ⚿ 250", "₩27,500", w - 76);
             Ui.Text("Gem title", content, 20, 900, w - 116, 70, "보석", 42, Font(c), Ui.Gold);
@@ -257,9 +287,10 @@ namespace Moonlit.UI
             {
                 int col = i % 3, row = i / 3;
                 float cardW = (w - 124) / 3f;
-                var card = Ui.Panel("Gem offer " + gems[i], content, 20 + col * (cardW + 14), 980 + row * 360, cardW, 330, Stone);
-                Ui.Text("Amount", card.transform, 8, 8, cardW - 16, 54, "♦ " + gems[i], 29, Font(c), new Color(1,.2f,.4f));
-                Ui.Text("Gem art", card.transform, 8, 64, cardW - 16, 150, "♦\n♦ ♦", 46, Font(c), new Color(1,.05f,.3f));
+                var card = SpritePanel(c, "Gem offer " + gems[i], content, 20 + col * (cardW + 14), 980 + row * 360, cardW, 330, 1, Color.white);
+                Ui.Image("Ruby amount icon", card.transform, 20, 12, 48, 48, Icon(c, 1)).preserveAspect = true;
+                Ui.Text("Amount", card.transform, 72, 8, cardW - 82, 54, gems[i].ToString(), 29, Font(c), new Color(1,.75f,.78f), TextAnchor.MiddleLeft);
+                var ruby = Ui.Image("Ruby artwork", card.transform, cardW * .5f - 66, 70, 132, 142, Icon(c, 1)); ruby.preserveAspect = true;
                 string price = prices[i];
                 Action(c, card.transform, 12, 242, cardW - 24, 70, price, () => c.Toast(price == "가격 미설정" ? "이 상품은 가격이 구성되지 않았습니다." : "결제는 연결되지 않은 미리보기입니다."));
             }
@@ -267,10 +298,11 @@ namespace Moonlit.UI
 
         static void Deal(ScreenContext c, Transform parent, float y, string title, string body, string price, float width)
         {
-            var card = Ui.Panel(title, parent, 18, y, width - 36, 280, Stone);
+            var card = SpritePanel(c, title, parent, 18, y, width - 36, 280, 1, Color.white);
             Ui.Image("Ribbon", card.transform, 0, 0, 430, 62, null, Red);
             Ui.Text("Title", card.transform, 20, 2, 390, 56, title, 31, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
             Ui.Text("Contents", card.transform, 38, 74, width - 390, 174, body, 27, Font(c), Ui.Ivory, TextAnchor.UpperLeft);
+            if (title == "자원 거래") Ui.Image("Crown coin", card.transform, 36, 78, 38, 38, Icon(c, 0)).preserveAspect = true;
             Action(c, card.transform, width - 330, 182, 260, 72, price, () => c.Toast("결제 기능은 연결되지 않았습니다."));
         }
 
@@ -283,21 +315,29 @@ namespace Moonlit.UI
             Ui.Text("League", root, 290, 124, 500, 70, "골드 리그", 43, Font(c), Ui.Ivory);
             Action(c, root, 320, 200, 440, 64, "🎁 시즌 종료: 4일 18시", () => c.Open("pvp-rewards"));
             string[] names = { "tewtee", "CreeGuy", "MenoT", "moonzzanf", "Guest 86680", "mrmaingo1868", "Epsylon" };
-            Scroll(c, root, 90, 290, w - 180, h - 610, names.Length * 130, out var content);
+            float actionY = h - NavigationReserve - 112;
+            float stickyY = actionY - 132;
+            float listHeight = Mathf.Max(380, stickyY - 310 - 18);
+            Scroll(c, root, 90, 290, w - 180, listHeight, names.Length * 130, out var content);
             for (int i = 0; i < names.Length; i++)
             {
                 int rank = 8 + i; string name = names[i]; string power = i == 3 ? "65.5b" : new[] { "212m", "12.9m", "16b", "65.5b", "5.52m", "2.57m", "821b" }[i];
-                var row = Ui.Panel("PvP rank " + rank, content, 0, i * 130, w - 180, 118, i == 3 ? new Color(.02f,.25f,.48f) : Stone);
+                var row = SpritePanel(c, "PvP rank " + rank, content, 0, i * 130, w - 180, 118, i == 3 ? 0 : 1, Color.white);
                 Ui.Text("Rank", row.transform, 10, 12, 90, 90, rank.ToString(), 35, Font(c)); Avatar(c, row.transform, 105, 10, 96, i);
                 Ui.Text("Player", row.transform, 220, 7, 350, 48, name, 29, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
-                Ui.Text("Power", row.transform, 220, 57, 350, 44, "⚔ " + power, 25, Font(c), Ui.Gold, TextAnchor.MiddleLeft);
+                Ui.Image("Power icon", row.transform, 220, 62, 32, 32, Icon(c, 12)).preserveAspect = true;
+                Ui.Text("Power", row.transform, 260, 57, 310, 44, power, 25, Font(c), Ui.Gold, TextAnchor.MiddleLeft);
                 var payload = new Dictionary<string, object> { { "name", name }, { "power", power }, { "rank", rank }, { "avatarIndex", i } };
                 var b = row.gameObject.AddComponent<Button>(); b.targetGraphic = row; b.onClick.AddListener(() => c.Open("player-details", payload));
-                Ui.Text("Stars", row.transform, w - 410, 20, 200, 70, "★ " + (15 - i), 29, Font(c), Ui.Gold);
+                row.raycastTarget = true;
+                Ui.Image("Star icon", row.transform, w - 410, 35, 38, 38, Icon(c, 15)).preserveAspect = true;
+                Ui.Text("Stars", row.transform, w - 365, 20, 155, 70, (15 - i).ToString(), 29, Font(c), Ui.Gold);
             }
-            var sticky = Ui.Panel("My sticky rank", root, 90, h - 300, w - 180, 112, new Color(.02f,.28f,.52f));
-            Ui.Text("Me", sticky.transform, 20, 8, w - 220, 96, "11    moonzzanf    ⚔ 65.5b              ★ 11", 28, Font(c));
-            Action(c, root, 330, h - 170, 420, 90, "도전", () => c.Open("pvp-opponents"));
+            var sticky = SpritePanel(c, "My sticky rank", root, 90, stickyY, w - 180, 112, 0, Color.white);
+            Ui.Image("My power icon", sticky.transform, 355, 34, 38, 38, Icon(c, 12)).preserveAspect = true;
+            Ui.Image("My star icon", sticky.transform, w - 330, 34, 38, 38, Icon(c, 15)).preserveAspect = true;
+            Ui.Text("Me", sticky.transform, 20, 8, w - 220, 96, "11    moonzzanf          65.5b                 11", 28, Font(c));
+            Action(c, root, 330, actionY, 420, 90, "도전", () => c.Open("pvp-opponents"));
         }
 
         static void BuildOpponents(ScreenContext c)
@@ -313,10 +353,13 @@ namespace Moonlit.UI
                 Avatar(c, row.transform, 18, 18, 112, i);
                 var payload = new Dictionary<string, object> { { "name", names[i] }, { "power", powers[i] }, { "rank", 8 + i }, { "avatarIndex", i } };
                 var avatarButton = row.gameObject.AddComponent<Button>(); avatarButton.targetGraphic = row; avatarButton.onClick.AddListener(() => c.Open("player-details", payload));
+                row.raycastTarget = true;
                 Ui.Text("Name", row.transform, 154, 18, 330, 44, names[i], 29, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
-                Ui.Text("Power", row.transform, 154, 68, 330, 40, "⚔ " + powers[i], 25, Font(c), Green, TextAnchor.MiddleLeft);
+                Ui.Image("Power icon", row.transform, 154, 72, 32, 32, Icon(c, 12)).preserveAspect = true;
+                Ui.Text("Power", row.transform, 194, 68, 290, 40, powers[i], 25, Font(c), Green, TextAnchor.MiddleLeft);
                 Action(c, row.transform, w - 350, 36, 230, 80, "도전 🎟 1", () => c.Toast("로컬 데모: " + names[index] + " 도전을 선택했습니다."));
-                Ui.Text("Reward", row.transform, w - 340, 4, 210, 34, "★ +" + (5 - i), 23, Font(c), Ui.Gold);
+                Ui.Image("Reward star", row.transform, w - 340, 3, 30, 30, Icon(c, 15)).preserveAspect = true;
+                Ui.Text("Reward", row.transform, w - 305, 4, 175, 34, "+" + (5 - i), 23, Font(c), Ui.Gold);
             }
             Close(c, frame, w, h);
         }
@@ -325,16 +368,18 @@ namespace Moonlit.UI
         {
             float w, h; var frame = Frame(c, "골드 리그 보상", 1320, out w, out h);
             Ui.Text("Explanation", frame, 65, 105, w - 130, 90, "현재 순위(11)를 유지하면 시즌 종료 시 다음 보상을 받을 수 있습니다.", 26, Font(c));
-            Ui.Text("Current rewards", frame, 74, 210, w - 148, 145, "▣ 560        ♛ 28k        🎟 672\n◉ 186        ⚗ 560        ⚿ 280", 28, Font(c), Ui.Ivory);
+            Ui.Text("Current rewards", frame, 74, 210, w - 148, 145, "주괴 560        골드 28k        티켓 672\n방패 186        물약 560        열쇠 280", 28, Font(c), Ui.Ivory);
+            Ui.Image("Current crown coin", frame, 320, 222, 38, 38, Icon(c, 0)).preserveAspect = true;
             Ui.Text("Timer", frame, 290, 365, w - 580, 80, "수집까지: 4일 17시", 26, Font(c), Green);
             string[] tiers = { "🥇  1", "🥈  2", "🥉  3", "4–5" };
-            string[] rewards = { "▣ 910   ♛ 45.5k   🎟 1.09k\n◉ 302   ⚗ 910   ⚿ 455", "▣ 840   ♛ 42k   🎟 1k\n◉ 279   ⚗ 840   ⚿ 420", "▣ 770   ♛ 38.5k   🎟 924\n◉ 256   ⚗ 770   ⚿ 385", "▣ 700   ♛ 35k   🎟 840\n◉ 232   ⚗ 700   ⚿ 350" };
+            string[] rewards = { "주괴 910   골드 45.5k   티켓 1.09k\n방패 302   물약 910   열쇠 455", "주괴 840   골드 42k   티켓 1k\n방패 279   물약 840   열쇠 420", "주괴 770   골드 38.5k   티켓 924\n방패 256   물약 770   열쇠 385", "주괴 700   골드 35k   티켓 840\n방패 232   물약 700   열쇠 350" };
             Scroll(c, frame, 52, 465, w - 104, h - 590, tiers.Length * 188, out var content);
             for (int i = 0; i < tiers.Length; i++)
             {
                 var row = Ui.Panel("Reward tier " + tiers[i], content, 0, i * 188, w - 104, 174, Stone);
                 Ui.Text("Tier", row.transform, 14, 14, 170, 142, tiers[i], 34, Font(c), Ui.Gold);
                 Ui.Text("Rewards", row.transform, 190, 18, w - 320, 134, rewards[i], 24, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
+                Ui.Image("Crown coin", row.transform, 370, 25, 32, 32, Icon(c, 0)).preserveAspect = true;
             }
             Close(c, frame, w, h);
         }

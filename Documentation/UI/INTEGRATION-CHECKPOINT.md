@@ -1,5 +1,11 @@
 # Integration checkpoint
 
+## Latest verified result and social integration
+
+CI 35077607384 compile/PlayMode job 104733618485 succeeded at revision 3d6dd2d. Downloaded NUnit artifact 10439357413 confirms 10 passed, zero failures/skips/inconclusive. Evidence report: CI-35077607384.md. Graphics job still running at this checkpoint; all-screen visual acceptance remains pending.
+
+Social task task_e_6aaa5cb3f8608329a8f710daae4691ff is now reviewed/applied (do not reapply). Coordinator added actual row pointer targets and interior modal hit blocking with pointer tests, in addition to the cloud sprite reuse/navigation clearance changes. Both recent cloud tasks are complete and applied; no delegated task is currently executing. New source updates queue behind the running CI. Next: inspect graphics outcome and newest queued CI, correct failures, generate missing illustrated skill/reward/shop/avatar assets and compare all 24 rendered pages to original references before main merge.
+
 ## Latest checkpoint — 2026-09-16 18:20 KST
 
 Reviewed/applied progression cloud task task_e_6aaa5c620df8832988a95fa79042550e, including coordinator fixes (see PROGRESSION-STATE-REVIEW.md). Do not apply again. Generated and wired all four dungeon paintings with independent sprite metadata and proportional cropped display; exact prompts in ART-GENERATION.md and per-image prompt files. Local commits b14ae06 (art) and 543ff5a (progression) preserve the state/CI baseline 3d6dd2d.

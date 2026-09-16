@@ -61,6 +61,7 @@ namespace Moonlit.UI
             height = Mathf.Min(height, c.Height - 36);
             var root = Ui.Rect(title + " Dialog", c.Root, (c.Width - width) * .5f, (c.Height - height) * .5f, width, height);
             var shadow = Ui.Panel("Ornate stone frame", root, 0, 0, width, height, Ink);
+            shadow.raycastTarget = true;
             Ui.Border(shadow.transform, width, height, new Color(.22f,.13f,.07f), 12);
             Ui.Border(shadow.transform, width, height, Ui.Gold, 4);
             Ui.Image("Top diamond", shadow.transform, width * .5f - 18, -12, 36, 36, null, Ui.Gold);

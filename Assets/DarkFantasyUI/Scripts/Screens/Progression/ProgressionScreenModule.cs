@@ -407,6 +407,7 @@ namespace Moonlit.UI
         static RectTransform Panel(Transform parent, float x, float y, float w, float h, string title, Font font, int size)
         {
             var p = Ui.Panel("Ornate stone panel", parent, x, y, w, h, Ink).rectTransform;
+            p.GetComponent<Image>().raycastTarget = true;
             Ui.Border(p, w, h, new Color(.7f,.47f,.2f), 5);
             Ui.Image("Top ornament", p, w * .5f - 45, -9, 90, 18, null, Ui.Gold);
             if (!string.IsNullOrEmpty(title)) Ui.Text("Title", p, 20, 10, w - 40, Mathf.Min(100, h - 20), title, size, font, Ui.Ivory);
