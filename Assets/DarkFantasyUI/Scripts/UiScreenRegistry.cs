@@ -156,7 +156,7 @@ namespace Moonlit.UI
             var safe = Ui.Rect("SafeArea", rect, 0, 0, 1080, 1920);
             // Page artwork/content must not paint over the persistent bottom navigation rail.
             // Preserve the full logical layout height used by feature modules.
-            if (!modal) safe.gameObject.AddComponent<RectMask2D>().padding = new Vector4(0, 210, 0, 0);
+            if (!modal) safe.gameObject.AddComponent<RectMask2D>().padding = new Vector4(0, PortraitSafeArea.NavigationTopFromBottom, 0, 0);
             return new Entry { id = ++nextId, key = key, layer = layer, safeRoot = safe, group = group };
         }
 

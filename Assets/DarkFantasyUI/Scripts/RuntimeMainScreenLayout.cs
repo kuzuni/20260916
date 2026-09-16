@@ -70,7 +70,7 @@ namespace Moonlit.UI
         }
         void BuildNavigation(MainScreen main,Transform parent)
         {
-            var background=Ui.Image("Navigation shared stone panel",parent,0,1722,1080,180,panels[1]); background.type=Image.Type.Sliced; background.pixelsPerUnitMultiplier=6;
+            var background=Ui.Image("Navigation shared stone panel",parent,0,1920-PortraitSafeArea.NavigationTopFromBottom,1080,180,panels[1]); background.type=Image.Type.Sliced; background.pixelsPerUnitMultiplier=6;
             background.fillCenter=false;
             var navStone=Ui.Image("Navigation stone texture",background.transform,10,10,1060,160,panels[4],new Color(.53f,.53f,.53f)); navStone.type=Image.Type.Tiled;
             AddPanelFlourish(background.transform,1080,180);
