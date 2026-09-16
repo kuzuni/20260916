@@ -2,6 +2,10 @@
 
 Updated 2026-09-16, 20:28 UTC. Implementation is unfinished; local coordinator and 15-minute heartbeat remain active.
 
+## Explicit Dim alpha correction
+
+- User clarified that Dim must use alpha **0.85**, not 85 percent transparency. Changed the shared modal Dim from 0.42 to 0.85, including nested and legacy dialogs using UiScreenHost. Per-layer input blocking and existing stack behavior remain unchanged. Updated architecture to preserve the explicit preference.
+- Static diff check passed. No new tests for this color-only edit; existing hosted compile/modal/capture workflow will run. Runtime visual result remains pending. Prior icon and corrected-dialog verification run: 35147954188, source 0fd71cf86fff0fa2160f94467d56634f10dfb35f, PR #38 merged as a4d199be585c30c2e66825d7fbde87e608531440. Preserve the user's latest alpha setting during future visual revisions.
 ## Main pass/offline button icon correction
 
 - Previous dialog run 35146382739 source 7d6aeb6: downloaded artifact 10467815679, actual XML 38 passed / 1 failed / 0 skipped. Failure was the new Safe Area test including the full-screen Dim button (x=-578.57 versus safe left=-540), although Dim is required to cover cutouts. Corrected the test to measure child controls under SafeArea and independently assert Dim remains interactive/raycasting. Production layout was not changed or loosened. New CI must verify this correction; prior graphics were skipped.

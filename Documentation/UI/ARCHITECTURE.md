@@ -30,7 +30,7 @@ This supports the user's main/nav/popup/detail/deeper arrangement without hard-c
 - Registry Open of an already active base page is idempotent. Bottom navigation is a separate user toggle: selecting its active page closes it and restores the original icon; inactive entries open/replace their page. The selected entry displays reusable crimson close artwork and a live × label. Page/back/context close all restore navigation from host state.
 - The unsupplied quest demo uses a base page so its navigation entry follows the same close toggle. A nested modal still blocks all navigation until only that modal is closed.
 - Modal Open pushes a new layer; CloseTop/Escape/Android back pops exactly one layer.
-- Each modal owns its dim behind its panel. Default alpha is tunable (roughly .4); avoid .85 at each level. Verify multiple layers visually, cap effective background darkness if necessary.
+- Each modal owns its dim behind its panel. Latest explicit user setting: Dim alpha = 0.85 (2026-09-17). Apply it to each modal layer; stacked dims compound behind nested dialogs.
 - Disable input on every covered panel/page/nav via CanvasGroup and raycaster control. Only the top modal is interactive. Ensure independently sorted canvases cannot leak clicks through a disabled ancestor.
 - Full-screen dim intercepts pointer/touch even outside SafeArea. Clicking inside a modal must not trigger backdrop close.
 - Backdrop dismissal is an explicit per-route option; item comparison and destructive decisions must not silently sell/equip/claim on dismissal.

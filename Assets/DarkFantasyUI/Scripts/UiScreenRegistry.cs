@@ -149,7 +149,7 @@ namespace Moonlit.UI
             var group = layer.GetComponent<CanvasGroup>();
             if (modal)
             {
-                var dim = Ui.Image("Dim", rect, 0, 0, 1, 1, null, new Color(0, .015f, .025f, .42f));
+                var dim = Ui.Image("Dim", rect, 0, 0, 1, 1, null, new Color(0, .015f, .025f, .85f));
                 Ui.Stretch(dim.rectTransform); dim.raycastTarget = true;
                 dim.gameObject.AddComponent<Button>().transition = Selectable.Transition.None;
             }
