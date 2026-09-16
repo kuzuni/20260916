@@ -1,0 +1,65 @@
+name: Unity license and baseline build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/unity-license-check.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: unity-license-check
+  cancel-in-progress: false
+
+jobs:
+  activate-and-build:
+    name: Activate Unity 6000.3.8f1 and build Linux player
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Check required secrets are present without displaying values
+        shell: bash
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        run: |
+          test -n "$UNITY_EMAIL" || { echo '::error::UNITY_EMAIL is missing'; exit 1; }
+          test -n "$UNITY_LICENSE" || { echo '::error::UNITY_LICENSE is missing'; exit 1; }
+          test -n "$UNITY_PASSWORD" || { echo '::error::UNITY_PASSWORD is missing'; exit 1; }
+          echo 'All three required secret names resolve to non-empty values.'
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+          persist-credentials: false
+      - name: Activate license, import project, compile and build
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          unityVersion: 6000.3.8f1
+          targetPlatform: StandaloneLinux64
+          buildName: MoonlitLicenseCheck
+          versioning: Custom
+          version: 0.1.0
+      - name: Preserve successful build
+        uses: actions/upload-artifact@v4
+        with:
+          name: moonlit-baseline-linux
+          path: build/StandaloneLinux64
+          if-no-files-found: error
+          retention-days: 3
+      - name: Record verification result
+        if: always()
+        shell: bash
+        env:
+          RESULT: ${{ job.status }}
+        run: |
+          echo "## Unity license and baseline build: $RESULT" >> "$GITHUB_STEP_SUMMARY"
+          echo 'Unity 6000.3.8f1 / StandaloneLinux64 / GitHub-hosted runner.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Successful compilation/build verifies this CI configuration; this job does not validate UI appearance or device safe areas.' >> "$GITHUB_STEP_SUMMARY"
