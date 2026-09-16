@@ -381,7 +381,7 @@ namespace Moonlit.UI
 
         static void PageWallet(ScreenContext c, Transform root, string name, float x, float y, int icon, string value)
         {
-            var wallet=SpritePanel(c,name,root,x,y,270,64,2,Color.white);
+            var wallet=SpritePanel(c,name,root,x,y,270,64,1,Color.white);
             Ui.Image("Currency icon",wallet.transform,-6,-12,76,76,Icon(c,icon)).preserveAspect=true;
             Ui.Text("Currency amount",wallet.transform,72,0,180,64,value,35,Font(c),Ui.Ivory);
             var add=Ui.ArtButton("Currency information",wallet.transform,45,30,44,44);
