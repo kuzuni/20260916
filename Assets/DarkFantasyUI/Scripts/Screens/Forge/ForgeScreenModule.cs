@@ -18,6 +18,8 @@ namespace Moonlit.UI
         static readonly bool[] autoFilters = { true, true, false, false, false, true };
         static int autoHammerCount = 22;
         static bool autoContinue = true;
+        static bool autoFilterEnabled = true;
+        static Sprite checkboxArt;
         static readonly HashSet<int> passClaims = new HashSet<int>();
         const int ComparisonCost = 100;
         const int OfflineGold = 174;
@@ -424,37 +426,50 @@ namespace Moonlit.UI
             var keep = new List<Toggle>();
             for (var i = 0; i < 4; i++)
             {
-                var row = Ui.Panel("Keep " + Tiers[6+i], b, 10, 55 + i*76, b.rect.width-20, 64, TierColors[6+i]);
+                var row = Ui.Image("Keep " + Tiers[6+i], b, 10, 55 + i*76, b.rect.width-20, 64, TierBand(6+i));
+                row.type = Image.Type.Sliced; row.pixelsPerUnitMultiplier = 1.3f;
+                Ui.Image("Rate shade", row.transform, 522, 5, row.rectTransform.rect.width - 534, 54,
+                    null, new Color(0,0,0,.38f));
                 var index = i;
                 var toggle = Check(c, row.transform, 12, 9, autoKeep[i]);
                 toggle.onValueChanged.AddListener(value => autoKeep[index] = value);
                 keep.Add(toggle);
-                Ui.Text("Name", row.transform, 78, 2, 430, 60, Glyph(6+i) + "  " + Tiers[6+i] + " ★", 25, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
+                Ui.Image("Tier icon", row.transform, 76, 3, 58, 58, TierIcon(6+i)).preserveAspect = true;
+                Ui.Text("Name", row.transform, 146, 2, 288, 60, Tiers[6+i], 28, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
+                Ui.Text("Rarity star", row.transform, 322, 2, 46, 60, "★", 30, Font(c), Ui.Gold);
                 Ui.Text("Rate", row.transform, 540, 2, 120, 60, Rates33[6+i], 25, Font(c), Ui.Ivory, TextAnchor.MiddleRight);
             }
-            Ui.Text("Filter label", b, 0, 370, b.rect.width-35, 42, "필터", 24, Font(c), Ui.Ivory, TextAnchor.MiddleRight);
+            Ui.Text("Filter label", b, b.rect.width-266, 370, 106, 42, "필터", 24, Font(c), Ui.Ivory, TextAnchor.MiddleRight);
+            var filterToggles = new List<Toggle>();
+            PopupSkin.Switch(b, b.rect.width-148, 364, "Stat filter", autoFilterEnabled, value => {
+                autoFilterEnabled = value;
+                foreach (var choice in filterToggles) choice.interactable = value;
+            });
             var filters = new[] { "치명타 확률", "치명타 피해", "블록 확률", "체력 재생", "생명력 흡수", "더블 찬스" };
             for (var i=0;i<filters.Length;i++)
             {
-                var row=Ui.Panel("Filter "+filters[i],b,10,420+i*70,b.rect.width-20,58,Slate);
+                var row=Ui.Image("Filter "+filters[i],b,10,420+i*70,b.rect.width-20,58,PopupSkin.PanelArt);
+                row.type=Image.Type.Sliced; row.pixelsPerUnitMultiplier=7;
                 var index=i;
                 var toggle=Check(c,row.transform,12,6,autoFilters[i]);
                 toggle.onValueChanged.AddListener(value=>autoFilters[index]=value);
+                toggle.interactable=autoFilterEnabled; filterToggles.Add(toggle);
                 Ui.Text("Label",row.transform,78,0,row.rectTransform.rect.width-90,58,filters[i],24,Font(c),Ui.Ivory,TextAnchor.MiddleLeft);
             }
-            Ui.Text("Hammer label",b,15,860,430,55,"한 번에 사용된 망치 수",24,Font(c),Ui.Ivory,TextAnchor.MiddleLeft);
-            var amount=Ui.Text("Hammer count",b,510,860,135,55,autoHammerCount.ToString(),30,Font(c));
-            Action(c,b,650,860,50,27,"▲",()=> { autoHammerCount=Mathf.Min(99,autoHammerCount+1); amount.text=autoHammerCount.ToString(); },Slate,18);
-            Action(c,b,650,888,50,27,"▼",()=> { autoHammerCount=Mathf.Max(1,autoHammerCount-1); amount.text=autoHammerCount.ToString(); },Slate,18);
-            Ui.Text("Continue",b,15,935,570,58,"목표 장비를 찾으면 제련 계속하기",22,Font(c),Ui.Ivory,TextAnchor.MiddleLeft);
-            var continueToggle=Check(c,b,630,944,autoContinue);
+            Ui.Text("Hammer label",b,15,868,430,55,"한 번에 사용된 망치 수",24,Font(c),Ui.Ivory,TextAnchor.MiddleLeft);
+            PopupSkin.Panel("Hammer quantity frame",b,480,856,230,92);
+            var amount=Ui.Text("Hammer count",b,495,860,130,80,autoHammerCount.ToString(),36,Font(c));
+            Action(c,b,650,856,54,44,"▲",()=> { autoHammerCount=Mathf.Min(99,autoHammerCount+1); amount.text=autoHammerCount.ToString(); },Slate,18);
+            Action(c,b,650,904,54,44,"▼",()=> { autoHammerCount=Mathf.Max(1,autoHammerCount-1); amount.text=autoHammerCount.ToString(); },Slate,18);
+            Ui.Text("Continue",b,15,958,570,58,"목표 장비를 찾으면 제련 계속하기",22,Font(c),Ui.Ivory,TextAnchor.MiddleLeft);
+            var continueToggle=Check(c,b,630,964,autoContinue);
             continueToggle.onValueChanged.AddListener(value=>autoContinue=value);
-            Action(c,b,190,1025,350,100,c.Main.autoForge ? "정지" : "시작",()=>
+            Action(c,b,190,1044,350,100,c.Main.autoForge ? "정지" : "시작",()=>
             {
                 if (c.Main.autoForge) { c.Main.StopAutoForge(); c.Close(); return; }
                 if (!keep.Exists(t=>t.isOn)) c.Toast("유지할 등급을 하나 이상 선택하세요.");
                 else {
-                    var mask=0; for(var i=0;i<autoFilters.Length;i++) if(autoFilters[i]) mask|=1<<i;
+                    var mask=0; for(var i=0;i<autoFilters.Length;i++) if(!autoFilterEnabled || autoFilters[i]) mask|=1<<i;
                     if(mask==0) { c.Toast("능력치 필터를 하나 이상 선택하세요."); return; }
                     c.Main.ConfigureAutoForge(autoHammerCount,mask,autoContinue,autoKeep);
                     c.Toast(amount.text+"개 망치로 자동 제련을 시작합니다."); c.Close();
@@ -467,7 +482,13 @@ namespace Moonlit.UI
 
         static Toggle Check(ScreenContext c, Transform p, float x, float y, bool value)
         {
-            var bg=Ui.Panel("Checkbox",p,x,y,48,48,new Color(.02f,.03f,.04f)); bg.raycastTarget=true;
+            if (!checkboxArt)
+            {
+                var atlas = Resources.Load<Texture2D>("Moonlit/Forge/CheckboxFrame-v1");
+                if (atlas) checkboxArt = Sprite.Create(atlas, new Rect(0,0,atlas.width,atlas.height),
+                    new Vector2(.5f,.5f), 100, 0, SpriteMeshType.FullRect);
+            }
+            var bg=Ui.Image("Checkbox",p,x,y,48,48,checkboxArt); bg.preserveAspect=true; bg.raycastTarget=true;
             var mark=Ui.Text("Checkmark",bg.transform,0,-3,48,48,"✓",35,Font(c),new Color(1f,.78f,.28f));
             var toggle=bg.gameObject.AddComponent<Toggle>(); toggle.targetGraphic=bg; toggle.graphic=mark; toggle.isOn=value;
             return toggle;
