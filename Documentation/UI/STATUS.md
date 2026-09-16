@@ -1,6 +1,17 @@
 # Moonlit 24 UI — coordinator status
 
-Updated 2026-09-16, 19:02 UTC. Implementation is unfinished; local coordinator and 15-minute heartbeat remain active.
+Updated 2026-09-16, 19:23 UTC. Implementation is unfinished; local coordinator and 15-minute heartbeat remain active.
+
+## Skill maximum state and equipped stars
+
+- Restored main **1a3087014c758cb44ff054a6ec46f20700eddd1e** (PR #32). Run **35138143117**, source **d0ceb77e759d53801cae72c202701afd38a430d0**, test job **104935602938 SUCCESS**. Downloaded artifact **10464730853** and read NUnit XML: **31 passed, 0 failed, 0 skipped**. Graphics job **104940008011** remains in progress; page/navigation seam capture approval is still pending.
+- PR #31 run **35135761722**, graphics job **104932441031 SUCCESS**. Downloaded artifact **10464003713**: **54 PNGs**, Verification.txt PASS. Viewed collection 9:16 and skill-details 9:19: separate illustrated rims and live shard counts display clearly. Those captures predate the seam fix. Original reference 19 was inspected again at full resolution: Lv.100 uses `최대`, and equipped slots retain their rarity stars.
+- Added a shared local-demo maximum of level 100 for skill upgrades. Individual and bulk upgrade callbacks now skip capped/unowned skills. Capped slots replace their progress bar with live `최대`; detail upgrade buttons display `최대 레벨` and disable. A 99-to-100 transition refreshes both the detail and parent without recreating the collection scroll.
+- Bulk upgrade now refreshes existing collection objects rather than rebuilding the tab/scroll. Equipped compact slots have independent non-raycasting stars below their levels, contained within the equipped panel. Existing generated ring/icon/progress artwork is reused; no new bitmap assets or scene edits.
+- Added a PlayMode regression covering bulk ownership/cap rules, unchanged scroll instance/position, progress-versus-max visibility, equipped-star bounds and repeated direct callbacks on a capped detail. Static diff check passed; the new source and test have not yet run in Unity. No local editor execution/control or secret-value access.
+- PR **#33**, source **efab6a0ece1abec26eade00df9d47641acdb919f**, hosted run **35140206101** is in progress. Incremental main integration is authorized; new runtime and visual acceptance remain pending.
+- Remaining: 12-entry skill catalog versus reference count, missing specific illustrations, equipped badges/locks, other layout/art differences and final 24-screen visual acceptance. This is a bounded state/display improvement, not completed skill-page acceptance.
+- Evidence root: `C:/Users/user/AppData/Local/Temp/moonlit-cloud-review/artifact-{10464730853,10464003713}/unpacked`. Next: review seam captures and this change's fresh hosted run, then continue missing skill content and equipped treatment. Desktop 15-minute heartbeat stays active.
 
 ## Page/navigation seam and actual CI evidence
 

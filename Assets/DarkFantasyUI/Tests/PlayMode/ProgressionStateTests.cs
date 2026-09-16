@@ -87,6 +87,46 @@ namespace Moonlit.UI.Tests
         }
 
         [UnityTest]
+        public IEnumerator UpgradeAll_RespectsOwnershipAndLevelCap_PreservesScrollAndEquippedStars()
+        {
+            host.Registry.Open("skills-pets-heroes"); yield return null;
+            GameObject.Find("Tab 스킬").GetComponent<Button>().onClick.Invoke(); yield return null;
+            var scroll = GameObject.Find("Tab content").GetComponentInChildren<ScrollRect>();
+            scroll.content.sizeDelta = new Vector2(0, 3000);
+            Canvas.ForceUpdateCanvases();
+            scroll.verticalNormalizedPosition = .42f;
+            var slots = scroll.content.GetComponentsInChildren<Button>();
+            var levels = slots.Select(slot => int.Parse(ChildText(slot.transform,"Level").text.Substring(3))).ToArray();
+            var owned = slots.Select(slot => ChildText(slot.transform,"Ownership").text == "").ToArray();
+            GameObject.Find("Upgrade all").GetComponent<Button>().onClick.Invoke(); yield return null;
+            Assert.AreSame(scroll, GameObject.Find("Tab content").GetComponentInChildren<ScrollRect>());
+            Assert.That(scroll.verticalNormalizedPosition,Is.EqualTo(.42f).Within(.01f));
+            for (int i=0;i<slots.Length;i++)
+            {
+                int expected = owned[i] ? Mathf.Min(100,levels[i]+1) : levels[i];
+                Assert.AreEqual("Lv."+expected,ChildText(slots[i].transform,"Level").text);
+                Assert.AreEqual(expected>=100,slots[i].transform.Find("Maximum level").gameObject.activeSelf);
+                Assert.AreEqual(expected<100,slots[i].transform.Find("Progress").gameObject.activeSelf);
+            }
+            foreach (Transform equipped in GameObject.Find("Equipped skills").transform)
+            {
+                var star=ChildText(equipped,"Star");
+                Assert.AreEqual("★",star.text);
+                Assert.IsFalse(star.raycastTarget);
+                Assert.LessOrEqual(-star.rectTransform.anchoredPosition.y+star.rectTransform.rect.height,
+                    equipped.parent.GetComponent<RectTransform>().rect.height);
+            }
+            var capped=slots.Single(slot=>slot.name=="Skill 밤의 사역마");
+            capped.onClick.Invoke(); yield return null;
+            var upgrade=GameObject.Find("Upgrade").GetComponent<Button>();
+            Assert.IsFalse(upgrade.interactable);
+            Assert.AreEqual("최대 레벨",upgrade.GetComponentInChildren<Text>().text);
+            upgrade.onClick.Invoke(); // Also protect against direct/repeated callbacks.
+            host.CloseTop(); yield return null;
+            Assert.AreEqual("Lv.100",ChildText(capped.transform,"Level").text);
+        }
+
+        [UnityTest]
         public IEnumerator SkillUpgradeAndEquip_RefreshParentWithoutLosingTabOrScroll()
         {
             host.Registry.Open("skills-pets-heroes");
