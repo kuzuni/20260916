@@ -34,7 +34,9 @@ namespace Moonlit.UI
             var mainInput=mainCanvas.gameObject.AddComponent<CanvasGroup>();
             var floor=Ui.Image("Full-bleed stone",mainCanvas.transform,0,0,1080,1920,panels[4],new Color(.4f,.4f,.4f)); floor.type=Image.Type.Tiled; Ui.Stretch(floor.rectTransform);
             var world=Ui.Rect("Elastic battle viewport",mainCanvas.transform,0,0,1080,1000); world.gameObject.AddComponent<RectMask2D>();
-            var worldArt=Ui.Image("Moonlit scenery",world,0,0,1080,1080,assets.worldBackground);
+            // Main battle scenery has its own asset; collection/shop/pass still use their existing backdrop.
+            var worldArt=Ui.ArtImage("Moonlit scenery",world,0,0,1080,1080,
+                Resources.Load<Sprite>("Moonlit/Main/ForestBattle-v1"));
             var safeFrame=Ui.Rect("Device Safe Area",mainCanvas.transform,0,0,1080,1920); Ui.Stretch(safeFrame);
             var design=Ui.Rect("Responsive content",safeFrame,0,0,1080,1920);
             var main=design.gameObject.AddComponent<MainScreen>(); main.font=font; main.design=design; main.icons=icons; main.slotArt=frame;

@@ -1,7 +1,19 @@
 # Moonlit 30 UI — coordinator status
 
-Updated 2026-09-16, 20:28 UTC. Implementation is unfinished; local coordinator and 15-minute heartbeat remain active.
+Updated 2026-09-17, 06:15 KST. Implementation is unfinished; 15-minute heartbeat remains active.
 
+## Main-only forest battle background
+
+- Latest user asks to replace only the main battle environment with the supplied moonlit conifer forest/dirt trail. Generated ForestBattle-v1.png with built-in imagegen using existing party artwork and new environment reference. Original reference archived outside Assets at ArtReferences/MainBattleForest.png; exact prompt in ForestBattle-v1-prompt.md. This is an override for the existing main screen, not a 31st route.
+- RuntimeMainScreenFactory now loads this dedicated non-interactive sprite. Shared worldBackground used by collection/shop/pass remains unchanged. Existing elastic cover/crop, Safe Area, HUD, bottom UI and explicit per-layer Dim alpha 0.85 remain unchanged. Party characters remain painted into the environment, as before; separate animated combat actors are not implemented by this edit.
+- Hosted verification now checks dedicated sprite identity and separation from the shared background at all six main viewport/cutout cases. New forest runtime/capture validation is pending; no local Unity execution.
+
+## Latest downloaded cloud evidence and next work
+
+- PR #38 source 0fd71cf86fff0fa2160f94467d56634f10dfb35f, run 35147954188: artifact 10467818224 actual NUnit XML confirms 39 passed / 0 failed / 0 skipped. Graphics artifact 10469155673 contains Verification.txt PASS and 66 PNGs. Inspected all six new child-dialog captures at 9:16. These captures predate Dim 0.85 and forest.
+- PR #39 source 240f92989f766f4caea224f4bc221e6aad845793, run 35148702827: artifact 10468912671 actual NUnit XML confirms 39 passed / 0 failed / 0 skipped. Graphics result still pending at inspection. Keep user-requested Dim alpha exactly 0.85 per layer.
+- Remaining visual issues from the six child captures: profile name-change label wraps/overflows its narrow button; avatar reusable frames cover too much of each portrait; avatar grid has excess bottom space; language selector ornamentation and gender symbol colors differ from references. Record these for a separate UI revision; do not mix them into the main-background request. Six child 9:19 visual review remains pending.
+- Next heartbeat: obtain forest PR runtime/capture evidence and inspect its six main views; check Dim run graphics; continue six child 9:19 comparison and the recorded frame/layout corrections. All 30 screens still need full visual acceptance. Evidence root: C:/Users/user/AppData/Local/Temp/moonlit-cloud-review/artifact-{10467818224,10469155673,10468912671}/unpacked.
 ## Explicit Dim alpha correction
 
 - User clarified that Dim must use alpha **0.85**, not 85 percent transparency. Changed the shared modal Dim from 0.42 to 0.85, including nested and legacy dialogs using UiScreenHost. Per-layer input blocking and existing stack behavior remain unchanged. Updated architecture to preserve the explicit preference.

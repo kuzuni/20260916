@@ -66,6 +66,8 @@ Additional child dialogs (each opens above the existing profile/settings modal, 
 
 ## Visual acceptance
 
+Main battle background override (2026-09-17): use the forest and horizontal dirt road in ArtReferences/MainBattleForest.png for the battle viewport only. HUD, forge, navigation, popup backgrounds and latest functional pass/offline icons remain unchanged. This is an environment revision, not a 31st screen.
+
 Preserve dark stone, thin ornate gold/bronze frames, silver-trim blue buttons, crimson circular close buttons, illustrated icons, readable Korean type and original layout proportions. No generic plain-list replacement for these detailed references. Existing generated main-screen art is the shared baseline. Gold is the crown coin, ruby is the elongated red diamond. No added frame around timed event buttons. Anvil remains a separate foreground button.
 
 Every screen must work at 1080x1920 and 1080x2280, including simulated top/bottom and side safe insets. Dim covers the full viewport; interactive content stays in the safe area. Scroll long content rather than squeezing type to illegibility.
