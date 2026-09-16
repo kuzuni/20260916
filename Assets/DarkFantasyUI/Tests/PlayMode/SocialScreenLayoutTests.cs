@@ -307,6 +307,34 @@ namespace Moonlit.UI.Tests
             Assert.AreEqual(0, host.ModalDepth);
         }
 
+
+        [UnityTest]
+        public IEnumerator ForgeProbability_LoadsSeparateTierArt_AndPreservesRatesAfterDetails()
+        {
+            ForgeScreenModule.Register(host.Registry);
+            host.Registry.Open("forge-probability"); yield return null;
+            var layer = GameObject.Find("Popup Layer forge-probability");
+            var bands = layer.GetComponentsInChildren<Image>().Where(i => i.name.StartsWith("Rarity ")).ToArray();
+            var icons = layer.GetComponentsInChildren<Image>().Where(i => i.name == "Tier icon").ToArray();
+            Assert.AreEqual(10, bands.Length);
+            Assert.AreEqual(10, icons.Length);
+            Assert.IsTrue(bands.All(i => i.sprite != null && i.type == Image.Type.Sliced && !i.raycastTarget));
+            Assert.IsTrue(icons.All(i => i.sprite != null && i.preserveAspect && !i.raycastTarget));
+            Assert.AreEqual(10, bands.Select(i => i.sprite.rect).Distinct().Count());
+            Assert.AreEqual(10, icons.Select(i => i.sprite.rect).Distinct().Count());
+            Assert.AreNotSame(bands[0].sprite.texture, icons[0].sprite.texture);
+            var quantum = bands.Single(i => i.name == "Rarity 양자");
+            Assert.AreEqual("58%", quantum.transform.Find("Current").GetComponent<Text>().text);
+            Assert.AreEqual("64%", quantum.transform.Find("Next").GetComponent<Text>().text);
+            layer.GetComponentsInChildren<Button>().Single(b => b.name == "i").onClick.Invoke();
+            yield return null;
+            Assert.AreEqual(2, host.ModalDepth);
+            host.CloseTop(); yield return null;
+            Assert.AreEqual(1, host.ModalDepth);
+            Assert.AreSame(layer, GameObject.Find("Popup Layer forge-probability"));
+            Assert.AreEqual("64%", quantum.transform.Find("Next").GetComponent<Text>().text);
+        }
+
         static RectTransform Child(string name, Transform parent)
         {
             var rect = new GameObject(name, typeof(RectTransform)).GetComponent<RectTransform>();
