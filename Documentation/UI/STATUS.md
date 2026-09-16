@@ -2,6 +2,10 @@
 
 Updated 2026-09-16, 10:07 UTC. Implementation is unfinished; automation remains active.
 
+## Latest integration checkpoint
+
+PR #3 merged as 19bed74423867127202275de10e6dedde279dbf5. The original local project was fast-forwarded to this commit, preserving all four preexisting dungeon metadata modifications. Final reviewed source head was d45e4efa81af76482229d1ebd4a6e4cfe56f2266 (4eee17c code/art plus status and whitespace-only metadata normalization). git diff --check passed. Latest hosted run **35083318972** is pending behind active run 35082860621; it supersedes the intermediate pending runs below. No new runtime test pass is claimed.
+
 ## Delivery and current work
 
 - Repository: https://github.com/kuzuni/20260916 .
