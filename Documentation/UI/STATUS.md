@@ -1,6 +1,16 @@
 # Moonlit 30 UI — coordinator status
 
-Updated 2026-09-17, 08:27 KST. Implementation is unfinished; 15-minute heartbeat remains active.
+Updated 2026-09-17, 08:48 KST. Implementation is unfinished; 15-minute heartbeat remains active.
+
+## Summon probability reference layout correction
+
+- PR #46 source 0337dcd5abe5933be5c86be143547e932e742f76 merged as 4f794307d7bb90b4a76f21477afc77298e55fe2d; original checkout synchronized preserving all 11 modified user metadata files by SHA256. Hosted run 35162412401, downloaded artifact 10474016649: actual NUnit XML 41 passed / 0 failed / 0 skipped, including viewport coverage/resize/cleanup regression. Graphics are pending at inspection; no new page visual acceptance claimed yet.
+- Inspected original 16-summon-probability-details.png at full resolution. It displays icons, stars and probabilities without collection levels/shard bars. Branch codex/summon-probability-layout adds an icon-only presentation to the reusable skill slot for this route, removes overlapping level/progress/equipped overlays there and places the live probability below the full icon/star target. Collection and detail views keep their existing information.
+- Each rarity group now has an independent dark backplate, empty rim, colored header, left-aligned rarity name/gold star and right-aligned group rate. All 18 skills and six probability groups remain in the real ScrollRect; existing generated art is reused. Numerical demo rates and summon state are unchanged. Generic frame artwork and rarity/content mapping remain approximations.
+- Extended the existing catalog regression to verify 18 distinct probability entries/labels, no shard/level/equipped overlays, non-overlapping hit-target/label bounds and child detail close preserving the parent list instance/scroll. Static diff check passed; fresh source cloud Unity/capture validation remains pending. No local Unity execution.
+- PR #45 graphics artifact 10473781516 downloaded: Verification.txt PASS, 66 PNGs. Viewed language selection at both aspect ratios: all 11 square checkboxes render, Korean has a green rim/check, labels are readable. Remaining outer-frame and typography differences are not final acceptance.
+- Also inspected original 17-summon-result.png at full resolution: a dedicated empty summoning dais, five icon/star reveals and colored particles. Current result still uses shared party scenery, extra header/status UI and flat blue glow squares. Follow-up should generate a separate empty summoning environment, retain useful demo exit/repeat controls and separate effect art from live result icons. It is not fixed by this probability-only change.
+- Evidence root: C:/Users/user/AppData/Local/Temp/moonlit-cloud-review/artifact-{10474016649,10473781516}/unpacked. Next heartbeat: inspect this probability revision's XML and both probability-details captures, obtain PR #46 page/background captures at both aspects, then improve summon-result art/layout against original 17. Keep full 30-screen acceptance open, Dim alpha 0.85 and incremental integration with user changes preserved.
 
 ## Full-viewport page scenery and dungeon banner correction
 
