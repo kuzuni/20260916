@@ -1,5 +1,9 @@
 # 중간 UI 확인
 
+## 최신 안내
+
+사용자 요청에 따라 현재 구현을 main에 머지하고 원래 `C:/Users/user/Documents/GitHub/20260916` 프로젝트에 동기화했습니다. 이제 원래 프로젝트의 `Assets/DarkFantasyUI/Scenes/MoonlitMain.unity`를 Play하면 됩니다. 아래 preview 폴더는 이전 시점의 선택적인 복사본이며 기본 확인 대상이 아닙니다. 이후 진행분도 원래 main 프로젝트에 반영합니다. 아직 제작 및 검증 중인 UI입니다.
+
 전체 24페이지 완성을 기다리지 않고 현재 구현본을 확인하는 별도 Unity 프로젝트입니다.
 
 - 프로젝트 폴더: `C:/Users/user/Documents/GitHub/20260916-preview`

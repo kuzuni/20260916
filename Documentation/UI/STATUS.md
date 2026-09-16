@@ -1,6 +1,12 @@
 # Moonlit 24 UI — coordinator status
 
-## User correction: intermediate review before all 24 screens finish
+## Latest user direction and completed main merge
+
+The user explicitly requested merging the current implementation into main immediately for inspection in the original project, overriding the separate-preview-first/all-acceptance-before-main approach below. PR #1 was merged successfully as 9e1fb8c928cbf6e36640415192051a543a67df5b; C:/Users/user/Documents/GitHub/20260916 was fast-forwarded to that merge with no user changes overwritten. The current UI is now in both GitHub main and the original local project. UI/artwork is still in progress and latest CI/visual acceptance is not implied by this merge.
+
+The heartbeat prompt now integrates reviewable progress into main and synchronizes the original checkout after checking for user changes. Continue implementation from the latest main in an isolated checkout/branch; old PR #1 is closed/merged, so future updates need a new integration PR or coordinator merge. 20260916-preview is optional and no longer the primary delivery location. The remaining acceptance work, existing CI IDs and applied task list below remain relevant. Local Unity must not be launched or controlled.
+
+## Earlier intermediate-preview approach (superseded above)
 
 The user needs to inspect intermediate implementations. A separate detached preview worktree now exists at C:/Users/user/Documents/GitHub/20260916-preview, revision 50d3fe073ddcae49b89bbac705b18bb1d0d9c099. See PREVIEW.md for opening it manually. The agent did not launch Unity. The heartbeat prompt has been updated to maintain this preview: first check for user modifications, then fast-forward only when clean. Do not overwrite user changes. Preview is explicitly unfinished/unverified at the newest revision. Do not make the user wait for all 24 screens before seeing work. Split implementation into independently reviewable/validated groups and merge each accepted group to main; overall automation completes only after all 24 meet acceptance. This user correction takes precedence over earlier all-or-nothing integration wording.
 
@@ -9,11 +15,11 @@ Updated 2026-09-16. This file replaces older chronological notes; Git history pr
 ## Current source of truth
 
 - Repository: https://github.com/kuzuni/20260916 (private).
-- Draft PR: https://github.com/kuzuni/20260916/pull/1 . UI implementation is NOT merged into main.
-- Remote branch: codex/ui-24-integration.
-- Latest pushed commit: 50d3fe073ddcae49b89bbac705b18bb1d0d9c099.
+- Merged PR: https://github.com/kuzuni/20260916/pull/1 . Current work in progress is now on main.
+- Delivery branch: main. Development checkout remains codex/ui-24-integration until resynced/new work starts.
+- Implementation merge: 9e1fb8c928cbf6e36640415192051a543a67df5b (includes 50d3fe0).
 - Coordinator checkout: C:/Users/user/.codex/worktrees/moonlit-ui-24-integration (clean at checkpoint).
-- Main project Assets were not modified by the coordinator. No local Unity editor was run or controlled.
+- Main project Assets were updated by the user-requested fast-forward sync. No local Unity editor was run or controlled.
 - Read the integration branch's Documentation/UI/INTEGRATION-CHECKPOINT.md, ART-GENERATION.md, PROGRESSION-STATE-REVIEW.md, SOCIAL-VISUAL-REVIEW.md and CI-35077607384.md for implementation/evidence details.
 
 ## Actual hosted verification

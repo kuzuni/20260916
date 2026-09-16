@@ -10,6 +10,7 @@ Implement the 24 supplied UI references with real runtime Unity uGUI, maintainin
 - Use Unity 6000.3.8f1; cloud CI is required for runtime validation. Static checks alone are not a Unity pass.
 - Do not print/read/export account tokens or license passwords. Configure secrets via the service's secret mechanism. Missing cloud/license access is a reported blocker, never fabricated test success.
 - Do not merge/push directly to main from delegated tasks. Return a reviewable diff/branch or PR and verification report for the coordinator.
+- Latest user direction: the coordinator integrates reviewable work in progress into main and fast-forwards the original local checkout so the user can inspect it during development. Do not hold all main updates until all 24 pages are complete. Preserve user changes. Report incomplete artwork and pending/failed CI accurately; merging is not final acceptance. Local Unity execution/control remains prohibited.
 - Do not touch Assets/_Recovery; preexisting user material.
 
 ## Implementation
