@@ -1,6 +1,25 @@
 # Moonlit 24 UI — coordinator status
 
-Updated 2026-09-16, 17:45 UTC. Implementation is unfinished; local automation paused for cloud handoff.
+Updated 2026-09-16, 18:18 UTC. Implementation is unfinished; local coordinator and 15-minute heartbeat resumed.
+
+## Local coordinator resumed; validation repair
+
+- Latest user direction supersedes the cloud handoff below: continue in the original desktop thread with the PC/app running. Automation `moonlit-24-ui` is confirmed ACTIVE at 15-minute intervals, targeting `01a0a6eb-fd3b-75e3-aa0c-29888f2556d5`. The Codex Cloud environment's agent internet setting was restored to OFF and verified in settings. No cloud recurring coordinator was created.
+- ChatGPT Work conversation `6aaad515-69c4-83ee-aa9c-0649a517932d` confirmed it stopped. Its existing PR #30 (`codex/cloud-ci-shop-back-fix`, head `9fd2d2338f7399c82e200409adff46bfe8cdec2d`) is being reviewed/reused, not duplicated. The separate Codex Cloud task `task_e_6aaad7c9e9f4832989ba7ff4c593204c` only produced a handoff-document change and read-only network diagnostics; it does not own ongoing implementation.
+- Downloaded PR #29 run **35129388968** artifact **10460667539**: actual XML **30 passed / 1 failed / 0 skipped**. The obsolete shop test searched for the removed top back button. PR #30 replaces that lookup with system/context page close.
+- Downloaded PR #30 run **35130457595** test artifact **10461357672**: XML and summary **31 passed / 0 failed / 0 skipped / 0 inconclusive**. Unity credentials and compilation worked on the GitHub-hosted runner. This is separate from the Codex Cloud container's GitHub network/auth failure.
+- The same run's graphics job failed. Artifact **10462430194**, Verification.txt, identifies the skills navigation comparison: the selected Companions icon now correctly becomes X, but the baseline still expected the original icon (mean RGB difference 0.4624997). Viewed the actual 9:16 skill capture: X, centered title, left parchment label and bottom controls are visible. This is not complete reference-fidelity approval; collection count/art gaps remain.
+- The capture harness now builds the expected selected-icon state on main, restores normal state, and lets route opening independently apply its selection. All five entries remain pixel-compared at the same tolerance; sampling follows the displayed target graphic. This preserves detection of page occlusion and missing X state rather than skipping the selected button. Static diff check passes. Updated source `6d61000071ac4d8155e0b33295100d3d2273cb0b` is running hosted CI **35133474570**; this is not yet a pass.
+- Evidence: `C:/Users/user/AppData/Local/Temp/moonlit-cloud-review/artifact-{10460667539,10461357672,10462430194}/unpacked`. Preserve the original checkout's eight user PNG metadata edits. No local Unity execution/control.
+- Next: verify PR #30's updated source in hosted CI, inspect both-aspect captures for skills/PvP/dungeons/shop and auto-forge, then continue remaining reference artwork/layout corrections. Integrate reviewable progress into main and fast-forward the original checkout without overwriting user changes.
+
+## Cloud CI failure repair — 2026-09-16 17:47 UTC
+
+- Verified latest main **daa9662903a38272646f99704d6175dfae8b311b** and connected GitHub admin/push access from the cloud coordinator.
+- Downloaded run **35128861265** test artifact **10461470213**. Actual NUnit XML: **30 passed, 1 failed, 0 skipped/inconclusive**. The only failure was `Shop_HasExactlyTheFiveRequiredOffers_AndCanReturnToMain`: its test still searched for the deliberately removed top `<메인>` button, causing a NullReferenceException at line 249. Production shop layout and all newly added PvP/progression tests passed in that run; graphics was skipped because tests failed.
+- Isolated fix branch `codex/cloud-ci-shop-back-fix` changes the obsolete assertion to exercise system/context page close (`host.CloseTop`) while still verifying return to main. Unity 6000.3.8f1 cloud validation is required before merge; no local Unity was used.
+- Runs **35129388968** (latest parchment source) and **35127600979** graphics were still in progress at this checkpoint. Do not claim their capture acceptance yet.
+- The requested same-conversation **15-minute** cloud recurrence is not supported by the available automation service; its maximum frequency is once per hour. No misleading 15-minute task was created. This run continues as a single cloud execution.
 
 ## Cloud coordinator handoff — 2026-09-16 17:45 UTC
 
