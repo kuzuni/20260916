@@ -1,97 +1,60 @@
-# Cloud dispatch status
+# Moonlit 24 UI — coordinator status
 
-Updated 2026-09-16 (Asia/Seoul).
+Updated 2026-09-16. This file replaces older chronological notes; Git history preserves those notes.
 
-## Shared baseline
+## Current source of truth
 
-- Repository: https://github.com/kuzuni/20260916, main.
-- Main runtime UI baseline 76e42bf; 24-image reference pack/briefs 4187190.
-- Dispatch baseline: 7b244bc (includes CI secret instructions).
-- Images are byte-identical copies; original Korean filename requirements are in reference-manifest.json.
-- No local Unity execution, UI automation or scene manipulation.
+- Repository: https://github.com/kuzuni/20260916 (private).
+- Draft PR: https://github.com/kuzuni/20260916/pull/1 . UI implementation is NOT merged into main.
+- Remote branch: codex/ui-24-integration.
+- Latest pushed commit: 50d3fe073ddcae49b89bbac705b18bb1d0d9c099.
+- Coordinator checkout: C:/Users/user/.codex/worktrees/moonlit-ui-24-integration (clean at checkpoint).
+- Main project Assets were not modified by the coordinator. No local Unity editor was run or controlled.
+- Read the integration branch's Documentation/UI/INTEGRATION-CHECKPOINT.md, ART-GENERATION.md, PROGRESSION-STATE-REVIEW.md, SOCIAL-VISUAL-REVIEW.md and CI-35077607384.md for implementation/evidence details.
 
-## Connected environment
+## Actual hosted verification
 
-Repository-backed environment: kuzuni/20260916.
-Environment ID: 6aaa3ea9e7748191a9023a62689d6c2b.
-Settings: https://chatgpt.com/codex/cloud/settings/environment/6aaa3ea9e7748191a9023a62689d6c2b
-Universal container; agent internet retains default off.
+Unity version: 6000.3.8f1. GitHub Actions secrets UNITY_EMAIL, UNITY_LICENSE and UNITY_PASSWORD are user-authorized; use workflow secret expressions only. Never retrieve/read/print their values.
 
-## Submitted cloud tasks
+- Baseline login/license/Linux player build: SUCCESS, run 35067009693, job 104699606811. This baseline did not include the new 24 routes.
+- First 24-route CI run 35073553695: FAILED before tests, Unity license TimeStamp validation failed. No test artifact, graphics skipped. Do not count as a compile/test pass.
+- Replacement run https://github.com/kuzuni/20260916/actions/runs/35077607384 at commit 3d6dd2d7237c38fc97ca2cd74c377c517fabafeb: compile/PlayMode job 104733618485 SUCCESS. Downloaded artifact 10439357413 confirms 10 passed, 0 failed, 0 skipped, 0 inconclusive. Graphics capture job 104737565570 was still running at this checkpoint.
+- Latest queued validation: https://github.com/kuzuni/20260916/actions/runs/35079253091 at commit 50d3fe0. It must validate newer art/progression/social changes; no pass claimed yet. Intermediate pending run 35078727676 is superseded by this newest queued update.
+- Workflow now preserves active runs (cancel-in-progress false) and queues the latest pending PR update. Test entry uses the proven unity-builder activation path plus Editor Test Framework API; actual NUnit evidence required. Static git diff --check passes but is never a Unity substitute.
+- Downloaded test evidence: C:/Users/user/AppData/Local/Temp/moonlit-cloud-review/ci-35077607384/unpacked. Summary and XML inspected; no account secret values retrieved.
 
-All four submissions succeeded via codex cloud exec against this environment and main. Latest confirmed state: all four drafts are ready for coordinator review (2026-09-16 16:21 KST). These are actual repository-backed cloud jobs, not local worker processes. Task titles are service-generated; links identify each assignment.
+## Implementation progress and gaps
 
-| Assignment | Brief | Task |
-|---|---|---|
-| Shared canvases, modal stack, API, CI | Tasks/00-foundation.md | [Implement cloud CI for Moonlit UI](https://chatgpt.com/codex/tasks/task_e_6aaa3f284b848329a2f503179ed3c3c2) |
-| Forge/equipment/offline/pass: 8 screens | Tasks/01-forge.md | [Implement Moonlit UI screens in cloud](https://chatgpt.com/codex/tasks/task_e_6aaa3f42b96c8329b8be80604ac2c898) |
-| Skills/pets/heroes/dungeons: 7 screens | Tasks/02-progression.md | [Implement moonlit UI screens in cloud](https://chatgpt.com/codex/tasks/task_e_6aaa3f47b9e48329981d5b65dde1ce30) |
-| Profile/settings/chat/ranking/PvP/shop: 9 screens | Tasks/03-social.md | [Implement moonlit UI screens in cloud](https://chatgpt.com/codex/tasks/task_e_6aaa3f4ca5b08329aaaaf1935e0165a3) |
+All 24 routes are assembled and connected to main/nav entries with runtime-only construction. Coordinator reviewed cloud drafts and corrected page input/close/back, pending craft cost and duplicate/stale decisions, one-time offline wallet reward, auto settings state, quick-equip accumulation, actual skill equip/upgrade and summon state, system-back summon lockout, social navigation clearance, ranking/PvP/opponent raycast targets and modal-interior hit blocking. Newly added tests still need newest queued CI.
 
-Earlier ChatGPT Work conversation 6aaa3c5a-69dc-83ee-85cb-a46cbbf95790 received a stop-implementation/report-only instruction to avoid duplicate work. It is not the implementation source to merge.
+All four dungeon source paintings are now generated with built-in image_gen and stored under Assets/DarkFantasyUI/Resources/Moonlit/Dungeons: HammerThief-v1, GhostVillage-v1, Invasion-v1, ZombieRush-v1. Unique metadata, exact prompts and inspection notes are committed. List/detail crop proportionally; images, reusable frames, labels and buttons remain separate. No image generation request remains running.
 
-## CI
+Still incomplete: original-reference visual fidelity across 24 screens, bespoke skill/reward/shop/avatar/crest illustrations, control behavior/layout gaps revealed by real captures, all-screen safe-area and interaction acceptance. Placeholders/glyphs are not finished artwork. Runtime capture code requests all 24 routes at both aspect ratios, but capture existence alone is not visual acceptance. Do not merge before reviewing actual results and fixing failures.
 
-The user confirmed existing GitHub Actions repository secrets UNITY_EMAIL, UNITY_LICENSE, UNITY_PASSWORD and explicitly authorized their use for CI. Only names were observed; values must never be retrieved, echoed, or stored in the repo. Reference them via workflow secrets expressions.
+## Cloud work already reviewed and applied
 
-Secrets exist in GitHub Actions, not automatically in Codex Cloud's container. Unity account login and ULF license activation were verified successfully in an actual GitHub-hosted Unity 6000.3.8f1 run on 2026-09-16. Evidence: https://github.com/kuzuni/20260916/actions/runs/35067009693/job/104699606811#step:5:171 (masked successful login), #step:5:190 (entitlement activation), and #step:5:192 (ULF activation). This verifies the configured account credentials and license work together in CI. Secret values were not retrieved.
+Environment: kuzuni/20260916, ID 6aaa3ea9e7748191a9023a62689d6c2b. Repository-backed Codex Cloud, not local workers. All following tasks are complete and their diffs applied. DO NOT APPLY THEM AGAIN. No delegated task is currently executing.
 
-Workflow: .github/workflows/unity-license-check.yml, main commit 70f30a3. The baseline build completed successfully, including Unity compilation, Linux player build and artifact upload (job 104699606811). The 24 new UI screens are not included in that baseline; their compilation and screenshots still require validation. Do not mistake activation success or static checks for runtime UI validation.
+| Assignment | Task ID |
+|---|---|
+| Foundation | task_e_6aaa3f284b848329a2f503179ed3c3c2 |
+| Forge | task_e_6aaa3f42b96c8329b8be80604ac2c898 |
+| Progression | task_e_6aaa3f47b9e48329981d5b65dde1ce30 |
+| Social | task_e_6aaa3f4ca5b08329aaaaf1935e0165a3 |
+| Entry/CI integration | task_e_6aaa4b7d4a2c8329938a738ce3607eff |
+| Initial local demo state | task_e_6aaa524857dc8329b7f0463cd99f179f |
+| Skill/summon live state | task_e_6aaa5c620df8832988a95fa79042550e |
+| Social sprites/layout | task_e_6aaa5cb3f8608329a8f710daae4691ff |
 
-An earlier draft branch codex/ui-foundation (9943238), produced by the stopped ChatGPT Work conversation, failed CI before activation because the hosted runner ran out of disk while extracting the Unity image. The coordinator added hosted-runner disk cleanup to the separate baseline verification workflow; the replacement run pulled the image and activated Unity successfully. Apply the same disk fix to the final UI validation workflow before integration. Do not merge both foundation implementations.
+Task URLs: https://chatgpt.com/codex/tasks/TASK_ID . Patches are preserved under C:/Users/user/AppData/Local/Temp/moonlit-cloud-review. The last progression patch required a clean three-way merge to preserve independently added dungeon art; final branch contains both.
 
-## Coordinator continuation
+Earlier ChatGPT Work conversation 6aaa3c5a-69dc-83ee-85cb-a46cbbf95790 was stopped to avoid duplicate foundation work. Do not merge its codex/ui-foundation branch/9943238 alongside current implementation. One consistent Scripts/Screens.meta is already preserved.
 
-1. Inspect task status using codex cloud status TASK_ID. CLI list may include unrelated environments; filter exact task IDs.
-2. Review foundation diff first. Then review each module's owned files against original images and ARCHITECTURE.md.
-3. Apply reviewed changes on isolated integration branches, resolve conflicts and wire registrations/main entry points.
-4. Run GitHub Actions and inspect actual logs/captures. Verify both portrait aspect ratios, simulated safe areas, nested dim input blocking, back/focus restoration, exact shop quantities and all 24 screens.
-5. Iterate on findings, then merge approved validated implementation. No implementation has been merged yet.
+## Next heartbeat
 
-## Draft review findings
+1. Inspect graphics job 104737565570 and newest run 35079253091. Fetch actual NUnit results/logs/capture artifacts and repair failures on integration branch.
+2. Compare per-screen captured PNGs to all originals in Documentation/UI/References and filenames in reference-manifest.json. Verify 9:16, 9:19, safe areas, top-only modal/back input, interior backdrop blocking, parent tab/scroll, shop quantities and actual control states.
+3. Generate missing illustrated assets with built-in image_gen, keep slots/icons separate, improve unfinished reference layouts. Assign bounded independent follow-ups in cloud if useful; avoid duplicate work.
+4. Push reviewed fixes to integration PR, allow hosted validation to finish, record checkpoints. Merge only after the 24-page acceptance requirements actually pass. Pause automation only on actual completion.
 
-All four repository-backed tasks have returned reviewable diffs. No UI implementation has been merged into main. Draft patches are preserved for coordinator review outside the active Unity Assets tree.
-
-- Foundation: shared runtime routing/canvases and CI draft; final CI needs disk cleanup and a review of graphics-job activation. Registration wiring and all-screen capture coverage still require integration.
-- Forge, progression and social: 24 route implementations across the three modules; static checks only. Each reports missing bespoke reference artwork or approximations from existing assets. They must not be presented as visually finished.
-- Resolve duplicate Scripts/Screens.meta ownership when combining modules; preserve one consistent folder GUID.
-- Review per-screen images, compile in cloud, and validate input, safe areas and captures before merging implementation.
-
-## Active integration follow-up
-
-The coordinator assembled all four drafts on remote branch codex/ui-24-integration, commit b7657cf. This is an unaccepted integration checkpoint, not a finished implementation. Worktree: C:/Users/user/.codex/worktrees/moonlit-ui-24-integration. Main project Assets were not modified and local Unity was not run.
-
-Resolved duplicate Screens.meta ownership, normalized patch line endings, and added disk cleanup to both UI CI jobs. Static git diff --check passed.
-
-Integration cloud task: https://chatgpt.com/codex/tasks/task_e_6aaa4b7d4a2c8329938a738ce3607eff . Submitted successfully against codex/ui-24-integration. It owns route registration/main entry wiring, compilation/test assembly fixes, modal/safe area behavior and cloud workflow/capture expansion. While active, do not duplicate its code edits. Inspect its result, apply the diff on the integration branch, create/update a PR and inspect actual CI. Bespoke image generation and visual review remain coordinator responsibilities. Do not merge main before acceptance.
-
-## Heartbeat 2026-09-16 17:25 KST — integration PR and actual CI started
-
-Source of truth now: remote codex/ui-24-integration commit 3549348499c6ba67394fda40a2b5793402ca8f2d; worktree C:/Users/user/.codex/worktrees/moonlit-ui-24-integration. Integration task task_e_6aaa4b7d4a2c8329938a738ce3607eff completed; its diff has been reviewed and applied. Do NOT reapply it.
-
-Draft PR: https://github.com/kuzuni/20260916/pull/1 . Actual new UI CI running: https://github.com/kuzuni/20260916/actions/runs/35073553695 . Read run jobs/results before claiming tests passed. PR remains draft and unmerged.
-
-Coordinator fixed page disabled-ancestor input, close/back behavior, deferred overlay visibility, pet/hero closure indexing, actual GameCI graphics activation and capture domain-reload persistence. Added real backdrop raycast and page return tests. Generated one production background with built-in image_gen and wired it in dungeon list/details: Assets/DarkFantasyUI/Resources/Moonlit/Dungeons/HammerThief-v1.png. Exact prompt and inspected reference: Documentation/UI/ART-GENERATION.md on integration branch. Other bespoke art is still missing. Full findings: integration branch Documentation/UI/INTEGRATION-CHECKPOINT.md.
-
-New bounded cloud follow-up task https://chatgpt.com/codex/tasks/task_e_6aaa524857dc8329b7f0463cd99f179f started from 3549348. It owns real demo state fixes (sell/equip, automatic forge stop/config, one-time offline rewards, quick equip and pet/hero selection, mobile page return) and meaningful state/scroll tests in module code. Do not duplicate its in-progress module edits. Coordinator owns artwork and CI inspection. After completion, review/apply its diff, rerun CI as needed, inspect all captures at both aspects and safe areas, finish missing illustrations/reference fidelity before merge. No local Unity was run.
-
-## Heartbeat 2026-09-16 18:10 KST — reviewed state fixes and replacement CI
-
-Current integration branch codex/ui-24-integration: 3d6dd2d7237c38fc97ca2cd74c377c517fabafeb, draft PR #1. Worktree remains C:/Users/user/.codex/worktrees/moonlit-ui-24-integration. State task task_e_6aaa524857dc8329b7f0463cd99f179f was reviewed/applied, with coordinator fixes for pending craft charge/decisions, stale callbacks, quick-equip duplicate objects, return controls and regression tests. Do NOT apply that patch again.
-
-CI 35073553695 failed before tests (Unity license TimeStamp validation failed), with no test artifact and graphics skipped. Replacement CI https://github.com/kuzuni/20260916/actions/runs/35077607384 is in progress using the proven builder activation path and an Editor Test Framework API entry point. Actual compile/test/capture pass is still pending. Main UI is not merged; no local Unity execution.
-
-Two bounded cloud tasks started from 3d6dd2d:
-- https://chatgpt.com/codex/tasks/task_e_6aaa5c620df8832988a95fa79042550e owns ProgressionScreenModule live skill equip/upgrade/summon state, dedicated regression tests and PROGRESSION-STATE-REVIEW.md.
-- https://chatgpt.com/codex/tasks/task_e_6aaa5cb3f8608329a8f710daae4691ff owns Social module existing-sprite visual fidelity and mobile layout/nav clearance, dedicated regression tests and SOCIAL-VISUAL-REVIEW.md.
-Do not duplicate edits in their owned code until reviewing their returned diffs. Coordinator owns new artwork and CI. GhostVillage banner image generation started during this heartbeat; check integration ART-GENERATION.md and resources for final saved result. Other illustrations remain unfinished, and per-screen captures still must be inspected before acceptance/merge.
-
-## Heartbeat continuation — generated art and skill state integrated
-
-Remote integration source of truth: fe50805e9ff190a7402ef44cbebd25d625ac00d6, draft PR #1. Commits b14ae06 and 543ff5a added three generated paintings (Ghost Village, Invasion, Zombie Rush), proportional cropped art display, and reviewed progression live state fixes. All four dungeon paintings now live in Resources/Moonlit/Dungeons with separate runtime frames/text/buttons. Built-in generation completed; no image request remains running. Exact prompts and notes are committed under Documentation/UI.
-
-Progression task task_e_6aaa5c620df8832988a95fa79042550e was reviewed and applied with a clean three-way merge, preserving the art. Do NOT apply again. Coordinator corrected system-back summon lockout, direct preview free-shard mutation, owned-only equip/upgrade, current detail level refresh, and repeated action guards. New tests remain unrun until CI.
-
-Actual CI: https://github.com/kuzuni/20260916/actions/runs/35077607384 is still running on earlier 3d6dd2d; https://github.com/kuzuni/20260916/actions/runs/35078727676 is pending on fe50805. Workflow now preserves active runs and queues the latest pending PR update to avoid losing activation/compile evidence. Read both results when available; never claim tests passed from a queued/in-progress state.
-
-Social task task_e_6aaa5cb3f8608329a8f710daae4691ff still needs result review/application. Main implementation not merged; local Unity never run. Next heartbeat: inspect CI evidence and social result, fix actual failures, continue missing skill/shop/reward/portrait art and all 24 full-resolution reference/capture checks. The integration worktree is the source of implementation checkpoints.
+Automation moonlit-24-ui is active every 15 minutes. Keep unchanged/non-actionable monitoring quiet; notify on meaningful progress, completion, failure or required user action. Use limits/access failures as explicit blockers, never fabricated success. No local Unity/MCP/self-hosted runner/Library/Moonlit.command use. Do not touch Assets/_Recovery.
