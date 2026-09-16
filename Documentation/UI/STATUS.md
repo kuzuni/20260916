@@ -64,3 +64,13 @@ The coordinator assembled all four drafts on remote branch codex/ui-24-integrati
 Resolved duplicate Screens.meta ownership, normalized patch line endings, and added disk cleanup to both UI CI jobs. Static git diff --check passed.
 
 Integration cloud task: https://chatgpt.com/codex/tasks/task_e_6aaa4b7d4a2c8329938a738ce3607eff . Submitted successfully against codex/ui-24-integration. It owns route registration/main entry wiring, compilation/test assembly fixes, modal/safe area behavior and cloud workflow/capture expansion. While active, do not duplicate its code edits. Inspect its result, apply the diff on the integration branch, create/update a PR and inspect actual CI. Bespoke image generation and visual review remain coordinator responsibilities. Do not merge main before acceptance.
+
+## Heartbeat 2026-09-16 17:25 KST — integration PR and actual CI started
+
+Source of truth now: remote codex/ui-24-integration commit 3549348499c6ba67394fda40a2b5793402ca8f2d; worktree C:/Users/user/.codex/worktrees/moonlit-ui-24-integration. Integration task task_e_6aaa4b7d4a2c8329938a738ce3607eff completed; its diff has been reviewed and applied. Do NOT reapply it.
+
+Draft PR: https://github.com/kuzuni/20260916/pull/1 . Actual new UI CI running: https://github.com/kuzuni/20260916/actions/runs/35073553695 . Read run jobs/results before claiming tests passed. PR remains draft and unmerged.
+
+Coordinator fixed page disabled-ancestor input, close/back behavior, deferred overlay visibility, pet/hero closure indexing, actual GameCI graphics activation and capture domain-reload persistence. Added real backdrop raycast and page return tests. Generated one production background with built-in image_gen and wired it in dungeon list/details: Assets/DarkFantasyUI/Resources/Moonlit/Dungeons/HammerThief-v1.png. Exact prompt and inspected reference: Documentation/UI/ART-GENERATION.md on integration branch. Other bespoke art is still missing. Full findings: integration branch Documentation/UI/INTEGRATION-CHECKPOINT.md.
+
+New bounded cloud follow-up task https://chatgpt.com/codex/tasks/task_e_6aaa524857dc8329b7f0463cd99f179f started from 3549348. It owns real demo state fixes (sell/equip, automatic forge stop/config, one-time offline rewards, quick equip and pet/hero selection, mobile page return) and meaningful state/scroll tests in module code. Do not duplicate its in-progress module edits. Coordinator owns artwork and CI inspection. After completion, review/apply its diff, rerun CI as needed, inspect all captures at both aspects and safe areas, finish missing illustrations/reference fidelity before merge. No local Unity was run.
