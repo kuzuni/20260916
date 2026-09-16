@@ -49,6 +49,62 @@ namespace Moonlit.UI.Tests
         }
 
         [UnityTest]
+        public IEnumerator Collection_AllTabsLoadCurrencyRibbonAndProgressArtwork()
+        {
+            host.Registry.Open("skills-pets-heroes"); yield return null;
+            foreach(string tab in new[]{"스킬","펫","영웅"})
+            {
+                GameObject.Find("Tab "+tab).GetComponent<Button>().onClick.Invoke(); yield return null;
+                foreach(string name in new[]{"Summon currency icon","Summon cost icon","Equipped ribbon"})
+                {
+                    var art=GameObject.Find(name).GetComponent<Image>();
+                    Assert.IsNotNull(art.sprite,name+" must not be a white Image with no sprite");
+                    Assert.IsTrue(art.enabled);
+                }
+                var bars=GameObject.Find("Tab content").GetComponentsInChildren<Image>(true).Where(i=>i.name=="Progress frame").ToArray();
+                Assert.IsNotEmpty(bars);
+                Assert.IsTrue(bars.All(i=>i.sprite!=null && i.enabled));
+            }
+            GameObject.Find("Tab 스킬").GetComponent<Button>().onClick.Invoke();
+        }
+
+        [UnityTest]
+        public IEnumerator IllustratedDungeonAndPass_KeepArtSeparateAndPreserveParentScroll()
+        {
+            host.Registry.Open("dungeons"); yield return null;
+            var scroll=GameObject.Find("Page — dungeons").GetComponentInChildren<ScrollRect>();
+            var rows=scroll.content.Cast<Transform>().ToArray();
+            Assert.AreEqual(4,rows.Length);
+            foreach(var row in rows)
+            {
+                Assert.IsFalse(row.Find("Card rim").GetComponent<Image>().fillCenter);
+                Assert.IsNotNull(row.Find("Dungeon key icon").GetComponent<Image>().sprite);
+            }
+            float position=scroll.verticalNormalizedPosition;
+            rows[3].Find("Open").GetComponent<Button>().onClick.Invoke(); yield return null;
+            var stage=GameObject.Find("Difficulty").GetComponent<Text>();
+            Assert.AreEqual("19-9",stage.text);
+            GameObject.Find("Previous difficulty").GetComponent<Button>().onClick.Invoke();
+            Assert.AreEqual("19-8",stage.text);
+            host.CloseTop(); yield return null;
+            Assert.AreSame(scroll,GameObject.Find("Page — dungeons").GetComponentInChildren<ScrollRect>());
+            Assert.That(scroll.verticalNormalizedPosition,Is.EqualTo(position).Within(.01f));
+            host.CloseTop(); yield return null;
+            ForgeScreenModule.Register(host.Registry);
+            host.Registry.Open("progress-pass"); yield return null;
+            Assert.IsNotNull(GameObject.Find("Pass sword header").GetComponent<Image>().sprite);
+            var pass=GameObject.Find("Popup Layer progress-pass");
+            var locks=pass.GetComponentsInChildren<Image>(true).Where(i=>i.name=="Premium lock").ToArray();
+            Assert.AreEqual(6,locks.Length);
+            Assert.IsTrue(locks.All(i=>i.sprite!=null && !i.raycastTarget));
+            var claim=pass.GetComponentsInChildren<Button>().First(b=>b.name=="받기");
+            claim.onClick.Invoke(); yield return null;
+            Assert.IsFalse(claim.interactable);
+            claim.onClick.Invoke();
+            Assert.AreEqual("✓",claim.GetComponentInChildren<Text>().text);
+        }
+
+        [UnityTest]
         public IEnumerator Collection_HeaderIsCentered_AndFooterTracksSafeBottom()
         {
             foreach (int height in new[] { 1920,2280 })

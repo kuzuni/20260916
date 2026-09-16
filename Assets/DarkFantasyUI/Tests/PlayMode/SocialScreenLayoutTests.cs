@@ -79,6 +79,13 @@ namespace Moonlit.UI.Tests
                 Assert.AreEqual(5, illustrations.Select(i => i.sprite.rect).Distinct().Count());
                 Assert.AreEqual(3, scroll.content.GetComponentsInChildren<Image>(true)
                     .Count(i => i.name == "Deal illustration" && i.sprite != null));
+                Assert.AreEqual(14,scroll.content.GetComponentsInChildren<RectTransform>(true).Count(t=>t.name.StartsWith("Reward cell ")));
+                foreach(var art in scroll.content.GetComponentsInChildren<Image>(true).Where(i=>i.name=="Deal illustration" || i.name=="Ruby artwork"))
+                {
+                    var card=art.transform.parent.GetComponent<RectTransform>();
+                    Assert.Greater(art.rectTransform.rect.height,card.rect.height*.6f,"Illustrations should fill the card, not sit as tiny thumbnails.");
+                    Assert.IsFalse(card.Find("Card rim").GetComponent<Image>().fillCenter);
+                }
                 Assert.AreEqual("가격 미설정", GameObject.Find("Gem offer 1500").GetComponentInChildren<Button>().name);
                 Assert.AreEqual("가격 미설정", GameObject.Find("Gem offer 3300").GetComponentInChildren<Button>().name);
                 host.CloseTop();

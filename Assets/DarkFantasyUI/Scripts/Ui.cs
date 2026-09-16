@@ -25,6 +25,16 @@ namespace Moonlit.UI
             i.sprite = sprite; i.color = color ?? Color.white; i.raycastTarget = false;
             return i;
         }
+        public static Image ArtImage(string name, Transform parent, float x, float y, float w, float h, Sprite sprite)
+        {
+            var image=Image(name,parent,x,y,w,h,sprite);
+            if(!sprite)
+            {
+                image.enabled=false;
+                Debug.LogError("[Moonlit] Required artwork is not loaded: " + name + ". Check asset import before starting Play.");
+            }
+            return image;
+        }
         public static Text Text(string name, Transform parent, float x, float y, float w, float h, string value, int size, Font font, Color? color = null, TextAnchor align = TextAnchor.MiddleCenter)
         {
             var t = Rect(name,parent,x,y,w,h).gameObject.AddComponent<Text>();
