@@ -384,33 +384,48 @@ namespace Moonlit.UI
             float w = c.Width, h = c.Height;
             var root = PageBackdrop(c, "PvP page");
             Action(c, root, 28, 24, 150, 70, "‹ 메인", c.Close);
-            Ui.Text("Crest", root, 380, 24, 320, 110, "🛡", 70, Font(c), Ui.Gold);
-            Ui.Text("League", root, 290, 124, 500, 70, "골드 리그", 43, Font(c), Ui.Ivory);
-            Action(c, root, 320, 200, 440, 64, "🎁 시즌 종료: 4일 18시", () => c.Open("pvp-rewards"));
+            Ui.Image("Gold league crest", root, (w - 160) * .5f, 0, 160, 160,
+                Resources.Load<Sprite>("Moonlit/Social/GoldLeagueCrest-v1")).preserveAspect = true;
+            Ui.Text("League", root, 290, 158, 500, 54, "골드 리그", 43, Font(c), Ui.Ivory);
+            var rewards = Ui.ArtButton("Season rewards", root, (w - 560) * .5f, 218, 560, 64, PanelSprite(c, 1), true, 5);
+            Ui.Image("Season gift", rewards.transform, 22, 0, 64, 64,
+                Resources.Load<Sprite>("Moonlit/Social/SeasonGift-v1")).preserveAspect = true;
+            Ui.Text("Season timer", rewards.transform, 100, 0, 440, 64,
+                "시즌 종료: <color=#5CFF46>4일 18시</color>", 26, Font(c));
+            rewards.onClick.AddListener(() => c.Open("pvp-rewards"));
             string[] names = { "tewtee", "CreeGuy", "MenoT", "moonzzanf", "Guest 86680", "mrmaingo1868", "Epsylon" };
+            string[] powers = { "212m", "12.9m", "16b", "65.5b", "5.52m", "2.57m", "821b" };
+            int[] stars = { 15, 14, 13, 11, 4, 2, 0 };
             float actionY = h - NavigationReserve - 112;
             float stickyY = actionY - 132;
             float listHeight = Mathf.Max(380, stickyY - 310 - 18);
             Scroll(c, root, 90, 290, w - 180, listHeight, names.Length * 130, out var content);
             for (int i = 0; i < names.Length; i++)
-            {
-                int rank = 8 + i; string name = names[i]; string power = i == 3 ? "65.5b" : new[] { "212m", "12.9m", "16b", "65.5b", "5.52m", "2.57m", "821b" }[i];
-                var row = SpritePanel(c, "PvP rank " + rank, content, 0, i * 130, w - 180, 118, i == 3 ? 0 : 1, Color.white);
-                Ui.Text("Rank", row.transform, 10, 12, 90, 90, rank.ToString(), 35, Font(c)); Avatar(c, row.transform, 105, 10, 96, i);
-                Ui.Text("Player", row.transform, 220, 7, 350, 48, name, 29, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
-                Ui.Image("Power icon", row.transform, 220, 62, 32, 32, Icon(c, 12)).preserveAspect = true;
-                Ui.Text("Power", row.transform, 260, 57, 310, 44, power, 25, Font(c), Ui.Gold, TextAnchor.MiddleLeft);
-                var payload = new Dictionary<string, object> { { "name", name }, { "power", power }, { "rank", rank }, { "avatarIndex", i } };
-                var b = row.gameObject.AddComponent<Button>(); b.targetGraphic = row; b.onClick.AddListener(() => c.Open("player-details", payload));
-                row.raycastTarget = true;
-                Ui.Image("Star icon", row.transform, w - 410, 35, 38, 38, Icon(c, 15)).preserveAspect = true;
-                Ui.Text("Stars", row.transform, w - 365, 20, 155, 70, (15 - i).ToString(), 29, Font(c), Ui.Gold);
-            }
-            var sticky = SpritePanel(c, "My sticky rank", root, 90, stickyY, w - 180, 112, 0, Color.white);
-            Ui.Image("My power icon", sticky.transform, 355, 34, 38, 38, Icon(c, 12)).preserveAspect = true;
-            Ui.Image("My star icon", sticky.transform, w - 330, 34, 38, 38, Icon(c, 15)).preserveAspect = true;
-            Ui.Text("Me", sticky.transform, 20, 8, w - 220, 96, "11    moonzzanf          65.5b                 11", 28, Font(c));
+                PvpRow(c, content, "PvP rank " + (8 + i), 0, i * 130, w - 180,
+                    8 + i, names[i], powers[i], stars[i], i == 3 ? profileAvatar : i, i == 3);
+            PvpRow(c, root, "My sticky rank", 90, stickyY, w - 180,
+                11, names[3], powers[3], stars[3], profileAvatar, true);
             Action(c, root, 330, actionY, 420, 90, "도전", () => c.Open("pvp-opponents"));
+        }
+
+        static void PvpRow(ScreenContext c, Transform parent, string objectName, float x, float y, float width,
+            int rank, string player, string power, int stars, int avatarIndex, bool selected)
+        {
+            var row = SpritePanel(c, objectName, parent, x, y, width, 118, selected ? 0 : 1, Color.white);
+            Ui.Text("Rank", row.transform, 10, 12, 90, 90, rank.ToString(), 35, Font(c));
+            Avatar(c, row.transform, 105, 10, 96, avatarIndex);
+            Ui.Text("Player", row.transform, 220, 7, width - 440, 48, player, 29, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
+            Ui.Image("Power icon", row.transform, 220, 62, 32, 32, Icon(c, 12)).preserveAspect = true;
+            Ui.Text("Power", row.transform, 260, 57, 310, 44, power, 25, Font(c), Ui.Gold, TextAnchor.MiddleLeft);
+            Ui.Image("Star icon", row.transform, width - 210, 20, 38, 38, Icon(c, 15)).preserveAspect = true;
+            Ui.Text("Stars", row.transform, width - 165, 12, 145, 54, stars.ToString(), 29, Font(c), Ui.Gold);
+            Ui.Text("Server", row.transform, width - 216, 78, 190, 28, "서버 5", 21, Font(c),
+                new Color(.7f, .72f, .74f), TextAnchor.MiddleRight);
+            var payload = new Dictionary<string, object> { { "name", player }, { "power", power },
+                { "rank", rank }, { "avatarIndex", avatarIndex } };
+            var button = row.gameObject.AddComponent<Button>();
+            button.targetGraphic = row; row.raycastTarget = true;
+            button.onClick.AddListener(() => c.Open("player-details", payload));
         }
 
         static void BuildOpponents(ScreenContext c)
