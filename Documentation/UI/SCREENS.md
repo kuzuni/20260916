@@ -60,6 +60,7 @@ Additional child dialogs (each opens above the existing profile/settings modal, 
 - Main info button, ranking portraits, PvP portraits and opponent portraits open the SAME player-details view with a player payload.
 - Bottom nav index 0 = pvp; 1 = dungeons; 2 = skills-pets-heroes; 4 = shop. Index 3 has no new supplied reference; retain current behavior pending further design.
 - Third tab of skills-pets-heroes must say 영웅, replacing 기술트리. Pet/hero tab appearance is not separately supplied: reuse this screen's established visual language and document inferred content.
+- Skill catalog contains 18 entries with 15 initially owned; the first 15 display in reference 19 order. The final three unowned entries and their descriptions are local demo content because their art/names are not visible in the supplied reference. Count title derives from current ownership; equipped locks/ribbons are separate from ownership and update after equip/quick equip.
 - Shop scrolls and contains exactly five diamond offers: 60, 220, 800, 1500, 3300. Prices not shown for the extra offers are unconfigured, not invented real prices.
 - Distinguish a full content page (dungeons, skills/pets/heroes, shop, PvP) from modal overlays inside it. Keep nav visible/usable on base pages; modal dialogs above those pages block it.
 - All visible controls must respond meaningfully with local demo state. No real payment, live chat delivery, server ranking or real multiplayer claim.

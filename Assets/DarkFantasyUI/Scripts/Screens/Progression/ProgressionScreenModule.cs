@@ -22,8 +22,17 @@ namespace Moonlit.UI
             new SkillData("지옥의 문장", 99, 7, 4, "+11.4m 기본 피해"), new SkillData("서리 용", 94, 4, 5, "+71.2m 기본 체력"),
             new SkillData("저자세 가시", 83, 5, 6, "+85.3k 기본 피해 +682k 기본 체력"), new SkillData("망자의 행진", 86, 2, 7, "+56.8m 기본 체력"),
             new SkillData("별빛 심판", 45, 4, 8, "+4.2m 기본 피해"), new SkillData("유성", 43, 6, 9, "+8.4m 기본 피해"),
-            new SkillData("심연 폭탄", 44, 3, 10, "+7.1m 기본 피해"), new SkillData("봉인된 권능", 20, 0, 11, "+3.1m 기본 피해")
+            new SkillData("심연 폭탄", 44, 3, 10, "+7.1m 기본 피해"), new SkillData("봉인된 권능", 20, 0, 11, "+3.1m 기본 피해"),
+            new SkillData("치유의 날개", 88, 1, 12, "+62.4m 기본 체력"),
+            new SkillData("붉은 악마", 17, 4, 13, "+2.4m 기본 피해",true),
+            new SkillData("심연의 군주", 19, 4, 14, "+2.8m 기본 피해",true),
+            new SkillData("번개 강타", 20, 0, 15, "+3.1m 기본 피해",true),
+            new SkillData("비전 얼음창", 1, 0, 16, "+1.2m 기본 피해",false),
+            new SkillData("공허 구체", 1, 0, 17, "+1.5m 기본 피해",false)
         };
+        // First three rows follow reference 19. The final three unowned entries are local demo content.
+        static readonly int[] SkillDisplayOrder={0,1,2,3,4,5,6,12,7,8,9,10,13,14,15,11,16,17};
+        static string SkillCollectionTitle => "스킬 "+Array.FindAll(Skills,s=>s.owned).Length+"/"+Skills.Length;
         static readonly DungeonData[] Dungeons = {
             new DungeonData("망치 도둑", "잿빛 대장간", "19-9", "강화석 346", 0),
             new DungeonData("유령 마을", "달빛 묘지", "18-5", "영혼석 280", 5),
@@ -33,7 +42,7 @@ namespace Moonlit.UI
         static int summonCurrency = 6830;
         static int selectedDungeon;
         static int selectedCollectionTab;
-        static readonly int[] equippedSkills = { 9, 10, 8 };
+        static readonly int[] equippedSkills = { 15, 14, 13 };
         static readonly int[] selectedCompanions = { 0, 0 };
         static int summonSequence;
         static CollectionState activeCollection;
@@ -41,7 +50,7 @@ namespace Moonlit.UI
         internal static void ResetSession()
         {
             summonCurrency=6830; selectedDungeon=0; selectedCollectionTab=0; summonSequence=0; activeCollection=null;
-            equippedSkills[0]=9; equippedSkills[1]=10; equippedSkills[2]=8;
+            equippedSkills[0]=15; equippedSkills[1]=14; equippedSkills[2]=13;
             Array.Clear(selectedCompanions,0,selectedCompanions.Length);
             foreach(var skill in Skills) skill.Reset();
             skillIcons=null;
@@ -77,7 +86,7 @@ namespace Moonlit.UI
             // The reference keeps the title/grid at the top and equipment/actions at the bottom.
             // Extra portrait height belongs to the scenery gap, not oversized grid rows.
             var equippedY = ctx.Height - 840;
-            state.content = Ui.Rect("Tab content", root, 48, 205, 984, Mathf.Min(620, equippedY-225));
+            state.content = Ui.Rect("Tab content", root, 48, 205, 984, Mathf.Min(627, equippedY-225));
             var equippedPanel=PopupSkin.Panel("Equipped panel",root,88,equippedY,904,132).rectTransform;
             Ui.ArtImage("Equipped ribbon",equippedPanel,-2,18,228,49,PopupSkin.ParchmentRibbonArt);
             var equippedLabel=Ui.Text("Equipped label",equippedPanel,8,18,206,49,"장착됨",31,font,new Color(.06f,.045f,.025f));
@@ -98,6 +107,7 @@ namespace Moonlit.UI
                     candidates.Sort((a,b) => Skills[b].level != Skills[a].level ? Skills[b].level.CompareTo(Skills[a].level) : a.CompareTo(b));
                     for (var i = 0; i < 3; i++) equippedSkills[i] = candidates[i];
                     RenderEquipped(state, font);
+                    RefreshSkillLabels(state.content);
                     ctx.Toast("레벨이 가장 높은 스킬 3개를 장착했습니다.");
                 }, Blue, 26);
             var summonY = ctx.Height - 540;
@@ -155,16 +165,16 @@ namespace Moonlit.UI
             ClearChildren(state.content);
             string[] summaries = { "+10.3m 기본 피해  +82.8m 기본 체력", "+24.6m 동료 피해  +31.2m 동료 체력", "+18.4m 영웅 피해  +96.7m 영웅 체력" };
             state.summary.text = summaries[state.tab];
-            state.title.text = new[] { "스킬 15/18", "펫 6/12", "영웅 6/12" }[state.tab];
+            state.title.text = new[] { SkillCollectionTitle, "펫 6/12", "영웅 6/12" }[state.tab];
             for (var i = 0; i < 3; i++) PopupSkin.Select(state.tabs[i], i == state.tab);
             if (state.tab == 0) {
                 var scroll = Scroll(state.content, 0, 0, state.content.rect.width, state.content.rect.height);
                 for (var i = 0; i < Skills.Length; i++) {
-                    var skill = Skills[i];
+                    var skill = Skills[SkillDisplayOrder[i]];
                     SkillSlot(scroll.content, 60 + (i % 5) * 184, 12 + (i / 5) * 205, 150, skill, ctx.Assets.font,
                         () => ctx.Open("skill-details", new SkillDetailsPayload(skill, state)), false);
                 }
-                scroll.content.sizeDelta = new Vector2(0, Mathf.Max(scroll.viewport.rect.height, 627));
+                scroll.content.sizeDelta = new Vector2(0, Mathf.Max(scroll.viewport.rect.height,12+Mathf.CeilToInt(Skills.Length/5f)*205));
             } else {
                 var companionScroll=Scroll(state.content,0,0,state.content.rect.width,state.content.rect.height);
                 companionScroll.content.sizeDelta=new Vector2(0,820);
@@ -245,14 +255,15 @@ namespace Moonlit.UI
             var h = Mathf.Min(1120, ctx.Height - 100);
             var panel = Panel(ctx.Root, 95, (ctx.Height - h) / 2, 890, h, "모든 스킬의 목록", font, 34);
             var scroll = Scroll(panel, 45, 120, 800, h - 205);
-            var groups = new[] { "일반 ★       17.50%", "희귀한 ★       16.50%", "서사시 ★       16.50%", "전설 ★       36.48%" };
+            var groups = new[] { "일반 ★       17.50%", "희귀한 ★       16.50%", "서사시 ★       16.50%", "전설 ★       36.48%", "궁극의 ★       12.99%", "신화 ★       0.03%" };
+            var chances=new[]{"5.8333%","5.5000%","5.5000%","12.1600%","4.3300%","0.0100%"};
             for (var g = 0; g < groups.Length; g++) {
                 var yy = g * 300f;
                 Panel(scroll.content, 20, yy, 760, 60, groups[g], font, 24);
                 for (var j = 0; j < 3; j++) {
-                    var skill = Skills[(g * 3 + j) % Skills.Length];
+                    var skill = Skills[SkillDisplayOrder[g * 3 + j]];
                     SkillSlot(scroll.content, 60 + j * 245, yy + 75, 150, skill, font, () => ctx.Open("skill-details", skill), false);
-                    Ui.Text("Chance", scroll.content, 50 + j * 245, yy + 230, 170, 45, g == 0 ? "5.8333%" : "5.5000%", 20, font);
+                    Ui.Text("Chance", scroll.content, 50 + j * 245, yy + 230, 170, 45, chances[g], 20, font);
                 }
             }
             scroll.content.sizeDelta = new Vector2(0, groups.Length * 300);
@@ -306,6 +317,7 @@ namespace Moonlit.UI
         {
             if (state == null || state.root == null) return;
             state.currency.text = FormatSummonCurrency();
+            if(state.tab==0) state.title.text=SkillCollectionTitle;
             state.summon.interactable = true;
             RefreshSkillLabels(state.root);
             RenderEquipped(state, ctx.Assets.font);
@@ -326,10 +338,10 @@ namespace Moonlit.UI
                         if (label.name == "Level") label.text = "Lv." + skill.level;
                         else if (label.name == "Value")
                         {
-                            label.text = skill.shards + "/8";
+                            label.text = skill.shards + "/"+skill.ShardsRequired;
                             var progress = label.transform.parent as RectTransform;
                             var fill = progress != null ? progress.Find("Fill") as RectTransform : null;
-                            if (fill != null) fill.sizeDelta = new Vector2((label.rectTransform.rect.width - label.rectTransform.rect.height) * Mathf.Clamp01(skill.shards / 8f), fill.sizeDelta.y);
+                            if (fill != null) fill.sizeDelta = new Vector2((label.rectTransform.rect.width - label.rectTransform.rect.height) * Mathf.Clamp01(skill.shards / (float)skill.ShardsRequired), fill.sizeDelta.y);
                         }
                         else if (label.name == "Ownership") label.text = skill.owned ? "" : "미보유";
                     }
@@ -498,8 +510,13 @@ namespace Moonlit.UI
             Ui.Text("Ownership", button.transform, 4, 8, size - 8, 34, skill.owned ? "" : "미보유", Mathf.RoundToInt(size*.14f), font, Ui.Ivory);
             Ui.Text("Star", button.transform, 0, size - 10, size, compact ? 22 : 34, "★", Mathf.RoundToInt(size*.18f), font, Gold);
             if (!compact) {
-                Progress(button.transform, 9, size + 24, size - 18, 28, skill.shards / 8f, skill.shards + "/8", font);
+                Progress(button.transform, 9, size + 24, size - 18, 28, skill.shards / (float)skill.ShardsRequired, skill.shards + "/"+skill.ShardsRequired, font);
                 Ui.Text("Maximum level", button.transform, 0, size + 24, size, 28, "최대", Mathf.RoundToInt(size*.17f), font);
+                var equippedBadge=Ui.Rect("Equipped badge",button.transform,0,size*.27f,size,size*.43f);
+                Ui.ArtImage("Equipped lock",equippedBadge,size*.36f,0,size*.28f,size*.28f,PopupSkin.RewardIcon(6)).preserveAspect=true;
+                var ribbon=Ui.Image("Equipped badge ribbon",equippedBadge,-4,size*.23f,size+8,size*.20f,PopupSkin.PanelArt);
+                ribbon.type=Image.Type.Sliced; ribbon.pixelsPerUnitMultiplier=22;
+                Ui.Text("Equipped badge label",equippedBadge,0,size*.23f,size,size*.20f,"장착됨",Mathf.RoundToInt(size*.15f),font);
                 SetSkillProgressState(button.transform, skill);
             }
         }
@@ -510,6 +527,8 @@ namespace Moonlit.UI
             var maximum = slot.Find("Maximum level");
             if (progress) progress.gameObject.SetActive(!skill.IsMaxLevel);
             if (maximum) maximum.gameObject.SetActive(skill.IsMaxLevel);
+            var equipped=slot.Find("Equipped badge");
+            if(equipped) equipped.gameObject.SetActive(Array.IndexOf(equippedSkills,Array.IndexOf(Skills,skill))>=0);
         }
 
         static void Progress(Transform parent, float x, float y, float w, float h, float amount, string label, Font font)
@@ -550,14 +569,23 @@ namespace Moonlit.UI
             {
                 var atlas = Resources.Load<Texture2D>("Moonlit/Skills/SkillIcons-v1");
                 if (!atlas) return null;
-                skillIcons = new Sprite[12];
+                var extras=Resources.Load<Texture2D>("Moonlit/Skills/SkillIcons-extra-v1");
+                if(!extras) return null;
+                skillIcons = new Sprite[18];
                 int cellWidth = atlas.width / 4, cellHeight = atlas.height / 3;
-                for (int i = 0; i < skillIcons.Length; i++)
+                for (int i = 0; i < 12; i++)
                 {
                     // PNG rows run top-to-bottom; Unity sprite rectangles start at the bottom.
                     var rect = new Rect((i % 4) * cellWidth, (2 - i / 4) * cellHeight, cellWidth, cellHeight);
                     skillIcons[i] = Sprite.Create(atlas, rect, new Vector2(.5f, .5f), 100, 0, SpriteMeshType.FullRect);
                     skillIcons[i].name = "Skill illustration " + i;
+                }
+                float extraWidth=extras.width/3f,extraHeight=extras.height/2f;
+                for(int i=0;i<6;i++)
+                {
+                    skillIcons[12+i]=Sprite.Create(extras,new Rect(i%3*extraWidth,(1-i/3)*extraHeight,extraWidth,extraHeight),
+                        new Vector2(.5f,.5f),100,0,SpriteMeshType.FullRect);
+                    skillIcons[12+i].name="Skill illustration "+(12+i);
                 }
             }
             return skillIcons[Mathf.Abs(index) % skillIcons.Length];
@@ -594,7 +622,9 @@ namespace Moonlit.UI
             public readonly string passive;
             public bool owned;
             readonly int initialLevel, initialShards;
-            public void Reset() { level=initialLevel; shards=initialShards; owned=level>20; }
+            readonly bool initialOwned;
+            public void Reset() { level=initialLevel; shards=initialShards; owned=initialOwned; }
+            public int ShardsRequired => level<=20?5:8;
             public bool IsMaxLevel => level >= MaximumLevel;
             public bool TryUpgrade()
             {
@@ -602,7 +632,7 @@ namespace Moonlit.UI
                 level++;
                 return true;
             }
-            public SkillData(string name, int level, int shards, int icon, string passive) { this.name=name; this.level=initialLevel=level; this.shards=initialShards=shards; this.icon=icon; this.passive=passive; owned=level > 20; }
+            public SkillData(string name, int level, int shards, int icon, string passive,bool? owned=null) { this.name=name; this.level=initialLevel=level; this.shards=initialShards=shards; this.icon=icon; this.passive=passive; this.owned=initialOwned=owned??level>20; }
         }
 
         sealed class SkillDetailsPayload

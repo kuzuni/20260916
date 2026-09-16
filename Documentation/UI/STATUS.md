@@ -1,7 +1,21 @@
 # Moonlit 30 UI — coordinator status
 
-Updated 2026-09-17, 06:57 KST. Implementation is unfinished; 15-minute heartbeat remains active.
+Updated 2026-09-17, 07:23 KST. Implementation is unfinished; 15-minute heartbeat remains active.
 
+## Skill catalog and equipped-state correction
+
+- Inspected reference 19 at full resolution. It shows 15 owned of 18 total, including healing Lv.88 and equipped demon/devil/lightning Lv.17/19/20. The implementation had only 12 entries and hardcoded the title. Branch codex/skill-catalog-equipment-badges expands the catalog to 18, initially 15 owned, and orders the first 15 to match visible reference subjects/levels. The last three unowned entries, names/passives and rarity mapping are documented local-demo content.
+- Generated and refined SkillIcons-extra-v1.png via built-in imagegen: 1536x1024, six 512-square cells. Verified alpha=0 at 24 sampled cell-boundary corners. First four subjects fill missing reference artwork; violet ice and void orb are inferred unseen entries. Source PNG copied unchanged, unique texture importer, both prompts in SkillIcons-extra-v1-prompts.md. Existing 12 illustrations remain reused.
+- Ownership is explicit rather than inferred from level, so owned Lv.17/19/20 can be equipped. Initial equipped row matches Lv.20/19/17. Independent non-raycasting lock/ribbon badges reflect equip and quick-equip changes. Low-level progress uses five shards; higher levels use eight. Title derives from live ownership and updates after summon. Four-row ScrollRect height makes the final entries reachable; viewport includes the entire first three rows.
+- Probability detail now lists all 18 skills across six rarity groups; displayed per-item demo rates agree with the category totals. Actual summoning remains deterministic local demo, not a backend RNG or combat system.
+- Added a regression for 18 distinct sprites, ownership/title, reference ordering, default equipment, non-blocking badge art, quick-equip synchronization, last-row scroll reachability and complete probability list. Existing summon test checks live count after acquisition. Progression tests reset session state between cases. Static diff check passed; new source Unity/capture validation is pending. No local Unity execution.
+
+## Latest downloaded evidence and next steps
+
+- Pass PR #42 source 21d5dab573cb9d88fc0e431a8ff6b7a991529311 merged as 369542bc89df594970cb3f44da6b31e38d2c7825, original checkout fast-forwarded preserving all 11 user metadata edits by hash. Hosted run 35155192124: artifact 10471265663 actual NUnit XML 39 passed / 0 failed / 0 skipped. Graphics still pending at inspection; new gold/card layout not visually accepted yet.
+- Profile PR #41 run 35153192719: downloaded graphics artifact 10470942565, Verification.txt PASS, 66 PNGs. Viewed profile, avatar, nickname and gender at both 9:16 and 9:19. Pencil buttons render without label overflow; faces fill their cells; nickname text is unobscured; blue/red gender symbols appear correctly. Large profile background margins and generic outer frame differences still remain, so this is bounded correction acceptance only.
+- Evidence root: C:/Users/user/AppData/Local/Temp/moonlit-cloud-review/artifact-{10471265663,10470942565}/unpacked. Previous pass/profile tests do not validate the new skill source.
+- Next heartbeat: discover the skill-catalog-equipment-badges PR/source run, inspect XML and skills/detail/probability/result captures at both aspects. Obtain pass run graphics and inspect gold controls/full card scenery. Continue dungeon/shop proportions and language/blocked-list artwork. Keep full 30-screen acceptance open, Dim alpha 0.85, local Unity prohibited, incremental main/original checkout integration with user changes preserved.
 ## Progression-pass card framing and premium gold revision
 
 - Inspected original 05-progress-pass.png at full resolution and hosted pass 9:16/9:19 from forest artifact 10470291226. Cards rendered paintings as narrow horizontal strips because the reusable border covered about half their height. Premium heading and price button incorrectly used red artwork. Fourth visible premium reward also differed from the reference.
