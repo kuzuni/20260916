@@ -1,0 +1,7 @@
+# Invasion-v1
+
+Generated 2026-09-16 with built-in image_gen. Original reference 20-dungeons.png inspected at full resolution. Asset: Assets/DarkFantasyUI/Resources/Moonlit/Dungeons/Invasion-v1.png (2172 x 724). Visually reviewed: armored silhouettes, burgundy standards and distant fortress in an amber sunset. No UI or frame baked in. Runtime capture review remains pending.
+
+Exact prompt:
+
+Create a production game art asset: one wide horizontal background illustration for a dark fantasy mobile RPG dungeon named Invasion. Landscape 3:1 composition suitable cropped to 4:1. Rich hand-painted 2D gothic game illustration, crisp dark ink contours and painterly details. Rear view of a marching host of medieval armored soldiers filling the lower foreground, dark helmets and battered shoulder armor, tall weathered burgundy battle standards with abstract gold sigils in the middle, castle battlements and a distant towering fortress under burning amber sunset clouds. Warm copper orange sky and torchlight against navy-black armor, subtle smoky atmospheric depth, epic threatening siege. Middle 60 percent contains the visual story; upper-left and far-right darker and quieter for later live UI labels/buttons. Frame edge vegetation optional. No photorealism. Absolutely no text, letters, numbers, UI, frames, borders, buttons, badges, watermarks. A standalone background painting only; the reusable UI frame and controls are separate Unity objects.

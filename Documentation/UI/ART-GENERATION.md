@@ -1,5 +1,11 @@
 # Generated UI artwork
 
+## Dungeon set completed as source artwork — 2026-09-16
+
+All four dungeons now have independent generated paintings in Resources/Moonlit/Dungeons. Added GhostVillage-v1, Invasion-v1 and ZombieRush-v1 (each 2172 x 724) with unique sprite metadata. Original reference 20 was reviewed at full resolution, and reference 04 informed the detail crop. Both list and detail use a RectMask2D viewport with proportional cover scaling, keeping controls/frame/text separate. These source images were visually inspected; rendered Unity captures are still pending. Other UI categories still need bespoke artwork.
+
+Exact prompts and per-image inspection notes: [Ghost Village](GhostVillage-v1-prompt.md), [Invasion](Invasion-v1-prompt.md), [Zombie Rush](ZombieRush-v1-prompt.md).
+
 ## HammerThief-v1 — 2026-09-16
 
 Tool: built-in image_gen (no API/CLI fallback).

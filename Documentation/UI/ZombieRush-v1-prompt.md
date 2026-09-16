@@ -1,0 +1,7 @@
+# ZombieRush-v1
+
+Generated 2026-09-16 with built-in image_gen. Original references 20-dungeons.png and 04-dungeon-details.png inspected at full resolution. Asset: Assets/DarkFantasyUI/Resources/Moonlit/Dungeons/ZombieRush-v1.png (2172 x 724). Visually reviewed: central green undead hand, violet moon, graveyard ruins, bones and barrel. No UI or frame baked in. Runtime capture review remains pending.
+
+Exact prompt:
+
+Create one production game art asset: a wide landscape 3:1 illustrated background for Zombie Rush, a dark gothic mobile RPG dungeon banner, composable under separate runtime UI. Preserve the visual story when cropped to 4:1. High quality hand-painted 2D game illustration, bold crisp silhouettes and textured painterly contours. A prominent moss-green skeletal zombie hand thrusts from damp broken earth in the central foreground, claw-like fingers reaching upward; old scattered skull and rib bones near the lower-left, weathered wooden barrel and crooked iron cemetery fence on the right, distant ruined medieval castle and leafless thorn trees under an enormous pale lavender moon. Ominous purple/violet night sky, soft emerald necromantic glow and mist, navy black silhouettes. Horror adventure atmosphere without blood or gore. Center the claw inside middle 60 percent, leave upper-left and far-right edge darker and quiet so live title and button can overlay later. No text, writing, numbers, UI, slot, frame, border, buttons, watermark. This is an independent background painting only, no baked interface.

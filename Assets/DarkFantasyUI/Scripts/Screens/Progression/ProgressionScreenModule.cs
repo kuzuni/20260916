@@ -229,7 +229,7 @@ namespace Moonlit.UI
                 var row = Ui.Panel("Dungeon " + dungeon.name, scroll.content, 10, i * 250, 920, 220, new Color(.025f,.085f,.12f,.98f));
                 var banner = DungeonBanner(dungeon);
                 if (banner) {
-                    Ui.Image("Generated dungeon banner", row.transform, 5, 5, 910, 210, banner);
+                    DungeonPainting(row.transform, 5, 5, 910, 210, banner);
                     Ui.Image("Readable action scrim", row.transform, 650, 5, 265, 210, null, new Color(0,.015f,.025f,.6f));
                     Ui.Border(row.transform,920,220,Gold,3);
                 }
@@ -251,7 +251,8 @@ namespace Moonlit.UI
             var h = Mathf.Min(1050, ctx.Height - 180);
             var panel = Panel(ctx.Root, 105, (ctx.Height - h) / 2, 870, h, dungeon.name, font, 38);
             var banner = DungeonBanner(dungeon);
-            Ui.Image("Dungeon art", panel, 45, 120, 780, 300, banner ? banner : GetIcon(ctx.Assets, dungeon.icon), banner ? Color.white : new Color(.45f,.7f,.83f));
+            if (banner) DungeonPainting(panel, 45, 120, 780, 300, banner);
+            else Ui.Image("Dungeon art", panel, 45, 120, 780, 300, GetIcon(ctx.Assets, dungeon.icon), new Color(.45f,.7f,.83f));
             Ui.Text("Locale", panel, 55, 420, 760, 65, dungeon.locale, 34, font, Ui.Ivory);
             Ui.Text("Difficulty", panel, 100, 500, 670, 72, "◀     난이도  " + dungeon.stage + "     ▶", 30, font, Ui.Gold);
             Panel(panel, 120, 592, 630, 86, "보상:  " + dungeon.reward, font, 27);
@@ -261,9 +262,23 @@ namespace Moonlit.UI
             Close(panel, 385, h - 48, font, ctx.Close);
         }
 
+        static void DungeonPainting(Transform parent, float x, float y, float width, float height, Sprite sprite)
+        {
+            var crop = Ui.Rect("Dungeon painting crop", parent, x, y, width, height);
+            crop.gameObject.AddComponent<RectMask2D>();
+            float scale = Mathf.Max(width / sprite.rect.width, height / sprite.rect.height);
+            float paintedWidth = sprite.rect.width * scale, paintedHeight = sprite.rect.height * scale;
+            Ui.Image("Generated dungeon banner", crop, (width-paintedWidth)*.5f, (height-paintedHeight)*.5f,
+                paintedWidth, paintedHeight, sprite);
+        }
+
         static Sprite DungeonBanner(DungeonData dungeon)
         {
-            return dungeon == Dungeons[0] ? Resources.Load<Sprite>("Moonlit/Dungeons/HammerThief-v1") : null;
+            if (dungeon == Dungeons[0]) return Resources.Load<Sprite>("Moonlit/Dungeons/HammerThief-v1");
+            if (dungeon == Dungeons[1]) return Resources.Load<Sprite>("Moonlit/Dungeons/GhostVillage-v1");
+            if (dungeon == Dungeons[2]) return Resources.Load<Sprite>("Moonlit/Dungeons/Invasion-v1");
+            if (dungeon == Dungeons[3]) return Resources.Load<Sprite>("Moonlit/Dungeons/ZombieRush-v1");
+            return null;
         }
 
         static void AddBackdrop(Transform root, ScreenContext ctx)
