@@ -73,10 +73,15 @@ namespace Moonlit.UI
             Ui.Image("Equipped ribbon",equippedPanel,-2,18,228,49,PopupSkin.ParchmentRibbonArt);
             var equippedLabel=Ui.Text("Equipped label",equippedPanel,8,18,206,49,"장착됨",31,font,new Color(.06f,.045f,.025f));
             equippedLabel.GetComponent<Outline>().effectColor=new Color(1,1,1,.2f);
-            state.equipped = Ui.Rect("Equipped skills", equippedPanel, 440, 8, 440, 116);
+            state.equipped = Ui.Rect("Equipped skills", equippedPanel, 440, 8, 440, 124);
             RenderEquipped(state, font);
             PopupSkin.Button("Upgrade all", root, 242, equippedY + 162, 282, 88, "모두 업그레이드", font,
-                () => { foreach (var s in Skills) s.level++; RenderTab(ctx, state); RenderEquipped(state, font); ctx.Toast("보유 스킬을 업그레이드했습니다."); }, Blue, 26);
+                () => {
+                    int upgraded = 0;
+                    foreach (var s in Skills) if (s.TryUpgrade()) upgraded++;
+                    RefreshCollection(ctx, state);
+                    ctx.Toast(upgraded > 0 ? "보유 스킬 " + upgraded + "개를 업그레이드했습니다." : "업그레이드할 스킬이 없습니다.");
+                }, Blue, 26);
             PopupSkin.Button("Quick equip", root, 550, equippedY + 162, 282, 88, "빠른 장착", font,
                 () => {
                     var candidates = new List<int>();
@@ -186,14 +191,18 @@ namespace Moonlit.UI
             Ui.Text("Passive", panel, 60, 330, 800, 50, "패시브:", 28, font, Ui.Gold, TextAnchor.MiddleLeft);
             Panel(panel, 60, 388, 800, 92, skill.passive, font, 25);
             var description = Ui.Text("Description", panel, 305, 155, 540, 130, "전장에 마력을 펼쳐 모든 적에게 강력한 피해를 줍니다.\n현재 레벨 " + skill.level, 25, font, Ui.Ivory, TextAnchor.UpperLeft);
-            PopupSkin.Button("Upgrade", panel, 80, h - 150, 350, 86, "업그레이드", font, () => {
+            Button upgrade = null;
+            upgrade = PopupSkin.Button("Upgrade", panel, 80, h - 150, 350, 86, skill.IsMaxLevel ? "최대 레벨" : "업그레이드", font, () => {
                 if (!skill.owned) { ctx.Toast("먼저 스킬을 획득하세요."); return; }
-                skill.level++;
+                if (!skill.TryUpgrade()) return;
                 description.text = "전장에 마력을 펼쳐 모든 적에게 강력한 피해를 줍니다.\n현재 레벨 " + skill.level;
                 RefreshCollection(ctx, parent);
                 RefreshSkillLabels(panel);
+                upgrade.interactable = !skill.IsMaxLevel;
+                if (skill.IsMaxLevel) upgrade.GetComponentInChildren<Text>().text = "최대 레벨";
                 ctx.Toast("레벨 " + skill.level + " 달성");
             }, Stone, 28);
+            upgrade.interactable = skill.owned && !skill.IsMaxLevel;
             PopupSkin.Button("Equip", panel, 490, h - 150, 350, 86, "장착", font, () => {
                 if (!skill.owned) { ctx.Toast("먼저 스킬을 획득하세요."); return; }
                 Equip(skill);
@@ -301,6 +310,7 @@ namespace Moonlit.UI
                 foreach (var slot in slots)
                 {
                     if (slot.name != "Skill " + skill.name) continue;
+                    SetSkillProgressState(slot.transform, skill);
                     var labels = slot.GetComponentsInChildren<Text>(true);
                     foreach (var label in labels)
                     {
@@ -451,7 +461,7 @@ namespace Moonlit.UI
 
         static void SkillSlot(Transform parent, float x, float y, float size, SkillData skill, Font font, Action click, bool compact)
         {
-            var totalH = compact ? size : size + 55;
+            var totalH = compact ? size + 12 : size + 55;
             var button = Ui.ArtButton("Skill " + skill.name, parent, x, y, size, totalH);
             if (click != null) button.onClick.AddListener(() => click());
             var icon = Ui.Image("Icon", button.transform, size * .17f, size * .17f, size * .66f, size * .66f, SkillIcon(skill.icon));
@@ -462,12 +472,22 @@ namespace Moonlit.UI
             frame.raycastTarget = false;
             button.targetGraphic = frame;
             button.transition = Selectable.Transition.ColorTint;
-            Ui.Text("Level", button.transform, 4, size - 45, size - 8, 42, "Lv." + skill.level, Mathf.RoundToInt(size*.17f), font);
+            Ui.Text("Level", button.transform, 4, size - (compact ? 44 : 45), size - 8, compact ? 34 : 42, "Lv." + skill.level, Mathf.RoundToInt(size*.17f), font);
             Ui.Text("Ownership", button.transform, 4, 8, size - 8, 34, skill.owned ? "" : "미보유", Mathf.RoundToInt(size*.14f), font, Ui.Ivory);
+            Ui.Text("Star", button.transform, 0, size - 10, size, compact ? 22 : 34, "★", Mathf.RoundToInt(size*.18f), font, Gold);
             if (!compact) {
-                Ui.Text("Star", button.transform, 0, size - 10, size, 34, "★", Mathf.RoundToInt(size*.18f), font, Gold);
                 Progress(button.transform, 9, size + 24, size - 18, 28, skill.shards / 8f, skill.shards + "/8", font);
+                Ui.Text("Maximum level", button.transform, 0, size + 24, size, 28, "최대", Mathf.RoundToInt(size*.17f), font);
+                SetSkillProgressState(button.transform, skill);
             }
+        }
+
+        static void SetSkillProgressState(Transform slot, SkillData skill)
+        {
+            var progress = slot.Find("Progress");
+            var maximum = slot.Find("Maximum level");
+            if (progress) progress.gameObject.SetActive(!skill.IsMaxLevel);
+            if (maximum) maximum.gameObject.SetActive(skill.IsMaxLevel);
         }
 
         static void Progress(Transform parent, float x, float y, float w, float h, float amount, string label, Font font)
@@ -544,12 +564,20 @@ namespace Moonlit.UI
 
         sealed class SkillData
         {
+            public const int MaximumLevel = 100;
             public readonly string name;
             public int level;
             public int shards;
             public readonly int icon;
             public readonly string passive;
             public bool owned;
+            public bool IsMaxLevel => level >= MaximumLevel;
+            public bool TryUpgrade()
+            {
+                if (!owned || IsMaxLevel) return false;
+                level++;
+                return true;
+            }
             public SkillData(string name, int level, int shards, int icon, string passive) { this.name=name; this.level=level; this.shards=shards; this.icon=icon; this.passive=passive; owned=level > 20; }
         }
 
