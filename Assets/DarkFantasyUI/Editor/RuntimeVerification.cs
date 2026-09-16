@@ -97,7 +97,26 @@ namespace Moonlit.Editor
                 if(!layer || !routeRoot || routeRoot.rect.height<=0 || (host.ActivePageKey!=route && host.ModalDepth!=1))
                 { report.Add("FAIL route "+route+" did not build in a resized safe layer"); fail(); yield break; }
                 SaveCamera(camera,"Artifacts/Runtime-"+route+"-"+(aspect==0?"9x16":"9x19")+".png",1080,heights[aspect]);
-                report.Add("PASS route "+route+" "+(aspect==0?"9:16 notch":"9:19 side-insets"));
+                try
+                {
+                    foreach (var button in screen.navigation)
+                    {
+                        AssertInsideSafe(button.GetComponent<RectTransform>(), camera, areas[aspect]);
+                        if (host.ActivePageKey == route)
+                        {
+                            if (!button.IsInteractable()) throw new Exception("Page disabled navigation: " + button.name);
+                            AssertRaycast(button);
+                        }
+                        else if (button.IsInteractable())
+                            throw new Exception("Modal leaked navigation input: " + button.name);
+                    }
+                }
+                catch (Exception e)
+                {
+                    report.Add("FAIL route " + route + " navigation " + (aspect == 0 ? "9:16" : "9:19") + ": " + e);
+                    fail(); yield break;
+                }
+                report.Add("PASS route "+route+" "+(aspect==0?"9:16 notch":"9:19 side-insets")+" navigation="+(host.ActivePageKey==route?"clickable":"blocked"));
                 host.Registry.ShowMainPage();
             }
         }
