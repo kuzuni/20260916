@@ -1,6 +1,6 @@
 # Moonlit 24 UI — coordinator status
 
-Updated 2026-09-16, 18:20 UTC. Implementation is unfinished; local coordinator and 15-minute heartbeat resumed.
+Updated 2026-09-16, 18:18 UTC. Implementation is unfinished; local coordinator and 15-minute heartbeat resumed.
 
 ## Local coordinator resumed; validation repair
 
@@ -9,7 +9,7 @@ Updated 2026-09-16, 18:20 UTC. Implementation is unfinished; local coordinator a
 - Downloaded PR #29 run **35129388968** artifact **10460667539**: actual XML **30 passed / 1 failed / 0 skipped**. The obsolete shop test searched for the removed top back button. PR #30 replaces that lookup with system/context page close.
 - Downloaded PR #30 run **35130457595** test artifact **10461357672**: XML and summary **31 passed / 0 failed / 0 skipped / 0 inconclusive**. Unity credentials and compilation worked on the GitHub-hosted runner. This is separate from the Codex Cloud container's GitHub network/auth failure.
 - The same run's graphics job failed. Artifact **10462430194**, Verification.txt, identifies the skills navigation comparison: the selected Companions icon now correctly becomes X, but the baseline still expected the original icon (mean RGB difference 0.4624997). Viewed the actual 9:16 skill capture: X, centered title, left parchment label and bottom controls are visible. This is not complete reference-fidelity approval; collection count/art gaps remain.
-- The capture harness now builds the expected selected-icon state on main, restores normal state, and lets route opening independently apply its selection. All five entries remain pixel-compared at the same tolerance; sampling follows the displayed target graphic. This preserves detection of page occlusion and missing X state rather than skipping the selected button. Static diff check passes; fresh cloud validation is required and is not yet a pass.
+- The capture harness now builds the expected selected-icon state on main, restores normal state, and lets route opening independently apply its selection. All five entries remain pixel-compared at the same tolerance; sampling follows the displayed target graphic. This preserves detection of page occlusion and missing X state rather than skipping the selected button. Static diff check passes. Updated source `6d61000071ac4d8155e0b33295100d3d2273cb0b` is running hosted CI **35133474570**; this is not yet a pass.
 - Evidence: `C:/Users/user/AppData/Local/Temp/moonlit-cloud-review/artifact-{10460667539,10461357672,10462430194}/unpacked`. Preserve the original checkout's eight user PNG metadata edits. No local Unity execution/control.
 - Next: verify PR #30's updated source in hosted CI, inspect both-aspect captures for skills/PvP/dungeons/shop and auto-forge, then continue remaining reference artwork/layout corrections. Integrate reviewable progress into main and fast-forward the original checkout without overwriting user changes.
 
