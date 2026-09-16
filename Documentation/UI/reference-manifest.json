@@ -1,0 +1,194 @@
+[
+  {
+    "id": "01",
+    "slug": "forge-probability",
+    "file": "01-forge-probability.png",
+    "instruction": "대장간 레벨33버튼 클릭시 뜨는 확률정보 팝업",
+    "originalFilename": "대장간 레벨33버튼 클릭시 뜨는 확률정보 팝업.png",
+    "bytes": 2479703
+  },
+  {
+    "id": "02",
+    "slug": "forge-probability-details",
+    "file": "02-forge-probability-details.png",
+    "instruction": "대장간 레벨33버튼 클릭시 뜨는 확률정보 팝업에서 오른쪽 상단에 ! 버튼 클릭시 뜨는 세부정보 팝업",
+    "originalFilename": "대장간 레벨33버튼 클릭시 뜨는 확률정보 팝업에서 오른쪽 상단에 ! 버튼 클릭시 뜨는 세부정보 팝업.png",
+    "bytes": 2440430
+  },
+  {
+    "id": "03",
+    "slug": "forge-item-details",
+    "file": "03-forge-item-details.png",
+    "instruction": "대장간 레벨33버튼 클릭시 뜨는 확률정보 팝업에서 오른쪽 상단에 ! 버튼 클릭시 뜨는 세부정보 팝업에서 해당 아이템 클릭시 뜨는 세부정보 팝업",
+    "originalFilename": "대장간 레벨33버튼 클릭시 뜨는 확률정보 팝업에서 오른쪽 상단에 ! 버튼 클릭시 뜨는 세부정보 팝업에서 해당 아이템 클릭시 뜨는 세부정보 팝업.png",
+    "bytes": 2193976
+  },
+  {
+    "id": "04",
+    "slug": "dungeon-details",
+    "file": "04-dungeon-details.png",
+    "instruction": "던전팝업에서 열기 버튼 클릭시 뜨는 세부 팝업",
+    "originalFilename": "던전팝업에서 열기 버튼 클릭시 뜨는 세부 팝업.png",
+    "bytes": 2289005
+  },
+  {
+    "id": "05",
+    "slug": "progress-pass",
+    "file": "05-progress-pass.png",
+    "instruction": "메인 오른쪽상단에 요정버튼 있는데 그거 패스 버튼으로 만들고 그거 클릭시 뜨는 진행패스 팝업",
+    "originalFilename": "메인 오른쪽상단에 요정버튼 있는데 그거 패스 버튼으로 만들고 그거 클릭시 뜨는 진행패스 팝업.png",
+    "bytes": 2681554
+  },
+  {
+    "id": "06",
+    "slug": "profile",
+    "file": "06-profile.png",
+    "instruction": "메인 왼쪽상단에 프로필(moonzsanf)클릭시 뜨는 프로필 설정 팝업",
+    "originalFilename": "메인 왼쪽상단에 프로필(moonzsanf)클릭시 뜨는 프로필 설정 팝업.png",
+    "bytes": 2431195
+  },
+  {
+    "id": "07",
+    "slug": "settings",
+    "file": "07-settings.png",
+    "instruction": "메인 왼쪽상단에 프로필(moonzsanf)클릭시 뜨는 프로필 설정 팝업에 설정 탭 부분",
+    "originalFilename": "메인 왼쪽상단에 프로필(moonzsanf)클릭시 뜨는 프로필 설정 팝업에 설정 탭 부분.png",
+    "bytes": 2361989
+  },
+  {
+    "id": "08",
+    "slug": "equipment-details",
+    "file": "08-equipment-details.png",
+    "instruction": "메인 화면에 장비 슬롯 클릭시 뜨는 장비 세부정보 팝업",
+    "originalFilename": "메인 화면에 장비 슬롯 클릭시 뜨는 장비 세부정보 팝업.png",
+    "bytes": 2676822
+  },
+  {
+    "id": "09",
+    "slug": "forge-comparison",
+    "file": "09-forge-comparison.png",
+    "instruction": "메인에 모루 버튼 클릭시 뜨는 아이템 제작한거랑 현재 아이템이랑 비교해서 장착할지 판매할지 보는 팝업",
+    "originalFilename": "메인에 모루 버튼 클릭시 뜨는 아이템 제작한거랑 현재 아이템이랑 비교해서 장착할지 판매할지 보는 팝업.png",
+    "bytes": 2616246
+  },
+  {
+    "id": "10",
+    "slug": "offline-rewards",
+    "file": "10-offline-rewards.png",
+    "instruction": "메인에 왼쪽 상단에 5일 3시 이렇게 써있는거 클릭시 뜨는 오프라인보상팝업",
+    "originalFilename": "메인에 왼쪽 상단에 5일 3시 이렇게 써있는거 클릭시 뜨는 오프라인보상팝업.png",
+    "bytes": 2424943
+  },
+  {
+    "id": "11",
+    "slug": "player-details",
+    "file": "11-player-details.png",
+    "instruction": "메인에서 !버튼 클릭 또는 랭킹팝업에서 프로필버튼(얼굴) 클릭 또는 pvp팝업에서 플레이어들 프로필 버튼 클릭 또는 pvp세부팝업에서 프로필 버튼 클릭시 뜨는 플레이어 세부정보 팝업 ",
+    "originalFilename": "메인에서 !버튼 클릭 또는 랭킹팝업에서 프로필버튼(얼굴) 클릭 또는 pvp팝업에서 플레이어들 프로필 버튼 클릭 또는 pvp세부팝업에서 프로필 버튼 클릭시 뜨는 플레이어 세부정보 팝업 .png",
+    "bytes": 2510650
+  },
+  {
+    "id": "12",
+    "slug": "auto-forge",
+    "file": "12-auto-forge.png",
+    "instruction": "메인화면에서 자동 버튼 클릭시 뜨는 자동제련 팝업",
+    "originalFilename": "메인화면에서 자동 버튼 클릭시 뜨는 자동제련 팝업.png",
+    "bytes": 2509254
+  },
+  {
+    "id": "13",
+    "slug": "chat",
+    "file": "13-chat.png",
+    "instruction": "메인화면에서 채팅버튼 클릭시 뜨는 채팅팝업",
+    "originalFilename": "메인화면에서 채팅버튼 클릭시 뜨는 채팅팝업.png",
+    "bytes": 2519956
+  },
+  {
+    "id": "14",
+    "slug": "skill-details",
+    "file": "14-skill-details.png",
+    "instruction": "스킬 팝업에서 스킬 버튼 클릭시 뜨는 스킬 세부정보 팝업",
+    "originalFilename": "스킬 팝업에서 스킬 버튼 클릭시 뜨는 스킬 세부정보 팝업.png",
+    "bytes": 2311737
+  },
+  {
+    "id": "15",
+    "slug": "summon-probability",
+    "file": "15-summon-probability.png",
+    "instruction": "스킬팝업에서 ! 버튼 클릭시 뜨는 소환 확률 팝업",
+    "originalFilename": "스킬팝업에서 ! 버튼 클릭시 뜨는 소환 확률 팝업.png",
+    "bytes": 2362923
+  },
+  {
+    "id": "16",
+    "slug": "summon-probability-details",
+    "file": "16-summon-probability-details.png",
+    "instruction": "스킬팝업에서 ! 버튼 클릭시 뜨는 소환 확률 팝업에서 ! 버튼 클릭시 뜨는 스킬 소환 확률 세부꺼 팝업",
+    "originalFilename": "스킬팝업에서 ! 버튼 클릭시 뜨는 소환 확률 팝업에서 ! 버튼 클릭시 뜨는 스킬 소환 확률 세부꺼 팝업.png",
+    "bytes": 2184306
+  },
+  {
+    "id": "17",
+    "slug": "summon-result",
+    "file": "17-summon-result.png",
+    "instruction": "스킬팝업에서 소환 버튼 클릭시 뜨는 소환 결과팝업",
+    "originalFilename": "스킬팝업에서 소환 버튼 클릭시 뜨는 소환 결과팝업.png",
+    "bytes": 2566076
+  },
+  {
+    "id": "18",
+    "slug": "power-ranking",
+    "file": "18-power-ranking.png",
+    "instruction": "프로필팝업에서 파워 랭킹부분 클릭시 뜨는 팝업",
+    "originalFilename": "프로필팝업에서 파워 랭킹부분 클릭시 뜨는 팝업.png",
+    "bytes": 2469897
+  },
+  {
+    "id": "19",
+    "slug": "skills-pets-heroes",
+    "file": "19-skills-pets-heroes.png",
+    "instruction": "하단네비 가운데 버튼 클릭시 뜨는 스킬,펫,기술트리 팝업 근데 기술트리는 이름 영웅으로 바꾸기",
+    "originalFilename": "하단네비 가운데 버튼 클릭시 뜨는 스킬,펫,기술트리 팝업 근데 기술트리는 이름 영웅으로 바꾸기.png",
+    "bytes": 2706512
+  },
+  {
+    "id": "20",
+    "slug": "dungeons",
+    "file": "20-dungeons.png",
+    "instruction": "하단네비 두번째인 문버튼 클릭시 뜨는 던전팝업",
+    "originalFilename": "하단네비 두번째인 문버튼 클릭시 뜨는 던전팝업.png",
+    "bytes": 2680122
+  },
+  {
+    "id": "21",
+    "slug": "shop",
+    "file": "21-shop.png",
+    "instruction": "하단네비 맨 오른쪽거 클릭시 뜨는 상점 팝업, 스크롤 가능해야함 아래에 다이아 상품 5개여야함  각각 60, 220 , 800, 1500, 3300",
+    "originalFilename": "하단네비 맨 오른쪽거 클릭시 뜨는 상점 팝업, 스크롤 가능해야함 아래에 다이아 상품 5개여야함  각각 60, 220 , 800, 1500, 3300.png",
+    "bytes": 2673538
+  },
+  {
+    "id": "22",
+    "slug": "pvp-opponents",
+    "file": "22-pvp-opponents.png",
+    "instruction": "PVP 도전버튼 클릭시-상대선택팝업뜨는거",
+    "originalFilename": "PVP 도전버튼 클릭시-상대선택팝업뜨는거.png",
+    "bytes": 2384558
+  },
+  {
+    "id": "23",
+    "slug": "pvp",
+    "file": "23-pvp.png",
+    "instruction": "PVP 팝업-하단네비중 맨왼쪽 해골 버튼 클릭시 뜸.",
+    "originalFilename": "PVP 팝업-하단네비중 맨왼쪽 해골 버튼 클릭시 뜸..png",
+    "bytes": 2610770
+  },
+  {
+    "id": "24",
+    "slug": "pvp-rewards",
+    "file": "24-pvp-rewards.png",
+    "instruction": "pvp팝업에서 상단에 선물상자 버튼 클릭시 뜨는 pvp 보상 세부 팝업",
+    "originalFilename": "pvp팝업에서 상단에 선물상자 버튼 클릭시 뜨는 pvp 보상 세부 팝업.png",
+    "bytes": 2241831
+  }
+]
