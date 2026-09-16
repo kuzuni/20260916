@@ -234,47 +234,96 @@ namespace Moonlit.UI
             Ui.Text("Next tier label", b, 30, 800, b.rect.width - 60, 65, "†  중세의 ★                                      0%", 25, Font(c), new Color(.2f,.65f,1f), TextAnchor.MiddleLeft);
         }
 
+        // A read-only instance of the same slot prefab used by the main equipment grid.
+        // Frame, item sprite, live level, star and badges remain independent children.
+        static void EquipmentPreview(ScreenContext c, Transform parent, float x, float y,
+            float size, ItemDefinition item, int level)
+        {
+            if (c.Assets == null || !c.Assets.equipmentSlotPrefab) return;
+            var preview = Object.Instantiate(c.Assets.equipmentSlotPrefab, parent, false);
+            preview.name = "Equipment preview";
+            var rect = (RectTransform)preview.transform;
+            rect.anchorMin = rect.anchorMax = new Vector2(0, 1);
+            rect.pivot = new Vector2(0, 1);
+            rect.anchoredPosition = new Vector2(x, -y);
+            rect.sizeDelta = new Vector2(148, 148);
+            rect.localScale = Vector3.one * (size / 148f);
+            preview.Bind(item, level);
+            preview.Button.transition = Selectable.Transition.None;
+            preview.Button.enabled = false;
+            if (preview.categoryBadge) preview.categoryBadge.transform.parent.gameObject.SetActive(false);
+            foreach (var graphic in preview.GetComponentsInChildren<Graphic>(true))
+                graphic.raycastTarget = false;
+        }
+
+        static RectTransform EquipmentDialog(ScreenContext c, string name, float height, float bottomGap)
+        {
+            float width = Mathf.Min(820, c.Width - 36);
+            height = Mathf.Min(height, c.Height - 72);
+            float top = Mathf.Clamp(c.Height - height - bottomGap, 36, c.Height - height - 36);
+            var root = Ui.Rect(name, c.Root, (c.Width - width) * .5f, top, width, height);
+            PopupSkin.Panel("Ornate stone frame", root, 0, 0, width, height);
+            PopupSkin.Panel("Equipped header", root, 18, 22, 244, 52);
+            Ui.Text("Tag", root, 34, 22, 208, 52, "장착됨", 32, Font(c));
+            return root;
+        }
+
+        static Color ItemColor(ItemDefinition item)
+            => item != null && item.rarity == ItemRarity.Epic
+                ? new Color(.75f,.35f,1f) : Orange;
+
         static void BuildEquipmentDetails(ScreenContext c)
         {
-            Frame(c, "장착됨", 820, 480, out var b);
+            var b = EquipmentDialog(c, "Equipment details Dialog", 360, c.Height * .21f);
             var slot = c.Payload as EquipmentSlot;
             var item = slot != null ? slot.item : ItemAt(c, 0);
-            Ui.Panel("Rarity frame", b, 32, 24, 168, 168, new Color(.38f,.16f,.015f));
-            Ui.Image("Equipment icon", b, 48, 38, 136, 124, item != null ? item.icon : Icon(c, 0));
             var level = slot != null ? slot.level : (item != null ? item.startingLevel : 109);
-            Ui.Text("Level", b, 32, 150, 168, 42, "Lv." + level + " ★", 24, Font(c), Ui.Ivory);
-            var name = item != null && !string.IsNullOrEmpty(item.displayName) ? item.displayName : "성스러운 벨트";
-            Ui.Text("Item details", b, 225, 25, b.rect.width - 245, 195,
-                "[신성한] " + name + "\n1.81b 체력\n+1.62% 블록 확률\n+30.1% 공격 속도", 29, Font(c), Orange, TextAnchor.UpperLeft);
-            Ui.Text("Hint", b, 225, 230, b.rect.width - 245, 55, "장비 슬롯을 다시 눌러 다른 장비를 확인하세요.", 20, Font(c), new Color(.65f,.68f,.72f), TextAnchor.MiddleLeft);
+            EquipmentPreview(c, b, 48, 106, 174, item, level);
+            var name = item != null ? item.displayName : "장비";
+            Ui.Text("Item name", b, 248, 100, b.rect.width - 282, 56, name, 30, Font(c), ItemColor(item), TextAnchor.MiddleLeft);
+            Ui.Text("Item details", b, 248, 160, b.rect.width - 282, 150,
+                "1.81b 체력\n+1.62% 블록 확률\n+30.1% 공격 속도", 29, Font(c), Ui.Ivory, TextAnchor.UpperLeft);
+            PopupSkin.Close("Close", b, b.rect.width - 68, 12, 56, Font(c), c.Close);
         }
 
         static void BuildComparison(ScreenContext c)
         {
-            Frame(c, "장비 비교", 820, 810, out var b, false);
+            var b = EquipmentDialog(c, "Equipment comparison Dialog", 810, 170);
             if (!c.Main.BeginCraft(ItemAt(c, 2), ComparisonCost))
             {
                 Ui.Text("Insufficient", b, 30, 250, b.rect.width - 60, 120, "강화석이 부족하여 새 장비를 제작할 수 없습니다.", 27, Font(c));
-                Action(c, b, 200, 470, 320, 90, "돌아가기", c.Close, Slate);
+                Action(c, b, (b.rect.width - 320) * .5f, 470, 320, 90, "돌아가기", c.Close, Slate);
                 return;
             }
             var crafted = c.Main.PendingCraftItem;
             var craftId = c.Main.PendingCraftId;
-            ComparisonCard(c, b, 10, 10, "장착됨", crafted.displayName, "현재 장비\nLv." + (c.Main.PendingCraftLevel - 1), 2, Orange);
-            ComparisonCard(c, b, 10, 285, "새로운!", crafted.displayName, "새 장비\nLv." + c.Main.PendingCraftLevel + "  ▲", 2, new Color(.75f,.35f,1f));
-            var status = Ui.Text("Decision", b, 0, 565, b.rect.width, 38, "판매 또는 장착을 선택하세요.", 22, Font(c));
-            Action(c, b, 20, 612, 320, 96, "판매", () => ResolveComparison(c, status, craftId, false), Red);
-            Action(c, b, 380, 612, 320, 96, "장착", () => ResolveComparison(c, status, craftId, true), Blue);
+            var equipped = c.Main.equipment == null ? null : System.Array.Find(c.Main.equipment,
+                s => s != null && s.item == crafted && !s.isLocked);
+            ComparisonCard(c, b, 94, "Current equipment", equipped != null ? equipped.item : null,
+                equipped != null ? equipped.level : 0, false);
+            ComparisonCard(c, b, 359, "New equipment", crafted, c.Main.PendingCraftLevel, true);
+            var status = Ui.Text("Decision", b, 24, 627, b.rect.width - 48, 38, "판매 또는 장착을 선택하세요.", 22, Font(c));
+            float actionWidth = (b.rect.width - 100) * .5f;
+            Action(c, b, 32, 676, actionWidth, 100, "판매", () => ResolveComparison(c, status, craftId, false), Red);
+            Action(c, b, b.rect.width - 32 - actionWidth, 676, actionWidth, 100, "장착", () => ResolveComparison(c, status, craftId, true), Blue);
+            PopupSkin.Close("Close", b, b.rect.width - 68, 12, 56, Font(c), c.Close);
         }
 
-        static void ComparisonCard(ScreenContext c, Transform p, float x, float y, string tag, string name, string stats, int icon, Color color)
+        static void ComparisonCard(ScreenContext c, RectTransform parent, float y, string name,
+            ItemDefinition item, int level, bool isNew)
         {
-            var card = Ui.Panel(tag, p, x, y, 720, 255, Slate);
-            Ui.Text("Tag", card.transform, 14, 2, 180, 42, tag, 23, Font(c), color, TextAnchor.MiddleLeft);
-            Ui.Panel("Slot", card.transform, 20, 50, 142, 152, new Color(color.r*.35f,color.g*.35f,color.b*.35f));
-            Ui.Image("Icon", card.transform, 35, 63, 112, 112, Icon(c, icon));
-            Ui.Text("Name", card.transform, 185, 48, 500, 48, name, 27, Font(c), color, TextAnchor.MiddleLeft);
-            Ui.Text("Stats", card.transform, 185, 100, 500, 126, stats, 24, Font(c), Ui.Ivory, TextAnchor.UpperLeft);
+            float width = parent.rect.width - 64;
+            var card = Ui.Image(name, parent, 32, y, width, 248, PopupSkin.PanelArt);
+            card.type = Image.Type.Sliced; card.pixelsPerUnitMultiplier = 7;
+            EquipmentPreview(c, card.transform, 24, 24, 166, item, level);
+            Ui.Text("Name", card.transform, 212, 20, width - 232, 55,
+                item != null ? item.displayName : "장착된 장비 없음", 29, Font(c), ItemColor(item), TextAnchor.MiddleLeft);
+            Ui.Text("Stats", card.transform, 212, 85, width - 232, 112,
+                item != null ? "장비 레벨 " + level + (isNew ? "  ▲\n제작한 장비" : "\n현재 장착 중") : "",
+                28, Font(c), Ui.Ivory, TextAnchor.UpperLeft);
+            if (isNew)
+                Ui.Text("New marker", card.transform, 24, 202, 166, 40, "새로운!", 28, Font(c),
+                    new Color(1f,.25f,.18f));
         }
 
         static void ResolveComparison(ScreenContext c, Text status, int craftId, bool equip)
