@@ -234,7 +234,7 @@ namespace Moonlit.UI
                 for (var i = 0; i < session.results.Length; i++) session.results[i] = Skills[i];
             }
             AddBackdrop(ctx.Root, ctx);
-            Action close = () => { RefreshCollection(ctx, session.parent); ctx.Close(); };
+            UnityEngine.Events.UnityAction close = () => { RefreshCollection(ctx, session.parent); ctx.Close(); };
             Ui.Button("Return to collection", ctx.Root, 34, 34, 150, 70, "‹ 이전", font, close, Stone, 25);
             Ui.Text("Title", ctx.Root, 90, 80, 900, 90, "소환 결과", 46, font, Ui.Gold);
             Ui.Text("Subtitle", ctx.Root, 90, 170, 900, 60, "새로운 힘이 달빛 아래 깨어납니다", 24, font);
