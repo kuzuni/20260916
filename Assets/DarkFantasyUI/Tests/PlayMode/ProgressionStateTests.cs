@@ -49,6 +49,39 @@ namespace Moonlit.UI.Tests
         }
 
         [UnityTest]
+        public IEnumerator Collection_HeaderIsCentered_AndFooterTracksSafeBottom()
+        {
+            foreach (int height in new[] { 1920,2280 })
+            {
+                host.SetPreviewMetrics(new Vector2Int(1080,height),new Rect(36,84,1008,height-168));
+                host.Registry.Open("skills-pets-heroes"); yield return null;
+                var title=GameObject.Find("Collection title").GetComponent<RectTransform>();
+                float safeHeight=title.parent.GetComponent<RectTransform>().rect.height;
+                Assert.That(title.anchoredPosition.x+title.rect.width/2,Is.EqualTo(540).Within(.1f));
+                var wallet=GameObject.Find("Summon wallet").GetComponent<RectTransform>();
+                Assert.Less(wallet.anchoredPosition.x+wallet.rect.width,title.anchoredPosition.x);
+                Assert.Less(-wallet.anchoredPosition.y,120);
+                Assert.IsNotNull(GameObject.Find("Summon currency icon").GetComponent<Image>().sprite);
+                var equipped=GameObject.Find("Equipped panel").GetComponent<RectTransform>();
+                Assert.That(-equipped.anchoredPosition.y,Is.EqualTo(safeHeight-840).Within(.1f));
+                var label=GameObject.Find("Equipped label").GetComponent<RectTransform>();
+                var slots=GameObject.Find("Equipped skills").GetComponent<RectTransform>();
+                Assert.AreSame(equipped,label.parent);
+                Assert.Less(label.anchoredPosition.x+label.rect.width,slots.anchoredPosition.x);
+                var back=GameObject.Find("Return to main").GetComponent<RectTransform>();
+                Assert.Greater(-back.anchoredPosition.y,-equipped.anchoredPosition.y+equipped.rect.height);
+                var tabs=GameObject.Find("Tab 스킬").GetComponent<RectTransform>();
+                Assert.LessOrEqual(-tabs.anchoredPosition.y+tabs.rect.height,safeHeight-210);
+                GameObject.Find("Tab 펫").GetComponent<Button>().onClick.Invoke(); yield return null;
+                Assert.AreEqual("펫 6/12",title.GetComponent<Text>().text);
+                Assert.IsNotNull(GameObject.Find("Tab content").GetComponentInChildren<ScrollRect>());
+                GameObject.Find("Tab 스킬").GetComponent<Button>().onClick.Invoke();
+                back.GetComponent<Button>().onClick.Invoke(); yield return null;
+                Assert.IsNull(host.ActivePageKey);
+            }
+        }
+
+        [UnityTest]
         public IEnumerator SkillUpgradeAndEquip_RefreshParentWithoutLosingTabOrScroll()
         {
             host.Registry.Open("skills-pets-heroes");
@@ -358,7 +391,12 @@ namespace Moonlit.UI.Tests
                 .Where(t => t.name.StartsWith("Skill ")).Select(t => t.name).ToArray();
         }
 
-        static int CurrencyValue(string value) { return int.Parse(value.Replace("◆", "").Replace(",", "").Trim()); }
+        static int CurrencyValue(string value)
+        {
+            return value.EndsWith("k")
+                ? Mathf.RoundToInt(float.Parse(value.Substring(0,value.Length-1),System.Globalization.CultureInfo.InvariantCulture)*1000)
+                : int.Parse(value);
+        }
         static Text ChildText(Transform parent, string name) { return parent.GetComponentsInChildren<Text>(true).Single(t => t.name == name); }
 
         Text Label(string name)
