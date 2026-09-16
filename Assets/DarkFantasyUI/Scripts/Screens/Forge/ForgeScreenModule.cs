@@ -272,6 +272,30 @@ namespace Moonlit.UI
             => item != null && item.rarity == ItemRarity.Epic
                 ? new Color(.75f,.35f,1f) : Orange;
 
+        static string EquipmentHealthText(ItemDefinition item, int level)
+        {
+            double value = item.HealthAtLevel(level);
+            string suffix = value >= 1e9 ? "b" : value >= 1e6 ? "m" : value >= 1e3 ? "k" : "";
+            double divisor = value >= 1e9 ? 1e9 : value >= 1e6 ? 1e6 : value >= 1e3 ? 1e3 : 1;
+            return (value / divisor).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) + suffix + " 체력";
+        }
+
+        static string EquipmentStats(ItemDefinition item, int level, ItemDefinition other = null, int otherLevel = 0)
+        {
+            if (item == null) return "";
+            string direction = "";
+            if (other != null)
+            {
+                double difference = item.HealthAtLevel(level) - other.HealthAtLevel(otherLevel);
+                if (difference > .01) direction = " <color=#33FF55>▲</color>";
+                else if (difference < -.01) direction = " <color=#FF4933>▼</color>";
+            }
+            var culture = System.Globalization.CultureInfo.InvariantCulture;
+            return EquipmentHealthText(item, level) + direction + "\n+" +
+                item.firstBonusPercent.ToString("0.##", culture) + "% " + item.firstBonusName + "\n+" +
+                item.secondBonusPercent.ToString("0.##", culture) + "% " + item.secondBonusName;
+        }
+
         static void BuildEquipmentDetails(ScreenContext c)
         {
             var b = EquipmentDialog(c, "Equipment details Dialog", 360, c.Height * .21f);
@@ -282,7 +306,7 @@ namespace Moonlit.UI
             var name = item != null ? item.displayName : "장비";
             Ui.Text("Item name", b, 248, 100, b.rect.width - 282, 56, name, 30, Font(c), ItemColor(item), TextAnchor.MiddleLeft);
             Ui.Text("Item details", b, 248, 160, b.rect.width - 282, 150,
-                "1.81b 체력\n+1.62% 블록 확률\n+30.1% 공격 속도", 29, Font(c), Ui.Ivory, TextAnchor.UpperLeft);
+                EquipmentStats(item, level), 29, Font(c), Ui.Ivory, TextAnchor.UpperLeft);
             PopupSkin.Close("Close", b, b.rect.width - 68, 12, 56, Font(c), c.Close);
         }
 
@@ -300,8 +324,9 @@ namespace Moonlit.UI
             var equipped = c.Main.equipment == null ? null : System.Array.Find(c.Main.equipment,
                 s => s != null && s.item == crafted && !s.isLocked);
             ComparisonCard(c, b, 94, "Current equipment", equipped != null ? equipped.item : null,
-                equipped != null ? equipped.level : 0, false);
-            ComparisonCard(c, b, 359, "New equipment", crafted, c.Main.PendingCraftLevel, true);
+                equipped != null ? equipped.level : 0, false, crafted, c.Main.PendingCraftLevel);
+            ComparisonCard(c, b, 359, "New equipment", crafted, c.Main.PendingCraftLevel, true,
+                equipped != null ? equipped.item : null, equipped != null ? equipped.level : 0);
             var status = Ui.Text("Decision", b, 24, 627, b.rect.width - 48, 38, "판매 또는 장착을 선택하세요.", 22, Font(c));
             float actionWidth = (b.rect.width - 100) * .5f;
             Action(c, b, 32, 676, actionWidth, 100, "판매", () => ResolveComparison(c, status, craftId, false), Red);
@@ -310,7 +335,7 @@ namespace Moonlit.UI
         }
 
         static void ComparisonCard(ScreenContext c, RectTransform parent, float y, string name,
-            ItemDefinition item, int level, bool isNew)
+            ItemDefinition item, int level, bool isNew, ItemDefinition other, int otherLevel)
         {
             float width = parent.rect.width - 64;
             var card = Ui.Image(name, parent, 32, y, width, 248, PopupSkin.PanelArt);
@@ -318,8 +343,8 @@ namespace Moonlit.UI
             EquipmentPreview(c, card.transform, 24, 24, 166, item, level);
             Ui.Text("Name", card.transform, 212, 20, width - 232, 55,
                 item != null ? item.displayName : "장착된 장비 없음", 29, Font(c), ItemColor(item), TextAnchor.MiddleLeft);
-            Ui.Text("Stats", card.transform, 212, 85, width - 232, 112,
-                item != null ? "장비 레벨 " + level + (isNew ? "  ▲\n제작한 장비" : "\n현재 장착 중") : "",
+            Ui.Text("Stats", card.transform, 212, 85, width - 232, 140,
+                EquipmentStats(item, level, other, otherLevel),
                 28, Font(c), Ui.Ivory, TextAnchor.UpperLeft);
             if (isNew)
                 Ui.Text("New marker", card.transform, 24, 202, 166, 40, "새로운!", 28, Font(c),
