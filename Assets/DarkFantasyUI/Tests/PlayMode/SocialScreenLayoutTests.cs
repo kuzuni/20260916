@@ -159,7 +159,8 @@ namespace Moonlit.UI.Tests
         [UnityTest]
         public IEnumerator Pvp_StickyIdentityAndDetailsMatchStandings_AndRewardsOpen()
         {
-            host.SetPreviewMetrics(new Vector2Int(1080, 1920), new Rect(0, 80, 1080, 1740));
+            // Use a shorter safe viewport so the standings actually overflow and scroll.
+            host.SetPreviewMetrics(new Vector2Int(1080, 1920), new Rect(0, 200, 1080, 1500));
             host.Registry.Open("pvp"); yield return null;
             Assert.IsNotNull(GameObject.Find("Gold league crest").GetComponent<Image>().sprite);
             Assert.IsNotNull(GameObject.Find("Season gift").GetComponent<Image>().sprite);
