@@ -246,7 +246,7 @@ namespace Moonlit.UI.Tests
             var scroll = Object.FindObjectsByType<ScrollRect>(FindObjectsSortMode.None).Single();
             Assert.AreEqual(expected.Length, scroll.content.Cast<Transform>().Count(t => t.name.StartsWith("Gem offer ")));
             Assert.IsTrue(scroll.vertical);
-            GameObject.Find("‹ 메인").GetComponent<Button>().onClick.Invoke(); yield return null;
+            host.CloseTop(); yield return null; // System/context back closes the page; the removed top <메인> button must not return.
             Assert.IsNull(host.ActivePageKey);
             Assert.IsTrue(main.interactable);
         }
