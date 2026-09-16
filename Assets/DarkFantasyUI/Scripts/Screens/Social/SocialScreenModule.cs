@@ -299,10 +299,27 @@ namespace Moonlit.UI
             Ui.Text("Message", bubble.transform, 18, 3, width - 190, 66, message, 25, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
         }
 
+        // Base pages own opaque scenery so the main HUD, forge and chat cannot show through.
+        // The host clips this artwork above the persistent navigation rail.
+        static RectTransform PageBackdrop(ScreenContext c, string name)
+        {
+            var root = Ui.Image(name, c.Root, 0, 0, c.Width, c.Height, null,
+                new Color(.015f, .045f, .06f, 1f)).rectTransform;
+            var sprite = c.Assets != null ? c.Assets.worldBackground : null;
+            if (sprite != null)
+            {
+                float scale = Mathf.Max(c.Width / sprite.rect.width, c.Height / sprite.rect.height);
+                float width = sprite.rect.width * scale, height = sprite.rect.height * scale;
+                Ui.Image("Page scenery", root, (c.Width - width) * .5f, (c.Height - height) * .5f,
+                    width, height, sprite, new Color(.28f, .48f, .62f, 1f));
+            }
+            return root;
+        }
+
         static void BuildShop(ScreenContext c)
         {
             float w = c.Width, h = c.Height;
-            var root = Ui.Panel("Shop page", c.Root, 0, 0, w, h, new Color(.015f,.045f,.06f,.97f)).rectTransform;
+            var root = PageBackdrop(c, "Shop page");
             Action(c, root, 28, 24, 150, 70, "‹ 메인", c.Close);
             Ui.Text("Shop title", root, 450, 24, 310, 80, "상점", 46, Font(c), Ui.Gold);
             Currency(c, root, 188, 28, 56, 0, "1.59m");
@@ -365,7 +382,7 @@ namespace Moonlit.UI
         static void BuildPvp(ScreenContext c)
         {
             float w = c.Width, h = c.Height;
-            var root = Ui.Panel("PvP page", c.Root, 0, 0, w, h, new Color(.015f,.045f,.06f,.97f)).rectTransform;
+            var root = PageBackdrop(c, "PvP page");
             Action(c, root, 28, 24, 150, 70, "‹ 메인", c.Close);
             Ui.Text("Crest", root, 380, 24, 320, 110, "🛡", 70, Font(c), Ui.Gold);
             Ui.Text("League", root, 290, 124, 500, 70, "골드 리그", 43, Font(c), Ui.Ivory);
