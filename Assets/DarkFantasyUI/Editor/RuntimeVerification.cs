@@ -93,7 +93,11 @@ namespace Moonlit.Editor
                 host.Registry.ShowMainPage();
                 yield return null; yield return null; Canvas.ForceUpdateCanvases();
                 bool pageRoute = route == "skills-pets-heroes" || route == "dungeons" || route == "shop" || route == "pvp";
+                // The selected entry intentionally renders a close icon. Build its unobscured
+                // reference on main, then let the host independently apply that state on open.
+                if (pageRoute) screen.RefreshNavigation(route);
                 var navigationPixels = pageRoute ? ReadNavigationPixels(screen, camera) : null;
+                if (pageRoute) screen.RefreshNavigation(null);
                 host.Registry.Open(route);
                 yield return null; yield return null; Canvas.ForceUpdateCanvases();
                 var layer=GameObject.Find((host.ActivePageKey==route ? "Page — " : "Popup Layer ")+route);
@@ -129,7 +133,7 @@ namespace Moonlit.Editor
             }
         }
         // Raycast sorting can pass even while a lower-order page obscures the rendered icons.
-        // Compare actual pixels against the same viewport with only the main page displayed.
+        // Compare actual pixels against main with the same selected navigation artwork.
         static Color[] ReadNavigationPixels(MainScreen screen, Camera camera)
         {
             Canvas.ForceUpdateCanvases();
@@ -142,7 +146,7 @@ namespace Moonlit.Editor
                 RenderTexture.active = camera.targetTexture;
                 for (int i = 0; i < screen.navigation.Length; i++)
                 {
-                    var icon = screen.navigation[i].transform.Find("Menu icon") as RectTransform;
+                    var icon = screen.navigation[i].targetGraphic.rectTransform;
                     var center = RectTransformUtility.WorldToScreenPoint(camera, icon.TransformPoint(icon.rect.center));
                     int x = Mathf.Clamp(Mathf.RoundToInt(center.x) - 8, 0, camera.targetTexture.width - 16);
                     int y = Mathf.Clamp(Mathf.RoundToInt(center.y) - 8, 0, camera.targetTexture.height - 16);
