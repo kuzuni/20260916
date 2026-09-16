@@ -1,7 +1,12 @@
 # Moonlit 30 UI — coordinator status
 
-Updated 2026-09-16, 20:26 UTC. Implementation is unfinished; local coordinator and 15-minute heartbeat remain active.
+Updated 2026-09-16, 20:28 UTC. Implementation is unfinished; local coordinator and 15-minute heartbeat remain active.
 
+## Latest integration and Play settings evidence
+
+- PR #35 Play settings source 3d4d925ee7bb65e902475028ab94867b3c2fde63, hosted Unity 6000.3.8f1 run 35145362518: downloaded test artifact 10467048989 and read actual NUnit XML: **37 passed, 0 failed, 0 skipped**. All three RuntimeSettingsTests passed (60 FPS/VSync/background override, two fresh model resets without domain reload, destroyed-avatar cache recovery). Graphics job 104964017717 is still running. This does not verify the user's local Error Pause toggle, repeated real Play entry timing, or disappearance of the local pause symptom.
+- PR #36 six new dialogs merged as 7b59b88f163d2af6de990902864e5bf74ea60a7d and original local checkout fast-forwarded, preserving all 9 existing metadata modifications by hash. References 25–30 and the new avatar atlas are now on main. Source 7d6aeb68103a93a10ab7974c4daacd25ca3e07f6, hosted run **35146382739** is still compiling/testing; new dialog runtime/capture results are not yet confirmed.
+- Next heartbeat: inspect 35146382739 first, download actual XML and 66 captures, repair failures and inspect new nested dialogs at both aspects/insets; also finish graphics result 35145362518. Keep full 30-screen fidelity work active. Prior visual findings and unconfirmed local pause outcome remain below. No local Unity control or secret access.
 ## Six additional profile/settings dialogs and startup integration
 
 - Source 7d6aeb68103a93a10ab7974c4daacd25ca3e07f6, PR #36 (codex/profile-settings-dialogs), hosted run 35146382739 is in progress. The new reference/dialog source is stored on GitHub. No Unity pass is claimed for this source.
