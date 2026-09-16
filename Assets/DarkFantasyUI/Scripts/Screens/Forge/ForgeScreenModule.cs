@@ -39,6 +39,14 @@ namespace Moonlit.UI
             new Color(.30f,.10f,.07f), new Color(.55f,.22f,.02f)
         };
 
+        internal static void ResetSession()
+        {
+            passClaims.Clear(); autoHammerCount=22; autoContinue=true; autoFilterEnabled=true;
+            for(int i=0;i<autoKeep.Length;i++) autoKeep[i]=i==3;
+            for(int i=0;i<autoFilters.Length;i++) autoFilters[i]=i==0 || i==1 || i==5;
+            tierIcons=null; tierBands=null;
+        }
+
         public static void Register(UiScreenRegistry registry)
         {
             registry.Register("forge-probability", ScreenPresentation.Modal, BuildProbability, false);

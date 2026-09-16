@@ -38,6 +38,15 @@ namespace Moonlit.UI
         static int summonSequence;
         static CollectionState activeCollection;
 
+        internal static void ResetSession()
+        {
+            summonCurrency=6830; selectedDungeon=0; selectedCollectionTab=0; summonSequence=0; activeCollection=null;
+            equippedSkills[0]=9; equippedSkills[1]=10; equippedSkills[2]=8;
+            Array.Clear(selectedCompanions,0,selectedCompanions.Length);
+            foreach(var skill in Skills) skill.Reset();
+            skillIcons=null;
+        }
+
         public static void Register(UiScreenRegistry registry)
         {
             registry.Register("skills-pets-heroes", ScreenPresentation.Page, BuildCollection, false);
@@ -584,6 +593,8 @@ namespace Moonlit.UI
             public readonly int icon;
             public readonly string passive;
             public bool owned;
+            readonly int initialLevel, initialShards;
+            public void Reset() { level=initialLevel; shards=initialShards; owned=level>20; }
             public bool IsMaxLevel => level >= MaximumLevel;
             public bool TryUpgrade()
             {
@@ -591,7 +602,7 @@ namespace Moonlit.UI
                 level++;
                 return true;
             }
-            public SkillData(string name, int level, int shards, int icon, string passive) { this.name=name; this.level=level; this.shards=shards; this.icon=icon; this.passive=passive; owned=level > 20; }
+            public SkillData(string name, int level, int shards, int icon, string passive) { this.name=name; this.level=initialLevel=level; this.shards=initialShards=shards; this.icon=icon; this.passive=passive; owned=level > 20; }
         }
 
         sealed class SkillDetailsPayload
