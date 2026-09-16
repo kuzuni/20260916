@@ -243,6 +243,19 @@ namespace Moonlit.Editor
 
         static void VerifyInteractions(MainScreen screen)
         {
+            var offlineArt=screen.eventButton.targetGraphic as Image;
+            var passArt=screen.fairyButton.targetGraphic as Image;
+            if(!offlineArt || !offlineArt.sprite || offlineArt.sprite.name!="OfflineRewardIcon-v1" ||
+                !passArt || !passArt.sprite || passArt.sprite.name!="ProgressPassIcon-v1")
+                throw new Exception("Main reward buttons must load their dedicated clock/chest and sword/pass artwork");
+            if(offlineArt.raycastTarget || passArt.raycastTarget || !offlineArt.preserveAspect || !passArt.preserveAspect)
+                throw new Exception("Main reward artwork must preserve aspect and use independent hit targets");
+            screen.eventButton.onClick.Invoke();
+            if(!GameObject.Find("Popup Layer offline-rewards")) throw new Exception("Offline reward icon opened the wrong route");
+            screen.Close();
+            screen.fairyButton.onClick.Invoke();
+            if(!GameObject.Find("Popup Layer progress-pass")) throw new Exception("Progress pass icon opened the wrong route");
+            screen.Close();
             int ore=screen.ore,total=screen.equipment.Sum(s=>s.level),locked=screen.equipment[0].level;
             screen.forgeLevelButton.onClick.Invoke(); if(screen.ore!=ore || screen.screens.ModalDepth!=1) throw new Exception("Forge probability route failed"); screen.Close();
             bool hadPending = screen.PendingCraftItem != null;
