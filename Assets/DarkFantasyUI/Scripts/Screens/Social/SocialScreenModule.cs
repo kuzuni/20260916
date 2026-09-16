@@ -49,34 +49,18 @@ namespace Moonlit.UI
             height = Mathf.Min(preferredHeight, c.Height - 72f);
             float x = (c.Width - width) * .5f;
             float y = Mathf.Max(24f, (c.Height - height) * .5f);
-            var frame = SpritePanel(c, title + " frame", c.Root, x, y, width, height, 2, Color.white);
+            var frame = PopupSkin.Panel(title + " frame", c.Root, x, y, width, height);
             frame.raycastTarget = true;
-            Ui.Border(frame.transform, width, height, new Color(.42f, .29f, .14f), 8);
-            Ui.Border(frame.transform, width, height, Ui.Gold, 2);
             Ui.Text("Title", frame.transform, 70, 18, width - 140, 70, title, 44, Font(c), Ui.Ivory);
             Ui.Image("Title rule", frame.transform, 28, 94, width - 56, 3, null, Ui.Gold);
             return frame.rectTransform;
         }
 
         static Button Close(ScreenContext c, Transform parent, float width, float height)
-        {
-            var button = Ui.ArtButton("Close", parent, width * .5f - 42, height - 86, 84, 84);
-            var circle = c.Assets != null ? c.Assets.circle : null;
-            Ui.Image("Bronze rim", button.transform, 0, 0, 84, 84, circle, Ui.Gold);
-            Ui.Image("Dark inset", button.transform, 4, 4, 76, 76, circle, Color.black);
-            Ui.Image("Crimson face", button.transform, 8, 8, 68, 68, circle, Red);
-            Ui.Text("Label", button.transform, 0, -2, 84, 84, "×", 56, Font(c));
-            button.onClick.AddListener(c.Close);
-            return button;
-        }
+            => PopupSkin.Close("Close", parent, width * .5f - 42, height - 86, 84, Font(c), c.Close, 56);
 
         static Button Action(ScreenContext c, Transform parent, float x, float y, float w, float h, string label, UnityAction action)
-        {
-            var button = Ui.ArtButton(label, parent, x, y, w, h, PanelSprite(c, 0), true, 5);
-            Ui.Text("Label", button.transform, 12, 4, w - 24, h - 8, label, 28, Font(c));
-            if (action != null) button.onClick.AddListener(action);
-            return button;
-        }
+            => PopupSkin.Button(label, parent, x, y, w, h, label, Font(c), action);
 
         static Image SpritePanel(ScreenContext c, string name, Transform parent, float x, float y, float w, float h, int spriteIndex, Color tint)
         {
@@ -138,8 +122,7 @@ namespace Moonlit.UI
                 foreach (var tab in new[] { profileTab, settingsTab })
                 {
                     if (tab == null) continue;
-                    var art = tab.targetGraphic as Image;
-                    if (art != null) art.sprite = PanelSprite(c, (tab == settingsTab) == showSettings ? 0 : 1);
+                    PopupSkin.Select(tab, (tab == settingsTab) == showSettings);
                 }
             }
             profileTab = Action(c, frame, 120, h - 156, (w - 240) * .5f, 64, "프로필", () => Select(false));
