@@ -265,6 +265,7 @@ namespace Moonlit.UI.Tests
             Assert.IsNotNull(PopupSkin.PanelArt);
             Assert.IsNotNull(PopupSkin.ActionArt);
             Assert.IsNotNull(PopupSkin.CloseArt);
+            Assert.IsNotNull(PopupSkin.CrestArt);
             Assert.AreNotSame(PopupSkin.PanelArt.texture, PopupSkin.ActionArt.texture);
             Assert.AreNotSame(PopupSkin.ActionArt.texture, PopupSkin.CloseArt.texture);
             Assert.Greater(PopupSkin.PanelArt.border.x, 0);
@@ -273,6 +274,9 @@ namespace Moonlit.UI.Tests
             {
                 host.Registry.Open(route); yield return null;
                 var layer = GameObject.Find("Popup Layer " + route);
+                var crest = layer.GetComponentsInChildren<Image>().First(i => i.sprite == PopupSkin.CrestArt);
+                Assert.IsTrue(crest.preserveAspect);
+                Assert.IsFalse(crest.raycastTarget);
                 var frames = layer.GetComponentsInChildren<Image>().Where(i => i.sprite == PopupSkin.PanelArt).ToArray();
                 Assert.IsTrue(frames.Any(i => i.type == Image.Type.Sliced && i.raycastTarget),
                     route + " must retain a sliced frame that intercepts interior touches.");

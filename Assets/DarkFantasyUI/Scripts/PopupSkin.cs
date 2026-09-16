@@ -7,7 +7,7 @@ namespace Moonlit.UI
     /// <summary>Shared reusable popup artwork. Labels, icons and hit targets remain independent.</summary>
     public static class PopupSkin
     {
-        static Sprite panel, action, close;
+        static Sprite panel, action, close, crest;
         static Sprite Load(ref Sprite cached, string name, Vector4 border, Rect? sourceRect = null, Vector2? sourceSize = null)
         {
             if (cached) return cached;
@@ -31,6 +31,7 @@ namespace Moonlit.UI
         public static Sprite ActionArt => Load(ref action, "BlueAction-v2", new Vector4(240, 150, 240, 150),
             new Rect(48, 120, 2076, 488), new Vector2(2172, 724));
         public static Sprite CloseArt => Load(ref close, "CrimsonClose-v1", Vector4.zero);
+        public static Sprite CrestArt => Load(ref crest, "PanelCrest-v1", Vector4.zero);
 
         public static Image Panel(string name, Transform parent, float x, float y, float width, float height)
         {
@@ -47,9 +48,9 @@ namespace Moonlit.UI
             image.raycastTarget = true;
             if (height > 200)
             {
-                var ornament = Ui.Rect("Crown filigree", image.transform, width * .5f - 42, -16, 84, 50)
-                    .gameObject.AddComponent<PanelOrnament>();
-                ornament.color = Ui.Gold; ornament.raycastTarget = false;
+                var ornament = Ui.Image("Crown filigree", image.transform, width * .5f - 90, -34, 180, 72, CrestArt);
+                ornament.preserveAspect = true;
+                ornament.raycastTarget = false;
             }
             return image;
         }
