@@ -38,7 +38,7 @@ namespace Moonlit.UI
         Text toast;
         Coroutine toastRoutine;
         float autoClock;
-        int selectedMenu;
+        static readonly string[] NavigationRoutes = { "pvp", "dungeons", "skills-pets-heroes", "quests", "shop" };
         EquipmentSlot inspected;
 
         void Start()
@@ -209,15 +209,45 @@ namespace Moonlit.UI
         public void Profile() { ShowInfo("moonzsanf", "그림자 검객  ·  Lv.108\n\n전투력 "+powerText.text+"\n최고 기록 : 어려움 4-"+stage+"\n대장간 레벨 "+forgeLevel,"확인",Close); }
         public void ForgeManagement() { ShowInfo("대장간  ·  레벨 "+forgeLevel,"모루를 눌러 장비를 강화하세요.\n\n강화 1회 : 강화석 100개\n자동 강화에서는 잠긴 장비가 제외됩니다.\n\n남은 시간  1일 7시","확인",Close); }
         void Stage() { ShowInfo("달빛 폐허  ·  4-"+stage, "고대 성당 너머의 어둠\n\n권장 전투력 62.0b\n완료 보상 : 골드 5,000 · 강화석 150\n\nUI 데모에서 스테이지 완료를 시뮬레이션합니다.","스테이지 완료 체험",()=>{ stage++; gold+=5000; ore+=150; Refresh(); Close(); Toast("스테이지 완료! 다음 구역으로 이동합니다"); }); }
-        void Navigate(int index)
+        public void Navigate(int index)
         {
-            selectedMenu=index;
-            for(int i=0;i<navigation.Length;i++) navigation[i].targetGraphic.color=i==index ? Color.white : new Color(.9f,.9f,.9f,1);
-            if(index==0) screens.Open("pvp");
-            if(index==1) screens.Open("dungeons");
-            if(index==2) screens.Open("skills-pets-heroes");
-            if(index==3) ShowInfo("모험 퀘스트", "장비 강화  "+successfulForges+" / 10\n\n대장간에서 장비를 강화해 보세요.\n퀘스트 보상 : 루비 10개","보상 받기",ClaimQuest);
-            if(index==4) screens.Open("shop");
+            if (screens == null || index < 0 || index >= NavigationRoutes.Length || screens.ModalDepth > 0) return;
+            string route = NavigationRoutes[index];
+            if (screens.ActivePageKey == route) { screens.ShowMainPage(); return; }
+            if (index == 3) screens.Register("quests", ScreenPresentation.Page, context => {
+                Ui.Image("Quest page shade",context.Root,0,0,context.Width,context.Height,null,new Color(0,.015f,.025f,.65f)).raycastTarget=true;
+                var panel=PopupSkin.Panel("Quest panel",context.Root,150,(context.Height-210-620)/2,780,620).rectTransform;
+                Ui.Text("Quest title",panel,40,42,700,70,"모험 퀘스트",40,font,Ui.Gold);
+                Ui.Text("Quest progress",panel,60,155,660,230,"장비 강화  "+successfulForges+" / 10\n\n대장간에서 장비를 강화해 보세요.\n퀘스트 보상 : 루비 10개",29,font);
+                PopupSkin.Button("Quest reward",panel,200,428,380,88,"보상 받기",font,ClaimQuest);
+                PopupSkin.Close("Close",panel,348,548,84,font,context.Close);
+            },false);
+            screens.Open(route);
+        }
+
+        public void RefreshNavigation(string activePage)
+        {
+            if (navigation == null) return;
+            for (int i=0; i<navigation.Length; i++)
+            {
+                var button=navigation[i];
+                if (!button) continue;
+                bool active=i<NavigationRoutes.Length && NavigationRoutes[i]==activePage;
+                var icon=button.transform.Find("Menu icon");
+                var close=button.transform.Find("Close icon");
+                var notification=button.transform.Find("Notification");
+                if (icon) icon.gameObject.SetActive(!active);
+                if (close) close.gameObject.SetActive(active);
+                if (notification) notification.gameObject.SetActive(!active);
+                var visible=active ? close : icon;
+                if (visible)
+                {
+                    button.targetGraphic=visible.GetComponent<Image>();
+                    button.targetGraphic.color=Color.white;
+                    var feedback=button.GetComponent<ButtonFeedback>();
+                    if (feedback) feedback.artwork=(RectTransform)visible;
+                }
+            }
         }
         bool questClaimed;
         void ClaimQuest() { if(questClaimed) { Toast("이미 받은 보상입니다"); return; } if(successfulForges<10) { Toast("장비를 10회 강화하면 받을 수 있습니다"); return; } questClaimed=true; gems+=10; Refresh(); Close(); Toast("루비 +10"); }
