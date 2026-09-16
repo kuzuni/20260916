@@ -105,6 +105,7 @@ namespace Moonlit.Editor
                 try
                 {
                     if (navigationPixels != null) AssertNavigationVisible(navigationPixels, ReadNavigationPixels(screen, camera), screen);
+                    if (route == "shop" || route == "pvp") AssertPageOccludesMain(canvas, camera, routeRoot);
                     foreach (var button in screen.navigation)
                     {
                         AssertInsideSafe(button.GetComponent<RectTransform>(), camera, areas[aspect]);
@@ -166,6 +167,54 @@ namespace Moonlit.Editor
                 if (difference > .025f)
                     throw new Exception("Navigation icon visually obscured: " + screen.navigation[button].name + " mean RGB difference=" + difference);
             }
+        }
+
+        // Toggle the underlying main canvas between two renders of the same page.
+        // Any pixel change inside page content means HUD/scenery from main is leaking through.
+        static void AssertPageOccludesMain(Canvas canvas, Camera camera, RectTransform pageRoot)
+        {
+            var mainGroup = canvas.transform.Find("MainCanvas").GetComponent<CanvasGroup>();
+            float previousAlpha = mainGroup.alpha;
+            try
+            {
+                var shown = ReadPagePixels(camera, pageRoot);
+                mainGroup.alpha = 0;
+                var hidden = ReadPagePixels(camera, pageRoot);
+                float difference = 0;
+                for (int i = 0; i < shown.Length; i++)
+                    difference += Mathf.Abs(shown[i].r - hidden[i].r)
+                        + Mathf.Abs(shown[i].g - hidden[i].g) + Mathf.Abs(shown[i].b - hidden[i].b);
+                difference /= shown.Length * 3;
+                if (difference > .002f)
+                    throw new Exception("Main canvas bleeds through page; mean RGB difference=" + difference);
+            }
+            finally { mainGroup.alpha = previousAlpha; Canvas.ForceUpdateCanvases(); }
+        }
+
+        static Color[] ReadPagePixels(Camera camera, RectTransform pageRoot)
+        {
+            Canvas.ForceUpdateCanvases(); camera.Render();
+            var previous = RenderTexture.active;
+            var target = camera.targetTexture;
+            var sample = new Texture2D(target.width, target.height, TextureFormat.RGB24, false);
+            try
+            {
+                RenderTexture.active = target;
+                sample.ReadPixels(new Rect(0, 0, target.width, target.height), 0, 0); sample.Apply();
+                var pixels = new Color[32 * 48];
+                var rect = pageRoot.rect;
+                // Sample the page interior; exclude the 210-unit navigation reserve and clip edges.
+                for (int row = 0; row < 48; row++) for (int column = 0; column < 32; column++)
+                {
+                    var local = new Vector2(Mathf.Lerp(rect.xMin + 4, rect.xMax - 4, (column + .5f) / 32),
+                        Mathf.Lerp(rect.yMin + 214, rect.yMax - 4, (row + .5f) / 48));
+                    var point = RectTransformUtility.WorldToScreenPoint(camera, pageRoot.TransformPoint(local));
+                    pixels[row * 32 + column] = sample.GetPixel(Mathf.Clamp(Mathf.RoundToInt(point.x), 0, target.width - 1),
+                        Mathf.Clamp(Mathf.RoundToInt(point.y), 0, target.height - 1));
+                }
+                return pixels;
+            }
+            finally { RenderTexture.active = previous; Object.DestroyImmediate(sample); }
         }
 
         static void VerifyInteractions(MainScreen screen)
