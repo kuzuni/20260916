@@ -8,13 +8,20 @@ namespace Moonlit.UI
     public static class PopupSkin
     {
         static Sprite panel, action, close;
-        static Sprite Load(ref Sprite cached, string name, Vector4 border, Rect? sourceRect = null)
+        static Sprite Load(ref Sprite cached, string name, Vector4 border, Rect? sourceRect = null, Vector2? sourceSize = null)
         {
             if (cached) return cached;
             var texture = Resources.Load<Texture2D>("Moonlit/Popup/" + name);
             if (!texture) return null;
-            cached = Sprite.Create(texture, sourceRect ?? new Rect(0, 0, texture.width, texture.height),
-                new Vector2(.5f, .5f), 100, 0, SpriteMeshType.FullRect, border);
+            // Importers/platform limits may downscale the PNG. Keep crop coordinates, slice
+            // borders and pixel density in the same imported space before creating the sprite.
+            var designSize = sourceSize ?? new Vector2(texture.width, texture.height);
+            float sx = texture.width / designSize.x, sy = texture.height / designSize.y;
+            var rect = sourceRect ?? new Rect(0, 0, designSize.x, designSize.y);
+            rect = new Rect(rect.x * sx, rect.y * sy, rect.width * sx, rect.height * sy);
+            var scaledBorder = new Vector4(border.x * sx, border.y * sy, border.z * sx, border.w * sy);
+            cached = Sprite.Create(texture, rect,
+                new Vector2(.5f, .5f), 100 * sx, 0, SpriteMeshType.FullRect, scaledBorder);
             cached.name = name;
             return cached;
         }
@@ -22,7 +29,7 @@ namespace Moonlit.UI
         // V2 keeps ornaments in the fixed corner slices. Exclude the export's transparent
         // padding so the visible face fills the live button and does not shrink behind its label.
         public static Sprite ActionArt => Load(ref action, "BlueAction-v2", new Vector4(240, 150, 240, 150),
-            new Rect(48, 120, 2076, 488));
+            new Rect(48, 120, 2076, 488), new Vector2(2172, 724));
         public static Sprite CloseArt => Load(ref close, "CrimsonClose-v1", Vector4.zero);
 
         public static Image Panel(string name, Transform parent, float x, float y, float width, float height)
