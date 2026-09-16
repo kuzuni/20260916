@@ -90,7 +90,11 @@ namespace Moonlit.Editor
                 var target=new RenderTexture(1080,heights[aspect],24); setTarget(target);
                 safe.SetPreviewMetrics(new Vector2Int(1080,heights[aspect]),areas[aspect]);
                 host.SetPreviewMetrics(new Vector2Int(1080,heights[aspect]),areas[aspect]);
-                host.Registry.ShowMainPage(); host.Registry.Open(route);
+                host.Registry.ShowMainPage();
+                yield return null; yield return null; Canvas.ForceUpdateCanvases();
+                bool pageRoute = route == "skills-pets-heroes" || route == "dungeons" || route == "shop" || route == "pvp";
+                var navigationPixels = pageRoute ? ReadNavigationPixels(screen, camera) : null;
+                host.Registry.Open(route);
                 yield return null; yield return null; Canvas.ForceUpdateCanvases();
                 var layer=GameObject.Find((host.ActivePageKey==route ? "Page — " : "Popup Layer ")+route);
                 var routeRoot=layer ? layer.transform.Find("SafeArea") as RectTransform : null;
@@ -100,6 +104,7 @@ namespace Moonlit.Editor
                 bool navigationFailed = false;
                 try
                 {
+                    if (navigationPixels != null) AssertNavigationVisible(navigationPixels, ReadNavigationPixels(screen, camera), screen);
                     foreach (var button in screen.navigation)
                     {
                         AssertInsideSafe(button.GetComponent<RectTransform>(), camera, areas[aspect]);
@@ -122,6 +127,47 @@ namespace Moonlit.Editor
                 host.Registry.ShowMainPage();
             }
         }
+        // Raycast sorting can pass even while a lower-order page obscures the rendered icons.
+        // Compare actual pixels against the same viewport with only the main page displayed.
+        static Color[] ReadNavigationPixels(MainScreen screen, Camera camera)
+        {
+            Canvas.ForceUpdateCanvases();
+            camera.Render();
+            var previous = RenderTexture.active;
+            var sample = new Texture2D(16, 16, TextureFormat.RGB24, false);
+            var pixels = new Color[screen.navigation.Length * 256];
+            try
+            {
+                RenderTexture.active = camera.targetTexture;
+                for (int i = 0; i < screen.navigation.Length; i++)
+                {
+                    var icon = screen.navigation[i].transform.Find("Menu icon") as RectTransform;
+                    var center = RectTransformUtility.WorldToScreenPoint(camera, icon.TransformPoint(icon.rect.center));
+                    int x = Mathf.Clamp(Mathf.RoundToInt(center.x) - 8, 0, camera.targetTexture.width - 16);
+                    int y = Mathf.Clamp(Mathf.RoundToInt(center.y) - 8, 0, camera.targetTexture.height - 16);
+                    sample.ReadPixels(new Rect(x, y, 16, 16), 0, 0);
+                    sample.Apply();
+                    Array.Copy(sample.GetPixels(), 0, pixels, i * 256, 256);
+                }
+                return pixels;
+            }
+            finally { RenderTexture.active = previous; Object.DestroyImmediate(sample); }
+        }
+
+        static void AssertNavigationVisible(Color[] expected, Color[] actual, MainScreen screen)
+        {
+            for (int button = 0; button < screen.navigation.Length; button++)
+            {
+                float difference = 0;
+                for (int pixel = button * 256; pixel < (button + 1) * 256; pixel++)
+                    difference += Mathf.Abs(expected[pixel].r - actual[pixel].r)
+                        + Mathf.Abs(expected[pixel].g - actual[pixel].g) + Mathf.Abs(expected[pixel].b - actual[pixel].b);
+                difference /= 256 * 3;
+                if (difference > .025f)
+                    throw new Exception("Navigation icon visually obscured: " + screen.navigation[button].name + " mean RGB difference=" + difference);
+            }
+        }
+
         static void VerifyInteractions(MainScreen screen)
         {
             int ore=screen.ore,total=screen.equipment.Sum(s=>s.level),locked=screen.equipment[0].level;
