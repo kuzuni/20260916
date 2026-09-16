@@ -395,6 +395,7 @@ namespace Moonlit.UI
                 var dungeon = Dungeons[i];
                 var banner = DungeonBanner(dungeon);
                 var row = PopupSkin.IllustratedCard("Dungeon " + dungeon.name, scroll.content, 10, i * 250, 920, 230, banner, Color.white);
+                row.Find("Card rim").GetComponent<Image>().pixelsPerUnitMultiplier=18;
                 Ui.Image("Readable action scrim",row,670,12,236,204,null,new Color(0,.015f,.025f,.65f));
                 Sprite reward = i==0 ? DungeonHammer() : i==1 ? Resources.Load<Sprite>("Moonlit/Skills/SummonTicket-v1") : PopupSkin.RewardIcon(i==2?0:1);
                 Ui.ArtImage("Dungeon reward icon",row,26,20,60,60,reward).preserveAspect=true;
@@ -463,9 +464,7 @@ namespace Moonlit.UI
 
         static void AddBackdrop(Transform root, ScreenContext ctx)
         {
-            var image = Ui.Image("Moonlit backdrop", root, 0, 0, ctx.Width, ctx.Height, ctx.Assets.worldBackground, new Color(.28f,.48f,.62f,1f));
-            image.type = Image.Type.Simple; image.preserveAspect = false;
-            image.transform.SetAsFirstSibling();
+            PopupSkin.FullViewportBackdrop(ctx);
         }
 
         static RectTransform Panel(Transform parent, float x, float y, float w, float h, string title, Font font, int size)

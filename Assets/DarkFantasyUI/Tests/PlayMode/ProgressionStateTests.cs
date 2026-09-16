@@ -112,7 +112,10 @@ namespace Moonlit.UI.Tests
             Assert.AreEqual(4,rows.Length);
             foreach(var row in rows)
             {
-                Assert.IsFalse(row.Find("Card rim").GetComponent<Image>().fillCenter);
+                var rim=row.Find("Card rim").GetComponent<Image>();
+                Assert.IsFalse(rim.fillCenter);
+                float coveredHeight=(rim.sprite.border.y+rim.sprite.border.w)/(rim.pixelsPerUnit*rim.pixelsPerUnitMultiplier);
+                Assert.Less(coveredHeight,((RectTransform)row).rect.height*.15f,"Dungeon art should fill the banner opening");
                 Assert.IsNotNull(row.Find("Dungeon key icon").GetComponent<Image>().sprite);
             }
             float position=scroll.verticalNormalizedPosition;

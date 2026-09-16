@@ -38,6 +38,7 @@ This supports the user's main/nav/popup/detail/deeper arrangement without hard-c
 - Close during transition, double open, rapid back, and repeated tap must be safe. Disable hidden raycasters and remove listeners on destruction.
 - Tooltip/notification art never captures raycasts.
 - Screen.safeArea changes apply to every active layer; no fixed assumption of zero insets. Existing scene must remain bootstrap-only. No editor-generated UI persisted in scenes.
+- Page/fullscreen decorative scenery is a sibling of SafeArea within its owning layer. It covers the full viewport with preserved image aspect ratio, never receives raycasts, and is removed with the layer. Interactive page content retains the SafeArea mask and bottom-navigation clipping.
 
 ## Common module API (frozen for parallel implementation)
 
