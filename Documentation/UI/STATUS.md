@@ -1,7 +1,20 @@
 # Moonlit 30 UI — coordinator status
 
-Updated 2026-09-17, 06:39 KST. Implementation is unfinished; 15-minute heartbeat remains active.
+Updated 2026-09-17, 06:57 KST. Implementation is unfinished; 15-minute heartbeat remains active.
 
+## Progression-pass card framing and premium gold revision
+
+- Inspected original 05-progress-pass.png at full resolution and hosted pass 9:16/9:19 from forest artifact 10470291226. Cards rendered paintings as narrow horizontal strips because the reusable border covered about half their height. Premium heading and price button incorrectly used red artwork. Fourth visible premium reward also differed from the reference.
+- Branch codex/pass-card-framing uses a narrower empty rim on pass cards only, retaining independent rewards/chest/locks and a real ScrollRect. Reuses generated ProfileRuins-v1 scenery, removing the old painting's party characters from reward cards. Added small translucent contrast areas behind live reward values. Main forest and other pages are unchanged.
+- Generated GoldAction-v1.png with built-in imagegen: empty reusable gold/amber button backplate, 2089x753, verified transparent corners and alpha bounds; prompt and runtime crop recorded in GoldAction-v1-prompt.md. Premium price control and heading use this asset without tinting crimson artwork. White price and ruby remain separate. No real payment is connected.
+- Corrected reference row 어려움 4-15 to free 220 tickets and premium 40k gold; removed the extra ore/ruby row there. Later rows remain inferred demo content. Added regression checks for imported gold artwork, card rim exposure, scenery identity and the 40k reward. Static diff check passed; new source Unity/capture results are pending.
+
+## Latest actual hosted evidence and next review
+
+- PR #41 source 2f0ac939535a773197bd509b746ca2fef77404a4 merged as 0e29d12203416526698388332521cfda12b216e1, original checkout fast-forwarded preserving all 11 modified metadata files by SHA256. Run 35153192719: downloaded artifact 10470452446, actual NUnit XML 39 passed / 0 failed / 0 skipped. Graphics job 104990190644 remains in progress; revised portrait/name/pencil visual acceptance is pending.
+- Forest PR #40 run 35151172098: downloaded graphics artifact 10470291226, Verification.txt PASS and 66 PNGs. Viewed all six main cases (both aspects, top/bottom/side insets and resized-back). Forest/dirt trail and all three party silhouettes remain visible; interactive HUD/bottom controls remain outside simulated camera/home-indicator insets. This completes the forest change's hosted capture review, not overall 30-screen fidelity acceptance. Main art retains baked party characters as documented.
+- Evidence root: C:/Users/user/AppData/Local/Temp/moonlit-cloud-review/artifact-{10470452446,10470291226}/unpacked. Previous 39-test results do not validate this new pass revision.
+- Next heartbeat: find pass-card-framing PR/source run, inspect actual XML and pass captures at both aspects; obtain PR #41 graphics and inspect profile/avatar/name/gender corrections. Continue language checkbox differences, blocked-list artwork, skill catalog/equipped badges and dungeon/shop proportions. Keep Dim alpha 0.85, avoid local Unity, preserve user metadata and integrate incremental main progress.
 ## Profile edit controls and portrait visibility revision
 
 - Reviewed originals 06, 26 and 27 at full resolution and all six child 9:19 captures from Dim run artifact 10468593894. Concrete issues: two-line profile edit text overflow; portrait rims covered face edges; nickname input rim overlaid the text area; avatar dialog had excess bottom space. Child titles, account actions and blocked-list names were readable. Language selector ornamentation and blocked-list art still differ from originals.

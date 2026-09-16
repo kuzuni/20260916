@@ -94,6 +94,24 @@ namespace Moonlit.UI.Tests
             host.Registry.Open("progress-pass"); yield return null;
             Assert.IsNotNull(GameObject.Find("Pass sword header").GetComponent<Image>().sprite);
             var pass=GameObject.Find("Popup Layer progress-pass");
+            var premiumTab=GameObject.Find("Premium tab").GetComponent<Image>();
+            Assert.IsNotNull(premiumTab.sprite);
+            Assert.AreEqual("GoldAction-v1",premiumTab.sprite.name);
+            Assert.AreSame(premiumTab.sprite,GameObject.Find("₩13,900").GetComponent<Button>().targetGraphic.GetComponent<Image>().sprite);
+            var cards=pass.GetComponentsInChildren<RectTransform>(true)
+                .Where(t=>t.name=="Free reward" || t.name=="Premium reward").ToArray();
+            Assert.AreEqual(12,cards.Length);
+            foreach(var card in cards)
+            {
+                var rim=card.Find("Card rim").GetComponent<Image>();
+                float coveredHeight=(rim.sprite.border.y+rim.sprite.border.w)/(rim.pixelsPerUnit*rim.pixelsPerUnitMultiplier);
+                Assert.IsFalse(rim.fillCenter);
+                Assert.Greater(card.rect.height-coveredHeight,card.rect.height*.8f,
+                    "Compact reward cards must not hide their painting behind thick border slices.");
+                Assert.AreEqual("ProfileRuins-v1",card.Find("Card painting crop/Card painting").GetComponent<Image>().sprite.name);
+            }
+            var fourthPremium=cards.Where(t=>t.name=="Premium reward").ElementAt(3);
+            CollectionAssert.AreEqual(new[]{"40k"},fourthPremium.GetComponentsInChildren<Text>().Where(t=>t.name=="Reward amount").Select(t=>t.text));
             var locks=pass.GetComponentsInChildren<Image>(true).Where(i=>i.name=="Premium lock").ToArray();
             Assert.AreEqual(6,locks.Length);
             Assert.IsTrue(locks.All(i=>i.sprite!=null && !i.raycastTarget));

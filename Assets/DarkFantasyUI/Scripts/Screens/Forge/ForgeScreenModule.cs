@@ -511,11 +511,13 @@ namespace Moonlit.UI
             Ui.Text("Title",root,90,38,760,100,"진행 패스",52,Font(c));
             var b=Ui.Rect("Live content",root,30,155,880,h-215);
             Ui.Text("Prompt",b,20,0,390,110,"전투를 진행하여 보상을\n받으세요!",30,Font(c));
-            var purchase=Action(c,b,465,4,375,100,"₩13,900",()=>c.Toast("프리미엄 구매는 데모에서 연결되지 않습니다."),new Color(.40f,.20f,.02f));
+            var purchase=Ui.ArtButton("₩13,900",b,465,4,375,100,PopupSkin.GoldActionArt,true,8);
+            Ui.Text("Price",purchase.transform,18,0,258,100,"₩13,900",36,Font(c));
+            purchase.onClick.AddListener(()=>c.Toast("프리미엄 구매는 데모에서 연결되지 않습니다."));
             Ui.Image("Premium ruby",purchase.transform,288,20,65,65,CurrencyIcon(c,1)).preserveAspect=true;
             var freeTab=Ui.Image("Free tab",b,0,126,422,74,PopupSkin.ActionArt); freeTab.type=Image.Type.Sliced;freeTab.pixelsPerUnitMultiplier=8;
             Ui.Text("Free",b,0,126,422,74,"무료",34,Font(c));
-            var premiumTab=Ui.Image("Premium tab",b,458,126,422,74,PopupSkin.CrimsonActionArt,new Color(1,.8f,.3f)); premiumTab.type=Image.Type.Sliced;premiumTab.pixelsPerUnitMultiplier=8;
+            var premiumTab=Ui.Image("Premium tab",b,458,126,422,74,PopupSkin.GoldActionArt); premiumTab.type=Image.Type.Sliced;premiumTab.pixelsPerUnitMultiplier=8;
             Ui.Text("Premium",b,458,126,422,74,"프리미엄",34,Font(c));
             Scroll(c,b,0,212,894,b.rect.height-212,1296,out var content);
             var stages=new[]{"어려움 3-1","어려움 3-15","어려움 4-1","어려움 4-15","어려움 5-1","어려움 5-15"};
@@ -530,12 +532,12 @@ namespace Moonlit.UI
             Ui.Image("Timeline glow",p,435,y+48,10,168,null,new Color(.1f,.65f,1f));
             Ui.Image("Timeline",p,439,y+48,2,168,null,Color.white);
             var node=Ui.Image("Node",p,430,y+112,20,20,null,Ui.Gold);node.rectTransform.localRotation=Quaternion.Euler(0,0,45);
-            var free=PopupSkin.IllustratedCard("Free reward",p,8,y+52,410,144,c.Assets.worldBackground,new Color(.5f,.7f,.85f));
+            var free=PassCard("Free reward",p,8,y+52,new Color(.65f,.85f,1f));
             Sprite ticket=Resources.Load<Sprite>("Moonlit/Skills/SummonTicket-v1");
             Sprite primary=index%3==0 ? ticket : PopupSkin.RewardIcon(index%3==1?0:4);
             string amount=index%3==0?"220":index%3==1?"150":"500";
             PassReward(c,free,20,14,primary,amount);
-            PassReward(c,free,20,77,CurrencyIcon(c,2),"100");
+            if(index!=3) PassReward(c,free,20,77,CurrencyIcon(c,2),"100");
             Button claim=null;
             claim=Action(c,free,310,74,82,54,passClaims.Contains(index)?"✓":"받기",()=>
             {
@@ -543,15 +545,25 @@ namespace Moonlit.UI
                 claim.interactable=false; claim.GetComponentInChildren<Text>().text="✓"; c.Toast(stage+" 무료 보상을 받았습니다.");
             },passClaims.Contains(index)?Slate:Blue,18);
             claim.interactable=!passClaims.Contains(index);
-            var premium=PopupSkin.IllustratedCard("Premium reward",p,462,y+52,410,144,c.Assets.worldBackground,new Color(.3f,.23f,.14f));
+            var premium=PassCard("Premium reward",p,462,y+52,new Color(.7f,.5f,.3f));
             Ui.ArtImage("Premium chest",premium,235,27,165,112,PopupSkin.RewardIcon(7)).preserveAspect=true;
-            PassReward(c,premium,20,14,primary,index%3==1?"200":amount);
-            PassReward(c,premium,20,77,CurrencyIcon(c,1),"5");
+            PassReward(c,premium,20,14,index==3?CurrencyIcon(c,0):primary,index==3?"40k":index%3==1?"200":amount);
+            if(index!=3) PassReward(c,premium,20,77,CurrencyIcon(c,1),"5");
             Ui.ArtImage("Premium lock",premium,340,4,55,55,PopupSkin.RewardIcon(6)).preserveAspect=true;
+        }
+
+        static RectTransform PassCard(string name,Transform parent,float x,float y,Color tint)
+        {
+            var card=PopupSkin.IllustratedCard(name,parent,x,y,410,144,
+                Resources.Load<Sprite>("Moonlit/Social/ProfileRuins-v1"),tint);
+            // This compact card needs a thin empty rim, leaving its scenery visible edge to edge.
+            card.Find("Card rim").GetComponent<Image>().pixelsPerUnitMultiplier=22;
+            return card;
         }
 
         static void PassReward(ScreenContext c,Transform parent,float x,float y,Sprite icon,string amount)
         {
+            Ui.Image("Reward contrast",parent,x-4,y,218,48,null,new Color(.015f,.025f,.04f,.62f));
             Ui.Image("Reward icon",parent,x,y,48,48,icon).preserveAspect=true;
             Ui.Text("Reward amount",parent,x+58,y,150,48,amount,29,Font(c),Ui.Ivory,TextAnchor.MiddleLeft);
         }
