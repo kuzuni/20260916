@@ -263,7 +263,7 @@ namespace Moonlit.UI
             float top = Mathf.Clamp(c.Height - height - bottomGap, 36, c.Height - height - 36);
             var root = Ui.Rect(name, c.Root, (c.Width - width) * .5f, top, width, height);
             PopupSkin.Panel("Ornate stone frame", root, 0, 0, width, height);
-            PopupSkin.Panel("Equipped header", root, 18, 22, 244, 52);
+            Ui.Image("Equipped header", root, 18, 22, 260, 52, PopupSkin.RibbonArt).preserveAspect = true;
             Ui.Text("Tag", root, 34, 22, 208, 52, "장착됨", 32, Font(c));
             return root;
         }
