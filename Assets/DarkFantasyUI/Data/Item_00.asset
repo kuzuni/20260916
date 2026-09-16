@@ -19,3 +19,8 @@ MonoBehaviour:
   startingLevel: 108
   description: "\uB2EC\uBE5B \uD3D0\uD5C8\uC758 \uD798\uC774 \uAE43\uB4E0 \uC804\uC124
     \uC7A5\uBE44."
+  baseHealth: 1740000000
+  firstBonusName: "블록 확률"
+  firstBonusPercent: 1.2
+  secondBonusName: "공격 속도"
+  secondBonusPercent: 24
