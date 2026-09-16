@@ -2,6 +2,14 @@
 
 Updated 2026-09-16 (Asia/Seoul).
 
+## Connection update (supersedes the original blocker below)
+
+User completed GitHub Connector access. Created and verified repository-backed environment kuzuni/20260916: https://chatgpt.com/codex/cloud/settings/environment/6aaa3ea9e7748191a9023a62689d6c2b . Environment ID: 6aaa3ea9e7748191a9023a62689d6c2b. Universal image, default agent internet off; no local Unity execution.
+
+Earlier ChatGPT Work conversation 6aaa3c5a-69dc-83ee-85cb-a46cbbf95790 was instructed to stop implementation and report only, to avoid duplication with repository-backed Codex Cloud tasks. Task IDs will be recorded after submission.
+
+User confirmed existing GitHub Actions repository secrets UNITY_EMAIL, UNITY_LICENSE, UNITY_PASSWORD and authorized their use for CI. Only names were observed. Values must never be retrieved or echoed. Actual license activation/runtime validation remain unverified. Reference secrets in workflow expressions, not code. The following dispatch/blocker table records the earlier preparation state, not the current connection state.
+
 ## Prepared and pushed
 
 - Baseline main UI: commit 76e42bf.
