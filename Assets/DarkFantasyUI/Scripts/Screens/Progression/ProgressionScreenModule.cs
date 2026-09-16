@@ -33,8 +33,10 @@ namespace Moonlit.UI
         static int summonCurrency = 6830;
         static int selectedDungeon;
         static int selectedCollectionTab;
-        static readonly int[] equippedSkills = { 9, 10, 11 };
+        static readonly int[] equippedSkills = { 9, 10, 8 };
         static readonly int[] selectedCompanions = { 0, 0 };
+        static int summonSequence;
+        static CollectionState activeCollection;
 
         public static void Register(UiScreenRegistry registry)
         {
@@ -53,6 +55,8 @@ namespace Moonlit.UI
             var font = ctx.Assets.font;
             AddBackdrop(root, ctx);
             var state = new CollectionState();
+            activeCollection = state;
+            state.root = root;
             state.tab = selectedCollectionTab;
             Ui.Button("Return to main", root, 34, 34, 150, 70, "‹ 메인", font, ctx.Close, Stone, 25);
             var header = Panel(root, 210, 26, 828, 100, "✦  스킬 15/18  ✦", font, 42);
@@ -69,17 +73,25 @@ namespace Moonlit.UI
             Ui.Button("Quick equip", root, 555, 318 + bodyHeight, 280, 76, "빠른 장착", font,
                 () => {
                     var candidates = new List<int>();
-                    for (var i = 0; i < Skills.Length; i++) candidates.Add(i);
+                    for (var i = 0; i < Skills.Length; i++) if (Skills[i].owned) candidates.Add(i);
                     candidates.Sort((a,b) => Skills[b].level != Skills[a].level ? Skills[b].level.CompareTo(Skills[a].level) : a.CompareTo(b));
                     for (var i = 0; i < 3; i++) equippedSkills[i] = candidates[i];
                     RenderEquipped(state, font);
                     ctx.Toast("레벨이 가장 높은 스킬 3개를 장착했습니다.");
                 }, Blue, 26);
             var summonY = 410 + bodyHeight;
-            Ui.Button("Summon five", root, 330, summonY, 420, 104, "소환 x5\n◆ 160", font, () => {
+            var summon = Ui.Button("Summon five", root, 330, summonY, 420, 104, "소환 x5\n◆ 160", font, null, Blue, 30);
+            state.summon = summon;
+            summon.onClick.AddListener(() => {
+                if (!summon.IsInteractable() || state.lastSummonFrame == Time.frameCount) return;
                 if (summonCurrency < 160) { ctx.Toast("소환권이 부족합니다."); return; }
-                summonCurrency -= 160; ctx.Open("summon-result");
-            }, Blue, 30);
+                state.lastSummonFrame = Time.frameCount;
+                summonCurrency -= 160;
+                var session = new SummonSession(state);
+                ResolveSummon(session);
+                RefreshCollection(ctx, state);
+                ctx.Open("summon-result", session);
+            });
             Ui.Button("Probability", root, 770, summonY + 8, 76, 76, "!", font, () => ctx.Open("summon-probability"), Stone, 32);
             state.currency = Ui.Text("Currency", root, 70, summonY + 17, 230, 60, "◆ " + summonCurrency.ToString("N0"), 28, font, Green, TextAnchor.MiddleLeft);
             var tabY = summonY + 118;
@@ -96,6 +108,8 @@ namespace Moonlit.UI
             for (var i = parent.childCount - 1; i >= 0; i--)
             {
                 var child = parent.GetChild(i);
+                var buttons = child.GetComponentsInChildren<Button>(true);
+                foreach (var button in buttons) button.onClick.RemoveAllListeners();
                 child.gameObject.SetActive(false);
                 child.SetParent(null, false);
                 UnityEngine.Object.Destroy(child.gameObject);
@@ -119,7 +133,7 @@ namespace Moonlit.UI
                 for (var i = 0; i < Skills.Length; i++) {
                     var skill = Skills[i];
                     SkillSlot(scroll.content, 24 + (i % 5) * 184, 20 + (i / 5) * 230, 150, skill, ctx.Assets.font,
-                        () => ctx.Open("skill-details", skill), false);
+                        () => ctx.Open("skill-details", new SkillDetailsPayload(skill, state)), false);
                 }
                 scroll.content.sizeDelta = new Vector2(0, Mathf.Max(scroll.viewport.rect.height, 700));
             } else {
@@ -142,18 +156,32 @@ namespace Moonlit.UI
 
         static void BuildSkillDetails(ScreenContext ctx)
         {
-            var skill = ctx.Payload as SkillData ?? Skills[6];
+            var payload = ctx.Payload as SkillDetailsPayload;
+            var skill = payload != null ? payload.skill : ctx.Payload as SkillData ?? Skills[6];
+            var parent = payload != null ? payload.parent : activeCollection;
             var font = ctx.Assets.font;
             var h = Mathf.Min(850, ctx.Height - 180);
             var y = (ctx.Height - h) * .5f;
             var panel = Panel(ctx.Root, 80, y, 920, h, "", font, 1);
             SkillSlot(panel, 56, 78, 210, skill, font, null, false);
             Ui.Text("Name", panel, 305, 86, 550, 64, "[서사시] " + skill.name, 34, font, Green, TextAnchor.MiddleLeft);
-            Ui.Text("Description", panel, 305, 155, 540, 130, "전장에 마력을 펼쳐 모든 적에게 강력한 피해를 줍니다.\n현재 레벨 " + skill.level, 25, font, Ui.Ivory, TextAnchor.UpperLeft);
             Ui.Text("Passive", panel, 60, 330, 800, 50, "패시브:", 28, font, Ui.Gold, TextAnchor.MiddleLeft);
             Panel(panel, 60, 388, 800, 92, skill.passive, font, 25);
-            Ui.Button("Upgrade", panel, 80, h - 150, 350, 86, "업그레이드", font, () => { skill.level++; ctx.Toast("레벨 " + skill.level + " 달성"); }, Stone, 28);
-            Ui.Button("Equip", panel, 490, h - 150, 350, 86, "장착", font, () => ctx.Toast(skill.name + " 장착됨"), Blue, 30);
+            var description = Ui.Text("Description", panel, 305, 155, 540, 130, "전장에 마력을 펼쳐 모든 적에게 강력한 피해를 줍니다.\n현재 레벨 " + skill.level, 25, font, Ui.Ivory, TextAnchor.UpperLeft);
+            Ui.Button("Upgrade", panel, 80, h - 150, 350, 86, "업그레이드", font, () => {
+                if (!skill.owned) { ctx.Toast("먼저 스킬을 획득하세요."); return; }
+                skill.level++;
+                description.text = "전장에 마력을 펼쳐 모든 적에게 강력한 피해를 줍니다.\n현재 레벨 " + skill.level;
+                RefreshCollection(ctx, parent);
+                RefreshSkillLabels(panel);
+                ctx.Toast("레벨 " + skill.level + " 달성");
+            }, Stone, 28);
+            Ui.Button("Equip", panel, 490, h - 150, 350, 86, "장착", font, () => {
+                if (!skill.owned) { ctx.Toast("먼저 스킬을 획득하세요."); return; }
+                Equip(skill);
+                RefreshCollection(ctx, parent);
+                ctx.Toast(skill.name + " 장착됨");
+            }, Blue, 30);
             Close(panel, 410, h - 48, font, ctx.Close);
         }
 
@@ -198,21 +226,109 @@ namespace Moonlit.UI
         static void BuildSummonResult(ScreenContext ctx)
         {
             var font = ctx.Assets.font;
+            var session = ctx.Payload as SummonSession;
+            if (session == null)
+            {
+                session = new SummonSession(activeCollection);
+                // A direct preview route must not grant free shards or spend currency.
+                for (var i = 0; i < session.results.Length; i++) session.results[i] = Skills[i];
+            }
             AddBackdrop(ctx.Root, ctx);
-            Ui.Button("Return to collection", ctx.Root, 34, 34, 150, 70, "‹ 이전", font, ctx.Close, Stone, 25);
+            Action close = () => { RefreshCollection(ctx, session.parent); ctx.Close(); };
+            Ui.Button("Return to collection", ctx.Root, 34, 34, 150, 70, "‹ 이전", font, close, Stone, 25);
             Ui.Text("Title", ctx.Root, 90, 80, 900, 90, "소환 결과", 46, font, Ui.Gold);
             Ui.Text("Subtitle", ctx.Root, 90, 170, 900, 60, "새로운 힘이 달빛 아래 깨어납니다", 24, font);
+            var results = Ui.Rect("Summon result cards", ctx.Root, 0, 0, ctx.Width, ctx.Height);
+            RenderSummonResults(ctx, results, session);
+            var again = Ui.Button("Again", ctx.Root, 170, ctx.Height - 250, 340, 88, "다시 소환 x5", font, null, Blue, 28);
+            again.onClick.AddListener(() => {
+                if (session.resolving || session.lastDecisionFrame == Time.frameCount) return;
+                if (summonCurrency < 160) { ctx.Toast("소환권이 부족합니다."); return; }
+                session.resolving = true;
+                session.lastDecisionFrame = Time.frameCount;
+                summonCurrency -= 160;
+                ResolveSummon(session);
+                RenderSummonResults(ctx, results, session);
+                RefreshCollection(ctx, session.parent);
+                session.resolving = false;
+                ctx.Toast("새 소환 결과를 확인하세요.");
+            });
+            Ui.Button("Return", ctx.Root, 570, ctx.Height - 250, 340, 88, "돌아가기", font, close, Stone, 28);
+        }
+
+        static void Equip(SkillData skill)
+        {
+            var index = Array.IndexOf(Skills, skill);
+            if (index < 0 || Array.IndexOf(equippedSkills, index) >= 0) return;
+            var replace = 0;
+            for (var i = 1; i < equippedSkills.Length; i++)
+                if (Skills[equippedSkills[i]].level < Skills[equippedSkills[replace]].level) replace = i;
+            equippedSkills[replace] = index;
+        }
+
+        static void RefreshCollection(ScreenContext ctx, CollectionState state)
+        {
+            if (state == null || state.root == null) return;
+            state.currency.text = "◆ " + summonCurrency.ToString("N0");
+            state.summon.interactable = true;
+            RefreshSkillLabels(state.root);
+            RenderEquipped(state, ctx.Assets.font);
+        }
+
+        static void RefreshSkillLabels(Transform root)
+        {
+            foreach (var skill in Skills)
+            {
+                var slots = root.GetComponentsInChildren<Button>(true);
+                foreach (var slot in slots)
+                {
+                    if (slot.name != "Skill " + skill.name) continue;
+                    var labels = slot.GetComponentsInChildren<Text>(true);
+                    foreach (var label in labels)
+                    {
+                        if (label.name == "Level") label.text = "Lv." + skill.level;
+                        else if (label.name == "Value")
+                        {
+                            label.text = skill.shards + "/8";
+                            var progress = label.transform.parent as RectTransform;
+                            var fill = progress != null ? progress.Find("Fill") as RectTransform : null;
+                            if (fill != null) fill.sizeDelta = new Vector2((label.rectTransform.rect.width - 8) * Mathf.Clamp01(skill.shards / 8f), fill.sizeDelta.y);
+                        }
+                        else if (label.name == "Ownership") label.text = skill.owned ? "" : "미보유";
+                    }
+                }
+            }
+        }
+
+        static void ResolveSummon(SummonSession session)
+        {
+            for (var i = 0; i < session.results.Length; i++)
+            {
+                // A repeatable local sequence makes state assertions stable without implying a server RNG.
+                var index = (summonSequence * 5 + i * 5 + 11) % Skills.Length;
+                var skill = Skills[index];
+                session.wasNew[i] = !skill.owned;
+                skill.owned = true;
+                skill.shards++;
+                session.results[i] = skill;
+            }
+            summonSequence++;
+        }
+
+        static void RenderSummonResults(ScreenContext ctx, RectTransform root, SummonSession session)
+        {
+            ClearChildren(root);
             var y = ctx.Height * .43f;
-            for (var i = 0; i < 5; i++) {
-                var skill = Skills[(i * 2 + 8) % Skills.Length];
-                SkillSlot(ctx.Root, 45 + i * 205, y, 170, skill, font, () => ctx.Open("skill-details", skill), false);
-                var glow = Ui.Image("Reveal glow", ctx.Root, 53 + i * 205, y + 8, 154, 154, null, new Color(.1f,.65f,1f,.12f));
+            for (var i = 0; i < session.results.Length; i++)
+            {
+                var skill = session.results[i];
+                SkillSlot(root, 45 + i * 205, y, 170, skill, ctx.Assets.font,
+                    () => ctx.Open("skill-details", new SkillDetailsPayload(skill, session.parent)), false);
+                Ui.Text("Summon status " + i, root, 45 + i * 205, y + 225, 170, 42,
+                    session.wasNew[i] ? "신규 획득" : "+1 조각", 20, ctx.Assets.font, session.wasNew[i] ? Green : Ui.Gold);
+                var glow = Ui.Image("Reveal glow", root, 53 + i * 205, y + 8, 154, 154, null, new Color(.1f,.65f,1f,.12f));
                 glow.transform.SetAsFirstSibling();
             }
-            Ui.Button("Again", ctx.Root, 170, ctx.Height - 250, 340, 88, "다시 소환 x5", font, () => {
-                if (summonCurrency < 160) ctx.Toast("소환권이 부족합니다."); else { summonCurrency -= 160; ctx.Toast("새 소환 결과를 확인하세요."); }
-            }, Blue, 28);
-            Ui.Button("Return", ctx.Root, 570, ctx.Height - 250, 340, 88, "돌아가기", font, ctx.Close, Stone, 28);
         }
 
         static void BuildDungeons(ScreenContext ctx)
@@ -324,6 +440,7 @@ namespace Moonlit.UI
             Ui.Image("Rune", icon.transform, (size-20)*.24f, (size-20)*.18f, (size-20)*.52f, (size-20)*.52f, null, new Color(.95f,.2f + .1f*(skill.icon%4),.08f,.9f));
             Ui.Text("Glyph", icon.transform, 0, 0, size-20, size-20, Glyph(skill.icon), Mathf.RoundToInt(size*.34f), font, Ui.Ivory);
             Ui.Text("Level", button.transform, 4, size - 45, size - 8, 42, "Lv." + skill.level, Mathf.RoundToInt(size*.17f), font);
+            Ui.Text("Ownership", button.transform, 4, 8, size - 8, 34, skill.owned ? "" : "미보유", Mathf.RoundToInt(size*.14f), font, Ui.Ivory);
             if (!compact) {
                 Ui.Text("Star", button.transform, 0, size - 10, size, 34, "★", Mathf.RoundToInt(size*.18f), font, Gold);
                 Progress(button.transform, 9, size + 24, size - 18, 24, skill.shards / 8f, skill.shards + "/8", font);
@@ -353,10 +470,13 @@ namespace Moonlit.UI
         sealed class CollectionState
         {
             public int tab;
+            public RectTransform root;
             public RectTransform content;
             public RectTransform equipped;
             public Text summary;
             public Text currency;
+            public Button summon;
+            public int lastSummonFrame = -1;
             public readonly Button[] tabs = new Button[3];
         }
 
@@ -367,7 +487,25 @@ namespace Moonlit.UI
             public int shards;
             public readonly int icon;
             public readonly string passive;
-            public SkillData(string name, int level, int shards, int icon, string passive) { this.name=name; this.level=level; this.shards=shards; this.icon=icon; this.passive=passive; }
+            public bool owned;
+            public SkillData(string name, int level, int shards, int icon, string passive) { this.name=name; this.level=level; this.shards=shards; this.icon=icon; this.passive=passive; owned=level > 20; }
+        }
+
+        sealed class SkillDetailsPayload
+        {
+            public readonly SkillData skill;
+            public readonly CollectionState parent;
+            public SkillDetailsPayload(SkillData skill, CollectionState parent) { this.skill=skill; this.parent=parent; }
+        }
+
+        sealed class SummonSession
+        {
+            public readonly CollectionState parent;
+            public readonly SkillData[] results = new SkillData[5];
+            public readonly bool[] wasNew = new bool[5];
+            public bool resolving;
+            public int lastDecisionFrame = -1;
+            public SummonSession(CollectionState parent) { this.parent=parent; }
         }
 
         sealed class DungeonData
