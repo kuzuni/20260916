@@ -355,21 +355,11 @@ namespace Moonlit.UI
             Ui.Text("Message", bubble.transform, 18, 3, width - 190, 66, message, 25, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
         }
 
-        // Base pages own opaque scenery so the main HUD, forge and chat cannot show through.
-        // The host clips this artwork above the persistent navigation rail.
+        // Scenery fills the viewport; page controls remain clipped inside SafeArea above navigation.
         static RectTransform PageBackdrop(ScreenContext c, string name)
         {
-            var root = Ui.Image(name, c.Root, 0, 0, c.Width, c.Height, null,
-                new Color(.015f, .045f, .06f, 1f)).rectTransform;
-            var sprite = c.Assets != null ? c.Assets.worldBackground : null;
-            if (sprite != null)
-            {
-                float scale = Mathf.Max(c.Width / sprite.rect.width, c.Height / sprite.rect.height);
-                float width = sprite.rect.width * scale, height = sprite.rect.height * scale;
-                Ui.Image("Page scenery", root, (c.Width - width) * .5f, (c.Height - height) * .5f,
-                    width, height, sprite, new Color(.28f, .48f, .62f, 1f));
-            }
-            return root;
+            PopupSkin.FullViewportBackdrop(c);
+            return Ui.Rect(name,c.Root,0,0,c.Width,c.Height);
         }
 
         static void BuildShop(ScreenContext c)

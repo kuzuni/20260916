@@ -1,6 +1,15 @@
 # Moonlit 30 UI — coordinator status
 
-Updated 2026-09-17, 08:09 KST. Implementation is unfinished; 15-minute heartbeat remains active.
+Updated 2026-09-17, 08:27 KST. Implementation is unfinished; 15-minute heartbeat remains active.
+
+## Full-viewport page scenery and dungeon banner correction
+
+- PR #45 source 145b33d42f9dc3d699ca2586c0f90c71e4f99e29 merged as b6e3412b608eba1be9827ec93426ca77da7e1c77; original checkout synchronized preserving 11 user metadata edits by SHA256. Run 35160813842, downloaded test artifact 10473237360: actual XML 40 passed / 0 failed / 0 skipped. Language captures remain pending at inspection.
+- Branch codex/page-backdrop-coverage fixes main forest leaking around the safe-area edges of dungeon, collection, shop, PvP and summon-result scenery. Shared PopupSkin.FullViewportBackdrop places opaque backing and aspect-preserving cover art beside SafeArea within the owning layer. It ignores raycasts and closes with that layer; page controls retain the safe-area/nav mask. Existing generated shared ruins art is reused. Main forest, Dim alpha 0.85, navigation sorting and the frozen ScreenContext contract remain intact.
+- Dungeon card border density now exposes over 85 percent of banner height instead of covering the illustration with wide stone strips. Card sizes and interactive target proportions remain unchanged; additional 9:19 space remains scenery. Generic title/frame subject differences still require visual refinement.
+- Added a hosted regression for full viewport coverage through 9:16 -> 9:19 -> 9:16/inset changes, unchanged artwork aspect, non-interactive decoration, retained control mask and page-close cleanup. Existing dungeon regression checks banner exposure. Static diff check passed; new source Unity/capture verification is pending. No local Unity execution.
+- PR #44 graphics artifact 10473555258 downloaded: Verification.txt PASS, 66 PNGs. Viewed collection, skill-details, probability-details and summon-result at both aspects. Collection shows 15/18, all 15 visible entries and the Lv.20/19/17 equipped row, without white missing sprites; generic ring/ribbon differences remain. Skill details are readable but still spacious. Probability-details has overlapping chance text and shard bars, and summon-result has flat blue selection backing; record both as next bounded fixes. These are unresolved visual defects, not accepted final screens.
+- Evidence root: C:/Users/user/AppData/Local/Temp/moonlit-cloud-review/artifact-{10473237360,10473555258}/unpacked. Next heartbeat: inspect this backdrop revision's actual XML and page/fullscreen captures with both aspect ratios/insets; obtain PR #45 language captures; fix probability-details text overlap against original 16 and result presentation against original 17. Continue shop/pass/dungeon frame fidelity and full 30-screen acceptance.
 
 ## Language selection frames and current hosted validation
 

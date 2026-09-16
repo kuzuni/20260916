@@ -191,6 +191,43 @@ namespace Moonlit.UI.Tests
         }
 
         [UnityTest]
+        public IEnumerator PageScenery_CoversViewportAcrossInsetsAndResize_AndClosesWithPage()
+        {
+            assets.worldBackground=Resources.Load<Sprite>("Moonlit/Social/ProfileRuins-v1");
+            Assert.IsNotNull(assets.worldBackground);
+            RectTransform backdrop=null, safeRoot=null;
+            host.Registry.Register("scenery",ScreenPresentation.Page,context=>{
+                safeRoot=context.Root;
+                backdrop=PopupSkin.FullViewportBackdrop(context);
+            });
+            var pages=(RectTransform)root.transform.Find("pages");
+            pages.anchorMin=pages.anchorMax=new Vector2(.5f,.5f);
+            foreach(int height in new[]{1920,2280,1920})
+            {
+                pages.sizeDelta=new Vector2(1080,height);
+                host.SetPreviewMetrics(new Vector2Int(1080,height),new Rect(36,84,1008,height-168));
+                host.Registry.Open("scenery");
+                yield return null;
+                Canvas.ForceUpdateCanvases();
+                Assert.AreSame(safeRoot.parent,backdrop.parent);
+                Assert.IsNull(backdrop.GetComponentInParent<RectMask2D>(),"Decoration must not inherit the SafeArea clip");
+                Assert.AreEqual(0,backdrop.GetComponentsInChildren<Graphic>().Count(g=>g.raycastTarget));
+                var painting=backdrop.Find("Page scenery").GetComponent<RectTransform>();
+                Assert.GreaterOrEqual(painting.rect.width,backdrop.rect.width-.1f);
+                Assert.GreaterOrEqual(painting.rect.height,backdrop.rect.height-.1f);
+                Assert.That(painting.rect.width/painting.rect.height,
+                    Is.EqualTo(assets.worldBackground.rect.width/assets.worldBackground.rect.height).Within(.001f));
+                Assert.That(backdrop.rect.width,Is.EqualTo(1080).Within(.1f));
+                Assert.That(backdrop.rect.height,Is.EqualTo(height).Within(.1f));
+                Assert.That(safeRoot.localScale.x,Is.EqualTo(1008f/1080f).Within(.001f));
+                Assert.IsNotNull(safeRoot.GetComponent<RectMask2D>(),"Controls still use the safe navigation clip");
+            }
+            host.ClosePage();
+            yield return null;
+            Assert.IsTrue(backdrop==null,"Closing a page must remove its scenery too");
+        }
+
+        [UnityTest]
         public IEnumerator SafeAreaChange_RefitsEveryOpenLayerWithoutRebuilding()
         {
             RectTransform parent = null, child = null;

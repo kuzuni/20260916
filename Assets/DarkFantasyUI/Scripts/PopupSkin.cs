@@ -73,6 +73,26 @@ namespace Moonlit.UI
             return rewardIcons[Mathf.Clamp(index,0,7)];
         }
 
+        // Decoration is a sibling of SafeArea, so camera cutouts cannot expose the main scene.
+        // Its lifetime and sorting still belong to the page/fullscreen layer.
+        public static RectTransform FullViewportBackdrop(ScreenContext context)
+        {
+            var backing=Ui.Image("Full viewport backdrop",context.Root.parent,0,0,1,1,null,
+                new Color(.015f,.045f,.06f,1f)).rectTransform;
+            Ui.Stretch(backing);
+            backing.SetSiblingIndex(context.Root.GetSiblingIndex());
+            var sprite=context.Assets ? context.Assets.worldBackground : null;
+            if(sprite)
+            {
+                var art=Ui.Image("Page scenery",backing,0,0,1,1,sprite,new Color(.28f,.48f,.62f,1f));
+                art.rectTransform.pivot=new Vector2(.5f,.5f);
+                var fit=art.gameObject.AddComponent<AspectRatioFitter>();
+                fit.aspectRatio=sprite.rect.width/sprite.rect.height;
+                fit.aspectMode=AspectRatioFitter.AspectMode.EnvelopeParent;
+            }
+            return backing;
+        }
+
         // Art fills the card; its reusable empty rim is independent of rewards and controls.
         public static RectTransform IllustratedCard(string name, Transform parent, float x, float y,
             float width, float height, Sprite painting, Color tint)
