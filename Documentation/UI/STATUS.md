@@ -1,6 +1,14 @@
 # Moonlit 24 UI — coordinator status
 
-Updated 2026-09-16, 17:39 UTC. Implementation is unfinished; automation remains active.
+Updated 2026-09-16, 17:45 UTC. Implementation is unfinished; local automation paused for cloud handoff.
+
+## Cloud coordinator handoff — 2026-09-16 17:45 UTC
+
+- User requested moving this coordinator work into a separate cloud task so their PC can be shut down. Created a **ChatGPT Work cloud** task through the desktop app, resolved conversation ID **6aaad515-69c4-83ee-aa9c-0649a517932d**, currently titled **New chat** and reported **active**. Full repository, latest requirements, source/CI IDs, constraints and continuation instructions were included in its submitted prompt.
+- **Local heartbeat moonlit-24-ui is now PAUSED**, confirmed by automation_update, to avoid concurrent coordinator edits. Older statements below that the local automation remains active are historical.
+- Cloud task creation/active status is confirmed. Its repository/tool-access results and creation of a same-chat cloud recurring schedule are **not yet confirmed**. Do not claim that all24 pages will automatically finish or that a cloud schedule already exists. The task was asked to verify access, work on current failures, and establish a cloud schedule if supported.
+- While the PC is off, cloud work should use GitHub only. Updating the original local checkout is deferred until the user returns; do not require local Unity or a powered-on PC for cloud work. Latest local synced main before handoff was ad3bce6d7910fe6c3b926fb49576d7a9ce4fb9dd.
+- Current priority remains verifying CI runs35129388968/35128861265 and latest PvP/navigation/skill layout at both aspects. See the next section for implementation details and pending evidence.
 
 ## User navigation/PvP/skill-layout corrections — 2026-09-16 17:39 UTC
 
