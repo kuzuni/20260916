@@ -298,6 +298,60 @@ namespace Moonlit.UI.Tests
             Assert.AreEqual(0, host.ModalDepth);
         }
 
+        [UnityTest]
+        public IEnumerator AutoForge_FilterSwitchPreservesChoices_AndQuantityConfiguresStart()
+        {
+            ForgeScreenModule.Register(host.Registry);
+            var screen = root.GetComponent<MainScreen>();
+            host.Registry.Open("auto-forge"); yield return null;
+            var layer = GameObject.Find("Popup Layer auto-forge");
+            var rows = layer.GetComponentsInChildren<Image>().Where(image => image.name.StartsWith("Keep ")).ToArray();
+            Assert.AreEqual(4, rows.Length);
+            Assert.IsTrue(rows.All(row => row.sprite != null && row.type == Image.Type.Sliced));
+            foreach (var row in rows)
+            {
+                Assert.IsNotNull(row.transform.Find("Tier icon").GetComponent<Image>().sprite);
+                Assert.IsNotNull(row.transform.Find("Checkbox").GetComponent<Image>().sprite);
+                row.GetComponentInChildren<Toggle>().isOn = false;
+            }
+            rows[0].GetComponentInChildren<Toggle>().isOn = true;
+            var master = GameObject.Find("Stat filter toggle").GetComponent<Toggle>();
+            master.isOn = true;
+            var filters = layer.GetComponentsInChildren<Image>().Where(image => image.name.StartsWith("Filter "))
+                .Select(row => row.GetComponentInChildren<Toggle>()).ToArray();
+            Assert.AreEqual(6, filters.Length);
+            foreach (var filter in filters) filter.isOn = false;
+            filters[2].isOn = true;
+            master.isOn = false;
+            Assert.IsTrue(filters[2].isOn);
+            Assert.IsTrue(filters.All(filter => !filter.interactable));
+            host.CloseTop(); yield return null;
+            host.SetPreviewMetrics(new Vector2Int(1080, 2280), new Rect(36,84,1008,2076));
+            host.Registry.Open("auto-forge"); yield return null;
+            master = GameObject.Find("Stat filter toggle").GetComponent<Toggle>();
+            Assert.IsFalse(master.isOn);
+            Assert.IsFalse(GameObject.Find("Filter 블록 확률").GetComponentInChildren<Toggle>().interactable);
+            Assert.IsTrue(GameObject.Find("Filter 블록 확률").GetComponentInChildren<Toggle>().isOn);
+            var up = GameObject.Find("▲").GetComponent<Button>();
+            var down = GameObject.Find("▼").GetComponent<Button>();
+            for (int n = 0; n < 105; n++) up.onClick.Invoke();
+            Assert.AreEqual("99", GameObject.Find("Hammer count").GetComponent<Text>().text);
+            for (int n = 0; n < 105; n++) down.onClick.Invoke();
+            Assert.AreEqual("1", GameObject.Find("Hammer count").GetComponent<Text>().text);
+            up.onClick.Invoke(); up.onClick.Invoke();
+            GameObject.Find("시작").GetComponent<Button>().onClick.Invoke(); yield return null;
+            Assert.IsTrue(screen.autoForge);
+            Assert.AreEqual(3, screen.autoForgeBatchSize);
+            Assert.AreEqual(63, screen.autoForgeFilterMask, "Filter off accepts any stat without clearing saved choices.");
+            Assert.IsTrue(screen.autoForgeKeep[0]);
+            Assert.AreEqual(0, host.ModalDepth);
+            host.Registry.Open("auto-forge"); yield return null;
+            GameObject.Find("Stat filter toggle").GetComponent<Toggle>().isOn = true;
+            Assert.IsTrue(GameObject.Find("Filter 블록 확률").GetComponentInChildren<Toggle>().interactable);
+            GameObject.Find("정지").GetComponent<Button>().onClick.Invoke(); yield return null;
+            Assert.IsFalse(screen.autoForge);
+        }
+
         static string[] ResultNames()
         {
             return GameObject.Find("Summon result cards").transform.Cast<Transform>()

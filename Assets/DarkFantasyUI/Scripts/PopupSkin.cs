@@ -8,6 +8,7 @@ namespace Moonlit.UI
     public static class PopupSkin
     {
         static Sprite panel, action, close, crest, crimson, ribbon;
+        static Sprite[] switchParts;
         static Sprite Load(ref Sprite cached, string name, Vector4 border, Rect? sourceRect = null, Vector2? sourceSize = null)
         {
             if (cached) return cached;
@@ -57,6 +58,50 @@ namespace Moonlit.UI
                 ornament.raycastTarget = false;
             }
             return image;
+        }
+
+        static Sprite SwitchArt(int index)
+        {
+            if (switchParts == null || !switchParts[0])
+            {
+                var atlas = Resources.Load<Texture2D>("Moonlit/Social/SettingsSwitch-v1");
+                if (!atlas) return null;
+                var regions = new[] { new Rect(96,122,830,286), new Rect(1015,122,830,286), new Rect(834,462,276,276) };
+                float sx = atlas.width / 1942f, sy = atlas.height / 809f;
+                switchParts = new Sprite[3];
+                for (int i = 0; i < switchParts.Length; i++)
+                {
+                    var r = regions[i];
+                    switchParts[i] = Sprite.Create(atlas,
+                        new Rect(r.x * sx, atlas.height - (r.y + r.height) * sy, r.width * sx, r.height * sy),
+                        new Vector2(.5f,.5f), 100 * sx, 0, SpriteMeshType.FullRect,
+                        i < 2 ? new Vector4(142 * sx, 0, 142 * sx, 0) : Vector4.zero);
+                    switchParts[i].name = i == 0 ? "Switch off track" : i == 1 ? "Switch on track" : "Switch thumb";
+                }
+            }
+            return switchParts[index];
+        }
+
+        public static Toggle Switch(Transform parent, float x, float y, string name, bool value, UnityAction<bool> changed)
+        {
+            var bg = Ui.Image(name + " toggle", parent, x, y, 128, 54, null, Color.clear);
+            bg.raycastTarget = true;
+            var track = Ui.Image("Track", bg.transform, 0, 0, 128, 54, SwitchArt(value ? 1 : 0));
+            track.type = Image.Type.Sliced; track.pixelsPerUnitMultiplier = 5.26f;
+            var thumb = Ui.Image("Thumb", bg.transform, 6, 6, 42, 42, SwitchArt(2));
+            thumb.preserveAspect = true;
+            var toggle = bg.gameObject.AddComponent<Toggle>();
+            toggle.targetGraphic = track;
+            // Toggle.graphic fades to zero when off; the movable thumb must remain visible.
+            toggle.graphic = null; toggle.transition = Selectable.Transition.None;
+            toggle.SetIsOnWithoutNotify(value);
+            void Paint(bool on) {
+                thumb.rectTransform.anchoredPosition = new Vector2(on ? 80 : 6, -6);
+                track.sprite = SwitchArt(on ? 1 : 0);
+            }
+            Paint(value);
+            toggle.onValueChanged.AddListener(on => { Paint(on); changed?.Invoke(on); });
+            return toggle;
         }
 
         public static Button Button(string name, Transform parent, float x, float y, float width, float height,
