@@ -36,7 +36,7 @@ The user confirmed existing GitHub Actions repository secrets UNITY_EMAIL, UNITY
 
 Secrets exist in GitHub Actions, not automatically in Codex Cloud's container. Unity account login and ULF license activation were verified successfully in an actual GitHub-hosted Unity 6000.3.8f1 run on 2026-09-16. Evidence: https://github.com/kuzuni/20260916/actions/runs/35067009693/job/104699606811#step:5:171 (masked successful login), #step:5:190 (entitlement activation), and #step:5:192 (ULF activation). This verifies the configured account credentials and license work together in CI. Secret values were not retrieved.
 
-Workflow: .github/workflows/unity-license-check.yml, main commit 70f30a3. The current baseline build is still running; compile/build completion and UI screenshots are not yet verified. Do not mistake activation success or static checks for runtime UI validation.
+Workflow: .github/workflows/unity-license-check.yml, main commit 70f30a3. The baseline build completed successfully, including Unity compilation, Linux player build and artifact upload (job 104699606811). The 24 new UI screens are not included in that baseline; their compilation and screenshots still require validation. Do not mistake activation success or static checks for runtime UI validation.
 
 An earlier draft branch codex/ui-foundation (9943238), produced by the stopped ChatGPT Work conversation, failed CI before activation because the hosted runner ran out of disk while extracting the Unity image. The coordinator added hosted-runner disk cleanup to the separate baseline verification workflow; the replacement run pulled the image and activated Unity successfully. Apply the same disk fix to the final UI validation workflow before integration. Do not merge both foundation implementations.
 
@@ -56,3 +56,11 @@ All four repository-backed tasks have returned reviewable diffs. No UI implement
 - Forge, progression and social: 24 route implementations across the three modules; static checks only. Each reports missing bespoke reference artwork or approximations from existing assets. They must not be presented as visually finished.
 - Resolve duplicate Scripts/Screens.meta ownership when combining modules; preserve one consistent folder GUID.
 - Review per-screen images, compile in cloud, and validate input, safe areas and captures before merging implementation.
+
+## Active integration follow-up
+
+The coordinator assembled all four drafts on remote branch codex/ui-24-integration, commit b7657cf. This is an unaccepted integration checkpoint, not a finished implementation. Worktree: C:/Users/user/.codex/worktrees/moonlit-ui-24-integration. Main project Assets were not modified and local Unity was not run.
+
+Resolved duplicate Screens.meta ownership, normalized patch line endings, and added disk cleanup to both UI CI jobs. Static git diff --check passed.
+
+Integration cloud task: https://chatgpt.com/codex/tasks/task_e_6aaa4b7d4a2c8329938a738ce3607eff . Submitted successfully against codex/ui-24-integration. It owns route registration/main entry wiring, compilation/test assembly fixes, modal/safe area behavior and cloud workflow/capture expansion. While active, do not duplicate its code edits. Inspect its result, apply the diff on the integration branch, create/update a PR and inspect actual CI. Bespoke image generation and visual review remain coordinator responsibilities. Do not merge main before acceptance.
