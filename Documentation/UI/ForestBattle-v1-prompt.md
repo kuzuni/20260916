@@ -1,0 +1,17 @@
+# Main battle forest revision
+
+User requested only the main battle environment be changed to the supplied conifer forest and horizontal dirt trail. Reference archived byte-for-byte at ArtReferences/MainBattleForest.png; original filename: ChatGPT Image 2026년 9월 17일 오전 06_04_12.png. Its UI is reference context, not a request to alter the HUD. No new screen route is added.
+
+## Generation
+
+Built-in imagegen edit on 2026-09-17. Edit target: Assets/DarkFantasyUI/Art/MoonlitRuins.png. Environmental style reference: the supplied image above. Output exec-31c1dcea-d9a9-4ca6-930f-60b00bdc2ce1.png copied unchanged into Assets/DarkFantasyUI/Resources/Moonlit/Main/ForestBattle-v1.png, with its own single-sprite importer and GUID.
+
+Exact prompt:
+
+Edit image 1 (the square existing MoonlitRuins game illustration). Image 2 is ONLY a visual reference for the new FOREST environment in its upper battle area; absolutely do not copy any UI from image 2. Replace ONLY the castle/bridge/waterfalls/ruins environment in image 1 with a dense, dark blue moonlit conifer forest and a wide horizontal earthen battle trail, matching the forest scenery in image 2. KEEP the same three existing small party characters from image 1: white-hooded black-faced blue-eyed swordsman at lower center-left, floating purple wizard just to his left, small blue dragon above them. Preserve their original designs, colors, relative positions, size and facing direction; do not redesign them. Keep their feet on the trail at about 65 percent down the square composition. The trail runs horizontally edge to edge, with clear brown-grey compacted earth, small stones and sparse grass, occupying roughly 53 to 74 percent of image height. Upper half: dense layered tall fir/pine trees, dark navy foliage and restrained cyan moonlight; small moon peeking behind treetops, minor ruined gothic gravestones and a broken wagon wheel along distant roadside, small amber candles. Lower quarter: foreground fir trees, shrubs and a few weathered grave markers, framing the road without obscuring the characters. Side-view 2D battle staging, detailed hand-painted dark fantasy mobile RPG art, clean outlined readable silhouettes. Forest should dominate, no giant castles, waterfalls, cliffs, bridges or elevated stone platforms. Output ONLY one square full-bleed battle illustration, no UI of any kind: no text, no nameplate, no timer, no health bars, no buttons, no icons, no panel frame, no equipment, no HUD, no forge, no navigation. No fairy or brazier button from reference2. The existing UI will be rendered separately by Unity.
+
+## Integration and review
+
+Source image visually reviewed: navy conifers, horizontal earth trail under the party, candlelit gravestones, broken wheel and foreground trees. Existing three-character designs/composition were retained by the edit; they remain painted into this background as in the existing scene, not independently animated actors. No screenshot/UI pixels are used as finished controls.
+
+Only RuntimeMainScreenFactory's battle illustration loads the new asset. MainScreenAssets.worldBackground remains unchanged for collection pages, shop and pass reward cards. Existing elastic cover/crop, Safe Area layout, HUD, bottom panel, icons and Dim alpha 0.85 are preserved. Hosted verification checks the dedicated sprite and six main viewport/cutout cases. Runtime screenshot review for this new source is pending.
