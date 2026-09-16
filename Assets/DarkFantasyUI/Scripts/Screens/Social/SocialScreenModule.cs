@@ -7,7 +7,7 @@ using UnityEngine.UI;
 namespace Moonlit.UI
 {
     /// <summary>Runtime-only implementation of the nine social, PvP and shop references.</summary>
-    public static class SocialScreenModule
+    public static partial class SocialScreenModule
     {
         static readonly Color Ink = new Color(.025f, .055f, .075f, .97f);
         static readonly Color Stone = new Color(.055f, .085f, .105f, .98f);
@@ -23,6 +23,7 @@ namespace Moonlit.UI
 
         public static void Register(UiScreenRegistry registry)
         {
+            RegisterProfileSettingsDialogs(registry);
             registry.Register("profile", ScreenPresentation.Modal, c => BuildProfile(c, false));
             registry.Register("settings", ScreenPresentation.Modal, c => BuildProfile(c, true));
             registry.Register("player-details", ScreenPresentation.Modal, BuildPlayerDetails);
@@ -89,13 +90,13 @@ namespace Moonlit.UI
         {
             if (avatarPortraits == null || !avatarPortraits[0])
             {
-                var atlas = Resources.Load<Texture2D>("Moonlit/Social/AvatarPortraits-v1");
+                var atlas = Resources.Load<Texture2D>("Moonlit/Social/AvatarPortraits-v2");
                 if (!atlas) return null;
-                avatarPortraits = new Sprite[9];
-                int width = atlas.width / 3, height = atlas.height / 3;
+                avatarPortraits = new Sprite[20];
+                float width = atlas.width / 4f, height = atlas.height / 5f;
                 for (int i = 0; i < avatarPortraits.Length; i++)
                 {
-                    avatarPortraits[i] = Sprite.Create(atlas, new Rect(i % 3 * width, (2 - i / 3) * height, width, height),
+                    avatarPortraits[i] = Sprite.Create(atlas, new Rect(i % 4 * width, (4 - i / 4) * height, width, height),
                         new Vector2(.5f, .5f), 100, 0, SpriteMeshType.FullRect);
                     avatarPortraits[i].name = "Avatar portrait " + i;
                 }
@@ -137,20 +138,18 @@ namespace Moonlit.UI
             Ui.Text("Name label", root, 275, 32, 170, 48, "이름:", 27, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
             var name = Input(c, root, 275, 80, w - 439, 64, profileName);
             name.name = "Profile name"; name.characterLimit = 16;
+            name.readOnly = true;
             Ui.Text("Gender label", root, 275, 156, 170, 44, "성별:", 27, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
             var gender = Input(c, root, 275, 202, w - 439, 64, profileFemale ? "여성" : "남성");
             gender.name = "Profile gender"; gender.readOnly = true;
-            Action(c, root, 52, 240, 190, 54, "아바타 변경", () => {
-                profileAvatar = (profileAvatar + 1) % 9;
-                portrait.transform.Find("Avatar artwork").GetComponent<Image>().sprite = AvatarPortrait(profileAvatar);
-                c.Toast("아바타가 로컬 미리보기에서 변경되었습니다.");
-            });
-            Action(c, root, w - 150, 80, 110, 64, "저장", () => {
-                if (string.IsNullOrWhiteSpace(name.text)) { c.Toast("이름을 입력해 주세요."); return; }
-                profileName = name.text.Trim(); name.text = profileName;
-                c.Toast("이 실행 중 사용할 프로필 이름을 저장했습니다.");
-            });
-            Action(c, root, w - 150, 202, 110, 64, "변경", () => { profileFemale = !profileFemale; gender.text = profileFemale ? "여성" : "남성"; });
+            System.Action refresh=()=>{
+                if(name) name.text=profileName;
+                if(gender) gender.text=profileFemale?"여성":"남성";
+                if(portrait) portrait.transform.Find("Avatar artwork").GetComponent<Image>().sprite=AvatarPortrait(profileAvatar);
+            };
+            Action(c,root,52,240,190,54,"아바타 변경",()=>c.Open("profile-avatar",refresh));
+            Action(c,root,w-150,80,110,64,"이름 변경",()=>c.Open("profile-name",refresh));
+            Action(c,root,w-150,202,110,64,"변경",()=>c.Open("profile-gender",refresh));
             Ui.Image("Divider", root, 55, 330, w - 110, 3, null, Ui.Gold);
             Ui.Text("Server rank", root, 55, 354, w - 110, 62, "서버 5 순위", 34, Font(c));
             Action(c, root, 105, 430, 300, 82, "파워 랭킹", () => c.Open("power-ranking"));
@@ -213,7 +212,10 @@ namespace Moonlit.UI
                 hit.raycastTarget = true;
                 var button = hit.gameObject.AddComponent<Button>();
                 button.targetGraphic = hit;
-                button.onClick.AddListener(() => c.Toast(links[index] + " 화면은 연결되지 않은 데모입니다."));
+                button.onClick.AddListener(() => {
+                    if(index<3)c.Open(new[]{"settings-language","settings-account","settings-blocked"}[index]);
+                    else c.Toast("개인정보 보호 페이지는 데모에 연결되지 않았습니다.");
+                });
                 SettingsRowArt(root, w, y, 6 + i);
                 Ui.Text("Setting " + links[i], root, 132, y, w - 310, 78, links[i], 27, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
             }

@@ -190,5 +190,59 @@
     "instruction": "pvp팝업에서 상단에 선물상자 버튼 클릭시 뜨는 pvp 보상 세부 팝업",
     "originalFilename": "pvp팝업에서 상단에 선물상자 버튼 클릭시 뜨는 pvp 보상 세부 팝업.png",
     "bytes": 2241831
+  },
+  {
+    "id": "25",
+    "slug": "profile-name",
+    "file": "25-profile-name.png",
+    "instruction": "프로필-닉네임설정팝업",
+    "originalFilename": "프로필-닉네임설정팝업.png",
+    "bytes": 1912586,
+    "sha256": "9aa8762bfc65091828c3a898013da46fe6d293ed1272560d266ec4c0b5ca12bc"
+  },
+  {
+    "id": "26",
+    "slug": "profile-gender",
+    "file": "26-profile-gender.png",
+    "instruction": "프로필-성별설정팝업",
+    "originalFilename": "프로필-성별설정팝업.png",
+    "bytes": 2020520,
+    "sha256": "903e105acde10404d2694f53394f4905792399fb1acc9db96b6ad51aa2e1a422"
+  },
+  {
+    "id": "27",
+    "slug": "profile-avatar",
+    "file": "27-profile-avatar.png",
+    "instruction": "프로필-아바타설정팝업",
+    "originalFilename": "프로필-아바타설정팝업.png",
+    "bytes": 2106723,
+    "sha256": "3face2b1a877dfd24b2ecd4535310e66a6a28cd151f527ac3c77c8e0d682edbb"
+  },
+  {
+    "id": "28",
+    "slug": "settings-language",
+    "file": "28-settings-language.png",
+    "instruction": "설정-언어선택 팝업",
+    "originalFilename": "설정-언어선택 팝업.png",
+    "bytes": 2120121,
+    "sha256": "dc0a5eefb6bbdabae4fd480ec486b351445983aa9feb21f2acc0b6495ce7c134"
+  },
+  {
+    "id": "29",
+    "slug": "settings-blocked",
+    "file": "29-settings-blocked.png",
+    "instruction": "설정-차단목록팝업",
+    "originalFilename": "설정-차단목록팝업.png",
+    "bytes": 2026647,
+    "sha256": "5820e38857c2119d727c62b099f920e1892df4babe302ec2ad750a0f5b2b3042"
+  },
+  {
+    "id": "30",
+    "slug": "settings-account",
+    "file": "30-settings-account.png",
+    "instruction": "설정-계정 부분 팝업",
+    "originalFilename": "설정-계정 부분 팝업.png",
+    "bytes": 2012057,
+    "sha256": "18c8236b941721e946f574bf2f53f53ab043025a9ccf9e16bdfa759d1154166f"
   }
 ]
