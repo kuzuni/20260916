@@ -485,8 +485,12 @@ namespace Moonlit.UI.Tests
                     Assert.IsFalse(parentClose.IsInteractable());
                     var layer=GameObject.Find("Popup Layer "+route);
                     var safe=(RectTransform)layer.transform.Find("SafeArea");
-                    // Only visible input bounds are checked; scroll content intentionally extends outside its viewport.
-                    foreach(var button in layer.GetComponentsInChildren<Button>().Where(b=>!b.GetComponentInParent<ScrollRect>()))
+                    // Dim intentionally covers the whole display, including cutouts. Only dialog
+                    // controls belong inside SafeArea; scroll content is clipped by its viewport.
+                    var dim=layer.transform.Find("Dim").GetComponent<Button>();
+                    Assert.IsTrue(dim.IsInteractable());
+                    Assert.IsTrue(dim.GetComponent<Image>().raycastTarget);
+                    foreach(var button in safe.GetComponentsInChildren<Button>().Where(b=>!b.GetComponentInParent<ScrollRect>()))
                     {
                         var bounds=RectTransformUtility.CalculateRelativeRectTransformBounds(safe,button.transform);
                         Assert.GreaterOrEqual(bounds.min.x,safe.rect.xMin-.5f,route+" left");

@@ -34,11 +34,15 @@ namespace Moonlit.UI
                 Ui.Image("Stage node edge",parent,398+i*127,215,30,30,circle,new Color(0,.76f,.98f));
                 Ui.Image("Stage node",parent,402+i*127,219,22,22,circle,i==2 ? new Color(.48f,1,1) : new Color(0,.52f,.83f));
             }
-            main.eventButton=Ui.ArtButton("Timed event — frameless",parent,29,335,111,142);
-            var eventIcon=Ui.Image("Brazier icon",main.eventButton.transform,13,0,85,105,referenceIcons[3]); eventIcon.preserveAspect=true; main.eventButton.targetGraphic=eventIcon; main.eventButton.transition=Selectable.Transition.ColorTint;
+            main.eventButton=Ui.ArtButton("Offline rewards — frameless",parent,29,335,111,142);
+            var eventIcon=Ui.ArtImage("Offline reward clock and chest",main.eventButton.transform,5,0,101,100,
+                Resources.Load<Sprite>("Moonlit/Main/OfflineRewardIcon-v1"));
+            eventIcon.preserveAspect=true; main.eventButton.targetGraphic=eventIcon; main.eventButton.transition=Selectable.Transition.ColorTint;
             Ui.Text("Event timer",main.eventButton.transform,-10,102,132,39,"5일 3시",29,font);
-            main.fairyButton=Ui.ArtButton("Fairy gifts — frameless",parent,934,349,120,130);
-            var fairy=Ui.Image("Fairy icon",main.fairyButton.transform,4,-2,114,97,referenceIcons[4]); fairy.preserveAspect=true; main.fairyButton.targetGraphic=fairy; main.fairyButton.transition=Selectable.Transition.ColorTint;
+            main.fairyButton=Ui.ArtButton("Progress pass — frameless",parent,934,349,120,130);
+            var passIcon=Ui.ArtImage("Progress pass sword and pennant",main.fairyButton.transform,10,-8,100,100,
+                Resources.Load<Sprite>("Moonlit/Main/ProgressPassIcon-v1"));
+            passIcon.preserveAspect=true; main.fairyButton.targetGraphic=passIcon; main.fairyButton.transition=Selectable.Transition.ColorTint;
             Ui.Text("Gift timer",main.fairyButton.transform,-14,90,152,38,"47일 21시",27,font);
         }
         void BuildForgeAndChat(MainScreen main,Transform parent)

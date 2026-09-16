@@ -79,4 +79,6 @@ The cases cover 9:16 and 9:19 without cutouts, both sizes with simulated top/bot
 
 ## Reference fidelity revision
 
+The main reward entries use dedicated transparent sprites: ProgressPassIcon-v1 (blue sword/pass pennant) and OfflineRewardIcon-v1 (clock/reward chest), following the user's explicit subject change. Their timer text and invisible hit surfaces remain separate. Generation prompts: Documentation/UI/MainRewardIcons-v1-prompts.md.
+
 Event buttons are frameless. Navigation uses five large icons on one shared stone panel without individual boxes or labels. Currency icons use a round crown coin and tall diamond ruby; the shop uses a striped awning. Chat includes a speech balloon and live text with a 99 badge. Forge management and auto use silver-beveled cobalt blue backplates; auto shows a circular-arrow icon that rotates while active. The anvil has its own clickable silhouette and press feedback. All decorative layers ignore raycasts. Verify also checks actual pointer hit targets for the anvil, forge management, auto, events, chat and navigation.

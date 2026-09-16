@@ -2,6 +2,12 @@
 
 Updated 2026-09-16, 20:28 UTC. Implementation is unfinished; local coordinator and 15-minute heartbeat remain active.
 
+## Main pass/offline button icon correction
+
+- Previous dialog run 35146382739 source 7d6aeb6: downloaded artifact 10467815679, actual XML 38 passed / 1 failed / 0 skipped. Failure was the new Safe Area test including the full-screen Dim button (x=-578.57 versus safe left=-540), although Dim is required to cover cutouts. Corrected the test to measure child controls under SafeArea and independently assert Dim remains interactive/raycasting. Production layout was not changed or loosened. New CI must verify this correction; prior graphics were skipped.
+- Latest user explicitly selected functional subjects: progression pass uses sword/pass pennant; offline rewards uses clock/reward chest. Original fairy/brazier subjects are superseded for these two entry buttons. Generated two independent transparent 1254x1254 PNGs with built-in imagegen, inspected both and verified corner alpha=0. Prompts recorded in MainRewardIcons-v1-prompts.md.
+- Dedicated single-sprite assets in Resources/Moonlit/Main replace only these HUD illustrations. Existing button placement, frameless hit surfaces, independent timer text, press tint and offline-rewards/progress-pass routing are preserved. Legacy field names remain for API compatibility. Bootstrap scene unchanged.
+- Extended hosted interaction verification to check imported dedicated sprite identities, non-raycasting art/preserved aspect, and each button opening its correct popup. Existing six main viewport/safe-area captures cover the updated artwork. Static diff check passed; new Unity runtime/capture results are pending. No local Unity execution or control.
 ## Latest integration and Play settings evidence
 
 - PR #35 Play settings source 3d4d925ee7bb65e902475028ab94867b3c2fde63, hosted Unity 6000.3.8f1 run 35145362518: downloaded test artifact 10467048989 and read actual NUnit XML: **37 passed, 0 failed, 0 skipped**. All three RuntimeSettingsTests passed (60 FPS/VSync/background override, two fresh model resets without domain reload, destroyed-avatar cache recovery). Graphics job 104964017717 is still running. This does not verify the user's local Error Pause toggle, repeated real Play entry timing, or disappearance of the local pause symptom.

@@ -50,6 +50,7 @@ Additional child dialogs (each opens above the existing profile/settings modal, 
 - Blocked list starts with the three reference demo names; select a row to reveal local unblock. Account link/logout/delete provide demo feedback only; no real account changes.
 
 - Main fairy button opens progress-pass.
+- Latest user icon override (2026-09-17): main progression-pass entry uses a blue sword/pass pennant; offline rewards uses a clock and reward chest. Replace fairy/brazier artwork while retaining frameless hit targets and separate timer labels.
 - Main left timer opens offline-rewards.
 - Main forge level button opens forge-probability → forge-probability-details → forge-item-details.
 - Main anvil opens forge-comparison (generated versus equipped item, sell/equip).
