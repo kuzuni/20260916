@@ -145,20 +145,24 @@ namespace Moonlit.UI
         {
             var portrait = Avatar(c, root, 52, 38, 190, profileAvatar);
             Ui.Text("Name label", root, 275, 32, 170, 48, "이름:", 27, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
-            var name = Input(c, root, 275, 80, w - 439, 64, profileName);
+            var name = Input(c, root, 275, 80, w - 407, 64, profileName);
             name.name = "Profile name"; name.characterLimit = 16;
             name.readOnly = true;
             Ui.Text("Gender label", root, 275, 156, 170, 44, "성별:", 27, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
-            var gender = Input(c, root, 275, 202, w - 439, 64, profileFemale ? "여성" : "남성");
+            var gender = Input(c, root, 275, 202, w - 407, 64, profileFemale ? "♀" : "♂");
             gender.name = "Profile gender"; gender.readOnly = true;
+            gender.textComponent.color=profileFemale?new Color(1f,.12f,.3f):new Color(.1f,.65f,1f);
             System.Action refresh=()=>{
                 if(name) name.text=profileName;
-                if(gender) gender.text=profileFemale?"여성":"남성";
+                if(gender) {
+                    gender.text=profileFemale?"♀":"♂";
+                    gender.textComponent.color=profileFemale?new Color(1f,.12f,.3f):new Color(.1f,.65f,1f);
+                }
                 if(portrait) portrait.transform.Find("Avatar artwork").GetComponent<Image>().sprite=AvatarPortrait(profileAvatar);
             };
-            Action(c,root,52,240,190,54,"아바타 변경",()=>c.Open("profile-avatar",refresh));
-            Action(c,root,w-150,80,110,64,"이름 변경",()=>c.Open("profile-name",refresh));
-            Action(c,root,w-150,202,110,64,"변경",()=>c.Open("profile-gender",refresh));
+            ProfileEditButton(root,115,240,"아바타 변경",()=>c.Open("profile-avatar",refresh));
+            ProfileEditButton(root,w-118,80,"이름 변경",()=>c.Open("profile-name",refresh));
+            ProfileEditButton(root,w-118,202,"변경",()=>c.Open("profile-gender",refresh));
             Ui.Image("Divider", root, 55, 330, w - 110, 3, null, Ui.Gold);
             Ui.Text("Server rank", root, 55, 354, w - 110, 62, "서버 5 순위", 34, Font(c));
             Action(c, root, 105, 430, 300, 82, "파워 랭킹", () => c.Open("power-ranking"));
@@ -171,6 +175,15 @@ namespace Moonlit.UI
                 painting.preserveAspect = true;
                 painting.raycastTarget = false;
             }
+        }
+
+        static Button ProfileEditButton(Transform parent,float x,float y,string name,UnityAction click)
+        {
+            var button=Ui.ArtButton(name,parent,x,y,64,64,PopupSkin.ActionArt,true,8);
+            Ui.ArtImage("Edit pencil",button.transform,7,7,50,50,
+                Resources.Load<Sprite>("Moonlit/Social/EditPencil-v1")).preserveAspect=true;
+            button.onClick.AddListener(click);
+            return button;
         }
 
         static Sprite SettingsIcon(int index)

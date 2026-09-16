@@ -60,6 +60,7 @@ namespace Moonlit.UI
             input.placeholder=placeholder;
             var inputRim=PopupSkin.Panel("Nickname input rim",input.transform,0,0,w-152,84);
             inputRim.fillCenter=false; inputRim.raycastTarget=false;
+            inputRim.pixelsPerUnitMultiplier=22;
             float buttonWidth=(w-192)*.5f;
             PopupSkin.Button("Nickname cancel",frame,76,220,buttonWidth,100,"취소",Font(c),c.Close,Red,38);
             Button confirm=null;
@@ -93,6 +94,7 @@ namespace Moonlit.UI
                     for(int j=0;j<2;j++) checks[j].gameObject.SetActive(j==(profileFemale?1:0));
                     RefreshProfileParent(c);
                 },i==0?Blue:Red,92);
+                button.transform.Find("Label").GetComponent<Text>().color=i==0?new Color(.1f,.65f,1f):new Color(1f,.12f,.3f);
                 checks[i]=Ui.Text("Gender selected",button.transform,88,88,48,48,"✓",46,Font(c),Green);
                 checks[i].gameObject.SetActive(i==(profileFemale?1:0));
             }
@@ -100,9 +102,9 @@ namespace Moonlit.UI
 
         static void BuildAvatarDialog(ScreenContext c)
         {
-            var frame=ChildFrame(c,"아바타를 선택하세요",650,980,out float w,out float h);
+            var frame=ChildFrame(c,"아바타를 선택하세요",650,908,out float w,out float h);
             float innerWidth=w-84,cell=(innerWidth-36)/4;
-            var scroll=Scroll(c,frame,42,136,innerWidth,h-216,5*(cell+12),out var content);
+            var scroll=Scroll(c,frame,42,136,innerWidth,h-196,5*(cell+12)-12,out var content);
             scroll.name="Avatar scroll";
             var checks=new Text[20];
             for(int i=0;i<20;i++)
@@ -112,6 +114,8 @@ namespace Moonlit.UI
                 portrait.name="Avatar choice "+i; portrait.raycastTarget=true;
                 var rim=PopupSkin.Panel("Avatar rim",portrait.transform,0,0,cell,cell);
                 rim.fillCenter=false; rim.raycastTarget=false;
+                // Keep the reusable rim near the edge so it cannot cover portrait faces.
+                rim.pixelsPerUnitMultiplier=22;
                 var button=portrait.gameObject.AddComponent<Button>(); button.targetGraphic=portrait;
                 checks[i]=Ui.Text("Avatar selected",portrait.transform,cell-40,cell-44,44,44,"✓",40,Font(c),Green);
                 checks[i].gameObject.SetActive(i==profileAvatar);
