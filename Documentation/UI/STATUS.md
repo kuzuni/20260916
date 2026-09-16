@@ -2,7 +2,17 @@
 
 Updated 2026-09-16, 10:07 UTC. Implementation is unfinished; automation remains active.
 
-## Latest shop artwork checkpoint — 2026-09-16 11:13 UTC
+## Latest navigation clipping checkpoint — 2026-09-16 11:34 UTC
+
+- **Prior ordering correction did not resolve visual occlusion.** Downloaded artifact 10443970018 from run 35087076049 at 80315fd, 54 captures and Verification.txt. All 48 route navigation input checks passed, but full-resolution Runtime-skills-pets-heroes-9x16.png still shows page scenery covering the menu. Do not report PR #5 as visually successful. Pointer order and visible render output differed.
+- New PR #7 https://github.com/kuzuni/20260916/pull/7 applies RectMask2D bottom padding 210 to page SafeArea roots, enforcing the already reserved navigation rail without altering feature logical dimensions. Modal layers are unchanged. Padding component semantics were checked in the installed uGUI source (Y=Bottom).
+- Hosted graphics verification now captures 16x16 RGB patches from all five menu icon centers with main visible, then compares the same patches after opening each base page. Mean per-channel change above .025 fails with the button name. Same viewport/camera is used; raycast, bounds and modal input checks remain. This must prove actual visibility, not just clickable objects.
+- Source 7d1d01b8e3184681ec9563674e1192679514b7ae merged as 6d5dc843f8a6cd0b60476780b05bdec6e428362d and synced to the original local project. Four existing dungeon metadata modifications preserved. Static diff check passed. New hosted run **35090946412** is running; new clipping/pixel assertions are NOT yet passed.
+- Shop-art run 35089015301 at e009dba compile/PlayMode job 104770607896 SUCCESS. Downloaded artifact 10444195921; inspected summary confirms **18 passed, 0 failed/skipped/inconclusive** including expanded shop-art import assertions. Graphics job 104774181092 was still running. Local test evidence: C:/Users/user/AppData/Local/Temp/moonlit-cloud-review/artifact-10444195921/unpacked/Artifacts/TestResults.
+- Navigation capture evidence: C:/Users/user/AppData/Local/Temp/moonlit-cloud-review/artifact-10443970018/unpacked. Next inspect 35090946412 and 35089015301, download actual new captures/results, confirm menu visibility or repair the failing path. Continue visual fidelity work after this blocking visual defect is handled.
+- No new image generation or delegated task this heartbeat. Code edits on isolated GitHub branch codex/navigation-viewport-clip, coordinator checkout codex/navigation-clip-review. No local Unity execution/control. All 24-screen completion/visual acceptance requirements remain open.
+
+## Previous shop artwork checkpoint — 2026-09-16 11:13 UTC
 
 - Navigation-order revision 80315fd0aef687d6788c562254e4b0a13a33f879, run 35087076049, compile/PlayMode job 104764311658 SUCCESS. Downloaded artifact 10443296372; inspected summary confirms **18 passed, 0 failed/skipped/inconclusive**. Evidence under C:/Users/user/AppData/Local/Temp/moonlit-cloud-review/artifact-10443296372/unpacked/Artifacts/TestResults. Graphics job 104767980540 is still running; per-route navigation assertions are not yet confirmed passed.
 - Prior skill-art run 35085271201 graphics SUCCESS. Downloaded artifact 10441814726 (54 PNGs) to C:/Users/user/AppData/Local/Temp/moonlit-cloud-review/artifact-10441814726/unpacked. Inspected skill 9:16 capture: all 12 generated symbols and independent ring render, with no old glyph squares. Frame/text proportions and roster remain unfinished. This revision precedes the navigation-order correction.
