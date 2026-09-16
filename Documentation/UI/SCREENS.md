@@ -1,6 +1,6 @@
-# 24-screen reference catalog
+# 30-screen reference catalog
 
-The user supplied all 24 images and explicitly made their filenames the screen and navigation requirements. Full original names are preserved in reference-manifest.json. Short ASCII filenames avoid Windows path limits. Reference PNGs are byte-for-byte copies, outside Assets so Unity does not import them into the player.
+The user supplied 24 initial images and six additional profile/settings dialogs on 2026-09-17, explicitly making their filenames the screen and navigation requirements. Full original names are preserved in reference-manifest.json. Short ASCII filenames avoid Windows path limits. Reference PNGs are byte-for-byte copies, outside Assets so Unity does not import them into the player.
 
 Read the corresponding original image at full resolution before implementing. These are visual references, not runtime backgrounds containing baked UI. Create real controls, text, scroll lists, independent item icons, reusable empty slot frames and separate decorative art.
 
@@ -32,6 +32,22 @@ Read the corresponding original image at full resolution before implementing. Th
 | 24 | `pvp-rewards` | pvp팝업에서 상단에 선물상자 버튼 클릭시 뜨는 pvp 보상 세부 팝업 | [PNG](References/24-pvp-rewards.png) |
 
 ## Explicit overrides
+
+Additional child dialogs (each opens above the existing profile/settings modal, preserving its tab):
+
+| ID | Screen key | User's original instruction | Reference |
+|---|---|---|---|
+| 25 | `profile-name` | 프로필-닉네임설정팝업 | [PNG](References/25-profile-name.png) |
+| 26 | `profile-gender` | 프로필-성별설정팝업 | [PNG](References/26-profile-gender.png) |
+| 27 | `profile-avatar` | 프로필-아바타설정팝업 | [PNG](References/27-profile-avatar.png) |
+| 28 | `settings-language` | 설정-언어선택 팝업 | [PNG](References/28-settings-language.png) |
+| 29 | `settings-blocked` | 설정-차단목록팝업 | [PNG](References/29-settings-blocked.png) |
+| 30 | `settings-account` | 설정-계정 부분 팝업 | [PNG](References/30-settings-account.png) |
+
+- Name confirmation costs 200 demo rubies; empty/unchanged names, insufficient funds and repeated confirmations cannot spend. Cancel preserves state.
+- Gender has two choices with a separate selection check. Avatar has 20 choices in four columns, with independent empty rims and generated portrait art.
+- Language has 11 mutually exclusive rows; selection survives dialog reopen within Play. Translation services are unconnected.
+- Blocked list starts with the three reference demo names; select a row to reveal local unblock. Account link/logout/delete provide demo feedback only; no real account changes.
 
 - Main fairy button opens progress-pass.
 - Main left timer opens offline-rewards.

@@ -17,6 +17,7 @@ namespace Moonlit.UI.Tests
         [SetUp]
         public void SetUp()
         {
+            MoonlitRuntimeSettings.ResetSession();
             root = new GameObject("social layout test", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler));
             root.GetComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
             // Match the runtime canvas: the hosted test Game View need not be 1080 pixels wide.
@@ -33,6 +34,8 @@ namespace Moonlit.UI.Tests
             screen.enabled = false;
             assets = ScriptableObject.CreateInstance<MainScreenAssets>();
             assets.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            // Minimal wallet sprite injection; hosted captures use the real serialized catalog.
+            assets.interfaceIcons = new[] { PopupSkin.CloseArt, PopupSkin.CloseArt };
             screen.font = assets.font;
             screen.toastRoot = root.transform;
             host = root.AddComponent<UiScreenHost>();
@@ -49,6 +52,7 @@ namespace Moonlit.UI.Tests
             Object.DestroyImmediate(assets);
             foreach (var events in Object.FindObjectsByType<EventSystem>(FindObjectsSortMode.None))
                 Object.DestroyImmediate(events.gameObject);
+            MoonlitRuntimeSettings.ResetSession();
         }
 
         [UnityTest]
@@ -186,18 +190,27 @@ namespace Moonlit.UI.Tests
             var portrait = GameObject.Find("Profile content").GetComponentsInChildren<Image>()
                 .Single(i => i.name == "Avatar artwork");
             Assert.IsNotNull(portrait.sprite);
-            Assert.AreEqual("AvatarPortraits-v1", portrait.sprite.texture.name);
+            Assert.AreEqual("AvatarPortraits-v2", portrait.sprite.texture.name);
             var original = portrait.sprite;
             GameObject.Find("아바타 변경").GetComponent<Button>().onClick.Invoke();
+            yield return null;
+            Assert.AreEqual(2,host.ModalDepth);
+            Assert.IsFalse(GameObject.Find("아바타 변경").GetComponent<Button>().IsInteractable());
+            var choices=GameObject.Find("Avatar scroll").GetComponentsInChildren<Button>();
+            Assert.AreEqual(20,choices.Length);
+            var artworks=GameObject.Find("Avatar scroll").GetComponentsInChildren<Image>().Where(i=>i.name=="Avatar artwork").ToArray();
+            Assert.AreEqual(20,artworks.Select(i=>i.sprite.rect).Distinct().Count());
+            choices.Single(b=>b.name=="Avatar choice 19").onClick.Invoke();
             var changed = portrait.sprite;
             Assert.AreNotEqual(original.rect, changed.rect);
             Assert.AreSame(original.texture, changed.texture);
             host.CloseTop(); yield return null;
+            Assert.AreEqual(1,host.ModalDepth);
+            Assert.IsTrue(GameObject.Find("아바타 변경").GetComponent<Button>().IsInteractable());
+            host.CloseTop(); yield return null;
             host.Registry.Open("profile"); yield return null;
             Assert.AreSame(changed, GameObject.Find("Profile content").GetComponentsInChildren<Image>()
                 .Single(i => i.name == "Avatar artwork").sprite);
-            // Restore demo selection so this test does not change subsequent test data.
-            for (int i = 0; i < 8; i++) GameObject.Find("아바타 변경").GetComponent<Button>().onClick.Invoke();
         }
 
         [UnityTest]
@@ -241,26 +254,41 @@ namespace Moonlit.UI.Tests
             string originalName = input.text;
             string originalGender = GameObject.Find("Profile gender").GetComponent<InputField>().text;
             var inputRect = input.GetComponent<RectTransform>();
-            var save = GameObject.Find("저장").GetComponent<Button>();
+            var save = GameObject.Find("이름 변경").GetComponent<Button>();
             Assert.Less(inputRect.anchoredPosition.x + inputRect.rect.width,
-                save.GetComponent<RectTransform>().anchoredPosition.x, "Save must not cover the editable name.");
-            input.text = "Moonlit QA"; save.onClick.Invoke();
+                save.GetComponent<RectTransform>().anchoredPosition.x, "Edit button must not cover the displayed name.");
+            Assert.IsTrue(input.readOnly);
+            var main=root.GetComponent<MainScreen>(); main.gems=500;
+            save.onClick.Invoke(); yield return null;
+            var edit=GameObject.Find("Nickname input").GetComponent<InputField>();
+            var confirm=GameObject.Find("Nickname confirm").GetComponent<Button>();
+            edit.text=" "; Assert.IsFalse(confirm.interactable);
+            confirm.onClick.Invoke(); Assert.AreEqual(originalName,input.text); Assert.AreEqual(500,main.gems);
+            edit.text="Cancelled"; GameObject.Find("Nickname cancel").GetComponent<Button>().onClick.Invoke(); yield return null;
+            Assert.AreEqual(originalName,input.text); Assert.AreEqual(500,main.gems);
+            save.onClick.Invoke(); yield return null;
+            edit=GameObject.Find("Nickname input").GetComponent<InputField>();
+            confirm=GameObject.Find("Nickname confirm").GetComponent<Button>();
+            edit.text="Moonlit QA"; Assert.IsTrue(confirm.interactable);
+            confirm.onClick.Invoke(); confirm.onClick.Invoke(); yield return null;
+            Assert.AreEqual(300,main.gems,"Repeated stale callback must not charge twice");
+            Assert.AreEqual(1,host.ModalDepth);
             GameObject.Find("변경").GetComponent<Button>().onClick.Invoke();
+            yield return null;
+            GameObject.Find("Gender 1").GetComponent<Button>().onClick.Invoke();
             string changedGender = GameObject.Find("Profile gender").GetComponent<InputField>().text;
             Assert.AreNotEqual(originalGender, changedGender);
+            host.CloseTop(); yield return null;
             host.CloseTop(); yield return null;
             host.Registry.Open("profile"); yield return null;
             input = GameObject.Find("Profile name").GetComponent<InputField>();
             Assert.AreEqual("Moonlit QA", input.text);
             Assert.AreEqual(changedGender, GameObject.Find("Profile gender").GetComponent<InputField>().text);
-            input.text = " "; GameObject.Find("저장").GetComponent<Button>().onClick.Invoke();
-            host.CloseTop(); yield return null;
-            host.Registry.Open("profile"); yield return null;
-            input = GameObject.Find("Profile name").GetComponent<InputField>();
-            Assert.AreEqual("Moonlit QA", input.text, "Blank save must not replace the previous name.");
-            // Restore session state used by the other screen tests.
-            input.text = originalName; GameObject.Find("저장").GetComponent<Button>().onClick.Invoke();
-            GameObject.Find("변경").GetComponent<Button>().onClick.Invoke();
+            main.gems=21; GameObject.Find("이름 변경").GetComponent<Button>().onClick.Invoke(); yield return null;
+            GameObject.Find("Nickname input").GetComponent<InputField>().text="Cannot afford";
+            confirm=GameObject.Find("Nickname confirm").GetComponent<Button>();
+            Assert.IsFalse(confirm.interactable); confirm.onClick.Invoke();
+            Assert.AreEqual(21,main.gems); Assert.AreEqual("Moonlit QA",input.text);
         }
 
         [UnityTest]
@@ -359,7 +387,14 @@ namespace Moonlit.UI.Tests
                 Assert.IsTrue(link.IsInteractable());
                 Assert.IsTrue(link.GetComponent<Image>().raycastTarget);
                 link.onClick.Invoke(); yield return null;
-                Assert.AreEqual(1, host.ModalDepth, "A local settings link must not dismiss its parent.");
+                Assert.AreEqual(i<3?2:1, host.ModalDepth, "Settings child dialogs retain their parent.");
+                if(i<3)
+                {
+                    Assert.IsFalse(link.IsInteractable());
+                    host.CloseTop(); yield return null;
+                    Assert.AreSame(layer,GameObject.Find("Popup Layer settings"));
+                    Assert.IsTrue(link.IsInteractable());
+                }
             }
             layer.GetComponentsInChildren<Button>().Single(b => b.name == "Close").onClick.Invoke();
             yield return null;
@@ -392,6 +427,79 @@ namespace Moonlit.UI.Tests
             Assert.AreEqual(1, host.ModalDepth);
             Assert.AreSame(layer, GameObject.Find("Popup Layer forge-probability"));
             Assert.AreEqual("64%", quantum.transform.Find("Next").GetComponent<Text>().text);
+        }
+
+        [UnityTest]
+        public IEnumerator SettingsChildren_KeepExclusiveLanguageChoiceAndLocalBlockedState()
+        {
+            host.Registry.Open("settings"); yield return null;
+            var parent=GameObject.Find("Popup Layer settings");
+            GameObject.Find("Settings link 0").GetComponent<Button>().onClick.Invoke(); yield return null;
+            var languages=GameObject.Find("Language scroll").GetComponentsInChildren<Toggle>();
+            Assert.AreEqual(11,languages.Length);
+            Assert.AreEqual(1,languages.Count(t=>t.isOn));
+            Assert.IsTrue(languages.Single(t=>t.name=="Language 3").isOn);
+            languages.Single(t=>t.name=="Language 0").isOn=true;
+            Assert.AreEqual(1,languages.Count(t=>t.isOn));
+            host.CloseTop(); yield return null;
+            Assert.AreSame(parent,GameObject.Find("Popup Layer settings"));
+            GameObject.Find("Settings link 0").GetComponent<Button>().onClick.Invoke(); yield return null;
+            Assert.IsTrue(GameObject.Find("Language 0").GetComponent<Toggle>().isOn);
+            host.CloseTop(); yield return null;
+            GameObject.Find("Settings link 2").GetComponent<Button>().onClick.Invoke(); yield return null;
+            Assert.AreEqual(3,GameObject.Find("Blocked players scroll").GetComponentsInChildren<Button>().Length);
+            GameObject.Find("Blocked player 1").GetComponent<Button>().onClick.Invoke();
+            GameObject.Find("차단 해제").GetComponent<Button>().onClick.Invoke(); yield return null;
+            Assert.AreEqual(2,GameObject.Find("Blocked players scroll").GetComponentsInChildren<Button>().Length);
+            host.CloseTop(); yield return null;
+            GameObject.Find("Settings link 2").GetComponent<Button>().onClick.Invoke(); yield return null;
+            Assert.IsNull(GameObject.Find("Blocked player 1"));
+            host.CloseTop(); yield return null;
+            GameObject.Find("Settings link 1").GetComponent<Button>().onClick.Invoke(); yield return null;
+            int gems=root.GetComponent<MainScreen>().gems;
+            foreach(string action in new[]{"Account link","Account logout","Account delete"})
+            {
+                GameObject.Find(action).GetComponent<Button>().onClick.Invoke(); yield return null;
+                Assert.AreEqual(2,host.ModalDepth);
+                Assert.AreEqual(gems,root.GetComponent<MainScreen>().gems);
+            }
+            host.CloseTop(); yield return null;
+            Assert.AreSame(parent,GameObject.Find("Popup Layer settings"));
+            Assert.AreEqual("설정",parent.GetComponentsInChildren<Text>().Single(t=>t.name=="Title").text);
+        }
+
+        [UnityTest]
+        public IEnumerator NewChildren_KeepInputInSafeAreaAndBackOnlyClosesTop_AtBothAspects()
+        {
+            foreach(int height in new[]{1920,2280})
+            {
+                host.SetPreviewMetrics(new Vector2Int(1080,height),new Rect(36,84,1008,height-204));
+                foreach(string route in new[]{"profile-name","profile-gender","profile-avatar","settings-language","settings-blocked","settings-account"})
+                {
+                    bool profile=route.StartsWith("profile-");
+                    host.Registry.Open(profile?"profile":"settings"); yield return null;
+                    var parent=GameObject.Find("Popup Layer "+(profile?"profile":"settings"));
+                    var parentClose=parent.GetComponentsInChildren<Button>().Single(b=>b.name=="Close");
+                    host.Registry.Open(route); yield return null; Canvas.ForceUpdateCanvases();
+                    Assert.AreEqual(2,host.ModalDepth);
+                    Assert.IsFalse(parentClose.IsInteractable());
+                    var layer=GameObject.Find("Popup Layer "+route);
+                    var safe=(RectTransform)layer.transform.Find("SafeArea");
+                    // Only visible input bounds are checked; scroll content intentionally extends outside its viewport.
+                    foreach(var button in layer.GetComponentsInChildren<Button>().Where(b=>!b.GetComponentInParent<ScrollRect>()))
+                    {
+                        var bounds=RectTransformUtility.CalculateRelativeRectTransformBounds(safe,button.transform);
+                        Assert.GreaterOrEqual(bounds.min.x,safe.rect.xMin-.5f,route+" left");
+                        Assert.LessOrEqual(bounds.max.x,safe.rect.xMax+.5f,route+" right");
+                        Assert.GreaterOrEqual(bounds.min.y,safe.rect.yMin-.5f,route+" bottom");
+                        Assert.LessOrEqual(bounds.max.y,safe.rect.yMax+.5f,route+" top");
+                    }
+                    host.CloseTop(); yield return null;
+                    Assert.AreEqual(1,host.ModalDepth); Assert.IsTrue(parentClose.IsInteractable());
+                    Assert.AreSame(parent,GameObject.Find("Popup Layer "+(profile?"profile":"settings")));
+                    host.CloseTop(); yield return null;
+                }
+            }
         }
 
         static RectTransform Child(string name, Transform parent)
