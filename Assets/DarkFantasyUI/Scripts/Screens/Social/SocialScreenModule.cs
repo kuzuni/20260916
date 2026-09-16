@@ -357,9 +357,9 @@ namespace Moonlit.UI
             PageWallet(c,root,"Gold wallet",54,44,0,c.Main ? (c.Main.gold/1000000f).ToString("0.00")+"m" : "1.59m");
             PageWallet(c,root,"Ruby wallet",w-324,44,1,c.Main ? c.Main.gems.ToString() : "21");
             Scroll(c, root, 38, 120, w - 76, Mathf.Max(360, h - 120 - NavigationReserve), 2010, out var content);
-            var special = SpritePanel(c, "Daily specials header", content, 18, 0, w - 112, 110, 1, Color.white);
+            var special = PopupSkin.Panel("Daily specials header", content, 18, 0, w - 112, 110);
             Ui.Text("Daily specials title", special.transform, 24, 12, w - 160, 76, "오늘의 특가", 42, Font(c), Ui.Gold);
-            Ui.Text("Daily specials hint", content, 40, 116, w - 156, 52, "모험에 필요한 보급품", 25, Font(c), Ui.Ivory);
+            Ui.Text("Daily specials hint", content, 40, 116, w - 156, 52, "일일 특가 3개 모두 구매하면 새로운 3개가 나와요!", 25, Font(c), Ui.Ivory);
             Deal(c, content, 180, "자원 거래", "      1k        방패 150\n티켓 200     주괴 50\n물약 50      열쇠 62", "₩2,800", w - 76, 0);
             Deal(c, content, 480, "펫 거래", "방패 660\n주괴 200\n펫 보석 20", "₩9,500", w - 76, 1);
             Deal(c, content, 780, "던전 거래", "은빛 열쇠 2    붉은 열쇠 2\n초록 열쇠 2    황금 열쇠 250\n주황 열쇠 2", "₩27,500", w - 76, 2);
@@ -370,10 +370,10 @@ namespace Moonlit.UI
             {
                 int col = i % 3, row = i / 3;
                 float cardW = (w - 124) / 3f;
-                var card = SpritePanel(c, "Gem offer " + gems[i], content, 20 + col * (cardW + 14), 1160 + row * 360, cardW, 330, 1, Color.white);
+                var card = PopupSkin.IllustratedCard("Gem offer " + gems[i], content, 20 + col * (cardW + 14), 1160 + row * 360, cardW, 330, c.Assets.worldBackground, new Color(.65f,.75f,.85f));
                 Ui.Image("Ruby amount icon", card.transform, 20, 12, 48, 48, Icon(c, 1)).preserveAspect = true;
                 Ui.Text("Amount", card.transform, 72, 8, cardW - 82, 54, gems[i].ToString(), 29, Font(c), new Color(1,.75f,.78f), TextAnchor.MiddleLeft);
-                var ruby = Ui.Image("Ruby artwork", card.transform, 28, 70, cardW - 56, 164, ShopIllustration(3 + i)); ruby.preserveAspect = true;
+                var ruby = Ui.ArtImage("Ruby artwork", card.transform, 10, 54, cardW - 20, 206, ShopIllustration(3 + i)); ruby.preserveAspect = true;
                 string price = prices[i];
                 Action(c, card.transform, 12, 242, cardW - 24, 70, price, () => c.Toast(price == "가격 미설정" ? "이 상품은 가격이 구성되지 않았습니다." : "결제는 연결되지 않은 미리보기입니다."));
             }
@@ -391,15 +391,25 @@ namespace Moonlit.UI
 
         static void Deal(ScreenContext c, Transform parent, float y, string title, string body, string price, float width, int artIndex)
         {
-            var card = SpritePanel(c, title, parent, 18, y, width - 36, 280, 1, Color.white);
-            var artwork = Ui.Image("Deal illustration", card.transform, width - 352, 10, 288, 174, ShopIllustration(artIndex));
+            var card = PopupSkin.IllustratedCard(title,parent,18,y,width-36,280,c.Assets.worldBackground,new Color(.16f,.22f,.27f));
+            var artwork = Ui.ArtImage("Deal illustration", card.transform, width - 414, 8, 378, 258, ShopIllustration(artIndex));
             artwork.preserveAspect = true;
             artwork.raycastTarget = false;
-            Ui.Image("Ribbon", card.transform, 0, 0, 430, 62, null, Red);
+            Ui.Image("Ribbon",card.transform,0,10,430,52,PopupSkin.RibbonArt,new Color(1,.22f,.16f));
             Ui.Text("Title", card.transform, 20, 2, 390, 56, title, 31, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
-            Ui.Text("Contents", card.transform, 38, 74, width - 390, 174, body, 27, Font(c), Ui.Ivory, TextAnchor.UpperLeft);
-            if (title == "자원 거래") Ui.Image("Crown coin", card.transform, 36, 78, 38, 38, Icon(c, 0)).preserveAspect = true;
-            Action(c, card.transform, width - 330, 182, 260, 72, price, () => c.Toast("결제 기능은 연결되지 않았습니다."));
+            var ticket=Resources.Load<Sprite>("Moonlit/Skills/SummonTicket-v1");
+            Sprite[] icons = artIndex==0 ? new[]{Icon(c,0),PopupSkin.RewardIcon(0),ticket,Icon(c,2),PopupSkin.RewardIcon(1),PopupSkin.RewardIcon(4)}
+                : artIndex==1 ? new[]{PopupSkin.RewardIcon(0),Icon(c,2),Icon(c,1)}
+                : new[]{PopupSkin.RewardIcon(5),PopupSkin.RewardIcon(3),PopupSkin.RewardIcon(2),PopupSkin.RewardIcon(4),PopupSkin.RewardIcon(4)};
+            string[] values=artIndex==0 ? new[]{"1k","150","200","50","50","62"} : artIndex==1 ? new[]{"660","200","20"} : new[]{"2","2","2","250","2"};
+            for(int i=0;i<icons.Length;i++)
+            {
+                int col=artIndex==1?0:i%2, row=artIndex==1?i:i/2;
+                var cell=PopupSkin.Panel("Reward cell "+i,card,32+col*222,82+row*54,212,48).rectTransform;
+                Ui.Image("Reward icon",cell,10,4,40,40,icons[i]).preserveAspect=true;
+                Ui.Text("Reward amount",cell,60,0,145,48,values[i],28,Font(c),Ui.Ivory,TextAnchor.MiddleLeft);
+            }
+            Action(c, card.transform, width - 330, 196, 280, 72, price, () => c.Toast("결제 기능은 연결되지 않았습니다."));
         }
 
         static Sprite[] shopIllustrations;
@@ -410,10 +420,14 @@ namespace Moonlit.UI
                 var atlas = Resources.Load<Texture2D>("Moonlit/Shop/ShopBundles-v1");
                 if (!atlas) return null;
                 shopIllustrations = new Sprite[8];
-                int width = atlas.width / 4, height = atlas.height / 2;
+                // Crop transparent cell padding so each illustration fills its live card.
+                var crops=new[]{new Rect(18,45,414,375),new Rect(36,15,390,411),new Rect(24,33,411,390),new Rect(24,138,411,270),
+                    new Rect(15,75,411,303),new Rect(3,3,423,402),new Rect(9,0,423,402),new Rect(9,0,429,402)};
+                float sx=atlas.width/1774f,sy=atlas.height/887f;
                 for (int i = 0; i < shopIllustrations.Length; i++)
                 {
-                    shopIllustrations[i] = Sprite.Create(atlas, new Rect(i % 4 * width, (1 - i / 4) * height, width, height),
+                    var crop=crops[i]; float left=i%4*443.5f+crop.x,top=i/4*443.5f+crop.y;
+                    shopIllustrations[i] = Sprite.Create(atlas, new Rect(left*sx,atlas.height-(top+crop.height)*sy,crop.width*sx,crop.height*sy),
                         new Vector2(.5f, .5f), 100, 0, SpriteMeshType.FullRect);
                     shopIllustrations[i].name = "Shop illustration " + i;
                 }

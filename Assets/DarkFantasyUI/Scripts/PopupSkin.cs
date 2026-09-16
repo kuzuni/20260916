@@ -40,6 +40,42 @@ namespace Moonlit.UI
         public static Sprite CloseArt => Load(ref close, "CrimsonClose-v1", Vector4.zero);
         public static Sprite CrestArt => Load(ref crest, "PanelCrest-v1", Vector4.zero);
 
+        static Sprite passHeader;
+        static Sprite[] rewardIcons;
+        public static Sprite PassHeaderArt => Load(ref passHeader, "PassHeader-v1", Vector4.zero);
+        public static Sprite RewardIcon(int index)
+        {
+            if (rewardIcons == null || !rewardIcons[0])
+            {
+                var atlas = Resources.Load<Texture2D>("Moonlit/Popup/RewardIcons-v1");
+                if (!atlas) return null;
+                rewardIcons = new Sprite[8];
+                float w=atlas.width/4f, h=atlas.height/2f;
+                for(int i=0;i<8;i++) rewardIcons[i]=Sprite.Create(atlas,
+                    new Rect(i%4*w,(1-i/4)*h,w,h),new Vector2(.5f,.5f),100,0,SpriteMeshType.FullRect);
+            }
+            return rewardIcons[Mathf.Clamp(index,0,7)];
+        }
+
+        // Art fills the card; its reusable empty rim is independent of rewards and controls.
+        public static RectTransform IllustratedCard(string name, Transform parent, float x, float y,
+            float width, float height, Sprite painting, Color tint)
+        {
+            var root=Ui.Rect(name,parent,x,y,width,height);
+            Ui.Image("Card backing",root,4,4,width-8,height-8,null,new Color(.015f,.025f,.035f));
+            if(painting)
+            {
+                var crop=Ui.Rect("Card painting crop",root,6,6,width-12,height-12);
+                crop.gameObject.AddComponent<RectMask2D>();
+                float scale=Mathf.Max((width-12)/painting.rect.width,(height-12)/painting.rect.height);
+                float w=painting.rect.width*scale,h=painting.rect.height*scale;
+                Ui.Image("Card painting",crop,(width-12-w)/2,(height-12-h)/2,w,h,painting,tint);
+            }
+            var rim=Ui.Image("Card rim",root,0,0,width,height,PanelArt);
+            rim.type=Image.Type.Sliced; rim.fillCenter=false; rim.pixelsPerUnitMultiplier=6;
+            return root;
+        }
+
         public static Image Panel(string name, Transform parent, float x, float y, float width, float height)
         {
             // Generated stone has slightly translucent interior pixels. An opaque inset

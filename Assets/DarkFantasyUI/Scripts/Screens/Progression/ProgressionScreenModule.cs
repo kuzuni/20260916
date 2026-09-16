@@ -61,7 +61,7 @@ namespace Moonlit.UI
             state.title = Ui.Text("Collection title", root, 330, 38, 420, 70, "스킬 15/18", 44, font);
             var wallet = PopupSkin.Panel("Summon wallet",root,28,44,220,60).rectTransform;
             var ticket=Resources.Load<Sprite>("Moonlit/Skills/SummonTicket-v1");
-            Ui.Image("Summon currency icon",wallet,-8,-6,68,68,ticket).preserveAspect=true;
+            Ui.ArtImage("Summon currency icon",wallet,-8,-6,68,68,ticket).preserveAspect=true;
             state.currency=Ui.Text("Currency",wallet,65,0,146,60,FormatSummonCurrency(),34,font);
             var summary=PopupSkin.Panel("Collection summary frame",root,145,120,790,58).rectTransform;
             state.summary = Ui.Text("Summary", summary, 12, 0, 766, 58, "+10.3m 기본 피해  +82.8m 기본 체력", 25, font, Ui.Ivory);
@@ -70,7 +70,7 @@ namespace Moonlit.UI
             var equippedY = ctx.Height - 840;
             state.content = Ui.Rect("Tab content", root, 48, 205, 984, Mathf.Min(620, equippedY-225));
             var equippedPanel=PopupSkin.Panel("Equipped panel",root,88,equippedY,904,132).rectTransform;
-            Ui.Image("Equipped ribbon",equippedPanel,-2,18,228,49,PopupSkin.ParchmentRibbonArt);
+            Ui.ArtImage("Equipped ribbon",equippedPanel,-2,18,228,49,PopupSkin.ParchmentRibbonArt);
             var equippedLabel=Ui.Text("Equipped label",equippedPanel,8,18,206,49,"장착됨",31,font,new Color(.06f,.045f,.025f));
             equippedLabel.GetComponent<Outline>().effectColor=new Color(1,1,1,.2f);
             state.equipped = Ui.Rect("Equipped skills", equippedPanel, 440, 8, 440, 124);
@@ -95,7 +95,7 @@ namespace Moonlit.UI
             var summonRail=PopupSkin.Panel("Summon rail",root,0,summonY-24,1080,206).rectTransform;
             var summon = PopupSkin.Button("Summon five", root, 364, summonY, 342, 154, "", font, null, Blue, 30);
             Ui.Text("Summon label",summon.transform,8,8,326,65,"소환 x5",43,font);
-            Ui.Image("Summon cost icon",summon.transform,94,84,52,52,ticket).preserveAspect=true;
+            Ui.ArtImage("Summon cost icon",summon.transform,94,84,52,52,ticket).preserveAspect=true;
             Ui.Text("Summon cost",summon.transform,151,75,110,68,"160",42,font);
             PopupSkin.Button("Summon quantity",root,234,summonY+96,104,62,"x5",font,()=>ctx.Toast("한 번에 스킬 5개를 소환합니다."),Blue,29);
             PopupSkin.Back("Return to main",root,28,summonY+68,82,font,ctx.Close,true);
@@ -366,26 +366,22 @@ namespace Moonlit.UI
             var font = ctx.Assets.font;
             AddBackdrop(ctx.Root, ctx);
             PopupSkin.Back("Return to main",ctx.Root,40,ctx.Height-364,96,font,ctx.Close);
-            Panel(ctx.Root, 220, 36, 640, 100, "던전", font, 44);
+            Panel(ctx.Root, 370, 36, 340, 100, "던전", font, 44);
             Ui.Text("Reset", ctx.Root, 120, 145, 840, 86, "던전 열쇠는 매일 09:00에 보충됩니다.\n열쇠는 던전을 완료할 때만 소모됩니다.", 25, font);
             var available = ctx.Height - 660;
             var scroll = Scroll(ctx.Root, 60, 250, 960, available);
             for (var i = 0; i < Dungeons.Length; i++) {
                 var dungeon = Dungeons[i];
-                var row = Ui.Panel("Dungeon " + dungeon.name, scroll.content, 10, i * 250, 920, 220, new Color(.025f,.085f,.12f,.98f));
                 var banner = DungeonBanner(dungeon);
-                if (banner) {
-                    DungeonPainting(row.transform, 5, 5, 910, 210, banner);
-                    Ui.Image("Readable action scrim", row.transform, 650, 5, 265, 210, null, new Color(0,.015f,.025f,.6f));
-                    Ui.Border(row.transform,920,220,Gold,3);
-                }
-                var icon = GetIcon(ctx.Assets, dungeon.icon);
-                if (!banner) Ui.Image("Illustration", row.transform, 20, 25, 260, 170, icon, new Color(.55f,.75f,.85f));
-                Ui.Text("Name", row.transform, banner ? 30 : 305, 18, 360, 58, dungeon.name, 32, font, Ui.Ivory, TextAnchor.MiddleLeft);
-                if (!banner) Ui.Text("Locale", row.transform, 305, 76, 360, 48, dungeon.locale, 22, font, Ui.Gold, TextAnchor.MiddleLeft);
-                Ui.Text("Keys", row.transform, 680, 25, 190, 50, "⚿  2/2", 27, font);
+                var row = PopupSkin.IllustratedCard("Dungeon " + dungeon.name, scroll.content, 10, i * 250, 920, 230, banner, Color.white);
+                Ui.Image("Readable action scrim",row,670,12,236,204,null,new Color(0,.015f,.025f,.65f));
+                Sprite reward = i==0 ? DungeonHammer() : i==1 ? Resources.Load<Sprite>("Moonlit/Skills/SummonTicket-v1") : PopupSkin.RewardIcon(i==2?0:1);
+                Ui.ArtImage("Dungeon reward icon",row,26,20,60,60,reward).preserveAspect=true;
+                Ui.Text("Name",row,96,18,470,58,dungeon.name,36,font,Ui.Ivory,TextAnchor.MiddleLeft);
+                Ui.ArtImage("Dungeon key icon",row,702,38,52,52,PopupSkin.RewardIcon(new[]{5,2,4,3}[i])).preserveAspect=true;
+                Ui.Text("Keys",row,760,34,134,58,"2/2",33,font);
                 var index = i;
-                PopupSkin.Button("Open", row.transform, 650, 104, 220, 78, "열기", font, () => { selectedDungeon = index; ctx.Open("dungeon-details", Dungeons[index]); }, Blue, 28);
+                PopupSkin.Button("Open",row,674,116,224,88,"열기",font,()=>{selectedDungeon=index;ctx.Open("dungeon-details",Dungeons[index]);},Blue,32);
             }
             scroll.content.sizeDelta = new Vector2(0, Dungeons.Length * 250);
         }
@@ -395,16 +391,24 @@ namespace Moonlit.UI
             var dungeon = ctx.Payload as DungeonData ?? Dungeons[Mathf.Clamp(selectedDungeon, 0, Dungeons.Length - 1)];
             var font = ctx.Assets.font;
             var h = Mathf.Min(1050, ctx.Height - 180);
-            var panel = Panel(ctx.Root, 105, (ctx.Height - h) / 2, 870, h, dungeon.name, font, 38);
+            var panel = PopupSkin.Panel("Dungeon detail frame",ctx.Root,105,(ctx.Height-h)/2,870,h).rectTransform;
             var banner = DungeonBanner(dungeon);
-            if (banner) DungeonPainting(panel, 45, 120, 780, 300, banner);
-            else Ui.Image("Dungeon art", panel, 45, 120, 780, 300, GetIcon(ctx.Assets, dungeon.icon), new Color(.45f,.7f,.83f));
-            Ui.Text("Locale", panel, 55, 420, 760, 65, dungeon.locale, 34, font, Ui.Ivory);
-            Ui.Text("Difficulty", panel, 100, 500, 670, 72, "◀     난이도  " + dungeon.stage + "     ▶", 30, font, Ui.Gold);
-            Panel(panel, 120, 592, 630, 86, "보상:  " + dungeon.reward, font, 27);
-            Ui.Text("Keys", panel, 280, 690, 310, 65, "🔑  2/2", 31, font);
-            PopupSkin.Button("Previous", panel, 55, h - 150, 350, 88, "이전 스테이지\n소탕", font, () => ctx.Toast("이전 스테이지 보상을 확인했습니다."), Blue, 26);
-            PopupSkin.Button("Enter", panel, 465, h - 150, 350, 88, "입장", font, () => ctx.Toast("로컬 데모: " + dungeon.name + " 입장 준비"), Blue, 29);
+            PopupSkin.IllustratedCard("Dungeon hero painting",panel,6,6,858,390,banner,Color.white);
+            Panel(panel,235,20,400,90,dungeon.name,font,38);
+            Ui.Text("Difficulty label",panel,285,414,300,44,"난이도",28,font);
+            var difficulty=Ui.Text("Difficulty",panel,285,460,300,72,dungeon.stage,48,font,Ui.Ivory);
+            int stage=int.Parse(dungeon.stage.Split('-')[1]); string chapter=dungeon.stage.Split('-')[0];
+            PopupSkin.Button("Previous difficulty",panel,166,434,92,92,"◀",font,()=>{stage=Mathf.Max(1,stage-1);difficulty.text=chapter+"-"+stage;},Blue,40);
+            var rewardPanel=PopupSkin.Panel("Dungeon reward",panel,64,562,742,104).rectTransform;
+            int index=Array.IndexOf(Dungeons,dungeon);
+            Sprite reward=index==0?DungeonHammer():index==1?Resources.Load<Sprite>("Moonlit/Skills/SummonTicket-v1"):index==2?ctx.Assets.interfaceIcons?[0]:PopupSkin.RewardIcon(1);
+            Ui.Text("Reward label",rewardPanel,125,15,175,72,"보상:",28,font);
+            Ui.Image("Reward icon",rewardPanel,315,16,65,72,reward).preserveAspect=true;
+            Ui.Text("Reward amount",rewardPanel,394,15,220,72,index==1?"280":index==2?"12.5k":"346",40,font,Ui.Ivory,TextAnchor.MiddleLeft);
+            Ui.ArtImage("Dungeon detail key",panel,342,701,65,65,PopupSkin.RewardIcon(new[]{5,2,4,3}[Mathf.Clamp(index,0,3)])).preserveAspect=true;
+            Ui.Text("Keys",panel,416,694,150,75,"2/2",38,font);
+            PopupSkin.Button("Previous",panel,55,h-218,350,120,"이전 스테이지\n소탕",font,()=>ctx.Toast("이전 스테이지 보상을 확인했습니다."),Blue,31);
+            PopupSkin.Button("Enter",panel,465,h-218,350,120,"입장",font,()=>ctx.Toast("로컬 데모: "+dungeon.name+" 입장 준비"),Blue,35);
             Close(panel, 385, h - 48, font, ctx.Close);
         }
 
@@ -416,6 +420,15 @@ namespace Moonlit.UI
             float paintedWidth = sprite.rect.width * scale, paintedHeight = sprite.rect.height * scale;
             Ui.Image("Generated dungeon banner", crop, (width-paintedWidth)*.5f, (height-paintedHeight)*.5f,
                 paintedWidth, paintedHeight, sprite);
+        }
+
+        static Sprite dungeonHammer;
+        static Sprite DungeonHammer()
+        {
+            if(dungeonHammer) return dungeonHammer;
+            var texture=Resources.Load<Texture2D>("Moonlit/Forge/RewardHammer-v1");
+            if(texture) dungeonHammer=Sprite.Create(texture,new Rect(0,0,texture.width,texture.height),new Vector2(.5f,.5f),100,0,SpriteMeshType.FullRect);
+            return dungeonHammer;
         }
 
         static Sprite DungeonBanner(DungeonData dungeon)
@@ -497,7 +510,7 @@ namespace Moonlit.UI
             // Keep the backing inside the bevel so transparent pointed corners stay clear.
             Ui.Image("Track", track, h * .5f, h * .2f, w - h, h * .6f, null, new Color(.015f,.025f,.035f));
             Ui.Image("Fill", track, h * .5f, h * .2f, (w - h) * Mathf.Clamp01(amount), h * .6f, null, new Color(.28f,.62f,.80f));
-            var frame = Ui.Image("Progress frame", track, 0, 0, w, h, ProgressFrame);
+            var frame = Ui.ArtImage("Progress frame", track, 0, 0, w, h, ProgressFrame);
             frame.type = Image.Type.Sliced;
             frame.pixelsPerUnitMultiplier = 310f / h;
             Ui.Text("Value", track, 0, 0, w, h, label, Mathf.RoundToInt(h*.65f), font);
