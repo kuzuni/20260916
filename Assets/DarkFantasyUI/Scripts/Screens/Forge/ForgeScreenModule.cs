@@ -60,24 +60,21 @@ namespace Moonlit.UI
             width = Mathf.Min(width, c.Width - 36);
             height = Mathf.Min(height, c.Height - 36);
             var root = Ui.Rect(title + " Dialog", c.Root, (c.Width - width) * .5f, (c.Height - height) * .5f, width, height);
-            var shadow = Ui.Panel("Ornate stone frame", root, 0, 0, width, height, Ink);
+            var shadow = PopupSkin.Panel("Ornate stone frame", root, 0, 0, width, height);
             shadow.raycastTarget = true;
-            Ui.Border(shadow.transform, width, height, new Color(.22f,.13f,.07f), 12);
-            Ui.Border(shadow.transform, width, height, Ui.Gold, 4);
-            Ui.Image("Top diamond", shadow.transform, width * .5f - 18, -12, 36, 36, null, Ui.Gold);
             Ui.Text("Title", root, 44, 20, width - 88, 72, title, 44, Font(c), Ui.Ivory);
             Ui.Image("Title rule", root, 70, 94, width - 140, 3, null, Ui.Gold);
             body = Ui.Rect("Live content", root, 30, 112, width - 60, height - 150);
             if (close)
             {
-                var b = Ui.Button("Close", root, width * .5f - 42, height - 46, 84, 84, "×", Font(c), c.Close, Red, 58);
+                var b = PopupSkin.Button("Close", root, width * .5f - 42, height - 46, 84, 84, "×", Font(c), c.Close, Red, 58);
                 b.transform.SetAsLastSibling();
             }
             return root;
         }
 
         static Button Action(ScreenContext c, Transform p, float x, float y, float w, float h, string label, UnityAction click, Color? color = null)
-            => Ui.Button(label, p, x, y, w, h, label, Font(c), click, color ?? Blue, 30);
+            => PopupSkin.Button(label, p, x, y, w, h, label, Font(c), click, color ?? Blue, 30);
 
         static void BuildProbability(ScreenContext c)
         {
@@ -138,7 +135,7 @@ namespace Moonlit.UI
                 {
                     var index = item++;
                     var x = 12 + col * 134; var y = top + 78 + row * 132;
-                    var slot = Ui.Button("Equipment " + index, content, x, y, 110, 104, "", Font(c), () => c.Open("forge-item-details", ItemAt(c, index)), Slate);
+                    var slot = PopupSkin.Button("Equipment " + index, content, x, y, 110, 104, "", Font(c), () => c.Open("forge-item-details", ItemAt(c, index)), Slate);
                     Ui.Image("Item icon", slot.transform, 12, 8, 86, 78, Icon(c, index));
                     Ui.Text("Star", slot.transform, 0, 76, 110, 25, "★", 22, Font(c), Ui.Gold);
                     Ui.Text("Rate", content, x - 4, y + 101, 118, 28, tier == 0 ? "0.0000%" : (tier + 1) + ".2500%", 17, Font(c));
@@ -295,7 +292,7 @@ namespace Moonlit.UI
         }
 
         static Button Action(ScreenContext c, Transform p, float x, float y, float w, float h, string label, UnityAction click, Color color, int size)
-            => Ui.Button(label,p,x,y,w,h,label,Font(c),click,color,size);
+            => PopupSkin.Button(label,p,x,y,w,h,label,Font(c),click,color,size);
 
         static Toggle Check(ScreenContext c, Transform p, float x, float y, bool value)
         {
