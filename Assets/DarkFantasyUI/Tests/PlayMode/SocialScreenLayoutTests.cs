@@ -59,7 +59,15 @@ namespace Moonlit.UI.Tests
                 host.SetPreviewMetrics(new Vector2Int(1080, height), new Rect(0, 0, 1080, height));
                 host.Registry.Open("shop");
                 yield return null;
-                var scroll = GameObject.Find("Shop page").GetComponentInChildren<ScrollRect>();
+                var shop=GameObject.Find("Shop page").transform;
+                Assert.IsNull(shop.Find("‹ 메인"));
+                var gold=shop.Find("Gold wallet").GetComponent<RectTransform>();
+                var ruby=shop.Find("Ruby wallet").GetComponent<RectTransform>();
+                var title=shop.Find("Shop title frame").GetComponent<RectTransform>();
+                Assert.That(title.anchoredPosition.x+title.rect.width/2,Is.EqualTo(540).Within(.1f));
+                Assert.Less(gold.anchoredPosition.x+gold.rect.width,title.anchoredPosition.x);
+                Assert.Greater(ruby.anchoredPosition.x,title.anchoredPosition.x+title.rect.width);
+                var scroll = shop.GetComponentInChildren<ScrollRect>();
                 Assert.LessOrEqual(scroll.GetComponent<RectTransform>().rect.height, scroll.transform.parent.GetComponent<RectTransform>().rect.height - 330f);
                 CollectionAssert.AreEquivalent(new[] { "Gem offer 60", "Gem offer 220", "Gem offer 800", "Gem offer 1500", "Gem offer 3300" },
                     scroll.content.Cast<Transform>().Where(t => t.name.StartsWith("Gem offer ")).Select(t => t.name));
@@ -75,6 +83,35 @@ namespace Moonlit.UI.Tests
                 Assert.AreEqual("가격 미설정", GameObject.Find("Gem offer 3300").GetComponentInChildren<Button>().name);
                 host.CloseTop();
                 yield return null;
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator Pvp_AllOneHundredRanksScrollAndRestoreAfterDetails()
+        {
+            foreach (int height in new[] { 1920,2280 })
+            {
+                host.SetPreviewMetrics(new Vector2Int(1080,height),new Rect(36,84,1008,height-168));
+                host.Registry.Open("pvp"); yield return null;
+                var scroll=GameObject.Find("PvP page").GetComponentInChildren<ScrollRect>();
+                var rows=scroll.content.Cast<Transform>().Where(t=>t.name.StartsWith("PvP rank ")).ToArray();
+                Assert.AreEqual(100,rows.Length);
+                CollectionAssert.AreEqual(Enumerable.Range(1,100).Select(i=>i.ToString()),
+                    rows.Select(t=>t.Find("Rank").GetComponent<Text>().text));
+                Canvas.ForceUpdateCanvases();
+                Assert.Greater(scroll.content.rect.height,scroll.viewport.rect.height);
+                scroll.verticalNormalizedPosition=0; Canvas.ForceUpdateCanvases(); yield return null;
+                var last=rows[99].GetComponent<RectTransform>();
+                var inViewport=scroll.viewport.InverseTransformPoint(last.TransformPoint(last.rect.center));
+                Assert.IsTrue(scroll.viewport.rect.Contains(inViewport),"Rank 100 must be reachable at the bottom.");
+                rows[99].GetComponent<Button>().onClick.Invoke(); yield return null;
+                Assert.AreEqual(1,host.ModalDepth);
+                host.CloseTop(); yield return null;
+                Assert.That(scroll.verticalNormalizedPosition,Is.EqualTo(0).Within(.01f));
+                var back=GameObject.Find("Return to main").GetComponent<RectTransform>();
+                Assert.Greater(-back.anchoredPosition.y,1000);
+                back.GetComponent<Button>().onClick.Invoke(); yield return null;
+                Assert.IsNull(host.ActivePageKey);
             }
         }
 

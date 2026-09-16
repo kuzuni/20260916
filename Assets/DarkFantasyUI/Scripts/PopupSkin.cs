@@ -129,6 +129,16 @@ namespace Moonlit.UI
             art.color = Color.white;
         }
 
+        public static Button Back(string name, Transform parent, float x, float y, float size,
+            Font font, UnityAction click, bool square = false)
+        {
+            var button = Ui.ArtButton(name, parent, x, y, size, size, square ? PanelArt : CloseArt, square, 5);
+            Ui.Text("Back arrow", button.transform, 0, -2, size, size, "◀", Mathf.RoundToInt(size * .43f), font,
+                square ? new Color(.96f,.12f,.08f) : Ui.Ivory);
+            if (click != null) button.onClick.AddListener(click);
+            return button;
+        }
+
         public static Button Close(string name, Transform parent, float x, float y, float size,
             Font font, UnityAction click, int fontSize = 52)
         {
