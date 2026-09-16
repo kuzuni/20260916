@@ -19,3 +19,8 @@ MonoBehaviour:
   startingLevel: 110
   description: "\uB2EC\uBE5B \uD3D0\uD5C8\uC758 \uD798\uC774 \uAE43\uB4E0 \uC804\uC124
     \uC7A5\uBE44."
+  baseHealth: 1790000000
+  firstBonusName: "치명타 확률"
+  firstBonusPercent: 8.48
+  secondBonusName: "체력"
+  secondBonusPercent: 13.2
