@@ -310,7 +310,7 @@ namespace Moonlit.UI
                             label.text = skill.shards + "/8";
                             var progress = label.transform.parent as RectTransform;
                             var fill = progress != null ? progress.Find("Fill") as RectTransform : null;
-                            if (fill != null) fill.sizeDelta = new Vector2((label.rectTransform.rect.width - 8) * Mathf.Clamp01(skill.shards / 8f), fill.sizeDelta.y);
+                            if (fill != null) fill.sizeDelta = new Vector2((label.rectTransform.rect.width - label.rectTransform.rect.height) * Mathf.Clamp01(skill.shards / 8f), fill.sizeDelta.y);
                         }
                         else if (label.name == "Ownership") label.text = skill.owned ? "" : "미보유";
                     }
@@ -466,19 +466,40 @@ namespace Moonlit.UI
             Ui.Text("Ownership", button.transform, 4, 8, size - 8, 34, skill.owned ? "" : "미보유", Mathf.RoundToInt(size*.14f), font, Ui.Ivory);
             if (!compact) {
                 Ui.Text("Star", button.transform, 0, size - 10, size, 34, "★", Mathf.RoundToInt(size*.18f), font, Gold);
-                Progress(button.transform, 9, size + 24, size - 18, 24, skill.shards / 8f, skill.shards + "/8", font);
+                Progress(button.transform, 9, size + 24, size - 18, 28, skill.shards / 8f, skill.shards + "/8", font);
             }
         }
 
         static void Progress(Transform parent, float x, float y, float w, float h, float amount, string label, Font font)
         {
-            Ui.Panel("Progress", parent, x, y, w, h, new Color(.015f,.025f,.035f));
-            Ui.Image("Fill", parent, x + 4, y + 4, (w - 8) * Mathf.Clamp01(amount), h - 8, null, new Color(.08f,.5f,.85f));
-            Ui.Text("Value", parent, x, y, w, h, label, Mathf.RoundToInt(h*.65f), font);
+            var track = Ui.Rect("Progress", parent, x, y, w, h);
+            // Empty illustrated rim, live fill and live number are independent reusable layers.
+            // Keep the backing inside the bevel so transparent pointed corners stay clear.
+            Ui.Image("Track", track, h * .5f, h * .2f, w - h, h * .6f, null, new Color(.015f,.025f,.035f));
+            Ui.Image("Fill", track, h * .5f, h * .2f, (w - h) * Mathf.Clamp01(amount), h * .6f, null, new Color(.28f,.62f,.80f));
+            var frame = Ui.Image("Progress frame", track, 0, 0, w, h, ProgressFrame);
+            frame.type = Image.Type.Sliced;
+            frame.pixelsPerUnitMultiplier = 310f / h;
+            Ui.Text("Value", track, 0, 0, w, h, label, Mathf.RoundToInt(h*.65f), font);
         }
 
         static Sprite[] skillIcons;
         static Sprite skillRing;
+        static Sprite progressFrame;
+        static Sprite ProgressFrame
+        {
+            get
+            {
+                if (progressFrame) return progressFrame;
+                var texture = Resources.Load<Texture2D>("Moonlit/Skills/ProgressFrame-v1");
+                if (!texture) return null;
+                float sx = texture.width / 1922f, sy = texture.height / 818f;
+                progressFrame = Sprite.Create(texture, new Rect(28*sx,254*sy,1866*sx,310*sy),
+                    new Vector2(.5f,.5f),100*sx,0,SpriteMeshType.FullRect,new Vector4(220*sx,60*sy,220*sx,60*sy));
+                progressFrame.name = "ProgressFrame-v1";
+                return progressFrame;
+            }
+        }
         static Sprite SkillRing => skillRing ? skillRing : (skillRing = Resources.Load<Sprite>("Moonlit/Skills/SkillRing-v1"));
 
         static Sprite SkillIcon(int index)
