@@ -16,6 +16,9 @@ namespace Moonlit.UI
         static readonly Color Green = new Color(.25f, 1f, .28f, 1f);
         const float NavigationReserve = 210f;
         static int profileAvatar = 2;
+        static string profileName = "moonzzanf";
+        static bool profileFemale;
+        static readonly bool[] settingValues = { false, false, false, true, false, false };
         static Sprite[] avatarPortraits;
 
         public static void Register(UiScreenRegistry registry)
@@ -57,8 +60,13 @@ namespace Moonlit.UI
 
         static Button Close(ScreenContext c, Transform parent, float width, float height)
         {
-            var button = Ui.Button("Close", parent, width * .5f - 42, height - 86, 84, 84, "×", Font(c), c.Close, Red, 56);
-            button.gameObject.AddComponent<SocialRoundMask>();
+            var button = Ui.ArtButton("Close", parent, width * .5f - 42, height - 86, 84, 84);
+            var circle = c.Assets != null ? c.Assets.circle : null;
+            Ui.Image("Bronze rim", button.transform, 0, 0, 84, 84, circle, Ui.Gold);
+            Ui.Image("Dark inset", button.transform, 4, 4, 76, 76, circle, Color.black);
+            Ui.Image("Crimson face", button.transform, 8, 8, 68, 68, circle, Red);
+            Ui.Text("Label", button.transform, 0, -2, 84, 84, "×", 56, Font(c));
+            button.onClick.AddListener(c.Close);
             return button;
         }
 
@@ -121,13 +129,21 @@ namespace Moonlit.UI
 
             BuildProfileTab(c, profile, w - 56, h - 232);
             BuildSettingsTab(c, settings, w - 56, h - 232);
+            Button profileTab = null, settingsTab = null;
             void Select(bool showSettings)
             {
                 profile.gameObject.SetActive(!showSettings);
                 settings.gameObject.SetActive(showSettings);
+                frame.Find("Title").GetComponent<Text>().text = showSettings ? "설정" : "프로필";
+                foreach (var tab in new[] { profileTab, settingsTab })
+                {
+                    if (tab == null) continue;
+                    var art = tab.targetGraphic as Image;
+                    if (art != null) art.sprite = PanelSprite(c, (tab == settingsTab) == showSettings ? 0 : 1);
+                }
             }
-            Action(c, frame, 120, h - 156, (w - 240) * .5f, 64, "프로필", () => Select(false));
-            Action(c, frame, w * .5f, h - 156, (w - 240) * .5f, 64, "설정", () => Select(true));
+            profileTab = Action(c, frame, 120, h - 156, (w - 240) * .5f, 64, "프로필", () => Select(false));
+            settingsTab = Action(c, frame, w * .5f, h - 156, (w - 240) * .5f, 64, "설정", () => Select(true));
             Close(c, frame, w, h);
             Select(settingsFirst);
         }
@@ -136,16 +152,22 @@ namespace Moonlit.UI
         {
             var portrait = Avatar(c, root, 52, 38, 190, profileAvatar);
             Ui.Text("Name label", root, 275, 32, 170, 48, "이름:", 27, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
-            var name = Input(c, root, 275, 80, w - 320, 64, "moonzzanf");
+            var name = Input(c, root, 275, 80, w - 439, 64, profileName);
+            name.name = "Profile name"; name.characterLimit = 16;
             Ui.Text("Gender label", root, 275, 156, 170, 44, "성별:", 27, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
-            var gender = Input(c, root, 275, 202, w - 320, 64, "♂");
+            var gender = Input(c, root, 275, 202, w - 439, 64, profileFemale ? "여성" : "남성");
+            gender.name = "Profile gender"; gender.readOnly = true;
             Action(c, root, 52, 240, 190, 54, "아바타 변경", () => {
                 profileAvatar = (profileAvatar + 1) % 9;
                 portrait.transform.Find("Avatar artwork").GetComponent<Image>().sprite = AvatarPortrait(profileAvatar);
                 c.Toast("아바타가 로컬 미리보기에서 변경되었습니다.");
             });
-            Action(c, root, w - 150, 80, 110, 64, "저장", () => c.Toast("프로필 미리보기를 저장했습니다: " + name.text));
-            Action(c, root, w - 150, 202, 110, 64, "변경", () => { gender.text = gender.text == "♂" ? "♀" : "♂"; });
+            Action(c, root, w - 150, 80, 110, 64, "저장", () => {
+                if (string.IsNullOrWhiteSpace(name.text)) { c.Toast("이름을 입력해 주세요."); return; }
+                profileName = name.text.Trim(); name.text = profileName;
+                c.Toast("이 실행 중 사용할 프로필 이름을 저장했습니다.");
+            });
+            Action(c, root, w - 150, 202, 110, 64, "변경", () => { profileFemale = !profileFemale; gender.text = profileFemale ? "여성" : "남성"; });
             Ui.Image("Divider", root, 55, 330, w - 110, 3, null, Ui.Gold);
             Ui.Text("Server rank", root, 55, 354, w - 110, 62, "서버 5 순위", 34, Font(c));
             Action(c, root, 105, 430, 300, 82, "파워 랭킹", () => c.Open("power-ranking"));
@@ -165,9 +187,10 @@ namespace Moonlit.UI
             string[] names = { "진동", "음악", "사운드 효과", "채팅 표시", "채팅 다크 모드", "클랜 채팅 미리보기" };
             for (int i = 0; i < names.Length; i++)
             {
+                int index = i;
                 float y = i * 86;
                 Ui.Text("Setting " + names[i], root, 52, y, w - 230, 78, names[i], 27, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
-                Toggle(c, root, w - 170, y + 13, names[i], i != 4);
+                Toggle(c, root, w - 170, y + 13, names[i], settingValues[i], on => settingValues[index] = on);
                 Ui.Image("Rule", root, 36, y + 82, w - 72, 2, null, new Color(Ui.Gold.r, Ui.Gold.g, Ui.Gold.b, .45f));
             }
             string[] links = { "언어", "계정 (로컬 데모)", "차단 목록", "개인정보 보호" };
@@ -178,15 +201,24 @@ namespace Moonlit.UI
             }
         }
 
-        static Toggle Toggle(ScreenContext c, Transform parent, float x, float y, string name, bool value)
+        static Toggle Toggle(ScreenContext c, Transform parent, float x, float y, string name, bool value, UnityAction<bool> changed)
         {
-            var bg = Ui.Panel(name + " toggle", parent, x, y, 128, 54, new Color(.03f,.05f,.06f));
+            var circle = c.Assets != null ? c.Assets.circle : null;
+            var bg = Ui.Image(name + " toggle", parent, x, y, 128, 54, circle, Ui.Gold);
             bg.raycastTarget = true;
-            var check = Ui.Image("On", bg.transform, value ? 70 : 6, 6, 52, 42, null, value ? new Color(0,.65f,1) : new Color(.25f,.28f,.3f));
-            check.raycastTarget = true;
+            var track = Ui.Image("Track", bg.transform, 3, 3, 122, 48, circle);
+            var thumb = Ui.Image("Thumb", bg.transform, 6, 6, 42, 42, circle, Ui.Cyan);
             var toggle = bg.gameObject.AddComponent<Toggle>();
-            toggle.targetGraphic = bg; toggle.graphic = check; toggle.isOn = value;
-            toggle.onValueChanged.AddListener(on => { check.rectTransform.anchoredPosition = new Vector2(on ? 70 : 6, -6); check.color = on ? new Color(0,.65f,1) : new Color(.25f,.28f,.3f); });
+            toggle.targetGraphic = bg;
+            // Toggle.graphic fades to zero when off; the movable thumb must remain visible.
+            toggle.graphic = null; toggle.transition = Selectable.Transition.None;
+            toggle.SetIsOnWithoutNotify(value);
+            void Paint(bool on) {
+                thumb.rectTransform.anchoredPosition = new Vector2(on ? 80 : 6, -6);
+                track.color = on ? new Color(.03f, .4f, .12f) : new Color(.015f, .025f, .035f);
+            }
+            Paint(value);
+            toggle.onValueChanged.AddListener(on => { Paint(on); changed?.Invoke(on); });
             return toggle;
         }
 
@@ -202,12 +234,12 @@ namespace Moonlit.UI
         static void BuildPlayerDetails(ScreenContext c)
         {
             var payload = c.Payload as Dictionary<string, object>;
-            string player = Get(payload, "name", "moonzzanf");
+            string player = Get(payload, "name", profileName);
             string power = Get(payload, "power", "65.5b");
             int rank = GetInt(payload, "rank", 11);
             float w, h; var frame = Frame(c, "플레이어 정보", 1370, out w, out h);
             Avatar(c, frame, 52, 120, 146, GetInt(payload, "avatarIndex", profileAvatar));
-            Ui.Text("Player", frame, 220, 116, w - 270, 48, player + "  ♂", 34, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
+            Ui.Text("Player", frame, 220, 116, w - 270, 48, player + (payload == null ? (profileFemale ? "  여성" : "  남성") : ""), 34, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
             Ui.Image("Power icon", frame, 220, 169, 36, 36, Icon(c, 12)).preserveAspect = true;
             Ui.Text("Power", frame, 266, 166, w - 316, 44, power + "     서버 순위 " + rank, 29, Font(c), Ui.Gold, TextAnchor.MiddleLeft);
             Ui.Text("Stats", frame, w - 310, 210, 260, 100, "Lv. 33 대장간\n1.46b 총 피해\n15.5b 총 체력", 22, Font(c), Ui.Ivory, TextAnchor.UpperRight);
@@ -251,7 +283,7 @@ namespace Moonlit.UI
         {
             float w, h; var frame = Frame(c, "파워 랭킹", 1310, out w, out h);
             Ui.Text("Subtitle", frame, 40, 92, w - 80, 44, "서버 5  ·  목록은 매시간 업데이트됨", 23, Font(c));
-            string[] names = { "XrayDelta", "PureAwe", "KurtCobain", "McKennasTown", "Ty", "SerialX", "Quintessential", "prawnstar", "Marss", "moonzzanf" };
+            string[] names = { "XrayDelta", "PureAwe", "KurtCobain", "McKennasTown", "Ty", "SerialX", "Quintessential", "prawnstar", "Marss", profileName };
             string[] powers = { "687t", "674t", "660t", "590t", "565t", "479t", "474t", "446t", "437t", "65.5b" };
             Scroll(c, frame, 40, 142, w - 80, h - 260, names.Length * 118, out var content);
             for (int i = 0; i < names.Length; i++) RankRow(c, content, i, names[i], powers[i], w - 80, () => { });
@@ -393,7 +425,7 @@ namespace Moonlit.UI
             Ui.Text("Season timer", rewards.transform, 100, 0, 440, 64,
                 "시즌 종료: <color=#5CFF46>4일 18시</color>", 26, Font(c));
             rewards.onClick.AddListener(() => c.Open("pvp-rewards"));
-            string[] names = { "tewtee", "CreeGuy", "MenoT", "moonzzanf", "Guest 86680", "mrmaingo1868", "Epsylon" };
+            string[] names = { "tewtee", "CreeGuy", "MenoT", profileName, "Guest 86680", "mrmaingo1868", "Epsylon" };
             string[] powers = { "212m", "12.9m", "16b", "65.5b", "5.52m", "2.57m", "821b" };
             int[] stars = { 15, 14, 13, 11, 4, 2, 0 };
             float actionY = h - NavigationReserve - 112;
@@ -473,6 +505,4 @@ namespace Moonlit.UI
         }
     }
 
-    /// <summary>Keeps the close control's hit target rectangular while presenting a round visual.</summary>
-    sealed class SocialRoundMask : MonoBehaviour { }
 }

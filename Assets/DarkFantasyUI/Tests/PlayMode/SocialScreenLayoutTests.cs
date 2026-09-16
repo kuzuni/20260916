@@ -189,6 +189,63 @@ namespace Moonlit.UI.Tests
             Assert.IsFalse(sticky.GetComponent<Button>().IsInteractable());
         }
 
+        [UnityTest]
+        public IEnumerator Profile_SaveAndGenderSurviveReopen_AndControlsDoNotOverlap()
+        {
+            host.Registry.Open("profile"); yield return null;
+            var input = GameObject.Find("Profile name").GetComponent<InputField>();
+            string originalName = input.text;
+            string originalGender = GameObject.Find("Profile gender").GetComponent<InputField>().text;
+            var inputRect = input.GetComponent<RectTransform>();
+            var save = GameObject.Find("저장").GetComponent<Button>();
+            Assert.Less(inputRect.anchoredPosition.x + inputRect.rect.width,
+                save.GetComponent<RectTransform>().anchoredPosition.x, "Save must not cover the editable name.");
+            input.text = "Moonlit QA"; save.onClick.Invoke();
+            GameObject.Find("변경").GetComponent<Button>().onClick.Invoke();
+            string changedGender = GameObject.Find("Profile gender").GetComponent<InputField>().text;
+            Assert.AreNotEqual(originalGender, changedGender);
+            host.CloseTop(); yield return null;
+            host.Registry.Open("profile"); yield return null;
+            input = GameObject.Find("Profile name").GetComponent<InputField>();
+            Assert.AreEqual("Moonlit QA", input.text);
+            Assert.AreEqual(changedGender, GameObject.Find("Profile gender").GetComponent<InputField>().text);
+            input.text = " "; GameObject.Find("저장").GetComponent<Button>().onClick.Invoke();
+            host.CloseTop(); yield return null;
+            host.Registry.Open("profile"); yield return null;
+            input = GameObject.Find("Profile name").GetComponent<InputField>();
+            Assert.AreEqual("Moonlit QA", input.text, "Blank save must not replace the previous name.");
+            // Restore session state used by the other screen tests.
+            input.text = originalName; GameObject.Find("저장").GetComponent<Button>().onClick.Invoke();
+            GameObject.Find("변경").GetComponent<Button>().onClick.Invoke();
+        }
+
+        [UnityTest]
+        public IEnumerator Settings_ReopenRetainsSwitch_OffThumbRemainsVisible_AndTabsUpdateTitle()
+        {
+            host.Registry.Open("settings"); yield return null;
+            var toggle = GameObject.Find("음악 toggle").GetComponent<Toggle>();
+            bool original = toggle.isOn;
+            toggle.isOn = !original;
+            host.CloseTop(); yield return null;
+            host.Registry.Open("settings"); yield return null;
+            toggle = GameObject.Find("음악 toggle").GetComponent<Toggle>();
+            Assert.AreEqual(!original, toggle.isOn);
+            toggle.isOn = false; yield return null;
+            var thumb = toggle.transform.Find("Thumb").GetComponent<Image>();
+            Assert.IsTrue(thumb.enabled);
+            Assert.Greater(thumb.canvasRenderer.GetAlpha(), .99f, "Off must show the switch thumb, not fade it out.");
+            Assert.AreEqual(6f, thumb.rectTransform.anchoredPosition.x);
+            toggle.isOn = true;
+            Assert.AreEqual(80f, thumb.rectTransform.anchoredPosition.x);
+            toggle.isOn = original;
+            GameObject.Find("프로필").GetComponent<Button>().onClick.Invoke();
+            var frame = GameObject.Find("설정 frame").transform;
+            Assert.AreEqual("프로필", frame.Find("Title").GetComponent<Text>().text);
+            Assert.IsNotNull(GameObject.Find("Profile name"));
+            GameObject.Find("설정").GetComponent<Button>().onClick.Invoke();
+            Assert.AreEqual("설정", frame.Find("Title").GetComponent<Text>().text);
+        }
+
         static RectTransform Child(string name, Transform parent)
         {
             var rect = new GameObject(name, typeof(RectTransform)).GetComponent<RectTransform>();
