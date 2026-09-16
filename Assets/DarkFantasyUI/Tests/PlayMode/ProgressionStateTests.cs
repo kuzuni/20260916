@@ -161,6 +161,81 @@ namespace Moonlit.UI.Tests
             Assert.IsTrue(first.IsInteractable());
         }
 
+        [UnityTest]
+        public IEnumerator EquipmentPopups_ReuseSlots_KeepMainBinding_AndResumePendingCraft()
+        {
+            ForgeScreenModule.Register(host.Registry);
+            var screen = root.GetComponent<MainScreen>();
+            var item = ScriptableObject.CreateInstance<ItemDefinition>();
+            item.displayName = "검증 장비"; item.startingLevel = 108;
+            item.icon = PopupSkin.CloseArt;
+            // Populate an inactive serialized-prefab equivalent before Awake reads its fields.
+            var templateObject = new GameObject("slot template", typeof(RectTransform));
+            templateObject.transform.SetParent(root.transform, false);
+            templateObject.SetActive(false);
+            var template = templateObject.AddComponent<EquipmentSlot>();
+            template.frame = Ui.Image("Frame", template.transform, 0, 0, 148, 148, PopupSkin.PanelArt);
+            template.equipmentFrame = PopupSkin.PanelArt;
+            template.icon = Ui.Image("Icon", template.transform, 0, 0, 128, 128, null);
+            template.levelLabel = Ui.Text("Level", template.transform, 0, 110, 148, 38, "", 28, assets.font);
+            template.starLabel = Ui.Text("Star", template.transform, 0, 138, 148, 28, "★", 24, assets.font);
+            template.lockedBadge = Child("lock", template.transform).gameObject;
+            template.notificationBadge = Child("notification", template.transform).gameObject;
+            template.selection = Child("selection", template.transform).gameObject;
+            template.Button.targetGraphic = template.frame;
+            template.Bind(item, 123);
+            templateObject.SetActive(true);
+            assets.equipmentSlotPrefab = template;
+            assets.items = new[] { item };
+            screen.equipment = new[] { template };
+            int oreBefore = screen.ore;
+            try
+            {
+                foreach (int height in new[] { 1920, 2280 })
+                {
+                    host.SetPreviewMetrics(new Vector2Int(1080, height),
+                        new Rect(36, 84, 1008, height - 204));
+                    host.Registry.Open("equipment-details", template);
+                    yield return null;
+                    var dialog = GameObject.Find("Equipment details Dialog");
+                    var detail = dialog.GetComponentInChildren<EquipmentSlot>();
+                    Assert.AreNotSame(template, detail);
+                    Assert.AreSame(item.icon, detail.icon.sprite);
+                    Assert.AreSame(template.frame.sprite, detail.frame.sprite);
+                    Assert.AreNotSame(detail.frame, detail.icon);
+                    Assert.AreEqual("Lv.123", detail.levelLabel.text);
+                    Assert.IsFalse(detail.Button.enabled);
+                    Assert.IsTrue(detail.GetComponentsInChildren<Graphic>(true).All(g => !g.raycastTarget));
+                    dialog.GetComponentsInChildren<Button>().Single(b => b.name == "Close").onClick.Invoke();
+                    yield return null;
+                    Assert.AreEqual(0, host.ModalDepth);
+                }
+
+                host.Registry.Open("forge-comparison"); yield return null;
+                int craftId = screen.PendingCraftId;
+                Assert.AreEqual(oreBefore - 100, screen.ore);
+                var current = GameObject.Find("Current equipment").GetComponentInChildren<EquipmentSlot>();
+                var next = GameObject.Find("New equipment").GetComponentInChildren<EquipmentSlot>();
+                Assert.AreEqual(123, current.level);
+                Assert.AreEqual(124, next.level);
+                Assert.AreSame(item, current.item);
+                Assert.AreSame(item, next.item);
+                Assert.AreEqual(123, template.level, "The preview must not mutate the equipped slot.");
+                GameObject.Find("Equipment comparison Dialog").GetComponentsInChildren<Button>()
+                    .Single(b => b.name == "Close").onClick.Invoke();
+                yield return null;
+                host.Registry.Open("forge-comparison"); yield return null;
+                Assert.AreEqual(craftId, screen.PendingCraftId);
+                Assert.AreEqual(oreBefore - 100, screen.ore, "Resuming a pending result must not charge twice.");
+                GameObject.Find("장착").GetComponent<Button>().onClick.Invoke();
+                yield return null;
+                Assert.AreEqual(124, template.level);
+                Assert.IsNull(screen.PendingCraftItem);
+                Assert.AreEqual(0, host.ModalDepth);
+            }
+            finally { Object.DestroyImmediate(item); }
+        }
+
         static string[] ResultNames()
         {
             return GameObject.Find("Summon result cards").transform.Cast<Transform>()
