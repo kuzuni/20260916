@@ -54,8 +54,18 @@ namespace Moonlit.UI.Tests
             host.Registry.Open("skills-pets-heroes");
             yield return null;
             GameObject.Find("Tab 스킬").GetComponent<Button>().onClick.Invoke(); yield return null;
-            var scroll = Object.FindObjectsByType<ScrollRect>(FindObjectsSortMode.None).Single();
             var skillTab = GameObject.Find("Tab 스킬").GetComponent<Button>();
+            var petTab = GameObject.Find("Tab 펫").GetComponent<Button>();
+            var heroTab = GameObject.Find("Tab 영웅").GetComponent<Button>();
+            Assert.IsNotNull(PopupSkin.ActionArt);
+            Assert.IsNotNull(PopupSkin.PanelArt);
+            petTab.onClick.Invoke(); yield return null;
+            Assert.AreSame(PopupSkin.ActionArt, ((Image)petTab.targetGraphic).sprite);
+            Assert.AreSame(PopupSkin.PanelArt, ((Image)skillTab.targetGraphic).sprite);
+            skillTab.onClick.Invoke(); yield return null;
+            Assert.AreSame(PopupSkin.ActionArt, ((Image)skillTab.targetGraphic).sprite);
+            Assert.AreSame(PopupSkin.PanelArt, ((Image)petTab.targetGraphic).sprite);
+            var scroll = Object.FindObjectsByType<ScrollRect>(FindObjectsSortMode.None).Single();
             scroll.content.sizeDelta = new Vector2(0, 3000);
             Canvas.ForceUpdateCanvases();
             scroll.verticalNormalizedPosition = .41f;
@@ -74,7 +84,10 @@ namespace Moonlit.UI.Tests
             Assert.AreNotEqual(levelBefore, ChildText(parentSlot.transform, "Level").text);
             var equipped = GameObject.Find("Equipped skills").transform;
             Assert.IsTrue(equipped.Cast<Transform>().Any(t => t.name == "Skill 핏빛 파편"));
-            Assert.That(skillTab.targetGraphic.color.b, Is.EqualTo(.48f).Within(.01f), "Skill tab selection must survive the child modal");
+            Assert.AreSame(PopupSkin.ActionArt, ((Image)skillTab.targetGraphic).sprite,
+                "Skill tab selection must survive the child modal");
+            Assert.AreSame(PopupSkin.PanelArt, ((Image)petTab.targetGraphic).sprite);
+            Assert.AreSame(PopupSkin.PanelArt, ((Image)heroTab.targetGraphic).sprite);
         }
 
         [UnityTest]
