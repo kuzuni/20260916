@@ -335,30 +335,61 @@ namespace Moonlit.UI
             c.Close();
         }
 
+        static Sprite hammerArt;
+        static Sprite HammerArt()
+        {
+            if (hammerArt) return hammerArt;
+            var texture = Resources.Load<Texture2D>("Moonlit/Forge/RewardHammer-v1");
+            if (!texture) return null;
+            hammerArt = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height),
+                new Vector2(.5f,.5f), 100, 0, SpriteMeshType.FullRect);
+            hammerArt.name = "RewardHammer-v1";
+            return hammerArt;
+        }
+
+        static void RewardRule(Transform parent, float y, float width)
+        {
+            Ui.Image("Reward divider", parent, 52, y, width - 104, 2, null, Ui.Gold);
+            Ui.Image("Divider ornament", parent, width * .5f - 30, y - 11, 60, 24,
+                PopupSkin.CrestArt).preserveAspect = true;
+        }
+
         static void BuildOfflineRewards(ScreenContext c)
         {
-            Frame(c, "오프라인 보상", 690, 790, out var b);
-            Ui.Text("Elapsed", b, 0, 8, b.rect.width, 54, "수집 시간: 2분 34초", 28, Font(c), new Color(.1f,1f,.25f));
-            RewardIcon(c, b, 90, 100, "♛", "1.13/초", Ui.Gold);
-            RewardIcon(c, b, 360, 100, "⚒", "1.14/분", new Color(.8f,.82f,.86f));
-            Ui.Image("Divider", b, 60, 340, b.rect.width - 120, 3, null, Ui.Gold);
-            Ui.Text("Totals", b, 0, 375, b.rect.width, 82, "♛ 174.22      ⚒ 2.31", 34, Font(c));
+            Frame(c, "오프라인 보상", 740, 900, out var b);
+            Ui.Text("Elapsed", b, 0, 8, b.rect.width, 54,
+                "수집 시간: <color=#35FF35>2분 34초</color>", 30, Font(c));
+            RewardRule(b, 80, b.rect.width);
+            float left = (b.rect.width - 420) * .5f;
+            RewardIcon(c, b, left, 118, "Gold reward", CurrencyIcon(c, 0), "1.13/초");
+            RewardIcon(c, b, left + 250, 118, "Forge reward", HammerArt(), "1.14/분");
+            RewardRule(b, 366, b.rect.width);
+            var totals = PopupSkin.Panel("Reward totals", b, 60, 416, b.rect.width - 120, 86);
+            // Display exactly the integer currencies that the local demo will grant.
+            Ui.Image("Gold total icon", totals.transform, 18, 12, 62, 62, CurrencyIcon(c, 0)).preserveAspect = true;
+            Ui.Text("Gold total", totals.transform, 88, 8, 136, 70, OfflineGold.ToString(), 35, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
+            Ui.Image("Forge total icon", totals.transform, 298, 12, 62, 62, HammerArt()).preserveAspect = true;
+            Ui.Text("Forge total", totals.transform, 370, 8, 116, 70, OfflineOre.ToString(), 35, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
             var label = c.Main.offlineRewardsClaimed ? "수집 완료" : "수집";
             Button claim = null;
-            claim = Action(c, b, 135, 500, 360, 110, label, () =>
+            claim = Action(c, b, (b.rect.width - 360) * .5f, 570, 360, 124, label, () =>
             {
                 if (!c.Main.ClaimOfflineRewards(OfflineGold, OfflineOre)) { c.Toast("이미 수집한 보상입니다."); return; }
                 claim.interactable = false;
                 claim.GetComponentInChildren<Text>().text = "수집 완료"; c.Toast("골드 +174 · 강화석 +2 수집 완료");
             });
+            claim.GetComponentInChildren<Text>().fontSize = 42;
             claim.interactable = !c.Main.offlineRewardsClaimed;
         }
 
-        static void RewardIcon(ScreenContext c, Transform p, float x, float y, string glyph, string rate, Color color)
+        static void RewardIcon(ScreenContext c, Transform p, float x, float y, string name, Sprite icon, string rate)
         {
-            Ui.Panel("Reward", p, x, y, 170, 170, new Color(.22f,.10f,.02f));
-            Ui.Text("Glyph", p, x, y, 170, 150, glyph, 68, Font(c), color);
-            Ui.Text("Rate", p, x - 10, y + 175, 190, 42, rate, 27, Font(c), new Color(.1f,1f,.2f));
+            var frameArt = c.Assets != null && c.Assets.equipmentSlotPrefab
+                ? c.Assets.equipmentSlotPrefab.equipmentFrame : PopupSkin.PanelArt;
+            var frame = Ui.Image(name, p, x, y, 170, 170, frameArt);
+            frame.type = Image.Type.Sliced; frame.pixelsPerUnitMultiplier = 7;
+            Ui.Image("Reward illustration", frame.transform, 24, 22, 122, 126, icon).preserveAspect = true;
+            Ui.Text("Rate", frame.transform, -10, 176, 190, 48, rate, 30, Font(c), new Color(.1f,1f,.2f));
         }
 
         static void BuildAutoForge(ScreenContext c)
