@@ -19,7 +19,6 @@ namespace Moonlit.UI
         static int autoHammerCount = 22;
         static bool autoContinue = true;
         static bool autoFilterEnabled = true;
-        static Sprite checkboxArt;
         static readonly HashSet<int> passClaims = new HashSet<int>();
         const int ComparisonCost = 100;
         const int OfflineGold = 174;
@@ -490,13 +489,7 @@ namespace Moonlit.UI
 
         static Toggle Check(ScreenContext c, Transform p, float x, float y, bool value)
         {
-            if (!checkboxArt)
-            {
-                var atlas = Resources.Load<Texture2D>("Moonlit/Forge/CheckboxFrame-v1");
-                if (atlas) checkboxArt = Sprite.Create(atlas, new Rect(0,0,atlas.width,atlas.height),
-                    new Vector2(.5f,.5f), 100, 0, SpriteMeshType.FullRect);
-            }
-            var bg=Ui.Image("Checkbox",p,x,y,48,48,checkboxArt); bg.preserveAspect=true; bg.raycastTarget=true;
+            var bg=Ui.Image("Checkbox",p,x,y,48,48,PopupSkin.CheckboxArt); bg.preserveAspect=true; bg.raycastTarget=true;
             var mark=Ui.Text("Checkmark",bg.transform,0,-3,48,48,"✓",35,Font(c),new Color(1f,.78f,.28f));
             var toggle=bg.gameObject.AddComponent<Toggle>(); toggle.targetGraphic=bg; toggle.graphic=mark; toggle.isOn=value;
             return toggle;

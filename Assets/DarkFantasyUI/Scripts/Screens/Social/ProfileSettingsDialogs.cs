@@ -137,14 +137,18 @@ namespace Moonlit.UI
             {
                 int index=i;
                 var row=Ui.Image("Language "+i,content,0,i*66,w-68,66,null,Color.clear); row.raycastTarget=true;
-                var box=PopupSkin.Panel("Language checkbox",row.transform,24,11,44,44);
+                var box=Ui.Image("Language checkbox",row.transform,18,5,56,56,PopupSkin.CheckboxArt);
+                box.preserveAspect=true;
+                var selectedTint=new Color(.35f,1f,.2f);
+                box.color=i==selectedLanguage?selectedTint:Color.white;
                 Ui.Text("Language label",row.transform,98,0,w-186,66,Languages[i],30,Font(c),Ui.Ivory,TextAnchor.MiddleLeft);
                 Ui.Image("Language rule",row.transform,0,64,w-68,1,null,new Color(.6f,.45f,.25f,.6f));
-                var check=Ui.Text("Language selected",box.transform,0,-2,44,44,"✓",38,Font(c),Green);
+                var check=Ui.Text("Language selected",box.transform,6,4,44,44,"✓",38,Font(c),Green);
                 var toggle=row.gameObject.AddComponent<UnityEngine.UI.Toggle>();
                 toggle.targetGraphic=box; toggle.graphic=check; toggle.isOn=i==selectedLanguage;
                 toggle.group=group;
                 toggle.onValueChanged.AddListener(on=>{
+                    box.color=on?selectedTint:Color.white;
                     if(on) { selectedLanguage=index; c.Toast("언어 선택을 저장했습니다 · 번역은 데모에 연결되지 않았습니다."); }
                 });
             }

@@ -458,10 +458,16 @@ namespace Moonlit.UI.Tests
             GameObject.Find("Settings link 0").GetComponent<Button>().onClick.Invoke(); yield return null;
             var languages=GameObject.Find("Language scroll").GetComponentsInChildren<Toggle>();
             Assert.AreEqual(11,languages.Length);
+            Assert.IsNotNull(PopupSkin.CheckboxArt,"Shared checkbox artwork must import successfully");
+            foreach(var language in languages)
+                Assert.AreSame(PopupSkin.CheckboxArt,((Image)language.targetGraphic).sprite);
             Assert.AreEqual(1,languages.Count(t=>t.isOn));
             Assert.IsTrue(languages.Single(t=>t.name=="Language 3").isOn);
             languages.Single(t=>t.name=="Language 0").isOn=true;
             Assert.AreEqual(1,languages.Count(t=>t.isOn));
+            Assert.AreEqual(Color.white,languages.Single(t=>t.name=="Language 3").targetGraphic.color,
+                "Changing language must clear the previous green frame");
+            Assert.AreNotEqual(Color.white,languages.Single(t=>t.name=="Language 0").targetGraphic.color);
             host.CloseTop(); yield return null;
             Assert.AreSame(parent,GameObject.Find("Popup Layer settings"));
             GameObject.Find("Settings link 0").GetComponent<Button>().onClick.Invoke(); yield return null;
