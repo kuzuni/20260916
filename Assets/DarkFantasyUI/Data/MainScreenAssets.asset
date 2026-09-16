@@ -1,0 +1,63 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 632dd9880a17ad44ea324661dd7fcf3d, type: 3}
+  m_Name: MainScreenAssets
+  m_EditorClassIdentifier: Moonlit.UI::Moonlit.UI.MainScreenAssets
+  font: {fileID: 12800000, guid: ebae0674b7ea8454a892209881972ce4, type: 3}
+  worldBackground: {fileID: 21300000, guid: a6e746751dd4d5a4fbafa4e7ffc441c0, type: 3}
+  forgeBackground: {fileID: 21300000, guid: 45f50b211b47c0040851eabe86fede2f, type: 3}
+  anvil: {fileID: 21300000, guid: 3cf594fbea827bb4fb4bc0f8c6ae211a, type: 3}
+  circle: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
+  equipmentIcons:
+  - {fileID: -870318241, guid: c14997d8ab837e542ab3a893c6bf0f17, type: 3}
+  - {fileID: 1892020097, guid: c14997d8ab837e542ab3a893c6bf0f17, type: 3}
+  - {fileID: 879583555, guid: c14997d8ab837e542ab3a893c6bf0f17, type: 3}
+  - {fileID: -1108030118, guid: c14997d8ab837e542ab3a893c6bf0f17, type: 3}
+  - {fileID: -1514609681, guid: c14997d8ab837e542ab3a893c6bf0f17, type: 3}
+  - {fileID: 2062302244, guid: c14997d8ab837e542ab3a893c6bf0f17, type: 3}
+  - {fileID: 208702149, guid: c14997d8ab837e542ab3a893c6bf0f17, type: 3}
+  - {fileID: -543297716, guid: c14997d8ab837e542ab3a893c6bf0f17, type: 3}
+  - {fileID: -548188043, guid: c14997d8ab837e542ab3a893c6bf0f17, type: 3}
+  interfaceIcons:
+  - {fileID: -1048251230, guid: f605fa8fac55df74f8ef25b99dd0db6b, type: 3}
+  - {fileID: -33380183, guid: f605fa8fac55df74f8ef25b99dd0db6b, type: 3}
+  - {fileID: 547725780, guid: f605fa8fac55df74f8ef25b99dd0db6b, type: 3}
+  - {fileID: 2046828264, guid: f605fa8fac55df74f8ef25b99dd0db6b, type: 3}
+  - {fileID: -975863941, guid: f605fa8fac55df74f8ef25b99dd0db6b, type: 3}
+  - {fileID: 66220149, guid: f605fa8fac55df74f8ef25b99dd0db6b, type: 3}
+  - {fileID: -861631460, guid: f605fa8fac55df74f8ef25b99dd0db6b, type: 3}
+  - {fileID: 1695412459, guid: f605fa8fac55df74f8ef25b99dd0db6b, type: 3}
+  - {fileID: 322147891, guid: f605fa8fac55df74f8ef25b99dd0db6b, type: 3}
+  - {fileID: -486561955, guid: f605fa8fac55df74f8ef25b99dd0db6b, type: 3}
+  - {fileID: 660809819, guid: f605fa8fac55df74f8ef25b99dd0db6b, type: 3}
+  - {fileID: 802178142, guid: f605fa8fac55df74f8ef25b99dd0db6b, type: 3}
+  - {fileID: 1617300636, guid: f605fa8fac55df74f8ef25b99dd0db6b, type: 3}
+  - {fileID: -618190980, guid: f605fa8fac55df74f8ef25b99dd0db6b, type: 3}
+  - {fileID: -1877551721, guid: f605fa8fac55df74f8ef25b99dd0db6b, type: 3}
+  - {fileID: -1752901635, guid: f605fa8fac55df74f8ef25b99dd0db6b, type: 3}
+  panels:
+  - {fileID: -447151205, guid: cffba510caf59774da475ca67ec73ab6, type: 3}
+  - {fileID: 369570935, guid: cffba510caf59774da475ca67ec73ab6, type: 3}
+  - {fileID: 1846592671, guid: cffba510caf59774da475ca67ec73ab6, type: 3}
+  - {fileID: -1085671888, guid: cffba510caf59774da475ca67ec73ab6, type: 3}
+  - {fileID: 726782395, guid: cffba510caf59774da475ca67ec73ab6, type: 3}
+  items:
+  - {fileID: 11400000, guid: c6a0a68baa12af04184bb8ad15b2f895, type: 2}
+  - {fileID: 11400000, guid: a38a192aa8398b047a03a6ea73e1720c, type: 2}
+  - {fileID: 11400000, guid: 109ceaf8d8e9641449b949133c753f0b, type: 2}
+  - {fileID: 11400000, guid: cd06be264296b224fa78e2322f05f31a, type: 2}
+  - {fileID: 11400000, guid: 60dbdbc0cba49fc47a26e056d88b1690, type: 2}
+  - {fileID: 11400000, guid: 26e71320ffabb5047887f6a377a49244, type: 2}
+  - {fileID: 11400000, guid: 05c7a93641491464f9c0ebc6504b85b2, type: 2}
+  - {fileID: 11400000, guid: eb9d62dee121e9e44bba166f9426d5d4, type: 2}
+  - {fileID: 11400000, guid: 029d463fd403a9844a053b8ca93c91ed, type: 2}
+  equipmentSlotPrefab: {fileID: 3318869099206217377, guid: cc79ff5604408864b91196ad59f48ee8, type: 3}

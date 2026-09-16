@@ -1,2 +1,10 @@
-PASS: pointer raycast hit tests for independent anvil, forge management, auto, frameless events, chat and all five navigation buttons; separate forge management without spending; forge cost and level increment; locked item excluded; auto toggle; item detail modal; all navigation actions; empty slot reset; independent icon rebind; lock and notification states; insufficient currency guard.
+PASS — runtime generation and responsive safe-area validation
+PASS 9x16 1080x1920 safe=(x:0.00, y:0.00, width:1080.00, height:1920.00) buttons=25 logicalHeight=1920
+PASS 9x19 1080x2280 safe=(x:0.00, y:0.00, width:1080.00, height:2280.00) buttons=25 logicalHeight=2280
+PASS 9x16-notch 1080x1920 safe=(x:0.00, y:60.00, width:1080.00, height:1740.00) buttons=25 logicalHeight=1740
+PASS 9x19-notch 1080x2280 safe=(x:0.00, y:84.00, width:1080.00, height:2076.00) buttons=25 logicalHeight=2076
+PASS 9x19-side-insets 1080x2280 safe=(x:36.00, y:84.00, width:1008.00, height:2076.00) buttons=25 logicalHeight=2224
+PASS 9x16-resized-back 1080x1920 safe=(x:0.00, y:0.00, width:1080.00, height:1920.00) buttons=25 logicalHeight=1920
+PASS runtime slot binding, forge, lock exclusion, auto toggle, independent management, navigation, insufficient-resource handling
 Unity 6000.3.8f1
+Device cutouts were simulated in the Editor; physical hardware was not used.

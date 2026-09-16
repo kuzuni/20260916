@@ -1,6 +1,21 @@
 # Moonlit — dark fantasy main screen
 
-Unity 6000.3 / uGUI, portrait 1080 × 1920. Open `Scenes/MoonlitMain.unity` and press Play. The original SampleScene is preserved. `Moonlit > Build Main Screen` regenerates the new scene, data and reusable prefab; it should only be used when intentionally resetting this UI's layout.
+Unity 6000.3 / uGUI. Open `Scenes/MoonlitMain.unity` and press Play.
+
+## Runtime generation
+
+The saved scene contains exactly one `Moonlit Runtime Bootstrap` object, with a `MainScreenBootstrap` component and a reference to `Data/MainScreenAssets.asset`. No Canvas, camera, UI buttons or equipment slots are pre-placed in the scene. `Awake` creates the camera, Canvas, HUD, inventory, forge, chat, navigation and EventSystem. Stopping Play mode removes that runtime hierarchy.
+
+- `MainScreenBootstrap.Build()` is idempotent: calling it again returns the existing screen.
+- `RuntimeMainScreenFactory.cs` and `RuntimeMainScreenLayout.cs` contain the runtime construction code; they have no UnityEditor dependencies.
+- `MainScreenAssets` holds serialized references to the generated artwork, fonts, item data and the reusable slot prefab. Artwork is bundled locally; no image-generation service is called at runtime.
+- `Moonlit > Build Main Screen` is a development setup command that refreshes the asset catalog/prefab and saves the bootstrap-only scene. Normal launches need only Play.
+
+## Responsive portrait layout and Safe Area
+
+Both 9:16 (1080 × 1920) and 9:19 (1080 × 2280) use a 1080-unit logical width. The HUD anchors to the safe top, and the equipment/forge/chat/navigation block anchors to the safe bottom. Additional height expands the battle viewport; buttons retain their proportions. The scenery fills the screen and is cropped proportionally instead of stretched.
+
+`PortraitSafeArea` reads `Screen.safeArea` and the current screen dimensions before rendering and on each update, so OS-reported camera cutouts, notches, home-indicator insets and size changes are respected. Interactive controls and centered dialogs live inside that safe rectangle; decorative scenery may extend behind system areas. There is a compact-layout fallback for unusually short viewports. Preview overrides exist only in Editor builds.
 
 ## Reusable equipment slots
 
@@ -11,7 +26,7 @@ Unity 6000.3 / uGUI, portrait 1080 × 1920. Open `Scenes/MoonlitMain.unity` and 
 - **Level / rarity star:** live UI Text elements.
 - **Lock / notification / selection:** independent visibility layers.
 
-`Data/Item_00.asset` through `Item_08.asset` are ScriptableObject item definitions containing an icon, name, rarity, starting level and description. The prefab itself has no item assigned, and all nine scene slots are instances of that one prefab. The companion slot stretches the same frame to double width while preserving icon aspect ratio.
+`Data/Item_00.asset` through `Item_08.asset` are ScriptableObject item definitions containing an icon, name, rarity, starting level and description. The prefab itself has no item assigned, and all nine runtime slots are instances of that one prefab. The companion slot stretches the same frame to double width while preserving icon aspect ratio.
 
 ```csharp
 slot.Bind(itemDefinition, itemLevel: 108, locked: false, notify: true);
@@ -22,7 +37,7 @@ slot.Bind(null); // clears previous icon, level, badges and selection
 slot.Clicked += selectedSlot => Debug.Log(selectedSlot.item.displayName);
 ```
 
-Assign a different sprite to an item's `icon` field to reuse the slot with any future artwork. Rarity selects or tints the frame independently; the item icon is never tinted. PortraitSafeArea fits the 1080 × 1920 design within device safe areas and adds letterboxing on wider displays.
+Assign a different sprite to an item's `icon` field to reuse the slot with any future artwork. Rarity selects or tints the frame independently; the item icon is never tinted. PortraitSafeArea adapts the logical height to the safe viewport while preserving slot aspect ratios.
 
 ## Local UI interactions
 
@@ -43,9 +58,10 @@ Noto Sans KR and Noto Sans CJK KR Bold are bundled under the SIL Open Font Licen
 
 ## Verification
 
-`Moonlit > Capture Main Screen` writes `Artifacts/MoonlitMain.png`. The editor's one-shot local command runner accepts `build`, `capture` or `verify` in `Library/Moonlit.command`. `verify` runs a Play mode smoke check and writes `Artifacts/Verification.txt`. It checks costs, locked-slot exclusion, auto toggle, dialogs, navigation, clearing/rebinding a reusable slot and insufficient-resource handling.
+`Moonlit > Capture Main Screen` or the `verify` command in `Library/Moonlit.command` enters Play mode, verifies the runtime-built UI, writes six screenshots to `Artifacts/Runtime-*.png`, writes `Artifacts/Verification.txt`, and returns to Edit mode. The saved scene remains bootstrap-only.
+
+The cases cover 9:16 and 9:19 without cutouts, both sizes with simulated top/bottom insets, additional side insets, and returning to 9:16. Each case checks all 25 button hit targets, button/text bounds, safe-centered dialogs, fixed control proportions and idempotent initialization. Runtime interactions also check slot clearing/rebinding, forge resource costs, locks, automatic forging and navigation. These are Editor simulations, not physical-device tests.
 
 ## Reference fidelity revision
 
 Event buttons are frameless. Navigation uses five large icons on one shared stone panel without individual boxes or labels. Currency icons use a round crown coin and tall diamond ruby; the shop uses a striped awning. Chat includes a speech balloon and live text with a 99 badge. Forge management and auto use silver-beveled cobalt blue backplates; auto shows a circular-arrow icon that rotates while active. The anvil has its own clickable silhouette and press feedback. All decorative layers ignore raycasts. Verify also checks actual pointer hit targets for the anvil, forge management, auto, events, chat and navigation.
-

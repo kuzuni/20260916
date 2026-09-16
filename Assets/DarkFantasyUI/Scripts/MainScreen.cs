@@ -126,8 +126,11 @@ namespace Moonlit.UI
         {
             if(modal != null) DestroyImmediate(modal);
             var shade=Ui.Image("Modal overlay",design,0,0,1080,1920,null,new Color(0,.015f,.025f,.85f)); shade.raycastTarget=true; modal=shade.gameObject;
+            Ui.Stretch(shade.rectTransform);
             var dismiss=shade.gameObject.AddComponent<Button>(); dismiss.onClick.AddListener(Close);
             var panel=Ui.Panel("Dialog",shade.transform,170,(1920-height)/2,740,height,new Color(.025f,.055f,.075f)); panel.raycastTarget=true;
+            panel.rectTransform.anchorMin=panel.rectTransform.anchorMax=panel.rectTransform.pivot=new Vector2(.5f,.5f);
+            panel.rectTransform.anchoredPosition=Vector2.zero;
             Ui.Text("Title",panel.transform,55,25,630,56,title,35,font);
             Ui.Image("Divider",panel.transform,45,94,650,2,null,Ui.Gold);
             Ui.Button("Close",panel.transform,662,12,60,60,"×",font,Close,new Color(.06f,.08f,.1f),35);
@@ -149,6 +152,8 @@ namespace Moonlit.UI
             if(toastRoutine != null) StopCoroutine(toastRoutine);
             if(!toast) {
                 var bg=Ui.Panel("Toast",design,140,855,800,75,new Color(.02f,.04f,.055f,.97f));
+                bg.rectTransform.anchorMin=bg.rectTransform.anchorMax=bg.rectTransform.pivot=new Vector2(.5f,0);
+                bg.rectTransform.anchoredPosition=new Vector2(0,995);
                 toast=Ui.Text("Message",bg.transform,12,3,776,69,"",25,font,Ui.Ivory);
             }
             toast.transform.parent.SetAsLastSibling(); toast.transform.parent.gameObject.SetActive(true); toast.text=message;

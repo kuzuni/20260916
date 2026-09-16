@@ -46,7 +46,7 @@ namespace Moonlit.Editor
         {
             if(EditorApplication.isPlaying) throw new InvalidOperationException("Exit Play mode before rebuilding.");
             var active=EditorSceneManager.GetActiveScene();
-            if(active.isDirty && !active.GetRootGameObjects().Any(g=>g.name=="Moonlit Main Canvas")) throw new InvalidOperationException("Save the current scene before building the separate main-screen scene.");
+            if(active.isDirty && !active.GetRootGameObjects().Any(g=>g.name=="Moonlit Main Canvas" || g.GetComponent<MainScreenBootstrap>())) throw new InvalidOperationException("Save the current scene before building the separate main-screen scene.");
             ImportArt();
             font=AssetDatabase.LoadAssetAtPath<Font>(Root+"Fonts/NotoSansCJKkr-Bold.otf");
             if(!font) throw new InvalidOperationException("Korean bold font not imported.");
@@ -57,54 +57,24 @@ namespace Moonlit.Editor
             circle=AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Knob.psd");
             var items=CreateItems();
             var prefab=CreateSlotPrefab();
+            const string assetPath=Root+"Data/MainScreenAssets.asset";
+            var assets=AssetDatabase.LoadAssetAtPath<MainScreenAssets>(assetPath);
+            if(!assets) { assets=ScriptableObject.CreateInstance<MainScreenAssets>(); AssetDatabase.CreateAsset(assets,assetPath); }
+            assets.font=font; assets.circle=circle; assets.equipmentIcons=icons; assets.interfaceIcons=referenceIcons; assets.panels=panels; assets.items=items;
+            assets.equipmentSlotPrefab=prefab.GetComponent<EquipmentSlot>();
+            assets.worldBackground=AssetDatabase.LoadAssetAtPath<Sprite>(Root+"Art/MoonlitRuins.png");
+            assets.forgeBackground=AssetDatabase.LoadAssetAtPath<Sprite>(Root+"Art/ForgeBackdrop-v2.png");
+            assets.anvil=AssetDatabase.LoadAssetAtPath<Sprite>(Root+"Art/AnvilButton-v2.png");
+            EditorUtility.SetDirty(assets);
             var scene=EditorSceneManager.NewScene(NewSceneSetup.EmptyScene,NewSceneMode.Single);
-            var camera=new GameObject("Main Camera",typeof(Camera)).GetComponent<Camera>();
-            camera.tag="MainCamera"; camera.orthographic=true; camera.orthographicSize=960;
-            camera.clearFlags=CameraClearFlags.SolidColor; camera.backgroundColor=new Color(.006f,.012f,.02f);
-            camera.transform.position=new Vector3(0,0,-10); camera.nearClipPlane=.01f; camera.farClipPlane=100;
-            var canvas=new GameObject("Moonlit Main Canvas",typeof(RectTransform),typeof(Canvas),typeof(CanvasScaler),typeof(GraphicRaycaster)).GetComponent<Canvas>();
-            canvas.renderMode=RenderMode.ScreenSpaceCamera; canvas.worldCamera=camera; canvas.planeDistance=10;
-            var scaler=canvas.GetComponent<CanvasScaler>(); scaler.uiScaleMode=CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution=new Vector2(1080,1920); scaler.screenMatchMode=CanvasScaler.ScreenMatchMode.Expand;
-            var design=Ui.Rect("Portrait 1080 x 1920",canvas.transform,0,0,1080,1920);
-            design.anchorMin=design.anchorMax=design.pivot=new Vector2(.5f,.5f); design.anchoredPosition=Vector2.zero;
-            var safe=canvas.gameObject.AddComponent<PortraitSafeArea>(); safe.design=design; safe.canvasRect=canvas.GetComponent<RectTransform>();
-            var main=design.gameObject.AddComponent<MainScreen>(); main.font=font; main.design=design; main.icons=icons; main.slotArt=frame;
-            Ui.Image("Moonlit ruins — generated environment",design,0,0,1080,1000,AssetDatabase.LoadAssetAtPath<Sprite>(Root+"Art/MoonlitRuins.png"));
-            Ui.Image("Forge backdrop — no baked anvil",design,0,935,1080,680,AssetDatabase.LoadAssetAtPath<Sprite>(Root+"Art/ForgeBackdrop-v2.png"));
-
-            BuildHud(main,design);
-            BuildStage(main,design);
-            var equipmentRoot=Ui.Rect("Equipment — shared slot prefab instances",design,0,0,1080,1920);
-            var slots=new List<EquipmentSlot>();
-            for(int i=0;i<9;i++) {
-                int col=i<5 ? i : i-5; int row=i<5 ? 0 : 1;
-                var go=(GameObject)PrefabUtility.InstantiatePrefab(prefab,equipmentRoot);
-                go.name=items[i].displayName+" Slot";
-                var r=go.GetComponent<RectTransform>(); r.anchoredPosition=new Vector2(122+col*171,-(1000+row*177));
-                r.sizeDelta=new Vector2(i==8 ? 320 : 148,148);
-                var slot=go.GetComponent<EquipmentSlot>(); slot.Bind(items[i],-1,i==0,i==8);
-                PrefabUtility.RecordPrefabInstancePropertyModifications(slot);
-                PrefabUtility.RecordPrefabInstancePropertyModifications(r);
-                slots.Add(slot);
-            }
-            main.equipment=slots.ToArray();
-            BuildForgeAndChat(main,design);
-            BuildNavigation(main,design);
-            BuildMotes(design);
-            new GameObject("EventSystem",typeof(EventSystem),typeof(InputSystemUIInputModule));
-            main.Refresh();
+            var bootstrap=new GameObject("Moonlit Runtime Bootstrap").AddComponent<MainScreenBootstrap>(); bootstrap.assets=assets;
             EditorSceneManager.SaveScene(scene,Root+"Scenes/MoonlitMain.unity");
             var builds=EditorBuildSettings.scenes.Where(s=>s.path!=Root+"Scenes/MoonlitMain.unity").ToList();
             builds.Insert(0,new EditorBuildSettingsScene(Root+"Scenes/MoonlitMain.unity",true)); EditorBuildSettings.scenes=builds.ToArray();
-            AssetDatabase.SaveAssets();
-            Selection.activeGameObject=design.gameObject;
-            ConfigureGameView();
-            File.WriteAllText("Library/Moonlit.result","BUILD OK — MoonlitMain.unity; 9 prefab instances; independent anvil; 25 transparent icon sprites");
-            Debug.Log("[Moonlit] Main scene built with reusable equipment slots.");
-            EditorApplication.delayCall+=Capture;
+            AssetDatabase.SaveAssets(); Selection.activeGameObject=bootstrap.gameObject; ConfigureGameView();
+            File.WriteAllText("Library/Moonlit.result","BUILD OK — scene contains only MainScreenBootstrap; UI generated at runtime; assets and slot prefab referenced by MainScreenAssets");
+            Debug.Log("[Moonlit] Runtime-only scene prepared. Press Play to create the UI.");
         }
-
         static ItemDefinition[] CreateItems()
         {
             string[] names={"그림자 두건","서리강철 갑옷","심연의 장갑","푸른 달의 목걸이","금단의 마도서","태양의 날개","달빛 단검","수호자의 벨트","루비 갑충"};
@@ -161,17 +131,6 @@ namespace Moonlit.Editor
             var rim=Ui.Image("Notification",p,x,y,size,size,circle,Ui.Ivory);
             Ui.Image("Red dot",rim.transform,2,2,size-4,size-4,circle,new Color(1,.08f,.08f)); return rim.gameObject;
         }
-        static void BuildMotes(Transform p)
-        {
-            var group=Ui.Rect("Cyan drifting embers",p,0,0,1080,1920); group.SetSiblingIndex(2);
-            var fx=group.gameObject.AddComponent<Atmosphere>(); var rects=new List<RectTransform>(); var images=new List<Image>();
-            for(int i=0;i<22;i++) {
-                float x=35+(i*179)%1010, y=500+(i*67)%450; float size=3+i%4;
-                var image=Ui.Image("Ember "+i,group,x,y,size,size,circle,new Color(.22f,.85f,1,.5f)); rects.Add(image.rectTransform); images.Add(image);
-            }
-            fx.motes=rects.ToArray(); fx.lights=images.ToArray();
-        }
-
         static void ConfigureGameView()
         {
             var assembly=typeof(UnityEditor.Editor).Assembly;
@@ -203,18 +162,9 @@ namespace Moonlit.Editor
         [MenuItem("Moonlit/Capture Main Screen")]
         public static void Capture()
         {
-            var camera=Camera.main; if(!camera) return;
-            Directory.CreateDirectory("Artifacts");
-            var old=camera.targetTexture; var active=RenderTexture.active;
-            var rt=new RenderTexture(1080,1920,24); camera.targetTexture=rt;
-            Canvas.ForceUpdateCanvases();
-            var safe=Object.FindFirstObjectByType<PortraitSafeArea>();
-            if(safe) { safe.design.localScale=Vector3.one; safe.design.anchoredPosition=Vector2.zero; }
-            Canvas.ForceUpdateCanvases(); camera.Render(); RenderTexture.active=rt;
-            var tex=new Texture2D(1080,1920,TextureFormat.RGB24,false); tex.ReadPixels(new Rect(0,0,1080,1920),0,0); tex.Apply();
-            File.WriteAllBytes("Artifacts/MoonlitMain.png",tex.EncodeToPNG());
-            RenderTexture.active=active; camera.targetTexture=old; Object.DestroyImmediate(tex); rt.Release(); Object.DestroyImmediate(rt);
-            Debug.Log("[Moonlit] Preview saved to Artifacts/MoonlitMain.png");
+            SessionState.SetBool("Moonlit.Verify",true);
+            if(EditorApplication.isPlaying) verifyAt=EditorApplication.timeSinceStartup+1;
+            else EditorApplication.isPlaying=true;
         }
         static void OnPlay(PlayModeStateChange state)
         {
@@ -224,34 +174,9 @@ namespace Moonlit.Editor
         }
         static void Verify()
         {
-            try {
-                var screen=Object.FindFirstObjectByType<MainScreen>();
-                if(!screen) throw new Exception("Missing MainScreen");
-                int ore=screen.ore; int total=screen.equipment.Sum(s=>s.level); int lockedLevel=screen.equipment[0].level;
-                Canvas.ForceUpdateCanvases();
-                foreach(var b in new[]{screen.forgeButton,screen.forgeLevelButton,screen.autoButton,screen.eventButton,screen.fairyButton,screen.chatButton}.Concat(screen.navigation)) AssertRaycast(b);
-                screen.forgeLevelButton.onClick.Invoke();
-                if(screen.ore!=ore || !screen.design.Find("Modal overlay")) throw new Exception("Forge management must open independently without spending stones");
-                screen.Close();
-                if(screen.eventButton.transform.Find("Artwork") || screen.fairyButton.transform.Find("Artwork")) throw new Exception("Event buttons must not have background frames");
-                screen.forgeButton.onClick.Invoke();
-                if(screen.ore!=ore-100 || screen.equipment.Sum(s=>s.level)!=total+1 || screen.equipment[0].level!=lockedLevel) throw new Exception("Forge debit, upgrade or locked-slot invariant failed");
-                screen.autoButton.onClick.Invoke(); if(!screen.autoForge) throw new Exception("Auto toggle failed"); screen.autoButton.onClick.Invoke();
-                screen.equipment[1].Button.onClick.Invoke();
-                if(!screen.design.Find("Modal overlay")) throw new Exception("Item dialog did not open");
-                screen.Close();
-                foreach(var nav in screen.navigation) { nav.onClick.Invoke(); screen.Close(); }
-                var blank=Object.Instantiate(screen.equipment[1],screen.design); blank.Bind(null);
-                if(blank.icon.enabled || blank.levelLabel.text!="" || blank.lockedBadge.activeSelf || blank.notificationBadge.activeSelf) throw new Exception("Empty slot has stale content");
-                blank.Bind(screen.equipment[2].item,8,true,true);
-                if(blank.icon.sprite!=screen.equipment[2].item.icon || blank.levelLabel.text!="Lv.8" || !blank.lockedBadge.activeSelf || !blank.notificationBadge.activeSelf) throw new Exception("Slot rebinding failed");
-                Object.DestroyImmediate(blank.gameObject);
-                screen.ore=0; screen.Forge(); if(screen.ore<0 || screen.autoForge) throw new Exception("Insufficient-resource guard failed");
-                Directory.CreateDirectory("Artifacts");
-                File.WriteAllText("Artifacts/Verification.txt","PASS: pointer raycast hit tests for independent anvil, forge management, auto, frameless events, chat and all five navigation buttons; separate forge management without spending; forge cost and level increment; locked item excluded; auto toggle; item detail modal; all navigation actions; empty slot reset; independent icon rebind; lock and notification states; insufficient currency guard.\nUnity "+Application.unityVersion);
-                Debug.Log("[Moonlit] Interaction verification passed.");
-            } catch(Exception e) { File.WriteAllText("Artifacts/Verification.txt","FAIL: "+e); Debug.LogException(e); }
-            finally { EditorApplication.isPlaying=false; }
+            var screen=Object.FindFirstObjectByType<MainScreen>();
+            if(!screen) { Directory.CreateDirectory("Artifacts"); File.WriteAllText("Artifacts/Verification.txt","FAIL: runtime bootstrap did not create MainScreen"); EditorApplication.isPlaying=false; return; }
+            screen.StartCoroutine(VerifyRuntime(screen));
         }
         static void AssertRaycast(Button button)
         {
@@ -264,6 +189,3 @@ namespace Moonlit.Editor
         }
     }
 }
-
-
-
