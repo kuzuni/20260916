@@ -240,7 +240,7 @@ namespace Moonlit.UI
             float size, ItemDefinition item, int level)
         {
             if (c.Assets == null || !c.Assets.equipmentSlotPrefab) return;
-            var preview = Object.Instantiate(c.Assets.equipmentSlotPrefab, parent, false);
+            var preview = UnityEngine.Object.Instantiate(c.Assets.equipmentSlotPrefab, parent, false);
             preview.name = "Equipment preview";
             var rect = (RectTransform)preview.transform;
             rect.anchorMin = rect.anchorMax = new Vector2(0, 1);
