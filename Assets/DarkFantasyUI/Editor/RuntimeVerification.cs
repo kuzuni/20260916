@@ -109,6 +109,7 @@ namespace Moonlit.Editor
                 try
                 {
                     if (navigationPixels != null) AssertNavigationVisible(navigationPixels, ReadNavigationPixels(screen, camera), screen);
+                    if (pageRoute) AssertPageJoinsNavigation(screen, camera, routeRoot);
                     if (route == "shop" || route == "pvp") AssertPageOccludesMain(canvas, camera, routeRoot);
                     foreach (var button in screen.navigation)
                     {
@@ -173,6 +174,20 @@ namespace Moonlit.Editor
             }
         }
 
+        // Compare actual rendered geometry, independently of the shared layout constant.
+        // A short page mask exposed a strip of the main chat above the navigation rail.
+        static void AssertPageJoinsNavigation(MainScreen screen, Camera camera, RectTransform pageRoot)
+        {
+            var mask = pageRoot.GetComponent<RectMask2D>();
+            var rail = (RectTransform)screen.navigation[0].transform.parent;
+            var pageEdge = RectTransformUtility.WorldToScreenPoint(camera,
+                pageRoot.TransformPoint(new Vector2(pageRoot.rect.center.x, pageRoot.rect.yMin + mask.padding.y)));
+            var railEdge = RectTransformUtility.WorldToScreenPoint(camera,
+                rail.TransformPoint(new Vector2(rail.rect.center.x, rail.rect.yMax)));
+            if (Mathf.Abs(pageEdge.y - railEdge.y) > 1f)
+                throw new Exception("Page/navigation seam mismatch: page=" + pageEdge.y + " rail=" + railEdge.y);
+        }
+
         // Toggle the underlying main canvas between two renders of the same page.
         // Any pixel change inside page content means HUD/scenery from main is leaking through.
         static void AssertPageOccludesMain(Canvas canvas, Camera camera, RectTransform pageRoot)
@@ -205,13 +220,15 @@ namespace Moonlit.Editor
             {
                 RenderTexture.active = target;
                 sample.ReadPixels(new Rect(0, 0, target.width, target.height), 0, 0); sample.Apply();
-                var pixels = new Color[32 * 48];
+                var pixels = new Color[32 * 56];
                 var rect = pageRoot.rect;
-                // Sample the page interior; exclude the 210-unit navigation reserve and clip edges.
-                for (int row = 0; row < 48; row++) for (int column = 0; column < 32; column++)
+                float bottom = rect.yMin + pageRoot.GetComponent<RectMask2D>().padding.y;
+                // Include a dense footer sample so narrow chat leaks do not fall between rows.
+                for (int row = 0; row < 56; row++) for (int column = 0; column < 32; column++)
                 {
                     var local = new Vector2(Mathf.Lerp(rect.xMin + 4, rect.xMax - 4, (column + .5f) / 32),
-                        Mathf.Lerp(rect.yMin + 214, rect.yMax - 4, (row + .5f) / 48));
+                        row < 48 ? Mathf.Lerp(bottom + 2, rect.yMax - 4, (row + .5f) / 48)
+                            : Mathf.Lerp(bottom + 2, bottom + 26, (row - 48 + .5f) / 8));
                     var point = RectTransformUtility.WorldToScreenPoint(camera, pageRoot.TransformPoint(local));
                     pixels[row * 32 + column] = sample.GetPixel(Mathf.Clamp(Mathf.RoundToInt(point.x), 0, target.width - 1),
                         Mathf.Clamp(Mathf.RoundToInt(point.y), 0, target.height - 1));

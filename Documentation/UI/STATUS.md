@@ -1,6 +1,17 @@
 # Moonlit 24 UI — coordinator status
 
-Updated 2026-09-16, 18:39 UTC. Implementation is unfinished; local coordinator and 15-minute heartbeat remain active.
+Updated 2026-09-16, 19:02 UTC. Implementation is unfinished; local coordinator and 15-minute heartbeat remain active.
+
+## Page/navigation seam and actual CI evidence
+
+- PR #31 is integrated in main **e881b76e2470810a390ba719e2bc24de87f93ac8**. Its source **2cacdeceb69cf3db8928ea7295bf6ccc589e8237**, run **35135761722**, test job **104927605391 SUCCESS**. Downloaded artifact **10463506945** and read NUnit XML: **31 passed, 0 failed, 0 skipped**. Graphics job **104932441031** remains in progress; new illustrated progress rims are not yet capture-approved.
+- PR #30 source **6d61000071ac4d8155e0b33295100d3d2273cb0b**, run **35133474570**, graphics job **104923938006 SUCCESS**. Downloaded artifact **10462144042**: **54 PNGs** and Verification.txt PASS. Viewed skills 9:19, shop 9:19 and PvP 9:16. Selected X and navigation are visible, but a thin strip of main chat leaks above navigation in the tall skills/shop pages. Automated success did not establish full visual acceptance.
+- Root cause: the page mask reserved 210 logical units while the navigation panel starts 198 units above the safe bottom. Replaced the independent values with a shared 198-unit rail edge, extending page artwork by 12 units. Page content controls and navigation dimensions stay in place. Compared original reference 19 again; main chat should not appear in this seam.
+- Extended hosted graphics verification to compare each of the four base pages' actual world-space clipping edge with the rendered navigation panel edge at both existing aspect/safe-area cases. Added dense footer pixel samples to the main-canvas occlusion comparison. These checks catch the gap rather than relying only on nav hit targets or widely spaced page samples.
+- Static diff check passed; this new seam fix still requires fresh hosted Unity compile/tests and captures. No local Unity execution. Existing eight local user PNG metadata edits remain preserved. No new artwork in this fix; missing skill catalog entries, equipped/max-level treatment, illustrations and other reference differences remain unfinished.
+- Seam fix PR **#32**, source **d0ceb77e759d53801cae72c202701afd38a430d0**, hosted run **35138143117** is in progress. Integrating as reviewable work in progress per user direction; capture acceptance remains pending.
+- Evidence: `C:/Users/user/AppData/Local/Temp/moonlit-cloud-review/artifact-10463506945/unpacked/Artifacts/TestResults/playmode-results.xml` and `artifact-10462144042/unpacked` under the same evidence root.
+- Next: inspect PR #31 graphics and the seam fix's fresh run, compare footer pixels and progress rims at both aspect ratios; then continue skill catalog/equipped treatment and remaining 24-screen reference fidelity. Automation `moonlit-24-ui` is ACTIVE every 15 minutes in the original desktop task.
 
 ## Progress frame artwork and resumed validation
 

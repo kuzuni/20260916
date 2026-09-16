@@ -7,6 +7,8 @@ namespace Moonlit.UI
     public sealed class PortraitSafeArea : MonoBehaviour
     {
         public const float DesignWidth=1080, BottomHeight=985, MinimumHeight=1600;
+        // Includes the 180-unit navigation panel and its 18-unit bottom margin.
+        public const float NavigationTopFromBottom=198;
         public RectTransform canvasRect, safeFrame, design, bottomPanel, battleViewport, battleArt;
         public RectTransform[] additionalSafeFrames, additionalDesigns, additionalBottomPanels;
         public Rect SafePixels { get; private set; }
