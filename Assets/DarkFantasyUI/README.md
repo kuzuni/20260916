@@ -11,6 +11,12 @@ The saved scene contains exactly one `Moonlit Runtime Bootstrap` object, with a 
 - `MainScreenAssets` holds serialized references to the generated artwork, fonts, item data and the reusable slot prefab. Artwork is bundled locally; no image-generation service is called at runtime.
 - `Moonlit > Build Main Screen` is a development setup command that refreshes the asset catalog/prefab and saves the bootstrap-only scene. Normal launches need only Play.
 
+## Play startup and runtime performance
+
+Enter Play Mode skips domain reload and retains scene reload, so the bootstrap still rebuilds a fresh runtime hierarchy. `MoonlitRuntimeSettings` resets session-only progression, forge and profile state through `SubsystemRegistration`, including atlas arrays that can retain destroyed sprites between runs. It requests 60 FPS with VSync disabled and enables background execution before the first scene loads. This is a frame-rate target, not a guarantee on slower hardware; mobile operating systems may still suspend background applications.
+
+The optional Unity MCP server no longer starts automatically (`ProjectSettings/McpUnitySettings.json`). Read-only local logs showed repeated port 8090 bind errors on startup, which can trigger the Console's Error Pause. The toggle itself and the user's actual Play transition have not been controlled or verified. Restarting the editor once reloads cached MCP configuration if an already-running server keeps retrying. Cloud Unity validation is required; local editor execution is prohibited for the agent.
+
 ## Responsive portrait layout and Safe Area
 
 Both 9:16 (1080 × 1920) and 9:19 (1080 × 2280) use a 1080-unit logical width. The HUD anchors to the safe top, and the equipment/forge/chat/navigation block anchors to the safe bottom. Additional height expands the battle viewport; buttons retain their proportions. The scenery fills the screen and is cropped proportionally instead of stretched.

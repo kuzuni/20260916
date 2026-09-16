@@ -21,6 +21,13 @@ namespace Moonlit.UI
         static readonly bool[] settingValues = { false, false, false, true, false, false };
         static Sprite[] avatarPortraits, settingsIcons;
 
+        internal static void ResetSession()
+        {
+            profileAvatar=2; profileName="moonzzanf"; profileFemale=false;
+            for(int i=0;i<settingValues.Length;i++) settingValues[i]=i==3;
+            avatarPortraits=null; settingsIcons=null; shopIllustrations=null;
+        }
+
         public static void Register(UiScreenRegistry registry)
         {
             RegisterProfileSettingsDialogs(registry);
