@@ -255,15 +255,25 @@ namespace Moonlit.UI
             var h = Mathf.Min(1120, ctx.Height - 100);
             var panel = Panel(ctx.Root, 95, (ctx.Height - h) / 2, 890, h, "모든 스킬의 목록", font, 34);
             var scroll = Scroll(panel, 45, 120, 800, h - 205);
-            var groups = new[] { "일반 ★       17.50%", "희귀한 ★       16.50%", "서사시 ★       16.50%", "전설 ★       36.48%", "궁극의 ★       12.99%", "신화 ★       0.03%" };
+            var groups = new[] { "일반", "희귀한", "서사시", "전설", "궁극의", "신화" };
+            var totals=new[]{"17.50%","16.50%","16.50%","36.48%","12.99%","0.03%"};
+            var colors=new[]{Color.white,new Color(.3f,.65f,1f),new Color(.2f,1f,.48f),
+                new Color(1f,.65f,.22f),new Color(.8f,.4f,1f),new Color(1f,.3f,.35f)};
             var chances=new[]{"5.8333%","5.5000%","5.5000%","12.1600%","4.3300%","0.0100%"};
             for (var g = 0; g < groups.Length; g++) {
                 var yy = g * 300f;
-                Panel(scroll.content, 20, yy, 760, 60, groups[g], font, 24);
+                Ui.Image("Probability group backing",scroll.content,24,yy+4,752,282,null,new Color(.015f,.03f,.045f));
+                var rim=Ui.Image("Probability group rim",scroll.content,20,yy,760,290,PopupSkin.PanelArt);
+                rim.type=Image.Type.Sliced; rim.fillCenter=false; rim.pixelsPerUnitMultiplier=18;
+                var header=Ui.Image("Rarity header",scroll.content,20,yy,760,60,PopupSkin.PanelArt,colors[g]);
+                header.type=Image.Type.Sliced; header.pixelsPerUnitMultiplier=12;
+                Ui.Text("Rarity name",scroll.content,60,yy+4,330,52,groups[g],28,font,Ui.Ivory,TextAnchor.MiddleLeft);
+                Ui.Text("Rarity star",scroll.content,60+groups[g].Length*28+14,yy+4,44,52,"★",30,font,Gold);
+                Ui.Text("Rarity chance",scroll.content,550,yy+4,190,52,totals[g],28,font,Ui.Ivory,TextAnchor.MiddleRight);
                 for (var j = 0; j < 3; j++) {
                     var skill = Skills[SkillDisplayOrder[g * 3 + j]];
-                    SkillSlot(scroll.content, 60 + j * 245, yy + 75, 150, skill, font, () => ctx.Open("skill-details", skill), false);
-                    Ui.Text("Chance", scroll.content, 50 + j * 245, yy + 230, 170, 45, chances[g], 20, font);
+                    SkillSlot(scroll.content, 60 + j * 245, yy + 75, 150, skill, font, () => ctx.Open("skill-details", skill), false, true);
+                    Ui.Text("Chance", scroll.content, 50 + j * 245, yy + 252, 170, 34, chances[g], 24, font);
                 }
             }
             scroll.content.sizeDelta = new Vector2(0, groups.Length * 300);
@@ -492,9 +502,9 @@ namespace Moonlit.UI
             return scroll;
         }
 
-        static void SkillSlot(Transform parent, float x, float y, float size, SkillData skill, Font font, Action click, bool compact)
+        static void SkillSlot(Transform parent, float x, float y, float size, SkillData skill, Font font, Action click, bool compact, bool iconOnly=false)
         {
-            var totalH = compact ? size + 12 : size + 55;
+            var totalH = iconOnly ? size+24 : compact ? size + 12 : size + 55;
             var button = Ui.ArtButton("Skill " + skill.name, parent, x, y, size, totalH);
             if (click != null) button.onClick.AddListener(() => click());
             var icon = Ui.Image("Icon", button.transform, size * .17f, size * .17f, size * .66f, size * .66f, SkillIcon(skill.icon));
@@ -505,10 +515,12 @@ namespace Moonlit.UI
             frame.raycastTarget = false;
             button.targetGraphic = frame;
             button.transition = Selectable.Transition.ColorTint;
-            Ui.Text("Level", button.transform, 4, size - (compact ? 44 : 45), size - 8, compact ? 34 : 42, "Lv." + skill.level, Mathf.RoundToInt(size*.17f), font);
-            Ui.Text("Ownership", button.transform, 4, 8, size - 8, 34, skill.owned ? "" : "미보유", Mathf.RoundToInt(size*.14f), font, Ui.Ivory);
+            if(!iconOnly) {
+                Ui.Text("Level", button.transform, 4, size - (compact ? 44 : 45), size - 8, compact ? 34 : 42, "Lv." + skill.level, Mathf.RoundToInt(size*.17f), font);
+                Ui.Text("Ownership", button.transform, 4, 8, size - 8, 34, skill.owned ? "" : "미보유", Mathf.RoundToInt(size*.14f), font, Ui.Ivory);
+            }
             Ui.Text("Star", button.transform, 0, size - 10, size, compact ? 22 : 34, "★", Mathf.RoundToInt(size*.18f), font, Gold);
-            if (!compact) {
+            if (!compact && !iconOnly) {
                 Progress(button.transform, 9, size + 24, size - 18, 28, skill.shards / (float)skill.ShardsRequired, skill.shards + "/"+skill.ShardsRequired, font);
                 Ui.Text("Maximum level", button.transform, 0, size + 24, size, 28, "최대", Mathf.RoundToInt(size*.17f), font);
                 var equippedBadge=Ui.Rect("Equipped badge",button.transform,0,size*.27f,size,size*.43f);

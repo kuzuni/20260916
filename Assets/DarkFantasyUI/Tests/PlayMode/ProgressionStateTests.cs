@@ -80,7 +80,25 @@ namespace Moonlit.UI.Tests
             foreach(var slot in slots) Assert.AreEqual(selected.Contains(slot.name),slot.transform.Find("Equipped badge").gameObject.activeSelf);
             host.Registry.Open("summon-probability-details"); yield return null;
             var catalog=GameObject.Find("Popup Layer summon-probability-details").GetComponentInChildren<ScrollRect>();
-            Assert.AreEqual(18,catalog.content.GetComponentsInChildren<Button>().Count(b=>b.name.StartsWith("Skill ")));
+            var probabilitySlots=catalog.content.GetComponentsInChildren<Button>().Where(b=>b.name.StartsWith("Skill ")).ToArray();
+            Assert.AreEqual(18,probabilitySlots.Length);
+            var chances=catalog.content.GetComponentsInChildren<Text>().Where(t=>t.name=="Chance").ToArray();
+            Assert.AreEqual(18,chances.Length);
+            for(int i=0;i<probabilitySlots.Length;i++)
+            {
+                var slot=probabilitySlots[i].GetComponent<RectTransform>();
+                Assert.IsNull(slot.Find("Progress"),"Probability entries must not show collection shard bars");
+                Assert.IsNull(slot.Find("Level"));
+                Assert.IsNull(slot.Find("Equipped badge"));
+                Assert.LessOrEqual(-slot.anchoredPosition.y+slot.rect.height,-chances[i].rectTransform.anchoredPosition.y,
+                    "Probability text must start below the entire icon/star hit target");
+            }
+            float savedPosition=catalog.verticalNormalizedPosition;
+            probabilitySlots[0].onClick.Invoke(); yield return null;
+            Assert.IsNotNull(GameObject.Find("Popup Layer skill-details"));
+            host.CloseTop(); yield return null;
+            Assert.AreSame(catalog,GameObject.Find("Popup Layer summon-probability-details").GetComponentInChildren<ScrollRect>());
+            Assert.That(catalog.verticalNormalizedPosition,Is.EqualTo(savedPosition).Within(.01f));
         }
 
         [UnityTest]
