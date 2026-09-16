@@ -2,6 +2,12 @@
 
 Updated 2026-09-16, 19:56 UTC. Implementation is unfinished; local coordinator and 15-minute heartbeat remain active.
 
+## Play startup, 60 FPS and background execution
+
+- User reported automatic pause immediately after Play and slow entry. Read-only local Editor.log contains repeated MCP WebSocket bind errors on port 8090. Disabled optional MCP auto-start; Error Pause state and causality are not confirmed. Do not suppress unrelated errors or control the local editor.
+- Enter Play Mode now skips domain reload but retains scene reload for the runtime bootstrap. New SubsystemRegistration resets restore session-only forge, summon/skill and profile state, and clear atlas arrays. BeforeSceneLoad sets VSync=0, targetFrameRate=60 and runInBackground=true; desktop focus loss is supported, mobile OS suspension remains platform-controlled.
+- Added regressions for frame/background settings, two fresh-state resets without replacing static models, and rebuilding a destroyed avatar sprite. Static diff check passed. New Unity tests and actual local pause/startup timing are not yet verified. No local Unity execution.
+- Prior PR #34 run 35143240256: test job 104952721229 success, graphics job 104956924003 still running at inspection. Actual XML review pending. Additional six profile/settings references are preserved in codex/profile-settings-dialogs worktree; implementation must continue after this urgent fix.
 ## User review: pass/dungeon/shop card fidelity and white artwork
 
 - Latest user priorities: progress-pass, dungeon page/detail and shop shapes still differ from reference; collection currency/progress/ribbon appears as white rectangles locally; shop cards feel empty because artwork is too small. Original references **04, 05, 20, 21** were inspected at full resolution; reference 19 and the supplied local screenshot were also reviewed. Continue these priorities before claiming visual completion.
