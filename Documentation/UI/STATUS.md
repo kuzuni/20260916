@@ -1,6 +1,18 @@
 # Moonlit 24 UI — coordinator status
 
-Updated 2026-09-16, 15:22 UTC. Implementation is unfinished; automation remains active.
+Updated 2026-09-16, 15:50 UTC. Implementation is unfinished; automation remains active.
+
+## Equipment popup checkpoint and shared artwork review — 2026-09-16 15:50 UTC
+
+- **PR #22** https://github.com/kuzuni/20260916/pull/22 merged source **93c5a2f421dad7b6676f7b04f3c3f95190701150** as **22823787ec14a02228c8d1804d87e4cee11e61d9**. Inspected original 08/09 at full resolution. Equipment detail now uses a compact lower ornate panel; comparison uses lower-positioned outer frame and two separately framed cards. Both instantiate the main EquipmentSlot prefab as a read-only view: independent frame/icon/live level/star, no interactive preview graphics, no main-slot mutation. Current comparison reads the equipped slot and level, instead of subtracting one from the new level. Added independent close buttons; pending craft survives close/reopen without another charge.
+- Added EquipmentPopups_ReuseSlots_KeepMainBinding_AndResumePendingCraft: both aspect ratios with simulated insets, independent preview sprite/level binding, noninteractive preview, current versus next levels, no main mutation, close/reopen cost preservation and successful equip. Static diff check passed. Hosted run **35117661306** is in progress; **this new code has not yet passed Unity or capture review**.
+- **Shared crest/switch tests verified:** run **35114518344**, source **6cccc622f6b40bc806f98cc44aab383829562717**, tests job **104856408118 SUCCESS**. Downloaded artifact **10454292827**, inspected actual summary and XML: **25 passed, 0 failed/skipped/inconclusive**.
+- **Shared crest/switch graphics reviewed:** same run graphics job **104861095098 SUCCESS**, artifact **10455519280** downloaded, 54 PNGs and Verification.txt PASS (six main cases and 48 route/aspect checks). Viewed settings 9:16 and profile 9:19. Metallic tracks and separate cyan knobs render sharply in off/on positions; top diamond crest remains clear of the heading, and underlying main levels no longer bleed through the opaque interior. Remaining differences: overly plain title/list rules, portrait border, edit action shapes, lower close placement and main/profile identity mismatch. No all-screen visual acceptance.
+- Also downloaded opaque-backing artifact **10454217132** from run **35111633441**: 54 PNGs, Verification.txt PASS, settings 9:16 viewed and interior no longer shows underlying levels. This artifact predates metallic switches/crest.
+- Original checkout fast-forwarded to **2282378** with all eight existing PNG metadata edits preserved. Isolated review worktree at **93c5a2f**, branch codex/equipment-popup-review. Code changes made through an isolated GitHub branch; no local Unity execution/control and no agents/delegated tasks.
+- No new raster artwork this checkpoint; reused the existing generated equipment prefab and popup skin. **Remaining equipment gaps:** reference ribbon silhouette, deeper crimson sale-button face, card ornament proportions, real per-item stat data (detail retains existing fixed demo values; comparison only shows actual demo levels/status), reference-specific boots/belt artwork. Do not label these finished.
+- Evidence roots: C:/Users/user/AppData/Local/Temp/moonlit-cloud-review/artifact-10454292827/unpacked/Artifacts/TestResults; artifact-10455519280/unpacked; artifact-10454217132/unpacked.
+- **Next:** inspect run **35117661306**, download actual XML and captures, fix any prefab lifecycle/binding or dialog clipping failure. Compare equipment-detail and forge-comparison captures at both aspects against 08/09. Continue red action/ribbon art, typography/frame proportions, main/profile identity and remaining 24-screen acceptance. Automation remains active; all 24 pages are unfinished.
 
 ## Latest metallic switches and popup crest — 2026-09-16 15:22 UTC
 
