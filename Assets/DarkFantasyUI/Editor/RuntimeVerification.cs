@@ -80,7 +80,8 @@ namespace Moonlit.Editor
                 "progress-pass","profile","settings","equipment-details","forge-comparison","offline-rewards",
                 "player-details","auto-forge","chat","skill-details","summon-probability",
                 "summon-probability-details","summon-result","power-ranking","skills-pets-heroes","dungeons",
-                "shop","pvp-opponents","pvp","pvp-rewards"
+                "shop","pvp-opponents","pvp","pvp-rewards",
+                "profile-name","profile-gender","profile-avatar","settings-language","settings-blocked","settings-account"
             };
             int[] heights={1920,2280};
             Rect[] areas={new Rect(0,60,1080,1740),new Rect(36,84,1008,2076)};
@@ -98,11 +99,13 @@ namespace Moonlit.Editor
                 if (pageRoute) screen.RefreshNavigation(route);
                 var navigationPixels = pageRoute ? ReadNavigationPixels(screen, camera) : null;
                 if (pageRoute) screen.RefreshNavigation(null);
+                bool childRoute=route.StartsWith("profile-") || route.StartsWith("settings-");
+                if(childRoute) host.Registry.Open(route.StartsWith("profile-")?"profile":"settings");
                 host.Registry.Open(route);
                 yield return null; yield return null; Canvas.ForceUpdateCanvases();
                 var layer=GameObject.Find((host.ActivePageKey==route ? "Page — " : "Popup Layer ")+route);
                 var routeRoot=layer ? layer.transform.Find("SafeArea") as RectTransform : null;
-                if(!layer || !routeRoot || routeRoot.rect.height<=0 || (host.ActivePageKey!=route && host.ModalDepth!=1))
+                if(!layer || !routeRoot || routeRoot.rect.height<=0 || (host.ActivePageKey!=route && host.ModalDepth!=(childRoute?2:1)))
                 { report.Add("FAIL route "+route+" did not build in a resized safe layer"); fail(); yield break; }
                 SaveCamera(camera,"Artifacts/Runtime-"+route+"-"+(aspect==0?"9x16":"9x19")+".png",1080,heights[aspect]);
                 bool navigationFailed = false;

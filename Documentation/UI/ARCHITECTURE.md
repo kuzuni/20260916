@@ -69,6 +69,8 @@ Modules register exactly:
 - ProgressionScreenModule.Register(UiScreenRegistry registry)
 - SocialScreenModule.Register(UiScreenRegistry registry)
 
+SocialScreenModule is partial; ProfileSettingsDialogs.cs adds six modal routes: profile-name, profile-gender, profile-avatar, settings-language, settings-blocked and settings-account. Profile children receive an optional System.Action payload to refresh the surviving parent without reconstructing it. They use the same sibling modal stack and top-only input rules. State is local to a Play session and resets through MoonlitRuntimeSettings when domain reload is disabled.
+
 All three classes public static, namespace Moonlit.UI. Keep local helper names inside their module namespace or prefix to prevent collisions. Existing public Ui and MainScreenAssets are available. Modules may use feature-specific MonoBehaviours for lifecycle/state. No dependency on another feature module class: navigation uses registered string keys.
 
 Cross-module player-details payload: Dictionary<string, object> with keys name (string), power (string), rank (int); optional avatarIndex (int). Equipment payload: EquipmentSlot when actual equipment; forge-item-details may receive ItemDefinition. Omitted payload renders a documented deterministic demo.

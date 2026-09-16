@@ -1,0 +1,11 @@
+# Avatar portraits v2 — generated source
+
+Generated with the built-in imagegen tool on 2026-09-17 for reference 27. Original output copied unchanged to Assets/DarkFantasyUI/Resources/Moonlit/Social/AvatarPortraits-v2.png. Runtime Sprite.Create separates the four-column, five-row atlas; frames and selection checks are independent uGUI objects. Original generation retained at exec-013d0eaf-93ac-46f2-91f4-bd2c362b0cb9.png.
+
+## Exact prompt
+
+Generate a dark fantasy RPG avatar portrait atlas, exactly FOUR COLUMNS by FIVE ROWS of equal square cells, 1600x2000 image. Twenty distinct tightly cropped head-and-shoulders portraits, NO frames, no text, no UI, no labels. Each face centered fully inside its own cell, consistent front/three-quarter view, painterly detailed fantasy game illustration with dark cyan stone backgrounds, strong readable silhouettes at small icon size. Ordered left to right, top to bottom: row1 hooded faceless rogue with blue glowing eyes; rugged brown-haired bearded warrior in fur; woolly mammoth head with tusks; grey-bearded philosopher in toga. Row2 woodland woman with blue flowers in hair; orange-hooded stern ranger; youthful man with laurel wreath; crowned skeletal king. Row3 mustached Victorian inventor with goggles; woman artist in red beret holding paintbrush near shoulder; dark-skinned regal woman wearing gold earrings; distinguished grey-haired dark-skinned man in suit. Row4 white-haired aristocrat red coat; jovial white-bearded elderly explorer in wide hat; black-haired woman pirate in tricorne; silver-haired crowned queen. Row5 red-bearded dwarf in horned helmet; white-haired scientist in dark coat; East Asian emperor wearing black-and-gold ceremonial hat; Egyptian queen with blue-and-gold headdress. No external padding, no gutters, no borders between cells, cell boundaries precisely aligned. Consistent high-quality hand-painted dark fantasy game icon artwork.
+
+## Review and limits
+
+All 20 portraits and their atlas boundaries were visually inspected. The painting is more realistic than the stylized reference; matching roster and layout do not establish final visual acceptance. Blocked-player portraits and crest reuse existing artwork and still differ from the three exact reference illustrations. New dialog render/click validation remains pending in hosted Unity; no local editor was used.

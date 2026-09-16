@@ -15,7 +15,7 @@ namespace Moonlit.UI
         static readonly Color Red = new Color(.42f, .035f, .045f, 1f);
         static readonly Color Green = new Color(.25f, 1f, .28f, 1f);
         const float NavigationReserve = 210f;
-        static int profileAvatar = 2;
+        static int profileAvatar;
         static string profileName = "moonzzanf";
         static bool profileFemale;
         static readonly bool[] settingValues = { false, false, false, true, false, false };
@@ -23,9 +23,11 @@ namespace Moonlit.UI
 
         internal static void ResetSession()
         {
-            profileAvatar=2; profileName="moonzzanf"; profileFemale=false;
+            profileAvatar=0; profileName="moonzzanf"; profileFemale=false;
             for(int i=0;i<settingValues.Length;i++) settingValues[i]=i==3;
             avatarPortraits=null; settingsIcons=null; shopIllustrations=null;
+            selectedLanguage=3;
+            for(int i=0;i<blockedPlayers.Length;i++) blockedPlayers[i]=true;
         }
 
         public static void Register(UiScreenRegistry registry)

@@ -1,7 +1,16 @@
-# Moonlit 24 UI — coordinator status
+# Moonlit 30 UI — coordinator status
 
 Updated 2026-09-16, 19:56 UTC. Implementation is unfinished; local coordinator and 15-minute heartbeat remain active.
 
+## Six additional profile/settings dialogs and startup integration
+
+- Catalog expanded from 24 to 30. New originals 25–30 copied byte-for-byte from Desktop/메트로배니아 into Documentation/UI/References, with exact Korean filenames, sizes and SHA256 in reference-manifest.json. All six original PNGs inspected at full resolution. Existing 24 originals unchanged.
+- Added profile-name, profile-gender, profile-avatar, settings-language, settings-blocked and settings-account as child modals above the surviving parent. Real nickname input charges 200 demo rubies once on valid confirmation; cancel/invalid/insufficient balance preserve state. Gender/20-avatar choices update parent/HUD. Language list has 11 exclusive choices; blocked list has three reference names and local removal. Account actions only show unconnected demo feedback; localization/backend operations are not implemented.
+- Generated AvatarPortraits-v2.png with 20 separate cells; source pixels copied unchanged, separate reusable frame/selection objects. Prompt and visual limitations recorded in AvatarPortraits-v2-prompt.md. Portrait painting and blocked-list crest/portraits are not exact reference matches; visual acceptance remains open.
+- New/updated regressions cover child input blocking, parent persistence, name cancellation/charging/double-confirmation/insufficient funds, gender and avatar persistence, exclusive language, blocked-player removal, account no-op state, and safe input bounds at both aspect ratios. Hosted capture loop now includes all 30 routes, six new routes captured above parents, expected inventory 66 PNGs. Static diff check passed; new source has not yet passed Unity.
+- Urgent Play settings PR #35 merged as 8cd58ee07e33838518d92e4ce86b785a345be223 and original checkout fast-forwarded with 9 modified files preserved by SHA256. Source 3d4d925ee7bb65e902475028ab94867b3c2fde63, CI 35145362518 still running at inspection. No actual local Play timing or automatic-pause resolution claimed. Restart once may be needed for cached MCP settings.
+- Prior card revision PR #34 source 18e020bbbdc5e515eb16910679300836e975b0a0, CI 35143240256: downloaded test artifact 10466159363, summary PASS 34/0/0; graphics artifact 10467491344 is available for visual review. This is earlier source, not acceptance of the new six dialogs. Desktop heartbeat scope updated to all 30 at 15-minute intervals, quiet on unchanged/non-actionable state.
+- Next: check CI 35145362518 and new dialog PR run, obtain actual XML/captures, repair any compilation/input failures and inspect six nested captures plus pass/dungeon/shop revisions against originals. Preserve user edits and incremental main sync; never run/control local Unity. Full 30-screen visual acceptance remains incomplete.
 ## Play startup, 60 FPS and background execution
 
 - User reported automatic pause immediately after Play and slow entry. Read-only local Editor.log contains repeated MCP WebSocket bind errors on port 8090. Disabled optional MCP auto-start; Error Pause state and causality are not confirmed. Do not suppress unrelated errors or control the local editor.
