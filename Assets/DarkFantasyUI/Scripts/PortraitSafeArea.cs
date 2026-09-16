@@ -8,6 +8,7 @@ namespace Moonlit.UI
     {
         public const float DesignWidth=1080, BottomHeight=985, MinimumHeight=1600;
         public RectTransform canvasRect, safeFrame, design, bottomPanel, battleViewport, battleArt;
+        public RectTransform[] additionalSafeFrames, additionalDesigns, additionalBottomPanels;
         public Rect SafePixels { get; private set; }
         public Vector2Int ScreenPixels { get; private set; }
         public float LogicalHeight => design ? design.rect.height : 0;
@@ -44,6 +45,15 @@ namespace Moonlit.UI
             design.sizeDelta=new Vector2(DesignWidth,height); design.anchoredPosition=Vector2.zero; design.localScale=Vector3.one*scale;
             bottomPanel.anchorMin=bottomPanel.anchorMax=Vector2.zero; bottomPanel.pivot=Vector2.zero;
             bottomPanel.anchoredPosition=Vector2.zero; bottomPanel.sizeDelta=new Vector2(DesignWidth,BottomHeight);
+            int count=additionalSafeFrames == null ? 0 : additionalSafeFrames.Length;
+            for(int i=0;i<count;i++) {
+                var frame=additionalSafeFrames[i]; var content=additionalDesigns[i]; var bottom=additionalBottomPanels[i];
+                frame.anchorMin=safeFrame.anchorMin; frame.anchorMax=safeFrame.anchorMax; frame.offsetMin=frame.offsetMax=Vector2.zero;
+                content.anchorMin=content.anchorMax=new Vector2(.5f,1); content.pivot=new Vector2(.5f,1);
+                content.sizeDelta=new Vector2(DesignWidth,height); content.anchoredPosition=Vector2.zero; content.localScale=Vector3.one*scale;
+                if(bottom) { bottom.anchorMin=bottom.anchorMax=Vector2.zero; bottom.pivot=Vector2.zero; bottom.anchoredPosition=Vector2.zero;
+                    bottom.sizeDelta=new Vector2(DesignWidth,BottomHeight); }
+            }
             if(battleViewport && battleArt) {
                 float topInset=canvasRect.rect.height*(1-safe.yMax/pixels.y);
                 float battleHeight=topInset+(height-BottomHeight+65)*scale;

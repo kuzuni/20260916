@@ -1,0 +1,14 @@
+{
+  "name": "Moonlit.UI.PlayModeTests",
+  "rootNamespace": "Moonlit.UI.Tests",
+  "references": ["Moonlit.UI", "UnityEngine.UI"],
+  "optionalUnityReferences": ["TestAssemblies"],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "autoReferenced": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

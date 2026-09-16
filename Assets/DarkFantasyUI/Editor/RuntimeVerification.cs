@@ -18,7 +18,8 @@ namespace Moonlit.Editor
         {
             var report=new List<string>();
             var safe=Object.FindFirstObjectByType<PortraitSafeArea>();
-            var canvas=screen.GetComponentInParent<Canvas>(); var camera=canvas.worldCamera;
+            var screenHost=Object.FindFirstObjectByType<UiScreenHost>();
+            var canvas=screen.GetComponentInParent<Canvas>().rootCanvas; var camera=canvas.worldCamera;
             var oldTarget=camera.targetTexture; RenderTexture target=null; GameObject hardware=null;
             Directory.CreateDirectory("Artifacts");
             // Simulated physical display metrics; controls must stay within each OS safe rectangle.
@@ -30,18 +31,19 @@ namespace Moonlit.Editor
                 if(target) { camera.targetTexture=oldTarget; target.Release(); Object.DestroyImmediate(target); }
                 target=new RenderTexture(1080,heights[i],24); camera.targetTexture=target;
                 safe.SetPreviewMetrics(new Vector2Int(1080,heights[i]),areas[i]);
+                screenHost.SetPreviewMetrics(new Vector2Int(1080,heights[i]),areas[i]);
                 yield return null; yield return null;
                 Canvas.ForceUpdateCanvases(); safe.Apply(); Canvas.ForceUpdateCanvases();
                 try {
                     if(Mathf.Abs(canvas.pixelRect.height-heights[i])>1) throw new Exception("Canvas did not use the target display resolution");
-                    var buttons=screen.GetComponentsInChildren<Button>().Where(b=>b.gameObject.activeInHierarchy).ToArray();
+                    var buttons=canvas.GetComponentsInChildren<Button>().Where(b=>b.gameObject.activeInHierarchy).ToArray();
                     foreach(var button in buttons) { AssertInsideSafe(button.GetComponent<RectTransform>(),camera,areas[i]); AssertRaycast(button); }
-                    foreach(var text in screen.GetComponentsInChildren<Text>().Where(t=>t.gameObject.activeInHierarchy)) AssertInsideSafe(text.rectTransform,camera,areas[i]);
+                    foreach(var text in canvas.GetComponentsInChildren<Text>().Where(t=>t.gameObject.activeInHierarchy)) AssertInsideSafe(text.rectTransform,camera,areas[i]);
                     var bootstrap=Object.FindFirstObjectByType<MainScreenBootstrap>();
                     if(bootstrap.Build()!=screen || Object.FindObjectsByType<MainScreen>(FindObjectsSortMode.None).Length!=1) throw new Exception("Bootstrap must be idempotent");
                     if(Mathf.Abs(safe.bottomPanel.rect.height-PortraitSafeArea.BottomHeight)>.1f) throw new Exception("Bottom controls changed aspect ratio");
                     screen.Profile(); Canvas.ForceUpdateCanvases();
-                    var modal=screen.design.Find("Modal overlay/Dialog").GetComponent<RectTransform>();
+                    var modal=Object.FindObjectsByType<RectTransform>(FindObjectsSortMode.None).First(r=>r.name=="Dialog");
                     AssertInsideSafe(modal,camera,areas[i]);
                     Vector2 center=RectTransformUtility.WorldToScreenPoint(camera,modal.TransformPoint(modal.rect.center));
                     if(Vector2.Distance(center,areas[i].center)>2) throw new Exception("Dialog is not centered in the safe area");
@@ -60,6 +62,7 @@ namespace Moonlit.Editor
             camera.targetTexture=oldTarget;
             if(target) { target.Release(); Object.DestroyImmediate(target); }
             safe.ClearPreviewMetrics();
+            screenHost.ClearPreviewMetrics();
             File.WriteAllText("Artifacts/Verification.txt",(success ? "PASS" : "FAIL")+" — runtime generation and responsive safe-area validation\n"+string.Join("\n",report)+"\nUnity "+Application.unityVersion+"\nDevice cutouts were simulated in the Editor; physical hardware was not used.");
             if(success) Debug.Log("[Moonlit] Runtime generation and all six viewport checks passed.");
             else Debug.LogError("[Moonlit] Validation failed; see Artifacts/Verification.txt");
@@ -68,10 +71,10 @@ namespace Moonlit.Editor
         static void VerifyInteractions(MainScreen screen)
         {
             int ore=screen.ore,total=screen.equipment.Sum(s=>s.level),locked=screen.equipment[0].level;
-            screen.forgeLevelButton.onClick.Invoke(); if(screen.ore!=ore || !screen.design.Find("Modal overlay")) throw new Exception("Forge management failed"); screen.Close();
+            screen.forgeLevelButton.onClick.Invoke(); if(screen.ore!=ore || screen.screens.ModalDepth!=1) throw new Exception("Forge management failed"); screen.Close();
             screen.forgeButton.onClick.Invoke(); if(screen.ore!=ore-100 || screen.equipment.Sum(s=>s.level)!=total+1 || screen.equipment[0].level!=locked) throw new Exception("Forge cost / locked item exclusion failed");
             screen.autoButton.onClick.Invoke(); if(!screen.autoForge) throw new Exception("Auto toggle failed"); screen.autoButton.onClick.Invoke();
-            screen.equipment[1].Button.onClick.Invoke(); if(!screen.design.Find("Modal overlay")) throw new Exception("Runtime slot click handler missing"); screen.Close();
+            screen.equipment[1].Button.onClick.Invoke(); if(screen.screens.ModalDepth!=1) throw new Exception("Runtime slot click handler missing"); screen.Close();
             foreach(var nav in screen.navigation) { nav.onClick.Invoke(); screen.Close(); }
             var blank=Object.Instantiate(screen.equipment[1],screen.design); blank.Bind(null);
             if(blank.icon.enabled || blank.levelLabel.text!="" || blank.lockedBadge.activeSelf || blank.notificationBadge.activeSelf) throw new Exception("Empty slot retains stale content");

@@ -17,6 +17,15 @@ Both 9:16 (1080 × 1920) and 9:19 (1080 × 2280) use a 1080-unit logical width. 
 
 `PortraitSafeArea` reads `Screen.safeArea` and the current screen dimensions before rendering and on each update, so OS-reported camera cutouts, notches, home-indicator insets and size changes are respected. Interactive controls and centered dialogs live inside that safe rectangle; decorative scenery may extend behind system areas. There is a compact-layout fallback for unusually short viewports. Preview overrides exist only in Editor builds.
 
+## Shared page and popup routing
+
+`UiScreenRegistry` is the integration boundary for feature modules. Runtime construction creates
+separately sorted main and navigation canvases plus an on-demand sibling popup stack. Opening a
+page replaces the current page and closes its dialogs; opening a modal pushes a new independently
+blocked layer. Back/close pops only the top layer, restores its opener, and preserves the parent
+object (including its tab, scroll and selection state). Every open layer follows Safe Area changes.
+See `Documentation/UI/FOUNDATION-INTEGRATION.md` for the coordinator hook and frozen route keys.
+
 ## Reusable equipment slots
 
 `Prefabs/EquipmentSlot.prefab` contains separate children for:

@@ -1,7 +1,6 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.InputSystem;
 
 namespace Moonlit.UI
 {
@@ -11,6 +10,7 @@ namespace Moonlit.UI
         public Sprite slotArt;
         public Sprite[] icons;
         public Transform design;
+        public Transform toastRoot;
         public EquipmentSlot[] equipment;
         public Button forgeButton, autoButton, goldButton, gemButton, profileButton, stageButton, eventButton, fairyButton, chatButton;
         public Button forgeLevelButton;
@@ -24,7 +24,7 @@ namespace Moonlit.UI
         public int stage = 13;
         public int successfulForges;
         public bool autoForge;
-        GameObject modal;
+        public UiScreenRegistry screens;
         Text toast;
         Coroutine toastRoutine;
         float autoClock;
@@ -50,8 +50,7 @@ namespace Moonlit.UI
         void OnDestroy() { if(equipment != null) foreach(var s in equipment) if(s) s.Clicked -= Inspect; }
         void Update()
         {
-            if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame) Close();
-            if (autoForge && modal == null) { autoClock += Time.deltaTime; if(autoClock>=1.4f) { autoClock=0; Forge(); } }
+            if (autoForge && (screens == null || screens.ModalDepth == 0)) { autoClock += Time.deltaTime; if(autoClock>=1.4f) { autoClock=0; Forge(); } }
             if(autoIcon) autoIcon.rectTransform.localRotation=Quaternion.Euler(0,0,autoForge ? -Time.unscaledTime*90 : 0);
         }
         public void Refresh()
@@ -124,17 +123,18 @@ namespace Moonlit.UI
 
         Transform Modal(string title, float height)
         {
-            if(modal != null) DestroyImmediate(modal);
-            var shade=Ui.Image("Modal overlay",design,0,0,1080,1920,null,new Color(0,.015f,.025f,.85f)); shade.raycastTarget=true; modal=shade.gameObject;
-            Ui.Stretch(shade.rectTransform);
-            var dismiss=shade.gameObject.AddComponent<Button>(); dismiss.onClick.AddListener(Close);
-            var panel=Ui.Panel("Dialog",shade.transform,170,(1920-height)/2,740,height,new Color(.025f,.055f,.075f)); panel.raycastTarget=true;
+            Transform result=null;
+            screens.Register("moonlit.legacy-dialog",ScreenPresentation.Modal,context=> {
+            var panel=Ui.Panel("Dialog",context.Root,170,(context.Height-height)/2,740,height,new Color(.025f,.055f,.075f)); panel.raycastTarget=true;
             panel.rectTransform.anchorMin=panel.rectTransform.anchorMax=panel.rectTransform.pivot=new Vector2(.5f,.5f);
             panel.rectTransform.anchoredPosition=Vector2.zero;
             Ui.Text("Title",panel.transform,55,25,630,56,title,35,font);
             Ui.Image("Divider",panel.transform,45,94,650,2,null,Ui.Gold);
             Ui.Button("Close",panel.transform,662,12,60,60,"×",font,Close,new Color(.06f,.08f,.1f),35);
-            return panel.transform;
+            result=panel.transform;
+            });
+            screens.Open("moonlit.legacy-dialog");
+            return result;
         }
         void ShowInfo(string title,string body,string action,UnityEngine.Events.UnityAction callback)
         {
@@ -145,13 +145,13 @@ namespace Moonlit.UI
         public void Close()
         {
             if(inspected) inspected.SetSelected(false); inspected=null;
-            if(modal) DestroyImmediate(modal); modal=null;
+            if(screens != null) screens.CloseTop();
         }
         public void Toast(string message)
         {
             if(toastRoutine != null) StopCoroutine(toastRoutine);
             if(!toast) {
-                var bg=Ui.Panel("Toast",design,140,855,800,75,new Color(.02f,.04f,.055f,.97f));
+                var bg=Ui.Panel("Toast",toastRoot ? toastRoot : design,140,855,800,75,new Color(.02f,.04f,.055f,.97f));
                 bg.rectTransform.anchorMin=bg.rectTransform.anchorMax=bg.rectTransform.pivot=new Vector2(.5f,0);
                 bg.rectTransform.anchoredPosition=new Vector2(0,995);
                 toast=Ui.Text("Message",bg.transform,12,3,776,69,"",25,font,Ui.Ivory);
@@ -162,4 +162,3 @@ namespace Moonlit.UI
         IEnumerator HideToast() { yield return new WaitForSecondsRealtime(2); if(toast) toast.transform.parent.gameObject.SetActive(false); }
     }
 }
-
