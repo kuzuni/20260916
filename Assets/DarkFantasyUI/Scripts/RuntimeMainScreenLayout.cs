@@ -80,6 +80,9 @@ namespace Moonlit.UI
                 var button=Ui.ArtButton(names[i]+" — icon navigation",background.transform,14+i*215,17,194,146);
                 main.navigation[i]=button;
                 var icon=Ui.Image("Menu icon",button.transform,37,4,117,118,referenceIcons[glyphs[i]]); icon.preserveAspect=true;
+                var close=Ui.Image("Close icon",button.transform,37,4,117,118,PopupSkin.CloseArt); close.preserveAspect=true;
+                Ui.Text("Close mark",close.transform,0,-2,117,118,"×",66,font);
+                close.gameObject.SetActive(false);
                 button.targetGraphic=icon; button.transition=Selectable.Transition.ColorTint;
                 var feedback=button.gameObject.AddComponent<ButtonFeedback>(); feedback.artwork=icon.rectTransform;
                 if(i<4) Badge(button.transform,145,23,27);
