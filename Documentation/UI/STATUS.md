@@ -1,6 +1,14 @@
 # Moonlit 24 UI — coordinator status
 
-Updated 2026-09-16, 17:45 UTC. Implementation is unfinished; local automation paused for cloud handoff.
+Updated 2026-09-16, 17:47 UTC. Implementation is unfinished; local automation paused for cloud handoff.
+
+## Cloud CI failure repair — 2026-09-16 17:47 UTC
+
+- Verified latest main **daa9662903a38272646f99704d6175dfae8b311b** and connected GitHub admin/push access from the cloud coordinator.
+- Downloaded run **35128861265** test artifact **10461470213**. Actual NUnit XML: **30 passed, 1 failed, 0 skipped/inconclusive**. The only failure was `Shop_HasExactlyTheFiveRequiredOffers_AndCanReturnToMain`: its test still searched for the deliberately removed top `<메인>` button, causing a NullReferenceException at line 249. Production shop layout and all newly added PvP/progression tests passed in that run; graphics was skipped because tests failed.
+- Isolated fix branch `codex/cloud-ci-shop-back-fix` changes the obsolete assertion to exercise system/context page close (`host.CloseTop`) while still verifying return to main. Unity 6000.3.8f1 cloud validation is required before merge; no local Unity was used.
+- Runs **35129388968** (latest parchment source) and **35127600979** graphics were still in progress at this checkpoint. Do not claim their capture acceptance yet.
+- The requested same-conversation **15-minute** cloud recurrence is not supported by the available automation service; its maximum frequency is once per hour. No misleading 15-minute task was created. This run continues as a single cloud execution.
 
 ## Cloud coordinator handoff — 2026-09-16 17:45 UTC
 
