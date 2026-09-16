@@ -7,7 +7,7 @@ namespace Moonlit.UI
     /// <summary>Shared reusable popup artwork. Labels, icons and hit targets remain independent.</summary>
     public static class PopupSkin
     {
-        static Sprite panel, action, close, crest;
+        static Sprite panel, action, close, crest, crimson, ribbon;
         static Sprite Load(ref Sprite cached, string name, Vector4 border, Rect? sourceRect = null, Vector2? sourceSize = null)
         {
             if (cached) return cached;
@@ -30,6 +30,10 @@ namespace Moonlit.UI
         // padding so the visible face fills the live button and does not shrink behind its label.
         public static Sprite ActionArt => Load(ref action, "BlueAction-v2", new Vector4(240, 150, 240, 150),
             new Rect(48, 120, 2076, 488), new Vector2(2172, 724));
+        public static Sprite CrimsonActionArt => Load(ref crimson, "CrimsonAction-v1", new Vector4(240, 150, 240, 150),
+            new Rect(48, 116, 2076, 504), new Vector2(2172, 724));
+        public static Sprite RibbonArt => Load(ref ribbon, "EquippedRibbon-v1", Vector4.zero,
+            new Rect(96, 235, 1752, 350), new Vector2(1942, 809));
         public static Sprite CloseArt => Load(ref close, "CrimsonClose-v1", Vector4.zero);
         public static Sprite CrestArt => Load(ref crest, "PanelCrest-v1", Vector4.zero);
 
@@ -61,9 +65,10 @@ namespace Moonlit.UI
             if (label == "×") return Close(name, parent, x, y, Mathf.Min(width, height), font, click, size);
             Color tint = color ?? new Color(.02f, .23f, .48f);
             bool blue = tint.b - tint.r > .12f && tint.b - tint.g > .08f;
-            var button = Ui.ArtButton(name, parent, x, y, width, height, blue ? ActionArt : PanelArt, true, blue ? 8 : 7);
-            if (!blue && tint.r > tint.b * 1.5f) button.targetGraphic.color = new Color(1, .55f, .5f);
-            else if (!blue && tint.g > tint.b * 1.5f) button.targetGraphic.color = new Color(.6f, 1, .65f);
+            bool red = !blue && tint.r > tint.g * 1.5f && tint.r > tint.b * 1.5f;
+            var button = Ui.ArtButton(name, parent, x, y, width, height,
+                blue ? ActionArt : red ? CrimsonActionArt : PanelArt, true, blue || red ? 8 : 7);
+            if (!blue && !red && tint.g > tint.b * 1.5f) button.targetGraphic.color = new Color(.6f, 1, .65f);
             Ui.Text("Label", button.transform, 16, 2, width - 32, height - 4, label, size, font);
             if (click != null) button.onClick.AddListener(click);
             return button;

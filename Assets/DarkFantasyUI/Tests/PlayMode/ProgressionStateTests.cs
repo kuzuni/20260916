@@ -198,6 +198,11 @@ namespace Moonlit.UI.Tests
                     host.Registry.Open("equipment-details", template);
                     yield return null;
                     var dialog = GameObject.Find("Equipment details Dialog");
+                    var header = dialog.transform.Find("Equipped header").GetComponent<Image>();
+                    Assert.IsNotNull(PopupSkin.RibbonArt);
+                    Assert.AreSame(PopupSkin.RibbonArt, header.sprite);
+                    Assert.IsTrue(header.preserveAspect);
+                    Assert.IsFalse(header.raycastTarget);
                     var detail = dialog.GetComponentInChildren<EquipmentSlot>();
                     Assert.AreNotSame(template, detail);
                     Assert.AreSame(item.icon, detail.icon.sprite);
@@ -212,6 +217,13 @@ namespace Moonlit.UI.Tests
                 }
 
                 host.Registry.Open("forge-comparison"); yield return null;
+                var sell = GameObject.Find("판매").GetComponent<Button>();
+                var equip = GameObject.Find("장착").GetComponent<Button>();
+                Assert.IsNotNull(PopupSkin.CrimsonActionArt);
+                Assert.AreSame(PopupSkin.CrimsonActionArt, ((Image)sell.targetGraphic).sprite);
+                Assert.AreSame(PopupSkin.ActionArt, ((Image)equip.targetGraphic).sprite);
+                Assert.AreNotSame(((Image)sell.targetGraphic).sprite.texture, ((Image)equip.targetGraphic).sprite.texture);
+                Assert.IsFalse(sell.targetGraphic.raycastTarget);
                 int craftId = screen.PendingCraftId;
                 Assert.AreEqual(oreBefore - 100, screen.ore);
                 var current = GameObject.Find("Current equipment").GetComponentInChildren<EquipmentSlot>();
