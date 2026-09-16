@@ -246,6 +246,34 @@ namespace Moonlit.UI.Tests
             Assert.AreEqual("설정", frame.Find("Title").GetComponent<Text>().text);
         }
 
+        [UnityTest]
+        public IEnumerator SharedPopupSkin_LoadsSeparateArtwork_AndCloseWorksAcrossModules()
+        {
+            ForgeScreenModule.Register(host.Registry);
+            ProgressionScreenModule.Register(host.Registry);
+            Assert.IsNotNull(PopupSkin.PanelArt);
+            Assert.IsNotNull(PopupSkin.ActionArt);
+            Assert.IsNotNull(PopupSkin.CloseArt);
+            Assert.AreNotSame(PopupSkin.PanelArt.texture, PopupSkin.ActionArt.texture);
+            Assert.AreNotSame(PopupSkin.ActionArt.texture, PopupSkin.CloseArt.texture);
+            Assert.Greater(PopupSkin.PanelArt.border.x, 0);
+            Assert.Greater(PopupSkin.ActionArt.border.x, 0);
+            foreach (string route in new[] { "profile", "forge-probability", "skill-details" })
+            {
+                host.Registry.Open(route); yield return null;
+                var layer = GameObject.Find("Popup Layer " + route);
+                var frames = layer.GetComponentsInChildren<Image>().Where(i => i.sprite == PopupSkin.PanelArt).ToArray();
+                Assert.IsTrue(frames.Any(i => i.type == Image.Type.Sliced && i.raycastTarget),
+                    route + " must retain a sliced frame that intercepts interior touches.");
+                var close = layer.GetComponentsInChildren<Button>().Single(b => b.name == "Close");
+                Assert.AreSame(PopupSkin.CloseArt, ((Image)close.targetGraphic).sprite);
+                Assert.IsFalse(close.targetGraphic.raycastTarget, "Artwork must not replace the independent hit surface.");
+                Assert.AreEqual("×", close.GetComponentInChildren<Text>().text);
+                close.onClick.Invoke(); yield return null;
+                Assert.AreEqual(0, host.ModalDepth);
+            }
+        }
+
         static RectTransform Child(string name, Transform parent)
         {
             var rect = new GameObject(name, typeof(RectTransform)).GetComponent<RectTransform>();
