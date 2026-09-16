@@ -2,7 +2,19 @@
 
 Updated 2026-09-16, 10:07 UTC. Implementation is unfinished; automation remains active.
 
-## Latest integration checkpoint
+## Latest skill artwork checkpoint — 2026-09-16 10:31 UTC
+
+- **Verified hosted regression pass:** run 35082860621, revision 353d8ec14957892e93e63254ebd7e440aadabf6d, job 104750728936 SUCCESS. Downloaded artifact 10441188409; NUnit XML and summary agree **17 passed, 0 failed, 0 skipped, 0 inconclusive**. The prior empty-raycast failure is resolved. Local evidence: C:/Users/user/AppData/Local/Temp/moonlit-cloud-review/artifact-10441188409/unpacked/Artifacts/TestResults. Graphics job 104754290100 also succeeded; its capture artifact still needs downloading/review. This revision predates profile and skill art additions.
+- Run 35083318972 (profile-art revision d45e4ef) has started; compile/PlayMode job 104757861148 was running. Inspect actual results next.
+- **PR #4 merged and original local project synced:** https://github.com/kuzuni/20260916/pull/4 , merge d9029988e5b81b1a4f0888f8a1e6e68c2b78203c, reviewed source d7caf441af96db23958b83f5dcb77be3af27654a. Four preexisting dungeon metadata changes were preserved. No local Unity was run/controlled.
+- Original reference 19 and older runtime skill capture were compared at full resolution. The shared SkillSlot's font glyphs/flat square art have been replaced with 12 generated illustrated symbols and a separate reusable empty gold ring. Collection, equipped, detail, probability detail and summon result share these sprites. Meteor/bomb/sealed-power now have distinct art indices.
+- Built-in image_gen generated SkillIcons-v1.png (1448x1086, 4x3 cells) and SkillRing-v1.png (1254x1254). Source images inspected; actual ARGB alpha=0 at outer corners and ring center. No screenshot UI, labels or frames baked into icon sprites. Separate transparent button hit surface and non-raycastable artwork; level/star/ownership/progress remain live UI.
+- Assets: Assets/DarkFantasyUI/Resources/Moonlit/Skills/. Exact prompts and remaining gaps: Documentation/UI/SkillIllustrations-v1-prompt.md. Source/test edits were made on isolated GitHub branch codex/skill-illustrations; generated assets staged by coordinator on codex/skill-art-review in the existing integration worktree.
+- Added a meaningful hosted regression test for resource import, atlas orientation/distinct cells and reused sprites across collection/detail. git diff --check passed. **Newest CI run 35085271201 is in progress; no pass claimed for this new code/art.**
+- Still open: latest visual review, reference's fuller skill roster (current demo has 12), ornate rails/buttons, currency art, companion/hero art and wider 24-screen fidelity/acceptance. Do not count source art as final rendered acceptance.
+- No new delegated cloud task created; previous applied task IDs below remain unchanged. Next heartbeat should inspect newest CI 35085271201 plus 35083318972, retrieve actual XML/captures, repair failures and continue reference-based visual work.
+
+## Previous integration checkpoint
 
 PR #3 merged as 19bed74423867127202275de10e6dedde279dbf5. The original local project was fast-forwarded to this commit, preserving all four preexisting dungeon metadata modifications. Final reviewed source head was d45e4efa81af76482229d1ebd4a6e4cfe56f2266 (4eee17c code/art plus status and whitespace-only metadata normalization). git diff --check passed. Latest hosted run **35083318972** is pending behind active run 35082860621; it supersedes the intermediate pending runs below. No new runtime test pass is claimed.
 
