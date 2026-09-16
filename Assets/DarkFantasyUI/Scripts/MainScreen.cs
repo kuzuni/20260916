@@ -24,6 +24,16 @@ namespace Moonlit.UI
         public int stage = 13;
         public int successfulForges;
         public bool autoForge;
+        public int autoForgeBatchSize = 1;
+        public int autoForgeFilterMask = -1;
+        public bool autoForgeContinue = true;
+        public bool[] autoForgeKeep = new bool[4];
+        public bool offlineRewardsClaimed;
+        public ItemDefinition PendingCraftItem { get; private set; }
+        public int PendingCraftId { get; private set; }
+        public int PendingCraftLevel { get; private set; }
+        EquipmentSlot pendingCraftTarget;
+        int nextCraftId;
         public UiScreenRegistry screens;
         Text toast;
         Coroutine toastRoutine;
@@ -51,7 +61,7 @@ namespace Moonlit.UI
         void OnDestroy() { if(equipment != null) foreach(var s in equipment) if(s) s.Clicked -= Inspect; }
         void Update()
         {
-            if (autoForge && (screens == null || screens.ModalDepth == 0)) { autoClock += Time.deltaTime; if(autoClock>=1.4f) { autoClock=0; Forge(); } }
+            if (autoForge && (screens == null || screens.ModalDepth == 0)) { autoClock += Time.deltaTime; if(autoClock>=1.4f) { autoClock=0; RunAutoForgeCycle(); } }
             if(autoIcon) autoIcon.rectTransform.localRotation=Quaternion.Euler(0,0,autoForge ? -Time.unscaledTime*90 : 0);
         }
         public void Refresh()
@@ -74,6 +84,82 @@ namespace Moonlit.UI
             ore-=100; successfulForges++; target.level++; target.Refresh();
             Refresh(); Toast(target.item.displayName+" 강화 성공  ·  Lv."+target.level);
             StartCoroutine(Pulse(target));
+        }
+        void RunAutoForgeCycle()
+        {
+            var attempts = Mathf.Max(1, autoForgeBatchSize);
+            for (var i = 0; i < attempts && autoForge; i++)
+            {
+                if (autoForgeFilterMask == 0) { StopAutoForge("선택한 능력치 필터가 없습니다"); break; }
+                Forge();
+                // The demo has no random item backend. Cycle the four visible keep tiers
+                // deterministically so the selected keep/continue choices still govern stopping.
+                var resultTier = successfulForges % 4;
+                var matchesFilter = (autoForgeFilterMask & (1 << (successfulForges % 6))) != 0;
+                if (autoForge && matchesFilter && autoForgeKeep != null && resultTier < autoForgeKeep.Length && autoForgeKeep[resultTier] && !autoForgeContinue)
+                    StopAutoForge("유지할 장비를 찾아 자동 제련을 멈췄습니다");
+            }
+        }
+
+        public void ConfigureAutoForge(int hammerCount, int filterMask, bool continueAfterMatch, bool[] keep)
+        {
+            autoForgeBatchSize = Mathf.Max(1, hammerCount);
+            autoForgeFilterMask = filterMask;
+            autoForgeContinue = continueAfterMatch;
+            autoForgeKeep = keep != null ? (bool[])keep.Clone() : new bool[4];
+            autoClock = 0;
+            autoForge = true;
+            Refresh();
+        }
+
+        public void StopAutoForge(string message = "자동 제련을 멈췄습니다")
+        {
+            autoForge = false;
+            autoClock = 0;
+            Refresh();
+            Toast(message);
+        }
+
+        public bool ClaimOfflineRewards(int goldReward, int oreReward)
+        {
+            if (offlineRewardsClaimed) return false;
+            offlineRewardsClaimed = true;
+            gold += goldReward;
+            ore += oreReward;
+            Refresh();
+            return true;
+        }
+
+        public bool BeginCraft(ItemDefinition crafted, int cost)
+        {
+            // Dismissing the comparison keeps its pending item without charging again.
+            if (PendingCraftItem != null) return true;
+            if (crafted == null || cost <= 0 || ore < cost || crafted.rarity == ItemRarity.Companion) return false;
+            pendingCraftTarget = equipment == null ? null : System.Array.Find(equipment,
+                slot => slot != null && slot.item == crafted && !slot.isLocked);
+            PendingCraftItem = crafted;
+            PendingCraftId = ++nextCraftId;
+            PendingCraftLevel = pendingCraftTarget != null ? pendingCraftTarget.level + 1 : crafted.startingLevel;
+            ore -= cost;
+            Refresh();
+            return true;
+        }
+
+        public bool ResolveCraftedEquipment(int craftId, bool equip, int saleOre)
+        {
+            // An old modal's callback must never resolve a newer pending item.
+            if (PendingCraftItem == null || craftId != PendingCraftId || saleOre < 0) return false;
+            if (equip)
+            {
+                if (pendingCraftTarget == null || pendingCraftTarget.isLocked || pendingCraftTarget.item != PendingCraftItem) return false;
+                pendingCraftTarget.Bind(PendingCraftItem, PendingCraftLevel, false, true);
+            }
+            else ore += saleOre;
+            PendingCraftItem = null;
+            pendingCraftTarget = null;
+            successfulForges++;
+            Refresh();
+            return true;
         }
         IEnumerator Pulse(EquipmentSlot slot)
         {

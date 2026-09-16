@@ -242,8 +242,9 @@ namespace Moonlit.UI
         {
             float w = c.Width, h = c.Height;
             var root = Ui.Panel("Shop page", c.Root, 0, 0, w, h, new Color(.015f,.045f,.06f,.97f)).rectTransform;
-            Ui.Text("Shop title", root, 320, 24, 440, 80, "상점", 46, Font(c), Ui.Gold);
-            Ui.Text("Wallet", root, 30, 30, 260, 60, "♛ 1.59m", 29, Font(c), Ui.Ivory);
+            Action(c, root, 28, 24, 150, 70, "‹ 메인", c.Close);
+            Ui.Text("Shop title", root, 450, 24, 310, 80, "상점", 46, Font(c), Ui.Gold);
+            Ui.Text("Wallet", root, 190, 30, 250, 60, "♛ 1.59m", 29, Font(c), Ui.Ivory);
             Ui.Text("Gems", root, w - 280, 30, 250, 60, "♦ 21", 29, Font(c), new Color(1,.16f,.35f));
             Scroll(c, root, 38, 120, w - 76, h - 145, 1830, out var content);
             Deal(c, content, 0, "자원 거래", "♛ 1k     ◈ 150\n🎟 200     ▣ 50\n⚗ 50      ⚿ 62", "₩2,800", w - 76);
@@ -277,6 +278,7 @@ namespace Moonlit.UI
         {
             float w = c.Width, h = c.Height;
             var root = Ui.Panel("PvP page", c.Root, 0, 0, w, h, new Color(.015f,.045f,.06f,.97f)).rectTransform;
+            Action(c, root, 28, 24, 150, 70, "‹ 메인", c.Close);
             Ui.Text("Crest", root, 380, 24, 320, 110, "🛡", 70, Font(c), Ui.Gold);
             Ui.Text("League", root, 290, 124, 500, 70, "골드 리그", 43, Font(c), Ui.Ivory);
             Action(c, root, 320, 200, 440, 64, "🎁 시즌 종료: 4일 18시", () => c.Open("pvp-rewards"));

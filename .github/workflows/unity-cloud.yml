@@ -35,18 +35,19 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         run: test -n "$UNITY_EMAIL" && test -n "$UNITY_LICENSE" && test -n "$UNITY_PASSWORD"
       - name: Run Unity tests
-        uses: game-ci/unity-test-runner@v4
+        uses: game-ci/unity-builder@v4
         env:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
-          projectPath: .
           unityVersion: 6000.3.8f1
-          testMode: PlayMode
-          artifactsPath: Artifacts/TestResults
-          githubToken: ${{ secrets.GITHUB_TOKEN }}
-          checkName: Moonlit PlayMode tests
+          targetPlatform: StandaloneLinux64
+          buildMethod: Moonlit.Editor.CloudTests.Run
+          manualExit: true
+          enableGpu: true
+          versioning: Custom
+          version: 0.1.0
       - name: Upload test evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -55,7 +56,7 @@ jobs:
           path: |
             Artifacts/TestResults
             Logs
-          if-no-files-found: warn
+          if-no-files-found: error
 
   screenshots:
     name: Graphics runtime captures

@@ -14,12 +14,14 @@ namespace Moonlit.UI
         static readonly Color Blue = new Color(.015f, .23f, .43f);
         static readonly Color Red = new Color(.38f, .035f, .035f);
         static readonly Color Orange = new Color(1f, .52f, .12f);
-        static bool offlineClaimed;
         static readonly bool[] autoKeep = { false, false, false, true };
         static readonly bool[] autoFilters = { true, true, false, false, false, true };
         static int autoHammerCount = 22;
         static bool autoContinue = true;
         static readonly HashSet<int> passClaims = new HashSet<int>();
+        const int ComparisonCost = 100;
+        const int OfflineGold = 174;
+        const int OfflineOre = 2;
 
         static readonly string[] Tiers =
         {
@@ -186,11 +188,19 @@ namespace Moonlit.UI
         static void BuildComparison(ScreenContext c)
         {
             Frame(c, "장비 비교", 820, 810, out var b, false);
-            ComparisonCard(c, b, 10, 10, "장착됨", "[신성한] 머큐리 샌들", "1.79b 체력  ▲\n+8.48% 치명타 확률\n+13.2% 체력", 1, Orange);
-            ComparisonCard(c, b, 10, 285, "새로운!", "[양자] 반중력 부츠", "110m 체력  ▼\n+5.27% 생명력 흡수\n+15% 더블 찬스", 2, new Color(.75f,.35f,1f));
+            if (!c.Main.BeginCraft(ItemAt(c, 2), ComparisonCost))
+            {
+                Ui.Text("Insufficient", b, 30, 250, b.rect.width - 60, 120, "강화석이 부족하여 새 장비를 제작할 수 없습니다.", 27, Font(c));
+                Action(c, b, 200, 470, 320, 90, "돌아가기", c.Close, Slate);
+                return;
+            }
+            var crafted = c.Main.PendingCraftItem;
+            var craftId = c.Main.PendingCraftId;
+            ComparisonCard(c, b, 10, 10, "장착됨", crafted.displayName, "현재 장비\nLv." + (c.Main.PendingCraftLevel - 1), 2, Orange);
+            ComparisonCard(c, b, 10, 285, "새로운!", crafted.displayName, "새 장비\nLv." + c.Main.PendingCraftLevel + "  ▲", 2, new Color(.75f,.35f,1f));
             var status = Ui.Text("Decision", b, 0, 565, b.rect.width, 38, "판매 또는 장착을 선택하세요.", 22, Font(c));
-            Action(c, b, 20, 612, 320, 96, "판매", () => ResolveComparison(c, status, false), Red);
-            Action(c, b, 380, 612, 320, 96, "장착", () => ResolveComparison(c, status, true), Blue);
+            Action(c, b, 20, 612, 320, 96, "판매", () => ResolveComparison(c, status, craftId, false), Red);
+            Action(c, b, 380, 612, 320, 96, "장착", () => ResolveComparison(c, status, craftId, true), Blue);
         }
 
         static void ComparisonCard(ScreenContext c, Transform p, float x, float y, string tag, string name, string stats, int icon, Color color)
@@ -203,10 +213,10 @@ namespace Moonlit.UI
             Ui.Text("Stats", card.transform, 185, 100, 500, 126, stats, 24, Font(c), Ui.Ivory, TextAnchor.UpperLeft);
         }
 
-        static void ResolveComparison(ScreenContext c, Text status, bool equip)
+        static void ResolveComparison(ScreenContext c, Text status, int craftId, bool equip)
         {
             var message = equip ? "새 장비를 장착했습니다." : "새 장비를 판매했습니다. 강화석 +120";
-            if (!equip) { c.Main.ore += 120; c.Main.Refresh(); }
+            if (!c.Main.ResolveCraftedEquipment(craftId, equip, 120)) { c.Toast("장비가 잠겨 있거나 이미 처리된 제작 결과입니다."); return; }
             status.text = message; c.Toast(message);
             foreach (var button in status.transform.parent.GetComponentsInChildren<Button>()) button.interactable = false;
             c.Close();
@@ -220,15 +230,15 @@ namespace Moonlit.UI
             RewardIcon(c, b, 360, 100, "⚒", "1.14/분", new Color(.8f,.82f,.86f));
             Ui.Image("Divider", b, 60, 340, b.rect.width - 120, 3, null, Ui.Gold);
             Ui.Text("Totals", b, 0, 375, b.rect.width, 82, "♛ 174.22      ⚒ 2.31", 34, Font(c));
-            var label = offlineClaimed ? "수집 완료" : "수집";
+            var label = c.Main.offlineRewardsClaimed ? "수집 완료" : "수집";
             Button claim = null;
             claim = Action(c, b, 135, 500, 360, 110, label, () =>
             {
-                if (offlineClaimed) { c.Toast("이미 수집한 보상입니다."); return; }
-                offlineClaimed = true; claim.interactable = false;
-                claim.GetComponentInChildren<Text>().text = "수집 완료"; c.Toast("오프라인 보상을 수집했습니다.");
+                if (!c.Main.ClaimOfflineRewards(OfflineGold, OfflineOre)) { c.Toast("이미 수집한 보상입니다."); return; }
+                claim.interactable = false;
+                claim.GetComponentInChildren<Text>().text = "수집 완료"; c.Toast("골드 +174 · 강화석 +2 수집 완료");
             });
-            claim.interactable = !offlineClaimed;
+            claim.interactable = !c.Main.offlineRewardsClaimed;
         }
 
         static void RewardIcon(ScreenContext c, Transform p, float x, float y, string glyph, string rate, Color color)
@@ -270,10 +280,16 @@ namespace Moonlit.UI
             Ui.Text("Continue",b,15,935,570,58,"목표 장비를 찾으면 제련 계속하기",22,Font(c),Ui.Ivory,TextAnchor.MiddleLeft);
             var continueToggle=Check(c,b,630,944,autoContinue);
             continueToggle.onValueChanged.AddListener(value=>autoContinue=value);
-            Action(c,b,190,1025,350,100,"시작",()=>
+            Action(c,b,190,1025,350,100,c.Main.autoForge ? "정지" : "시작",()=>
             {
+                if (c.Main.autoForge) { c.Main.StopAutoForge(); c.Close(); return; }
                 if (!keep.Exists(t=>t.isOn)) c.Toast("유지할 등급을 하나 이상 선택하세요.");
-                else { c.Main.autoForge=true; c.Main.Refresh(); c.Toast(amount.text+"개 망치로 자동 제련을 시작합니다."); c.Close(); }
+                else {
+                    var mask=0; for(var i=0;i<autoFilters.Length;i++) if(autoFilters[i]) mask|=1<<i;
+                    if(mask==0) { c.Toast("능력치 필터를 하나 이상 선택하세요."); return; }
+                    c.Main.ConfigureAutoForge(autoHammerCount,mask,autoContinue,autoKeep);
+                    c.Toast(amount.text+"개 망치로 자동 제련을 시작합니다."); c.Close();
+                }
             });
         }
 

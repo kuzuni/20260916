@@ -57,7 +57,7 @@ namespace Moonlit.Editor
             if(success) yield return CaptureAllRoutes(screen, screenHost, safe, canvas, camera, report,
                 value => { target = value; camera.targetTexture = value; }, () => target, () => success=false);
             if(success) {
-                try { VerifyInteractions(screen); report.Add("PASS runtime slot binding, forge, lock exclusion, auto toggle, independent management, navigation, insufficient-resource handling"); }
+                try { VerifyInteractions(screen); report.Add("PASS runtime slot binding, pending craft cost, auto settings entry, independent management, navigation, insufficient-resource handling"); }
                 catch(Exception e) { report.Add("FAIL interactions: "+e); success=false; }
             }
             if(hardware) Object.DestroyImmediate(hardware);
@@ -105,7 +105,8 @@ namespace Moonlit.Editor
         {
             int ore=screen.ore,total=screen.equipment.Sum(s=>s.level),locked=screen.equipment[0].level;
             screen.forgeLevelButton.onClick.Invoke(); if(screen.ore!=ore || screen.screens.ModalDepth!=1) throw new Exception("Forge probability route failed"); screen.Close();
-            screen.forgeButton.onClick.Invoke(); if(screen.ore!=ore || screen.screens.ModalDepth!=1) throw new Exception("Comparison route bypassed its decision UI"); screen.Close();
+            bool hadPending = screen.PendingCraftItem != null;
+            screen.forgeButton.onClick.Invoke(); if(screen.ore!=ore-(hadPending?0:100) || screen.screens.ModalDepth!=1) throw new Exception("Comparison route cost or decision UI failed"); screen.Close();
             screen.autoButton.onClick.Invoke(); if(screen.autoForge || screen.screens.ModalDepth!=1) throw new Exception("Auto settings route conflicted with the old immediate toggle"); screen.Close();
             screen.equipment[1].Button.onClick.Invoke(); if(screen.screens.ModalDepth!=1) throw new Exception("Runtime slot click handler missing"); screen.Close();
             for(int i=0;i<screen.navigation.Length;i++) { screen.navigation[i].onClick.Invoke(); if(i!=3 && string.IsNullOrEmpty(Object.FindFirstObjectByType<UiScreenHost>().ActivePageKey)) throw new Exception("Navigation route missing at index "+i); screen.screens.ShowMainPage(); }

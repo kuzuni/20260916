@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -12,6 +13,7 @@ namespace Moonlit.UI.Tests
         GameObject root;
         UiScreenHost host;
         CanvasGroup main, navigation;
+        MainScreenAssets assets;
 
         [SetUp]
         public void SetUp()
@@ -23,7 +25,11 @@ namespace Moonlit.UI.Tests
             navigation = Child("navigation", root.transform).gameObject.AddComponent<CanvasGroup>();
             var screen = root.AddComponent<MainScreen>();
             screen.enabled = false;
-            host = root.AddComponent<UiScreenHost>(); host.Initialize(null, screen, popup, pages, main, navigation);
+            assets = ScriptableObject.CreateInstance<MainScreenAssets>();
+            assets.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            screen.font = assets.font;
+            host = root.AddComponent<UiScreenHost>(); host.Initialize(assets, screen, popup, pages, main, navigation);
+            host.SetPreviewMetrics(new Vector2Int(1080,1920), new Rect(0,0,1080,1920));
             new GameObject("events", typeof(EventSystem));
         }
 
@@ -31,6 +37,7 @@ namespace Moonlit.UI.Tests
         public void TearDown()
         {
             Object.DestroyImmediate(root);
+            Object.DestroyImmediate(assets);
             foreach (var events in Object.FindObjectsByType<EventSystem>(FindObjectsSortMode.None))
                 Object.DestroyImmediate(events.gameObject);
         }
@@ -142,6 +149,101 @@ namespace Moonlit.UI.Tests
             Assert.That(child.rect.height, Is.EqualTo(parent.rect.height).Within(.1f));
             Assert.That(child.localScale.x, Is.EqualTo(1008f / 1080f).Within(.001f));
             host.ClearPreviewMetrics();
+        }
+
+        [Test]
+        public void LocalRewardAndForgeDecisions_MutateExactlyOnce()
+        {
+            PrepareMainLabels();
+            var startGold = host.GetComponent<MainScreen>().gold;
+            var startOre = host.GetComponent<MainScreen>().ore;
+            Assert.IsTrue(host.GetComponent<MainScreen>().ClaimOfflineRewards(174, 2));
+            Assert.IsFalse(host.GetComponent<MainScreen>().ClaimOfflineRewards(174, 2));
+            Assert.AreEqual(startGold + 174, host.GetComponent<MainScreen>().gold);
+            Assert.AreEqual(startOre + 2, host.GetComponent<MainScreen>().ore);
+            var screen = host.GetComponent<MainScreen>();
+            var item = ScriptableObject.CreateInstance<ItemDefinition>();
+            try
+            {
+                Assert.IsFalse(screen.BeginCraft(item, -100));
+                Assert.IsTrue(screen.BeginCraft(item, 100));
+                int firstId = screen.PendingCraftId;
+                Assert.IsTrue(screen.BeginCraft(item, 100));
+                Assert.AreEqual(startOre - 98, screen.ore, "Reopening must not charge twice");
+                Assert.IsTrue(screen.ResolveCraftedEquipment(firstId, false, 120));
+                Assert.IsFalse(screen.ResolveCraftedEquipment(firstId, false, 120));
+                Assert.AreEqual(startOre + 22, screen.ore);
+                Assert.IsTrue(screen.BeginCraft(item, 100));
+                Assert.IsFalse(screen.ResolveCraftedEquipment(firstId, false, 120), "A stale callback must not sell a new item");
+                Assert.AreEqual(startOre - 78, screen.ore);
+            }
+            finally { Object.DestroyImmediate(item); }
+        }
+
+        [UnityTest]
+        public IEnumerator Shop_HasExactlyTheFiveRequiredOffers_AndCanReturnToMain()
+        {
+            PrepareMainLabels();
+            SocialScreenModule.Register(host.Registry);
+            host.Registry.Open("shop"); yield return null;
+            var expected = new[] { 60, 220, 800, 1500, 3300 };
+            foreach (var amount in expected) Assert.IsNotNull(GameObject.Find("Gem offer " + amount));
+            var scroll = Object.FindObjectsByType<ScrollRect>(FindObjectsSortMode.None).Single();
+            Assert.AreEqual(expected.Length, scroll.content.Cast<Transform>().Count(t => t.name.StartsWith("Gem offer ")));
+            Assert.IsTrue(scroll.vertical);
+            GameObject.Find("‹ 메인").GetComponent<Button>().onClick.Invoke(); yield return null;
+            Assert.IsNull(host.ActivePageKey);
+            Assert.IsTrue(main.interactable);
+        }
+
+        [UnityTest]
+        public IEnumerator CollectionQuickEquip_DoesNotAccumulateSlots_AndChildKeepsScroll()
+        {
+            PrepareMainLabels();
+            ProgressionScreenModule.Register(host.Registry);
+            host.Registry.Open("skills-pets-heroes"); yield return null;
+            GameObject.Find("Tab 스킬").GetComponent<Button>().onClick.Invoke(); yield return null;
+            var equipped = GameObject.Find("Equipped skills").transform;
+            var quick = GameObject.Find("Quick equip").GetComponent<Button>();
+            quick.onClick.Invoke(); quick.onClick.Invoke(); yield return null;
+            Assert.AreEqual(3, equipped.childCount);
+            var scroll = Object.FindObjectsByType<ScrollRect>(FindObjectsSortMode.None).Single();
+            scroll.content.sizeDelta = new Vector2(0, 3000);
+            Canvas.ForceUpdateCanvases();
+            scroll.verticalNormalizedPosition = .37f;
+            host.Registry.Open("skill-details"); yield return null;
+            host.CloseTop(); yield return null;
+            Assert.AreSame(scroll, Object.FindObjectsByType<ScrollRect>(FindObjectsSortMode.None).Single());
+            Assert.That(scroll.verticalNormalizedPosition, Is.EqualTo(.37f).Within(.01f));
+            Assert.AreEqual(3, equipped.childCount);
+        }
+
+        [Test]
+        public void AutoForgeConfiguration_CanBeStoppedAndPreservesChoices()
+        {
+            PrepareMainLabels();
+            var screen = host.GetComponent<MainScreen>();
+            screen.ConfigureAutoForge(7, 5, false, new[] { true, false, true, false });
+            Assert.IsTrue(screen.autoForge);
+            Assert.AreEqual(7, screen.autoForgeBatchSize);
+            Assert.AreEqual(5, screen.autoForgeFilterMask);
+            Assert.IsFalse(screen.autoForgeContinue);
+            CollectionAssert.AreEqual(new[] { true, false, true, false }, screen.autoForgeKeep);
+            screen.StopAutoForge();
+            Assert.IsFalse(screen.autoForge);
+        }
+
+        void PrepareMainLabels()
+        {
+            var screen = host.GetComponent<MainScreen>();
+            screen.oreText = Label("ore"); screen.goldText = Label("gold"); screen.gemText = Label("gems");
+            screen.powerText = Label("power"); screen.stageText = Label("stage"); screen.autoText = Label("auto");
+            screen.toastRoot = root.transform; screen.equipment = new EquipmentSlot[0];
+        }
+
+        Text Label(string name)
+        {
+            var go = new GameObject(name, typeof(RectTransform), typeof(Text)); go.transform.SetParent(root.transform, false); return go.GetComponent<Text>();
         }
 
         static RectTransform Child(string name, Transform parent)

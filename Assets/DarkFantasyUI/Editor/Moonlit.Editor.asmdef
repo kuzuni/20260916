@@ -1,7 +1,7 @@
 {
     "name": "Moonlit.Editor",
     "rootNamespace": "Moonlit.Editor",
-    "references": ["Moonlit.UI", "UnityEngine.UI", "Unity.InputSystem", "Unity.2D.Sprite.Editor"],
+    "references": ["Moonlit.UI", "UnityEngine.UI", "Unity.InputSystem", "Unity.2D.Sprite.Editor", "UnityEditor.TestRunner", "UnityEngine.TestRunner"],
     "includePlatforms": ["Editor"],
     "autoReferenced": true
 }

@@ -57,3 +57,13 @@ Applied task_e_6aaa4b7d4a2c8329938a738ce3607eff patch (7 files) and reviewed it.
 - Generate and wire the first independent dungeon painting, HammerThief-v1. Provenance: ART-GENERATION.md. Other bespoke art remains pending.
 
 Static whitespace validation passed. Unity test/capture execution pending PR CI, never claimed as passed. Remaining important review items: screenshot bounds/content clipping and active safe-area relayout, meaningful sell/equip state (equip currently only reports a result), stopping/configuring automatic forge, parent scroll/tab preservation, remaining artwork, and original reference fidelity for every route. Do not merge until resolved.
+
+## Heartbeat 2026-09-16 18:00 KST — state review and CI activation repair
+
+Applied and reviewed cloud task task_e_6aaa524857dc8329b7f0463cd99f179f (state-fixes.patch). Do not apply it again. Coordinator corrected duplicate quick-equip slots, overlapping collection/shop return controls, forged-item repeated decisions and stale callbacks, same-category unlocked equipment binding, and charge-once pending craft state. Offline rewards now mutate the wallet once; auto configuration and stopping affect local state, with deterministic demo tier/filter matching. Full economy and skill/pet artwork fidelity remain incomplete.
+
+Actual CI run 35073553695 failed before tests: Unity Licensing client Code 400, TimeStamp validation failed. No test result artifacts; graphics job skipped. This is NOT a Unity compile/test pass and does not prove credentials invalid. The earlier baseline builder job successfully authenticated the same three secret references. Replaced the latest CLI-backed unity-test-runner invocation with the existing unity-builder activation path and an Editor-only CloudTests entry using Test Framework 1.6 API. It writes NUnit XML and exits nonzero on failed/skipped/zero tests or timeout. API signatures checked against the installed 1.6 package source; Unity was not launched locally. Cloud verification must still establish whether this resolves activation.
+
+Added meaningful regression checks for one-time offline rewards, pending craft cost/reopening, duplicate/stale sell callbacks, exact five shop offer rows plus actual return action, repeated quick-equip child count and parent ScrollRect restoration. Static git diff --check passes; new runtime tests are UNRUN until hosted CI completes.
+
+Inspected original reference 19 and 21 at full resolution. Current skill glyphs, shop deal/reward art and general frames still differ substantially; these are drafts, not accepted artwork. PR #1 stays draft and main is not merged. Next: inspect replacement CI logs/results, repair actual failures, finish bespoke art and per-screen capture review for all 24 routes.

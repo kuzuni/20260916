@@ -32,6 +32,9 @@ namespace Moonlit.UI
         };
         static int summonCurrency = 6830;
         static int selectedDungeon;
+        static int selectedCollectionTab;
+        static readonly int[] equippedSkills = { 9, 10, 11 };
+        static readonly int[] selectedCompanions = { 0, 0 };
 
         public static void Register(UiScreenRegistry registry)
         {
@@ -50,19 +53,28 @@ namespace Moonlit.UI
             var font = ctx.Assets.font;
             AddBackdrop(root, ctx);
             var state = new CollectionState();
-            var header = Panel(root, 42, 26, 996, 100, "✦  스킬 15/18  ✦", font, 42);
+            state.tab = selectedCollectionTab;
+            Ui.Button("Return to main", root, 34, 34, 150, 70, "‹ 메인", font, ctx.Close, Stone, 25);
+            var header = Panel(root, 210, 26, 828, 100, "✦  스킬 15/18  ✦", font, 42);
             state.summary = Ui.Text("Summary", root, 105, 126, 870, 52, "+10.3m 기본 피해  +82.8m 기본 체력", 25, font, Ui.Ivory);
             // Reserve a fixed interaction rail (equipped row, actions, summon and tabs)
             // while allowing taller safe areas to expand the scrollable collection.
             var bodyHeight = Mathf.Max(650, ctx.Height - 850);
             state.content = Ui.Rect("Tab content", root, 48, 186, 984, bodyHeight);
             Panel(root, 48, 186 + bodyHeight, 984, 112, "장착됨", font, 27);
-            for (var i = 0; i < 3; i++)
-                SkillSlot(root, 510 + i * 142, 197 + bodyHeight, 112, Skills[9 + i], font, null, true);
+            state.equipped = Ui.Rect("Equipped skills", root, 510, 197 + bodyHeight, 420, 112);
+            RenderEquipped(state, font);
             Ui.Button("Upgrade all", root, 245, 318 + bodyHeight, 280, 76, "모두 업그레이드", font,
-                () => { foreach (var s in Skills) s.level++; RenderTab(ctx, state); ctx.Toast("보유 스킬을 업그레이드했습니다."); }, Blue, 26);
+                () => { foreach (var s in Skills) s.level++; RenderTab(ctx, state); RenderEquipped(state, font); ctx.Toast("보유 스킬을 업그레이드했습니다."); }, Blue, 26);
             Ui.Button("Quick equip", root, 555, 318 + bodyHeight, 280, 76, "빠른 장착", font,
-                () => ctx.Toast("가장 강한 스킬 3개를 장착했습니다."), Blue, 26);
+                () => {
+                    var candidates = new List<int>();
+                    for (var i = 0; i < Skills.Length; i++) candidates.Add(i);
+                    candidates.Sort((a,b) => Skills[b].level != Skills[a].level ? Skills[b].level.CompareTo(Skills[a].level) : a.CompareTo(b));
+                    for (var i = 0; i < 3; i++) equippedSkills[i] = candidates[i];
+                    RenderEquipped(state, font);
+                    ctx.Toast("레벨이 가장 높은 스킬 3개를 장착했습니다.");
+                }, Blue, 26);
             var summonY = 410 + bodyHeight;
             Ui.Button("Summon five", root, 330, summonY, 420, 104, "소환 x5\n◆ 160", font, () => {
                 if (summonCurrency < 160) { ctx.Toast("소환권이 부족합니다."); return; }
@@ -74,14 +86,31 @@ namespace Moonlit.UI
             string[] tabs = { "스킬", "펫", "영웅" };
             for (var i = 0; i < tabs.Length; i++) {
                 var index = i;
-                state.tabs[i] = Ui.Button("Tab " + tabs[i], root, 48 + i * 328, tabY, 328, 74, tabs[i], font, () => { state.tab = index; RenderTab(ctx, state); }, i == 0 ? Blue : Stone, 28);
+                state.tabs[i] = Ui.Button("Tab " + tabs[i], root, 48 + i * 328, tabY, 328, 74, tabs[i], font, () => { state.tab = selectedCollectionTab = index; RenderTab(ctx, state); }, i == state.tab ? Blue : Stone, 28);
             }
             RenderTab(ctx, state);
         }
 
+        static void ClearChildren(Transform parent)
+        {
+            for (var i = parent.childCount - 1; i >= 0; i--)
+            {
+                var child = parent.GetChild(i);
+                child.gameObject.SetActive(false);
+                child.SetParent(null, false);
+                UnityEngine.Object.Destroy(child.gameObject);
+            }
+        }
+
+        static void RenderEquipped(CollectionState state, Font font)
+        {
+            ClearChildren(state.equipped);
+            for (var i = 0; i < 3; i++) SkillSlot(state.equipped, i * 142, 0, 112, Skills[equippedSkills[i]], font, null, true);
+        }
+
         static void RenderTab(ScreenContext ctx, CollectionState state)
         {
-            for (var i = state.content.childCount - 1; i >= 0; i--) UnityEngine.Object.Destroy(state.content.GetChild(i).gameObject);
+            ClearChildren(state.content);
             string[] summaries = { "+10.3m 기본 피해  +82.8m 기본 체력", "+24.6m 동료 피해  +31.2m 동료 체력", "+18.4m 영웅 피해  +96.7m 영웅 체력" };
             state.summary.text = summaries[state.tab];
             for (var i = 0; i < 3; i++) state.tabs[i].targetGraphic.color = i == state.tab ? Blue : Stone;
@@ -99,10 +128,12 @@ namespace Moonlit.UI
                     : new[] { "검은 방랑자", "성채의 마녀", "망령 기사", "심연 사냥꾼", "별의 예언자", "피의 군주" };
                 Ui.Text("Inferred title", state.content, 0, 12, 984, 58, title + "  6/12", 34, ctx.Assets.font, Ui.Gold);
                 for (var i = 0; i < names.Length; i++) {
-                    var selectedName = names[i];
+                    var selectedName = names[i]; var selectionIndex = i; var selectionTab = state.tab;
                     var skill = new SkillData(names[i], 30 + i * 7, (i + 2) % 8, i + state.tab, "+동료 전투력 " + (12 + i * 3) + "%");
                     SkillSlot(state.content, 105 + (i % 3) * 280, 90 + (i / 3) * 285, 190, skill, ctx.Assets.font,
-                        () => ctx.Toast(selectedName + " 선택"), false);
+                        () => { selectedCompanions[selectionTab-1]=selectionIndex; RenderTab(ctx,state); ctx.Toast(selectedName + " 편성 완료"); }, false);
+                    if (selectedCompanions[state.tab-1] == i)
+                        Ui.Text("Selected " + i,state.content,105+(i%3)*280,250+(i/3)*285,190,38,"✓ 편성 중",21,ctx.Assets.font,Green);
                 }
                 Ui.Text("Inference note", state.content, 80, state.content.rect.height - 96, 824, 70,
                     "보유한 " + (state.tab == 1 ? "펫" : "영웅") + "을 선택해 편성할 수 있습니다.", 23, ctx.Assets.font, Ui.Ivory);
@@ -168,6 +199,7 @@ namespace Moonlit.UI
         {
             var font = ctx.Assets.font;
             AddBackdrop(ctx.Root, ctx);
+            Ui.Button("Return to collection", ctx.Root, 34, 34, 150, 70, "‹ 이전", font, ctx.Close, Stone, 25);
             Ui.Text("Title", ctx.Root, 90, 80, 900, 90, "소환 결과", 46, font, Ui.Gold);
             Ui.Text("Subtitle", ctx.Root, 90, 170, 900, 60, "새로운 힘이 달빛 아래 깨어납니다", 24, font);
             var y = ctx.Height * .43f;
@@ -187,6 +219,7 @@ namespace Moonlit.UI
         {
             var font = ctx.Assets.font;
             AddBackdrop(ctx.Root, ctx);
+            Ui.Button("Return to main", ctx.Root, 34, 34, 150, 70, "‹ 메인", font, ctx.Close, Stone, 25);
             Panel(ctx.Root, 220, 36, 640, 100, "던전", font, 44);
             Ui.Text("Reset", ctx.Root, 120, 145, 840, 86, "던전 열쇠는 매일 09:00에 보충됩니다.\n열쇠는 던전을 완료할 때만 소모됩니다.", 25, font);
             var available = ctx.Height - 450;
@@ -306,6 +339,7 @@ namespace Moonlit.UI
         {
             public int tab;
             public RectTransform content;
+            public RectTransform equipped;
             public Text summary;
             public Text currency;
             public readonly Button[] tabs = new Button[3];
