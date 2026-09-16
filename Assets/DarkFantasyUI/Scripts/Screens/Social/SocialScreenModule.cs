@@ -285,34 +285,59 @@ namespace Moonlit.UI
             Ui.Text("Shop title", root, 450, 24, 310, 80, "상점", 46, Font(c), Ui.Gold);
             Currency(c, root, 188, 28, 56, 0, "1.59m");
             Currency(c, root, w - 270, 28, 56, 1, "21", new Color(1,.55f,.65f));
-            Scroll(c, root, 38, 120, w - 76, Mathf.Max(360, h - 120 - NavigationReserve), 1830, out var content);
-            Deal(c, content, 0, "자원 거래", "      1k        방패 150\n티켓 200     주괴 50\n물약 50      열쇠 62", "₩2,800", w - 76);
-            Deal(c, content, 300, "펫 거래", "◉ 660\n▣ 200\n◇ 20", "₩9,500", w - 76);
-            Deal(c, content, 600, "던전 거래", "⚿ 2     🔑 2\n🔑 2     ⚿ 250", "₩27,500", w - 76);
-            Ui.Text("Gem title", content, 20, 900, w - 116, 70, "보석", 42, Font(c), Ui.Gold);
+            Scroll(c, root, 38, 120, w - 76, Mathf.Max(360, h - 120 - NavigationReserve), 2010, out var content);
+            var special = SpritePanel(c, "Daily specials header", content, 18, 0, w - 112, 110, 1, Color.white);
+            Ui.Text("Daily specials title", special.transform, 24, 12, w - 160, 76, "오늘의 특가", 42, Font(c), Ui.Gold);
+            Ui.Text("Daily specials hint", content, 40, 116, w - 156, 52, "모험에 필요한 보급품", 25, Font(c), Ui.Ivory);
+            Deal(c, content, 180, "자원 거래", "      1k        방패 150\n티켓 200     주괴 50\n물약 50      열쇠 62", "₩2,800", w - 76, 0);
+            Deal(c, content, 480, "펫 거래", "방패 660\n주괴 200\n펫 보석 20", "₩9,500", w - 76, 1);
+            Deal(c, content, 780, "던전 거래", "은빛 열쇠 2    붉은 열쇠 2\n초록 열쇠 2    황금 열쇠 250\n주황 열쇠 2", "₩27,500", w - 76, 2);
+            Ui.Text("Gem title", content, 20, 1080, w - 116, 70, "보석", 42, Font(c), Ui.Gold);
             int[] gems = { 60, 220, 800, 1500, 3300 };
             string[] prices = { "₩2,800", "₩9,500", "₩34,500", "가격 미설정", "가격 미설정" };
             for (int i = 0; i < gems.Length; i++)
             {
                 int col = i % 3, row = i / 3;
                 float cardW = (w - 124) / 3f;
-                var card = SpritePanel(c, "Gem offer " + gems[i], content, 20 + col * (cardW + 14), 980 + row * 360, cardW, 330, 1, Color.white);
+                var card = SpritePanel(c, "Gem offer " + gems[i], content, 20 + col * (cardW + 14), 1160 + row * 360, cardW, 330, 1, Color.white);
                 Ui.Image("Ruby amount icon", card.transform, 20, 12, 48, 48, Icon(c, 1)).preserveAspect = true;
                 Ui.Text("Amount", card.transform, 72, 8, cardW - 82, 54, gems[i].ToString(), 29, Font(c), new Color(1,.75f,.78f), TextAnchor.MiddleLeft);
-                var ruby = Ui.Image("Ruby artwork", card.transform, cardW * .5f - 66, 70, 132, 142, Icon(c, 1)); ruby.preserveAspect = true;
+                var ruby = Ui.Image("Ruby artwork", card.transform, 28, 70, cardW - 56, 164, ShopIllustration(3 + i)); ruby.preserveAspect = true;
                 string price = prices[i];
                 Action(c, card.transform, 12, 242, cardW - 24, 70, price, () => c.Toast(price == "가격 미설정" ? "이 상품은 가격이 구성되지 않았습니다." : "결제는 연결되지 않은 미리보기입니다."));
             }
         }
 
-        static void Deal(ScreenContext c, Transform parent, float y, string title, string body, string price, float width)
+        static void Deal(ScreenContext c, Transform parent, float y, string title, string body, string price, float width, int artIndex)
         {
             var card = SpritePanel(c, title, parent, 18, y, width - 36, 280, 1, Color.white);
+            var artwork = Ui.Image("Deal illustration", card.transform, width - 352, 10, 288, 174, ShopIllustration(artIndex));
+            artwork.preserveAspect = true;
+            artwork.raycastTarget = false;
             Ui.Image("Ribbon", card.transform, 0, 0, 430, 62, null, Red);
             Ui.Text("Title", card.transform, 20, 2, 390, 56, title, 31, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
             Ui.Text("Contents", card.transform, 38, 74, width - 390, 174, body, 27, Font(c), Ui.Ivory, TextAnchor.UpperLeft);
             if (title == "자원 거래") Ui.Image("Crown coin", card.transform, 36, 78, 38, 38, Icon(c, 0)).preserveAspect = true;
             Action(c, card.transform, width - 330, 182, 260, 72, price, () => c.Toast("결제 기능은 연결되지 않았습니다."));
+        }
+
+        static Sprite[] shopIllustrations;
+        static Sprite ShopIllustration(int index)
+        {
+            if (shopIllustrations == null || !shopIllustrations[0])
+            {
+                var atlas = Resources.Load<Texture2D>("Moonlit/Shop/ShopBundles-v1");
+                if (!atlas) return null;
+                shopIllustrations = new Sprite[8];
+                int width = atlas.width / 4, height = atlas.height / 2;
+                for (int i = 0; i < shopIllustrations.Length; i++)
+                {
+                    shopIllustrations[i] = Sprite.Create(atlas, new Rect(i % 4 * width, (1 - i / 4) * height, width, height),
+                        new Vector2(.5f, .5f), 100, 0, SpriteMeshType.FullRect);
+                    shopIllustrations[i].name = "Shop illustration " + i;
+                }
+            }
+            return shopIllustrations[Mathf.Clamp(index, 0, shopIllustrations.Length - 1)];
         }
 
         static void BuildPvp(ScreenContext c)
