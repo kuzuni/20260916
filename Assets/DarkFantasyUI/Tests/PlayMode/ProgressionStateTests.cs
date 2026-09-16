@@ -167,7 +167,10 @@ namespace Moonlit.UI.Tests
             ForgeScreenModule.Register(host.Registry);
             var screen = root.GetComponent<MainScreen>();
             var item = ScriptableObject.CreateInstance<ItemDefinition>();
-            item.displayName = "검증 장비"; item.startingLevel = 108;
+            item.displayName = "검증 장비"; item.startingLevel = 123;
+            item.baseHealth = 1000000000;
+            item.firstBonusName = "블록 확률"; item.firstBonusPercent = 1.62f;
+            item.secondBonusName = "공격 속도"; item.secondBonusPercent = 30.1f;
             item.icon = PopupSkin.CloseArt;
             // Populate an inactive serialized-prefab equivalent before Awake reads its fields.
             var templateObject = new GameObject("slot template", typeof(RectTransform));
@@ -203,6 +206,8 @@ namespace Moonlit.UI.Tests
                     Assert.AreSame(PopupSkin.RibbonArt, header.sprite);
                     Assert.IsTrue(header.preserveAspect);
                     Assert.IsFalse(header.raycastTarget);
+                    Assert.AreEqual("1b 체력\n+1.62% 블록 확률\n+30.1% 공격 속도",
+                        dialog.transform.Find("Item details").GetComponent<Text>().text);
                     var detail = dialog.GetComponentInChildren<EquipmentSlot>();
                     Assert.AreNotSame(template, detail);
                     Assert.AreSame(item.icon, detail.icon.sprite);
@@ -230,6 +235,11 @@ namespace Moonlit.UI.Tests
                 var next = GameObject.Find("New equipment").GetComponentInChildren<EquipmentSlot>();
                 Assert.AreEqual(123, current.level);
                 Assert.AreEqual(124, next.level);
+                StringAssert.Contains("1b 체력 <color=#FF4933>▼</color>",
+                    current.transform.parent.Find("Stats").GetComponent<Text>().text);
+                StringAssert.Contains("1.02b 체력 <color=#33FF55>▲</color>",
+                    next.transform.parent.Find("Stats").GetComponent<Text>().text);
+                Assert.AreEqual(1000000000d, item.baseHealth);
                 Assert.AreSame(item, current.item);
                 Assert.AreSame(item, next.item);
                 Assert.AreEqual(123, template.level, "The preview must not mutate the equipped slot.");
@@ -244,6 +254,10 @@ namespace Moonlit.UI.Tests
                 Assert.AreEqual(124, template.level);
                 Assert.IsNull(screen.PendingCraftItem);
                 Assert.AreEqual(0, host.ModalDepth);
+                host.Registry.Open("equipment-details", template); yield return null;
+                StringAssert.StartsWith("1.02b 체력",
+                    GameObject.Find("Item details").GetComponent<Text>().text);
+                host.CloseTop(); yield return null;
             }
             finally { Object.DestroyImmediate(item); }
         }
