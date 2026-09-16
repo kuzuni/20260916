@@ -1,6 +1,6 @@
 # Moonlit 24 UI — coordinator status
 
-Updated 2026-09-16, 18:40 UTC. Implementation is unfinished; local coordinator and 15-minute heartbeat remain active.
+Updated 2026-09-16, 18:39 UTC. Implementation is unfinished; local coordinator and 15-minute heartbeat remain active.
 
 ## Progress frame artwork and resumed validation
 
@@ -8,6 +8,7 @@ Updated 2026-09-16, 18:40 UTC. Implementation is unfinished; local coordinator a
 - Inspected original reference **19-skills-pets-heroes.png** at full resolution. Replaced progression's plain rectangular progress borders with a separately generated bronze/silver beveled hollow rim. `ProgressFrame-v1.png` is 1922x818, with transparent center/corners; source PNG is copied unchanged with a unique .meta. Runtime crop and 9-slice preserve the pointed ends. Track, proportional blue fill and live count remain separate non-raycasting objects. Shard-bar height increases from 24 to 28 logical pixels for clearer numbers.
 - Parent refresh now updates the nested fill against the usable track width after upgrades/summons. Existing skill state, counts and level rules are unchanged. This change is a frame/readability improvement, not acceptance of the unfinished 12-entry skill catalog, missing illustrations, max-level/equipped treatment or all 24 references.
 - Prompt/provenance: `Documentation/UI/ProgressFrame-v1-prompt.md`. New source requires fresh hosted Unity tests and both-aspect captures; only static diff/PNG-alpha/meta checks have run on this change. No local Unity execution, credential-value access or cloud coordinator restart.
+- **PR #31** (`codex/skill-progress-frame`), source **2cacdeceb69cf3db8928ea7295bf6ccc589e8237**, starts hosted run **35135761722** (queued at this checkpoint). Integrating as reviewable work in progress per user direction; new source is not yet Unity/capture verified.
 - Next: finish run **35133474570** graphics review, then inspect the progress-frame PR's actual captures in skill collection/details and summon probability at both aspect ratios. Continue missing skill art/content and reference layout differences. Keep the 15-minute desktop heartbeat active.
 
 ## Local coordinator resumed; validation repair
