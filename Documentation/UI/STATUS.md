@@ -1,70 +1,65 @@
 # Moonlit 24 UI — coordinator status
 
-## Latest user direction and completed main merge
+Updated 2026-09-16, 10:07 UTC. Implementation is unfinished; automation remains active.
 
-The user explicitly requested merging the current implementation into main immediately for inspection in the original project, overriding the separate-preview-first/all-acceptance-before-main approach below. PR #1 was merged successfully as 9e1fb8c928cbf6e36640415192051a543a67df5b; C:/Users/user/Documents/GitHub/20260916 was fast-forwarded to that merge with no user changes overwritten. The current UI is now in both GitHub main and the original local project. UI/artwork is still in progress and latest CI/visual acceptance is not implied by this merge.
+## Delivery and current work
 
-The heartbeat prompt now integrates reviewable progress into main and synchronizes the original checkout after checking for user changes. Continue implementation from the latest main in an isolated checkout/branch; old PR #1 is closed/merged, so future updates need a new integration PR or coordinator merge. 20260916-preview is optional and no longer the primary delivery location. The remaining acceptance work, existing CI IDs and applied task list below remain relevant. Local Unity must not be launched or controlled.
-
-## Earlier intermediate-preview approach (superseded above)
-
-The user needs to inspect intermediate implementations. A separate detached preview worktree now exists at C:/Users/user/Documents/GitHub/20260916-preview, revision 50d3fe073ddcae49b89bbac705b18bb1d0d9c099. See PREVIEW.md for opening it manually. The agent did not launch Unity. The heartbeat prompt has been updated to maintain this preview: first check for user modifications, then fast-forward only when clean. Do not overwrite user changes. Preview is explicitly unfinished/unverified at the newest revision. Do not make the user wait for all 24 screens before seeing work. Split implementation into independently reviewable/validated groups and merge each accepted group to main; overall automation completes only after all 24 meet acceptance. This user correction takes precedence over earlier all-or-nothing integration wording.
-
-Updated 2026-09-16. This file replaces older chronological notes; Git history preserves those notes.
-
-## Current source of truth
-
-- Repository: https://github.com/kuzuni/20260916 (private).
-- Merged PR: https://github.com/kuzuni/20260916/pull/1 . Current work in progress is now on main.
-- Delivery branch: main. Development checkout remains codex/ui-24-integration until resynced/new work starts.
-- Implementation merge: 9e1fb8c928cbf6e36640415192051a543a67df5b (includes 50d3fe0).
-- Coordinator checkout: C:/Users/user/.codex/worktrees/moonlit-ui-24-integration (clean at checkpoint).
-- Main project Assets were updated by the user-requested fast-forward sync. No local Unity editor was run or controlled.
-- Read the integration branch's Documentation/UI/INTEGRATION-CHECKPOINT.md, ART-GENERATION.md, PROGRESSION-STATE-REVIEW.md, SOCIAL-VISUAL-REVIEW.md and CI-35077607384.md for implementation/evidence details.
+- Repository: https://github.com/kuzuni/20260916 .
+- User explicitly wants intermediate progress merged into main and fast-forwarded into the original local C:/Users/user/Documents/GitHub/20260916 project. Do not wait for all 24 screens before integrating reviewed progress. Merging does not establish final acceptance.
+- PR #1 implementation was merged as 9e1fb8c. PR #2 fixed System.Action/UnityAction compile errors in the summon return buttons; merged as 793143bab04888b0cbeb971c837a7f66b4d16042 and synced locally.
+- This heartbeat: PR #3 https://github.com/kuzuni/20260916/pull/3 . Code/art revision 4eee17c3ca7f5f5d2c3965658daf587abbb795cb, based on current main. Source/test edits were committed on an isolated GitHub branch. Coordinator staged generated artwork in C:/Users/user/.codex/worktrees/moonlit-ui-24-integration, branch codex/profile-review, tracking origin/codex/modal-pointer-viewport.
+- PR #3 matches the social test CanvasScaler to runtime width-based scaling, retains frame-edge pointer testing, and asserts the test point is on-screen and the frame hierarchy intercepts it. The former unscaled test canvas could place the left frame edge outside a small hosted Game View.
+- Profile now uses the existing hood sprite instead of a crown coin and has a separate generated ruins painting below rank controls. Built-in image_gen source inspected; exact prompt and limitations in ProfileRuins-v1-prompt.md. Frame/text/buttons remain runtime objects; painting ignores raycasts and preserves aspect.
+- Before sync, the original project had user/Unity modifications to the four dungeon PNG .meta files. Preserve them. No local Unity, MCP, command-file or self-hosted runner execution is allowed.
+- Optional 20260916-preview is an older detached copy; the original project is the delivery target.
 
 ## Actual hosted verification
 
-Unity version: 6000.3.8f1. GitHub Actions secrets UNITY_EMAIL, UNITY_LICENSE and UNITY_PASSWORD are user-authorized; use workflow secret expressions only. Never retrieve/read/print their values.
+Unity 6000.3.8f1, GitHub-hosted Ubuntu. Secrets are referenced only by workflow environment; never retrieve account secrets.
 
-- Baseline login/license/Linux player build: SUCCESS, run 35067009693, job 104699606811. This baseline did not include the new 24 routes.
-- First 24-route CI run 35073553695: FAILED before tests, Unity license TimeStamp validation failed. No test artifact, graphics skipped. Do not count as a compile/test pass.
-- Replacement run https://github.com/kuzuni/20260916/actions/runs/35077607384 at commit 3d6dd2d7237c38fc97ca2cd74c377c517fabafeb: compile/PlayMode job 104733618485 SUCCESS. Downloaded artifact 10439357413 confirms 10 passed, 0 failed, 0 skipped, 0 inconclusive. Graphics capture job 104737565570 was still running at this checkpoint.
-- Latest queued validation: https://github.com/kuzuni/20260916/actions/runs/35079253091 at commit 50d3fe0. It must validate newer art/progression/social changes; no pass claimed yet. Intermediate pending run 35078727676 is superseded by this newest queued update.
-- Workflow now preserves active runs (cancel-in-progress false) and queues the latest pending PR update. Test entry uses the proven unity-builder activation path plus Editor Test Framework API; actual NUnit evidence required. Static git diff --check passes but is never a Unity substitute.
-- Downloaded test evidence: C:/Users/user/AppData/Local/Temp/moonlit-cloud-review/ci-35077607384/unpacked. Summary and XML inspected; no account secret values retrieved.
+- Baseline run 35067009693: login/license/Linux player build succeeded before the 24-route implementation.
+- Run 35073553695: license timestamp failure before tests; no test pass.
+- Run 35077607384, source 3d6dd2d7237c38fc97ca2cd74c377c517fabafeb: compile/PlayMode job 104733618485 SUCCESS. Artifact 10439357413 XML confirms 10 passed, 0 failed/skipped/inconclusive.
+- Its graphics job 104737565570 also SUCCESS. Downloaded artifact 10439746706 and inspected Verification.txt: main layout and runtime interaction checks passed. Counted 54 PNGs: six main cases plus all 24 route keys in both aspect ratios, no missing files. Route capture checks establish construction, not exhaustive bounds/click acceptance.
+- Runtime-profile-9x16.png was visually compared with full-resolution original 06-profile.png. Findings: incorrect coin avatar (fixed in PR #3), missing lower ruins painting (added), crude/incorrect frame ornamentation and unfinished styling (still open). Other captures require systematic visual comparison; 54 files existing is not 54 visually accepted screens.
+- Run 35079253091, source 50d3fe0: compilation failed with the two summon callback CS1503 errors. Already fixed by PR #2.
+- Run 35081094322, source 67524acd5a4ea6b8e1d03311076621b489658db5: compiled, tests actually ran. Artifact 10440159906 NUnit XML + summary: **16 passed, 1 failed, 0 skipped, 0 inconclusive**. Failed test: SocialScreenLayoutTests.PointerInsideModalFrame_DoesNotDismissThroughBackdrop, empty raycast list at line 112. Graphics skipped. PR #3 corrects the test viewport scaling; a fresh pass is not yet confirmed.
+- Run 35082860621 at 353d8ec (test scaler fix): in progress at checkpoint.
+- Run 35083086652 at 4eee17c (test fix plus profile art): pending behind active PR #3 run. Inspect these next, and use newest source results for acceptance.
 
-## Implementation progress and gaps
+Downloaded evidence:
+- C:/Users/user/AppData/Local/Temp/moonlit-cloud-review/artifact-10439746706/unpacked (54 captures, Verification.txt).
+- C:/Users/user/AppData/Local/Temp/moonlit-cloud-review/artifact-10440159906/unpacked/Artifacts/TestResults (17-test XML and summary).
+- C:/Users/user/AppData/Local/Temp/moonlit-cloud-review/ci-35077607384/unpacked (prior 10-test evidence).
 
-All 24 routes are assembled and connected to main/nav entries with runtime-only construction. Coordinator reviewed cloud drafts and corrected page input/close/back, pending craft cost and duplicate/stale decisions, one-time offline wallet reward, auto settings state, quick-equip accumulation, actual skill equip/upgrade and summon state, system-back summon lockout, social navigation clearance, ranking/PvP/opponent raycast targets and modal-interior hit blocking. Newly added tests still need newest queued CI.
+## Implementation and gaps
 
-All four dungeon source paintings are now generated with built-in image_gen and stored under Assets/DarkFantasyUI/Resources/Moonlit/Dungeons: HammerThief-v1, GhostVillage-v1, Invasion-v1, ZombieRush-v1. Unique metadata, exact prompts and inspection notes are committed. List/detail crop proportionally; images, reusable frames, labels and buttons remain separate. No image generation request remains running.
+All 24 routes are connected with runtime-only construction, separate reusable slots/icons, page navigation and sibling modal stack. Existing fixes cover pending craft costs, stale/duplicate decisions, offline rewards, auto configuration, skill upgrade/equip, summon state, parent scroll preservation, navigation clearance, row raycasts and modal-interior interception.
 
-Still incomplete: original-reference visual fidelity across 24 screens, bespoke skill/reward/shop/avatar/crest illustrations, control behavior/layout gaps revealed by real captures, all-screen safe-area and interaction acceptance. Placeholders/glyphs are not finished artwork. Runtime capture code requests all 24 routes at both aspect ratios, but capture existence alone is not visual acceptance. Do not merge before reviewing actual results and fixing failures.
+Generated paintings: HammerThief-v1, GhostVillage-v1, Invasion-v1, ZombieRush-v1 and now ProfileRuins-v1. Source artwork is reviewed; latest rendered capture review remains outstanding.
 
-## Cloud work already reviewed and applied
+Still incomplete: reference fidelity throughout 24 screens, skill/reward/shop/avatar/crest illustrations, decorative frames and actual control/layout gaps. Placeholder glyphs are not final. Required acceptance remains cloud compile, meaningful modal stack input tests, latest per-screen 9:16/9:19 safe-area captures, top-only input/back, no interior/backdrop click-through, parent tab/scroll restoration and exact shop quantities. Assets/_Recovery is untouched.
 
-Environment: kuzuni/20260916, ID 6aaa3ea9e7748191a9023a62689d6c2b. Repository-backed Codex Cloud, not local workers. All following tasks are complete and their diffs applied. DO NOT APPLY THEM AGAIN. No delegated task is currently executing.
+## Cloud tasks already applied — do not repeat
 
-| Assignment | Task ID |
+Environment ID 6aaa3ea9e7748191a9023a62689d6c2b. No delegated cloud task currently running.
+
+| Work | Applied task ID |
 |---|---|
 | Foundation | task_e_6aaa3f284b848329a2f503179ed3c3c2 |
 | Forge | task_e_6aaa3f42b96c8329b8be80604ac2c898 |
 | Progression | task_e_6aaa3f47b9e48329981d5b65dde1ce30 |
 | Social | task_e_6aaa3f4ca5b08329aaaaf1935e0165a3 |
 | Entry/CI integration | task_e_6aaa4b7d4a2c8329938a738ce3607eff |
-| Initial local demo state | task_e_6aaa524857dc8329b7f0463cd99f179f |
-| Skill/summon live state | task_e_6aaa5c620df8832988a95fa79042550e |
+| Demo state | task_e_6aaa524857dc8329b7f0463cd99f179f |
+| Skill/summon state | task_e_6aaa5c620df8832988a95fa79042550e |
 | Social sprites/layout | task_e_6aaa5cb3f8608329a8f710daae4691ff |
 
-Task URLs: https://chatgpt.com/codex/tasks/TASK_ID . Patches are preserved under C:/Users/user/AppData/Local/Temp/moonlit-cloud-review. The last progression patch required a clean three-way merge to preserve independently added dungeon art; final branch contains both.
+Earlier ChatGPT Work foundation 6aaa3c5a-69dc-83ee-85cb-a46cbbf95790 was stopped. Do not merge its duplicate codex/ui-foundation branch.
 
-Earlier ChatGPT Work conversation 6aaa3c5a-69dc-83ee-85cb-a46cbbf95790 was stopped to avoid duplicate foundation work. Do not merge its codex/ui-foundation branch/9943238 alongside current implementation. One consistent Scripts/Screens.meta is already preserved.
+## Next steps
 
-## Next heartbeat
-
-1. Inspect graphics job 104737565570 and newest run 35079253091. Fetch actual NUnit results/logs/capture artifacts and repair failures on integration branch.
-2. Compare per-screen captured PNGs to all originals in Documentation/UI/References and filenames in reference-manifest.json. Verify 9:16, 9:19, safe areas, top-only modal/back input, interior backdrop blocking, parent tab/scroll, shop quantities and actual control states.
-3. Generate missing illustrated assets with built-in image_gen, keep slots/icons separate, improve unfinished reference layouts. Assign bounded independent follow-ups in cloud if useful; avoid duplicate work.
-4. Push reviewed fixes to integration PR, allow hosted validation to finish, record checkpoints. Merge only after the 24-page acceptance requirements actually pass. Pause automation only on actual completion.
-
-Automation moonlit-24-ui is active every 15 minutes. Keep unchanged/non-actionable monitoring quiet; notify on meaningful progress, completion, failure or required user action. Use limits/access failures as explicit blockers, never fabricated success. No local Unity/MCP/self-hosted runner/Library/Moonlit.command use. Do not touch Assets/_Recovery.
+1. Inspect runs 35082860621 and 35083086652, download actual NUnit and latest captures, repair remaining failures without weakening assertions.
+2. Review all 24 latest captures against original reference PNGs at full resolution; fix visible layout/art deficits and strengthen per-route bounds/input evidence where current construction checks are insufficient.
+3. Continue missing bitmap asset generation, preserve exact prompts, and integrate reviewed progress into main and the original project while preserving local modifications.
+4. Record tested source commits and evidence. Keep automation active until all 24 screens meet actual acceptance; report meaningful progress, failure or required user action only.
