@@ -274,6 +274,31 @@ namespace Moonlit.UI.Tests
             }
         }
 
+
+        [UnityTest]
+        public IEnumerator Settings_UsesSeparateSilverIcons_AndListLinksRemainClickable()
+        {
+            host.Registry.Open("settings"); yield return null;
+            var layer = GameObject.Find("Popup Layer settings");
+            var icons = layer.GetComponentsInChildren<Image>()
+                .Where(i => i.name.StartsWith("Settings icon ")).ToArray();
+            Assert.AreEqual(10, icons.Length);
+            Assert.IsTrue(icons.All(i => i.sprite != null && !i.raycastTarget));
+            Assert.AreEqual(10, icons.Select(i => i.sprite.rect).Distinct().Count());
+            Assert.AreEqual(1, icons.Select(i => i.sprite.texture).Distinct().Count());
+            for (int i = 0; i < 4; i++)
+            {
+                var link = layer.GetComponentsInChildren<Button>().Single(b => b.name == "Settings link " + i);
+                Assert.IsTrue(link.IsInteractable());
+                Assert.IsTrue(link.GetComponent<Image>().raycastTarget);
+                link.onClick.Invoke(); yield return null;
+                Assert.AreEqual(1, host.ModalDepth, "A local settings link must not dismiss its parent.");
+            }
+            layer.GetComponentsInChildren<Button>().Single(b => b.name == "Close").onClick.Invoke();
+            yield return null;
+            Assert.AreEqual(0, host.ModalDepth);
+        }
+
         static RectTransform Child(string name, Transform parent)
         {
             var rect = new GameObject(name, typeof(RectTransform)).GetComponent<RectTransform>();
