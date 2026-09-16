@@ -1,5 +1,9 @@
 # Moonlit 24 UI — coordinator status
 
+## User correction: intermediate review before all 24 screens finish
+
+The user needs to inspect intermediate implementations. A separate detached preview worktree now exists at C:/Users/user/Documents/GitHub/20260916-preview, revision 50d3fe073ddcae49b89bbac705b18bb1d0d9c099. See PREVIEW.md for opening it manually. The agent did not launch Unity. The heartbeat prompt has been updated to maintain this preview: first check for user modifications, then fast-forward only when clean. Do not overwrite user changes. Preview is explicitly unfinished/unverified at the newest revision. Do not make the user wait for all 24 screens before seeing work. Split implementation into independently reviewable/validated groups and merge each accepted group to main; overall automation completes only after all 24 meet acceptance. This user correction takes precedence over earlier all-or-nothing integration wording.
+
 Updated 2026-09-16. This file replaces older chronological notes; Git history preserves those notes.
 
 ## Current source of truth
