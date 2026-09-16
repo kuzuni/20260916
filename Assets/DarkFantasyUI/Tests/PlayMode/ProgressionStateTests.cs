@@ -17,6 +17,7 @@ namespace Moonlit.UI.Tests
         [SetUp]
         public void SetUp()
         {
+            MoonlitRuntimeSettings.ResetSession();
             root = new GameObject("progression test root", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler));
             root.GetComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
             var popup = Child("popups", root.transform);
@@ -46,6 +47,40 @@ namespace Moonlit.UI.Tests
             Object.DestroyImmediate(assets);
             foreach (var events in Object.FindObjectsByType<EventSystem>(FindObjectsSortMode.None))
                 Object.DestroyImmediate(events.gameObject);
+            MoonlitRuntimeSettings.ResetSession();
+        }
+
+        [UnityTest]
+        public IEnumerator SkillCatalog_CountsOwnershipAndKeepsEquippedBadgesInSync()
+        {
+            host.Registry.Open("skills-pets-heroes"); yield return null;
+            var scroll=GameObject.Find("Tab content").GetComponentInChildren<ScrollRect>();
+            var slots=scroll.content.GetComponentsInChildren<Button>();
+            Assert.AreEqual(18,slots.Length);
+            Assert.AreEqual(15,slots.Count(b=>ChildText(b.transform,"Ownership").text==""));
+            Assert.AreEqual("스킬 15/18",GameObject.Find("Collection title").GetComponent<Text>().text);
+            Assert.AreEqual("Skill 치유의 날개",slots[7].name);
+            Assert.AreEqual(18,slots.Select(b=>b.transform.Find("Icon").GetComponent<Image>().sprite.name).Distinct().Count());
+            CollectionAssert.AreEqual(new[]{"Skill 번개 강타","Skill 심연의 군주","Skill 붉은 악마"},
+                GameObject.Find("Equipped skills").transform.Cast<Transform>().Select(t=>t.name));
+            foreach(var slot in slots)
+            {
+                bool equipped=new[]{"Skill 번개 강타","Skill 심연의 군주","Skill 붉은 악마"}.Contains(slot.name);
+                var badge=slot.transform.Find("Equipped badge");
+                Assert.AreEqual(equipped,badge.gameObject.activeSelf);
+                Assert.IsTrue(badge.GetComponentsInChildren<Graphic>(true).All(g=>!g.raycastTarget));
+            }
+            scroll.verticalNormalizedPosition=0; Canvas.ForceUpdateCanvases(); yield return null;
+            var last=slots.Last().GetComponent<RectTransform>();
+            Assert.IsTrue(scroll.viewport.rect.Contains(scroll.viewport.InverseTransformPoint(last.TransformPoint(last.rect.center))),
+                "Unowned final-row skills must be reachable through the real ScrollRect.");
+            GameObject.Find("Quick equip").GetComponent<Button>().onClick.Invoke(); yield return null;
+            Assert.AreSame(scroll,GameObject.Find("Tab content").GetComponentInChildren<ScrollRect>());
+            var selected=GameObject.Find("Equipped skills").transform.Cast<Transform>().Select(t=>t.name).ToArray();
+            foreach(var slot in slots) Assert.AreEqual(selected.Contains(slot.name),slot.transform.Find("Equipped badge").gameObject.activeSelf);
+            host.Registry.Open("summon-probability-details"); yield return null;
+            var catalog=GameObject.Find("Popup Layer summon-probability-details").GetComponentInChildren<ScrollRect>();
+            Assert.AreEqual(18,catalog.content.GetComponentsInChildren<Button>().Count(b=>b.name.StartsWith("Skill ")));
         }
 
         [UnityTest]
@@ -267,6 +302,9 @@ namespace Moonlit.UI.Tests
             Assert.IsTrue(GameObject.Find("Summon five").GetComponent<Button>().interactable);
             var unlocked = GameObject.Find("Skill 봉인된 권능").GetComponentsInChildren<Text>(true).Single(t => t.name == "Ownership");
             Assert.AreEqual(string.Empty, unlocked.text);
+            var catalog=GameObject.Find("Tab content").GetComponentInChildren<ScrollRect>().content.GetComponentsInChildren<Button>();
+            int owned=catalog.Count(b=>ChildText(b.transform,"Ownership").text=="");
+            Assert.AreEqual("스킬 "+owned+"/18",GameObject.Find("Collection title").GetComponent<Text>().text);
         }
 
         [UnityTest]
