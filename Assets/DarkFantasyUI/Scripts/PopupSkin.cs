@@ -8,18 +8,21 @@ namespace Moonlit.UI
     public static class PopupSkin
     {
         static Sprite panel, action, close;
-        static Sprite Load(ref Sprite cached, string name, Vector4 border)
+        static Sprite Load(ref Sprite cached, string name, Vector4 border, Rect? sourceRect = null)
         {
             if (cached) return cached;
             var texture = Resources.Load<Texture2D>("Moonlit/Popup/" + name);
             if (!texture) return null;
-            cached = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height),
+            cached = Sprite.Create(texture, sourceRect ?? new Rect(0, 0, texture.width, texture.height),
                 new Vector2(.5f, .5f), 100, 0, SpriteMeshType.FullRect, border);
             cached.name = name;
             return cached;
         }
         public static Sprite PanelArt => Load(ref panel, "OrnatePanel-v1", new Vector4(220, 220, 220, 220));
-        public static Sprite ActionArt => Load(ref action, "BlueAction-v1", new Vector4(300, 210, 300, 210));
+        // V2 keeps ornaments in the fixed corner slices. Exclude the export's transparent
+        // padding so the visible face fills the live button and does not shrink behind its label.
+        public static Sprite ActionArt => Load(ref action, "BlueAction-v2", new Vector4(240, 150, 240, 150),
+            new Rect(48, 120, 2076, 488));
         public static Sprite CloseArt => Load(ref close, "CrimsonClose-v1", Vector4.zero);
 
         public static Image Panel(string name, Transform parent, float x, float y, float width, float height)
