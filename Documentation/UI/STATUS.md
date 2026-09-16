@@ -2,7 +2,19 @@
 
 Updated 2026-09-16, 10:07 UTC. Implementation is unfinished; automation remains active.
 
-## Latest navigation validation checkpoint — 2026-09-16 10:51 UTC
+## Latest shop artwork checkpoint — 2026-09-16 11:13 UTC
+
+- Navigation-order revision 80315fd0aef687d6788c562254e4b0a13a33f879, run 35087076049, compile/PlayMode job 104764311658 SUCCESS. Downloaded artifact 10443296372; inspected summary confirms **18 passed, 0 failed/skipped/inconclusive**. Evidence under C:/Users/user/AppData/Local/Temp/moonlit-cloud-review/artifact-10443296372/unpacked/Artifacts/TestResults. Graphics job 104767980540 is still running; per-route navigation assertions are not yet confirmed passed.
+- Prior skill-art run 35085271201 graphics SUCCESS. Downloaded artifact 10441814726 (54 PNGs) to C:/Users/user/AppData/Local/Temp/moonlit-cloud-review/artifact-10441814726/unpacked. Inspected skill 9:16 capture: all 12 generated symbols and independent ring render, with no old glyph squares. Frame/text proportions and roster remain unfinished. This revision precedes the navigation-order correction.
+- Inspected shop 9:16 capture alongside full-resolution original reference 21. Identified absent daily-specials header, empty bundle art, repeated single-ruby illustrations and missing glyph characters.
+- PR #6 https://github.com/kuzuni/20260916/pull/6 adds a generated transparent atlas with three supply/pet/dungeon illustrations plus five distinct ruby groups. Adds live 오늘의 특가 header, offsets deal/gem sections and expands scroll content to 2010 logical units. Quantity/price labels, card frames and buttons stay separate; exactly five offers 60/220/800/1500/3300 remain, last two prices unconfigured. Removed missing-font symbols from bundle lists in favor of readable Korean labels.
+- Built-in image_gen source 1774x887 ARGB inspected, outer corner alpha=0. Saved Assets/DarkFantasyUI/Resources/Moonlit/Shop/ShopBundles-v1.png with unique metadata. Runtime caches eight 443x443 atlas cells. Exact prompt, inferred 1500/3300 chest art and limitations are in Documentation/UI/ShopBundles-v1-prompt.md.
+- Extended the shop regression test to require all three bundle sprites and five distinct, non-raycastable ruby illustrations. Static diff check passed. New code/art is not yet runtime accepted.
+- Reviewed source e009dba0c7540786ac0147eb412b09528f6118b8 merged as **19648138bb2f83e541c35f8e66b510a515433b50**, original local project fast-forwarded while preserving the four preexisting dungeon metadata modifications.
+- New hosted validation **35089015301** is running. Next inspect this run and graphics of 35087076049. Verify actual navigation visibility/hit targets and new shop top/bottom scroll captures before calling those issues resolved.
+- Source edits used isolated cloud branch codex/shop-illustrations; coordinator artwork checkout is codex/shop-art-review in the existing integration worktree. No new delegated task and no local Unity execution/control. All 24-screen fidelity/acceptance gaps remain open where not explicitly verified.
+
+## Previous navigation validation checkpoint — 2026-09-16 10:51 UTC
 
 - **Skill artwork revision passed actual hosted tests:** run 35085271201 at d7caf441af96db23958b83f5dcb77be3af27654a, job 104758503754 SUCCESS. Downloaded artifact 10442955037; NUnit XML and summary confirm **18 passed, 0 failed, 0 skipped, 0 inconclusive**. Includes actual atlas/ring import, separate textures, distinct cell rectangles and sprite reuse across collection/detail. Evidence: C:/Users/user/AppData/Local/Temp/moonlit-cloud-review/artifact-10442955037/unpacked/Artifacts/TestResults.
 - That run's graphics job 104762421719 remains in progress. Profile-art run 35083318972 test job succeeded; graphics job 104761333866 remains in progress. No newest visual acceptance claimed.
