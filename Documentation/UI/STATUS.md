@@ -2,7 +2,18 @@
 
 Updated 2026-09-16, 10:07 UTC. Implementation is unfinished; automation remains active.
 
-## Latest skill artwork checkpoint — 2026-09-16 10:31 UTC
+## Latest navigation validation checkpoint — 2026-09-16 10:51 UTC
+
+- **Skill artwork revision passed actual hosted tests:** run 35085271201 at d7caf441af96db23958b83f5dcb77be3af27654a, job 104758503754 SUCCESS. Downloaded artifact 10442955037; NUnit XML and summary confirm **18 passed, 0 failed, 0 skipped, 0 inconclusive**. Includes actual atlas/ring import, separate textures, distinct cell rectangles and sprite reuse across collection/detail. Evidence: C:/Users/user/AppData/Local/Temp/moonlit-cloud-review/artifact-10442955037/unpacked/Artifacts/TestResults.
+- That run's graphics job 104762421719 remains in progress. Profile-art run 35083318972 test job succeeded; graphics job 104761333866 remains in progress. No newest visual acceptance claimed.
+- Downloaded prior capture artifact 10442111117 from successful run 35082860621 (revision 353d8ec). Verification.txt passes. Inspected Runtime-skills-pets-heroes-9x16.png: persistent navigation is visually obscured by page scenery, despite the intended canvas sorting contract. This capture predates skill artwork and should not be used to assess the new atlas/ring.
+- PR #5 https://github.com/kuzuni/20260916/pull/5 makes PageHost precede NavigationCanvas in sibling order as well as canvas sorting order. This is a targeted ordering correction; the observed obscuring issue must be confirmed resolved in new captures.
+- Strengthened graphics capture verification across every route at both aspects: all five navigation buttons must be inside Safe Area; pages require them to be interactable and actual top pointer hits; modals require them non-interactable. The route capture is saved before assertion failure to preserve evidence. This closes a gap where route construction alone could pass despite hidden/blocked navigation.
+- Reviewed source 80315fd0aef687d6788c562254e4b0a13a33f879. git diff --check passed. Merged PR #5 as befb3a028d02b105d43b82c43737c2371f47dcfb and fast-forwarded original local project, preserving four preexisting dungeon metadata modifications. Latest hosted validation **35087076049** is running; no pass claimed for these new assertions/order change.
+- Coordinator development checkout now branch codex/navigation-review tracking origin/codex/page-navigation-layer. No new delegated task, no image generation in this heartbeat, no local Unity execution/control.
+- Next: inspect 35087076049, 35085271201 and 35083318972; retrieve newest captures, investigate any per-route navigation failures and continue reference fidelity work. Do not call 24 pages complete. All prior gaps/task IDs remain applicable.
+
+## Previous skill artwork checkpoint — 2026-09-16 10:31 UTC
 
 - **Verified hosted regression pass:** run 35082860621, revision 353d8ec14957892e93e63254ebd7e440aadabf6d, job 104750728936 SUCCESS. Downloaded artifact 10441188409; NUnit XML and summary agree **17 passed, 0 failed, 0 skipped, 0 inconclusive**. The prior empty-raycast failure is resolved. Local evidence: C:/Users/user/AppData/Local/Temp/moonlit-cloud-review/artifact-10441188409/unpacked/Artifacts/TestResults. Graphics job 104754290100 also succeeded; its capture artifact still needs downloading/review. This revision predates profile and skill art additions.
 - Run 35083318972 (profile-art revision d45e4ef) has started; compile/PlayMode job 104757861148 was running. Inspect actual results next.
