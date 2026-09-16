@@ -58,19 +58,25 @@ namespace Moonlit.UI
             activeCollection = state;
             state.root = root;
             state.tab = selectedCollectionTab;
-            PopupSkin.Button("Return to main", root, 34, 34, 150, 70, "‹ 메인", font, ctx.Close, Stone, 25);
-            var header = Panel(root, 210, 26, 828, 100, "✦  스킬 15/18  ✦", font, 42);
-            state.summary = Ui.Text("Summary", root, 105, 126, 870, 52, "+10.3m 기본 피해  +82.8m 기본 체력", 25, font, Ui.Ivory);
-            // Reserve a fixed interaction rail (equipped row, actions, summon and tabs)
-            // while allowing taller safe areas to expand the scrollable collection.
-            var bodyHeight = Mathf.Max(650, ctx.Height - 850);
-            state.content = Ui.Rect("Tab content", root, 48, 186, 984, bodyHeight);
-            Panel(root, 48, 186 + bodyHeight, 984, 112, "장착됨", font, 27);
-            state.equipped = Ui.Rect("Equipped skills", root, 510, 197 + bodyHeight, 420, 112);
+            state.title = Ui.Text("Collection title", root, 330, 38, 420, 70, "스킬 15/18", 44, font);
+            var wallet = PopupSkin.Panel("Summon wallet",root,28,44,220,60).rectTransform;
+            var ticket=Resources.Load<Sprite>("Moonlit/Skills/SummonTicket-v1");
+            Ui.Image("Summon currency icon",wallet,-8,-6,68,68,ticket).preserveAspect=true;
+            state.currency=Ui.Text("Currency",wallet,65,0,146,60,FormatSummonCurrency(),34,font);
+            var summary=PopupSkin.Panel("Collection summary frame",root,145,120,790,58).rectTransform;
+            state.summary = Ui.Text("Summary", summary, 12, 0, 766, 58, "+10.3m 기본 피해  +82.8m 기본 체력", 25, font, Ui.Ivory);
+            // The reference keeps the title/grid at the top and equipment/actions at the bottom.
+            // Extra portrait height belongs to the scenery gap, not oversized grid rows.
+            var equippedY = ctx.Height - 840;
+            state.content = Ui.Rect("Tab content", root, 48, 205, 984, Mathf.Min(620, equippedY-225));
+            var equippedPanel=PopupSkin.Panel("Equipped panel",root,88,equippedY,904,132).rectTransform;
+            Ui.Image("Equipped ribbon",equippedPanel,-2,18,228,49,PopupSkin.RibbonArt);
+            Ui.Text("Equipped label",equippedPanel,8,18,206,49,"장착됨",31,font,new Color(.06f,.045f,.025f));
+            state.equipped = Ui.Rect("Equipped skills", equippedPanel, 440, 8, 440, 116);
             RenderEquipped(state, font);
-            PopupSkin.Button("Upgrade all", root, 245, 318 + bodyHeight, 280, 76, "모두 업그레이드", font,
+            PopupSkin.Button("Upgrade all", root, 242, equippedY + 162, 282, 88, "모두 업그레이드", font,
                 () => { foreach (var s in Skills) s.level++; RenderTab(ctx, state); RenderEquipped(state, font); ctx.Toast("보유 스킬을 업그레이드했습니다."); }, Blue, 26);
-            PopupSkin.Button("Quick equip", root, 555, 318 + bodyHeight, 280, 76, "빠른 장착", font,
+            PopupSkin.Button("Quick equip", root, 550, equippedY + 162, 282, 88, "빠른 장착", font,
                 () => {
                     var candidates = new List<int>();
                     for (var i = 0; i < Skills.Length; i++) if (Skills[i].owned) candidates.Add(i);
@@ -79,8 +85,14 @@ namespace Moonlit.UI
                     RenderEquipped(state, font);
                     ctx.Toast("레벨이 가장 높은 스킬 3개를 장착했습니다.");
                 }, Blue, 26);
-            var summonY = 410 + bodyHeight;
-            var summon = PopupSkin.Button("Summon five", root, 330, summonY, 420, 104, "소환 x5\n◆ 160", font, null, Blue, 30);
+            var summonY = ctx.Height - 540;
+            var summonRail=PopupSkin.Panel("Summon rail",root,0,summonY-24,1080,206).rectTransform;
+            var summon = PopupSkin.Button("Summon five", root, 364, summonY, 342, 154, "", font, null, Blue, 30);
+            Ui.Text("Summon label",summon.transform,8,8,326,65,"소환 x5",43,font);
+            Ui.Image("Summon cost icon",summon.transform,94,84,52,52,ticket).preserveAspect=true;
+            Ui.Text("Summon cost",summon.transform,151,75,110,68,"160",42,font);
+            PopupSkin.Button("Summon quantity",root,234,summonY+96,104,62,"x5",font,()=>ctx.Toast("한 번에 스킬 5개를 소환합니다."),Blue,29);
+            PopupSkin.Back("Return to main",root,28,summonY+68,82,font,ctx.Close,true);
             state.summon = summon;
             summon.onClick.AddListener(() => {
                 if (!summon.IsInteractable() || state.lastSummonFrame == Time.frameCount) return;
@@ -92,9 +104,10 @@ namespace Moonlit.UI
                 RefreshCollection(ctx, state);
                 ctx.Open("summon-result", session);
             });
-            PopupSkin.Button("Probability", root, 770, summonY + 8, 76, 76, "!", font, () => ctx.Open("summon-probability"), Stone, 32);
-            state.currency = Ui.Text("Currency", root, 70, summonY + 17, 230, 60, "◆ " + summonCurrency.ToString("N0"), 28, font, Green, TextAnchor.MiddleLeft);
-            var tabY = summonY + 118;
+            PopupSkin.Button("Probability", root, 776, summonY + 8, 58, 58, "i", font, () => ctx.Open("summon-probability"), Stone, 32);
+            Ui.Text("Summon level",root,737,summonY+66,140,40,"Lv.68",27,font);
+            Progress(root,733,summonY+112,156,36,.68f,"75/110",font);
+            var tabY = ctx.Height - 320;
             string[] tabs = { "스킬", "펫", "영웅" };
             for (var i = 0; i < tabs.Length; i++) {
                 var index = i;
@@ -119,7 +132,7 @@ namespace Moonlit.UI
         static void RenderEquipped(CollectionState state, Font font)
         {
             ClearChildren(state.equipped);
-            for (var i = 0; i < 3; i++) SkillSlot(state.equipped, i * 142, 0, 112, Skills[equippedSkills[i]], font, null, true);
+            for (var i = 0; i < 3; i++) SkillSlot(state.equipped, i * 144, 0, 112, Skills[equippedSkills[i]], font, null, true);
         }
 
         static void RenderTab(ScreenContext ctx, CollectionState state)
@@ -127,29 +140,33 @@ namespace Moonlit.UI
             ClearChildren(state.content);
             string[] summaries = { "+10.3m 기본 피해  +82.8m 기본 체력", "+24.6m 동료 피해  +31.2m 동료 체력", "+18.4m 영웅 피해  +96.7m 영웅 체력" };
             state.summary.text = summaries[state.tab];
+            state.title.text = new[] { "스킬 15/18", "펫 6/12", "영웅 6/12" }[state.tab];
             for (var i = 0; i < 3; i++) PopupSkin.Select(state.tabs[i], i == state.tab);
             if (state.tab == 0) {
                 var scroll = Scroll(state.content, 0, 0, state.content.rect.width, state.content.rect.height);
                 for (var i = 0; i < Skills.Length; i++) {
                     var skill = Skills[i];
-                    SkillSlot(scroll.content, 24 + (i % 5) * 184, 20 + (i / 5) * 230, 150, skill, ctx.Assets.font,
+                    SkillSlot(scroll.content, 60 + (i % 5) * 184, 12 + (i / 5) * 205, 150, skill, ctx.Assets.font,
                         () => ctx.Open("skill-details", new SkillDetailsPayload(skill, state)), false);
                 }
-                scroll.content.sizeDelta = new Vector2(0, Mathf.Max(scroll.viewport.rect.height, 700));
+                scroll.content.sizeDelta = new Vector2(0, Mathf.Max(scroll.viewport.rect.height, 627));
             } else {
+                var companionScroll=Scroll(state.content,0,0,state.content.rect.width,state.content.rect.height);
+                companionScroll.content.sizeDelta=new Vector2(0,820);
+                var companionRoot=companionScroll.content;
                 var title = state.tab == 1 ? "달빛 동료" : "어둠의 영웅";
                 var names = state.tab == 1 ? new[] { "푸른 용", "그림자 요정", "수호 늑대", "불꽃 정령", "해골 기사", "달빛 까마귀" }
                     : new[] { "검은 방랑자", "성채의 마녀", "망령 기사", "심연 사냥꾼", "별의 예언자", "피의 군주" };
-                Ui.Text("Inferred title", state.content, 0, 12, 984, 58, title + "  6/12", 34, ctx.Assets.font, Ui.Gold);
+                Ui.Text("Inferred title", companionRoot, 0, 12, 984, 58, title + "  6/12", 34, ctx.Assets.font, Ui.Gold);
                 for (var i = 0; i < names.Length; i++) {
                     var selectedName = names[i]; var selectionIndex = i; var selectionTab = state.tab;
                     var skill = new SkillData(names[i], 30 + i * 7, (i + 2) % 8, i + state.tab, "+동료 전투력 " + (12 + i * 3) + "%");
-                    SkillSlot(state.content, 105 + (i % 3) * 280, 90 + (i / 3) * 285, 190, skill, ctx.Assets.font,
+                    SkillSlot(companionRoot, 105 + (i % 3) * 280, 90 + (i / 3) * 285, 190, skill, ctx.Assets.font,
                         () => { selectedCompanions[selectionTab-1]=selectionIndex; RenderTab(ctx,state); ctx.Toast(selectedName + " 편성 완료"); }, false);
                     if (selectedCompanions[state.tab-1] == i)
-                        Ui.Text("Selected " + i,state.content,105+(i%3)*280,250+(i/3)*285,190,38,"✓ 편성 중",21,ctx.Assets.font,Green);
+                        Ui.Text("Selected " + i,companionRoot,105+(i%3)*280,250+(i/3)*285,190,38,"✓ 편성 중",21,ctx.Assets.font,Green);
                 }
-                Ui.Text("Inference note", state.content, 80, state.content.rect.height - 96, 824, 70,
+                Ui.Text("Inference note", companionRoot, 80, 724, 824, 70,
                     "보유한 " + (state.tab == 1 ? "펫" : "영웅") + "을 선택해 편성할 수 있습니다.", 23, ctx.Assets.font, Ui.Ivory);
             }
         }
@@ -269,7 +286,7 @@ namespace Moonlit.UI
         static void RefreshCollection(ScreenContext ctx, CollectionState state)
         {
             if (state == null || state.root == null) return;
-            state.currency.text = "◆ " + summonCurrency.ToString("N0");
+            state.currency.text = FormatSummonCurrency();
             state.summon.interactable = true;
             RefreshSkillLabels(state.root);
             RenderEquipped(state, ctx.Assets.font);
@@ -331,14 +348,16 @@ namespace Moonlit.UI
             }
         }
 
+        static string FormatSummonCurrency() => summonCurrency >= 1000 ? (summonCurrency / 1000f).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) + "k" : summonCurrency.ToString();
+
         static void BuildDungeons(ScreenContext ctx)
         {
             var font = ctx.Assets.font;
             AddBackdrop(ctx.Root, ctx);
-            PopupSkin.Button("Return to main", ctx.Root, 34, 34, 150, 70, "‹ 메인", font, ctx.Close, Stone, 25);
+            PopupSkin.Back("Return to main",ctx.Root,40,ctx.Height-364,96,font,ctx.Close);
             Panel(ctx.Root, 220, 36, 640, 100, "던전", font, 44);
             Ui.Text("Reset", ctx.Root, 120, 145, 840, 86, "던전 열쇠는 매일 09:00에 보충됩니다.\n열쇠는 던전을 완료할 때만 소모됩니다.", 25, font);
-            var available = ctx.Height - 450;
+            var available = ctx.Height - 660;
             var scroll = Scroll(ctx.Root, 60, 250, 960, available);
             for (var i = 0; i < Dungeons.Length; i++) {
                 var dungeon = Dungeons[i];
@@ -494,6 +513,7 @@ namespace Moonlit.UI
             public RectTransform content;
             public RectTransform equipped;
             public Text summary;
+            public Text title;
             public Text currency;
             public Button summon;
             public int lastSummonFrame = -1;
