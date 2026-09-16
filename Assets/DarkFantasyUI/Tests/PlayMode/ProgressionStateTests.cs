@@ -119,6 +119,35 @@ namespace Moonlit.UI.Tests
             Assert.AreEqual(1, host.ModalDepth);
         }
 
+        [UnityTest]
+        public IEnumerator SkillArtwork_LoadsDistinctAtlasCells_AndReusesFrameInDetails()
+        {
+            host.Registry.Open("skills-pets-heroes"); yield return null;
+            GameObject.Find("Tab 스킬").GetComponent<Button>().onClick.Invoke(); yield return null;
+            var first = GameObject.Find("Skill 핏빛 파편").GetComponent<Button>();
+            var second = GameObject.Find("Skill 쌍날 투척").GetComponent<Button>();
+            var icon = first.transform.Find("Icon").GetComponent<Image>();
+            var otherIcon = second.transform.Find("Icon").GetComponent<Image>();
+            var frame = first.transform.Find("Slot frame").GetComponent<Image>();
+            Assert.IsNotNull(icon.sprite, "The generated atlas must be imported and loadable in runtime.");
+            Assert.IsNotNull(frame.sprite, "The reusable ring must import as a sprite.");
+            Assert.AreSame(icon.sprite.texture, otherIcon.sprite.texture);
+            Assert.AreNotEqual(icon.sprite.rect, otherIcon.sprite.rect);
+            Assert.AreNotSame(icon.sprite.texture, frame.sprite.texture);
+            Assert.IsFalse(icon.raycastTarget);
+            Assert.IsFalse(frame.raycastTarget);
+            var cell = icon.sprite.rect;
+            Assert.That(cell.width, Is.EqualTo(cell.height));
+            Assert.That(cell.y, Is.EqualTo(icon.sprite.texture.height * 2f / 3f));
+            first.onClick.Invoke(); yield return null;
+            var detail = GameObject.Find("Popup Layer skill-details").GetComponentsInChildren<Button>()
+                .Single(b => b.name == first.name);
+            Assert.AreSame(icon.sprite, detail.transform.Find("Icon").GetComponent<Image>().sprite);
+            Assert.AreSame(frame.sprite, detail.transform.Find("Slot frame").GetComponent<Image>().sprite);
+            host.CloseTop(); yield return null;
+            Assert.IsTrue(first.IsInteractable());
+        }
+
         static string[] ResultNames()
         {
             return GameObject.Find("Summon result cards").transform.Cast<Transform>()
