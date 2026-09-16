@@ -1,6 +1,16 @@
 # Moonlit 24 UI — coordinator status
 
-Updated 2026-09-16, 15:50 UTC. Implementation is unfinished; automation remains active.
+Updated 2026-09-16, 16:12 UTC. Implementation is unfinished; automation remains active.
+
+## Equipment compiler repair and crimson/ribbon artwork — 2026-09-16 16:12 UTC
+
+- **PR #22 failed hosted compilation:** run **35117661306**, source **93c5a2f421dad7b6676f7b04f3c3f95190701150**, test job **104867095586 FAILURE**, graphics **104870804624 SKIPPED**. Inspected job log error lines: ForgeScreenModule.cs(243,27) **CS0104: Object is an ambiguous reference between UnityEngine.Object and object**. No NUnit artifacts were produced; this is not a failed assertion or license failure. Do not report the new equipment tests as passed.
+- **PR #23** https://github.com/kuzuni/20260916/pull/23 merged source **1f7571119301145f2b15c542106cf559b80e5de7** as **1d9b57611b1e2169ed7af2ac91ea15119f553f51**. Qualified prefab cloning as UnityEngine.Object.Instantiate. Static diff reviewed; original local checkout fast-forwarded immediately. Hosted run **35119763224**, test job **104874249543**, still in progress at 16:11. Actual compiler repair/test success remains pending.
+- **PR #24** https://github.com/kuzuni/20260916/pull/24 merged source **803bc6ca00aeb8f0884810b8203bfab888f0558b** as **71ad16783d6405d7aaaad44d786d00740c394777**. Inspected original reference 09 at full resolution and used built-in imagegen for CrimsonAction-v1.png (edit of existing BlueAction-v2) and EquippedRibbon-v1.png (new blank swallowtail stone/bronze header). Generated PNGs visually inspected and copied unchanged with unique metadata.
+- Crimson asset **2172x724**, corner alpha 0, alpha>180 bounds x51..2119/y112..599; runtime bottom-origin crop **(48,116,2076,504)** with borders **(240,150,240,150)**. Shared PopupSkin now selects this illustrated face for red actions, leaving blue and neutral classification intact. Live white Korean labels and input surfaces are separate. Ribbon **1942x809**, corner alpha 0, alpha>180 bounds x100..1840/y228..566; runtime crop **(96,235,1752,350)**, aspect-preserving 260x52 non-raycast Image replaces plain rectangular equipped header. All crop/border/PPU coordinates scale with imported texture dimensions.
+- Full prompts and input/output provenance: **Documentation/UI/CrimsonAction-and-Ribbon-v1-prompt.md**. Added imported ribbon/crimson/blue separation and non-raycast assertions to existing equipment lifecycle test. Static diff check passed. Hosted run **35120254952** is in progress; **new artwork is not yet runtime or visually accepted**.
+- Original checkout synced through **71ad167**, preserving the same eight preexisting metadata edits. Isolated coordinator worktree **codex/crimson-ribbon-review**, HEAD **803bc6c**. No local Unity run/control, no delegated tasks/agents, no account secret values accessed. Cloud code branches and GitHub-hosted validation only.
+- **Remaining:** verify both runs above and download actual XML/captures, especially equipment detail/comparison 9:16 and 9:19 with safe insets. Check slot prefab lifecycle, no duplicate charge on close/reopen, actual equipped levels, rim/notch crop and white-label contrast. Reference-specific equipment stats/art, card proportions, other popup/title/button details, main/profile identity, and all 24-screen acceptance remain unfinished. Automation stays active.
 
 ## Equipment popup checkpoint and shared artwork review — 2026-09-16 15:50 UTC
 
