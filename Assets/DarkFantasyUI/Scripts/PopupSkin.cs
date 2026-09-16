@@ -52,7 +52,7 @@ namespace Moonlit.UI
         {
             if (label == "×") return Close(name, parent, x, y, Mathf.Min(width, height), font, click, size);
             Color tint = color ?? new Color(.02f, .23f, .48f);
-            bool blue = tint.b > tint.r * 1.3f && tint.b > tint.g * 1.1f;
+            bool blue = tint.b - tint.r > .12f && tint.b - tint.g > .08f;
             var button = Ui.ArtButton(name, parent, x, y, width, height, blue ? ActionArt : PanelArt, true, blue ? 8 : 7);
             if (!blue && tint.r > tint.b * 1.5f) button.targetGraphic.color = new Color(1, .55f, .5f);
             else if (!blue && tint.g > tint.b * 1.5f) button.targetGraphic.color = new Color(.6f, 1, .65f);

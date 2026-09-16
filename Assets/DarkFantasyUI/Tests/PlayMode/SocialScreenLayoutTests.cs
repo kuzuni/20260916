@@ -265,6 +265,14 @@ namespace Moonlit.UI.Tests
                 var frames = layer.GetComponentsInChildren<Image>().Where(i => i.sprite == PopupSkin.PanelArt).ToArray();
                 Assert.IsTrue(frames.Any(i => i.type == Image.Type.Sliced && i.raycastTarget),
                     route + " must retain a sliced frame that intercepts interior touches.");
+                if (route == "skill-details")
+                {
+                    var upgrade = layer.GetComponentsInChildren<Button>().Single(b => b.name == "Upgrade");
+                    var equip = layer.GetComponentsInChildren<Button>().Single(b => b.name == "Equip");
+                    Assert.AreSame(PopupSkin.PanelArt, ((Image)upgrade.targetGraphic).sprite,
+                        "Neutral secondary actions must not be misclassified as saturated blue.");
+                    Assert.AreSame(PopupSkin.ActionArt, ((Image)equip.targetGraphic).sprite);
+                }
                 var close = layer.GetComponentsInChildren<Button>().Single(b => b.name == "Close");
                 Assert.AreSame(PopupSkin.CloseArt, ((Image)close.targetGraphic).sprite);
                 Assert.IsFalse(close.targetGraphic.raycastTarget, "Artwork must not replace the independent hit surface.");
