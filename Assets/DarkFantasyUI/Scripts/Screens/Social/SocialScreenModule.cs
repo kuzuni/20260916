@@ -114,7 +114,9 @@ namespace Moonlit.UI
 
         static void BuildProfileTab(ScreenContext c, Transform root, float w, float h)
         {
-            Avatar(c, root, 52, 38, 190, 0);
+            var portrait = Avatar(c, root, 52, 38, 190, 0);
+            if (c.Assets != null && c.Assets.equipmentIcons != null && c.Assets.equipmentIcons.Length > 0)
+                portrait.transform.Find("Avatar artwork").GetComponent<Image>().sprite = c.Assets.equipmentIcons[0];
             Ui.Text("Name label", root, 275, 32, 170, 48, "이름:", 27, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
             var name = Input(c, root, 275, 80, w - 320, 64, "moonzzanf");
             Ui.Text("Gender label", root, 275, 156, 170, 44, "성별:", 27, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
@@ -126,7 +128,14 @@ namespace Moonlit.UI
             Ui.Text("Server rank", root, 55, 354, w - 110, 62, "서버 5 순위", 34, Font(c));
             Action(c, root, 105, 430, 300, 82, "파워 랭킹", () => c.Open("power-ranking"));
             Action(c, root, w - 405, 430, 300, 82, "클랜 랭킹", () => c.Toast("클랜 랭킹은 데모에 연결되지 않았습니다."));
-            Ui.Text("Profile note", root, 80, 555, w - 160, 100, "프로필 변경은 이 기기의 데모 상태에만 적용됩니다.", 24, Font(c), new Color(.72f,.75f,.78f));
+            var scenery = Resources.Load<Sprite>("Moonlit/Social/ProfileRuins-v1");
+            if (scenery != null)
+            {
+                // This is scenery only; portrait, frames, buttons and live text remain independent.
+                var painting = Ui.Image("Profile ruins painting", root, 36, 536, w - 72, Mathf.Max(1, h - 548), scenery);
+                painting.preserveAspect = true;
+                painting.raycastTarget = false;
+            }
         }
 
         static void BuildSettingsTab(ScreenContext c, Transform root, float w, float h)
