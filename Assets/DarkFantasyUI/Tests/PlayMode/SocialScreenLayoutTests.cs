@@ -156,6 +156,38 @@ namespace Moonlit.UI.Tests
             for (int i = 0; i < 8; i++) GameObject.Find("아바타 변경").GetComponent<Button>().onClick.Invoke();
         }
 
+        [UnityTest]
+        public IEnumerator Pvp_StickyIdentityAndDetailsMatchStandings_AndRewardsOpen()
+        {
+            host.SetPreviewMetrics(new Vector2Int(1080, 1920), new Rect(0, 80, 1080, 1740));
+            host.Registry.Open("pvp"); yield return null;
+            Assert.IsNotNull(GameObject.Find("Gold league crest").GetComponent<Image>().sprite);
+            Assert.IsNotNull(GameObject.Find("Season gift").GetComponent<Image>().sprite);
+            int[] expectedStars = { 15, 14, 13, 11, 4, 2, 0 };
+            for (int i = 0; i < expectedStars.Length; i++)
+                Assert.AreEqual(expectedStars[i].ToString(),
+                    GameObject.Find("PvP rank " + (8 + i)).transform.Find("Stars").GetComponent<Text>().text);
+            var mine = GameObject.Find("PvP rank 11").transform;
+            var sticky = GameObject.Find("My sticky rank").transform;
+            foreach (var label in new[] { "Rank", "Player", "Power", "Stars", "Server" })
+                Assert.AreEqual(mine.Find(label).GetComponent<Text>().text, sticky.Find(label).GetComponent<Text>().text);
+            var portrait = sticky.GetComponentsInChildren<Image>().Single(i => i.name == "Avatar artwork").sprite;
+            Assert.AreSame(mine.GetComponentsInChildren<Image>().Single(i => i.name == "Avatar artwork").sprite, portrait);
+            var scroll = GameObject.Find("PvP page").GetComponentInChildren<ScrollRect>();
+            scroll.verticalNormalizedPosition = .37f; Canvas.ForceUpdateCanvases();
+            sticky.GetComponent<Button>().onClick.Invoke(); yield return null;
+            var details = GameObject.Find("Popup Layer player-details");
+            Assert.IsNotNull(details);
+            Assert.AreSame(portrait, details.GetComponentsInChildren<Image>().Single(i => i.name == "Avatar artwork").sprite);
+            StringAssert.Contains("moonzzanf", details.GetComponentsInChildren<Text>().Single(t => t.name == "Player").text);
+            host.CloseTop(); yield return null;
+            Assert.AreSame(scroll, GameObject.Find("PvP page").GetComponentInChildren<ScrollRect>());
+            Assert.That(scroll.verticalNormalizedPosition, Is.EqualTo(.37f).Within(.01f));
+            GameObject.Find("Season rewards").GetComponent<Button>().onClick.Invoke(); yield return null;
+            Assert.IsNotNull(GameObject.Find("Popup Layer pvp-rewards"));
+            Assert.IsFalse(sticky.GetComponent<Button>().IsInteractable());
+        }
+
         static RectTransform Child(string name, Transform parent)
         {
             var rect = new GameObject(name, typeof(RectTransform)).GetComponent<RectTransform>();
