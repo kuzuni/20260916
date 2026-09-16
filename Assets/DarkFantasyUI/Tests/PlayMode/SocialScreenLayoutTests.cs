@@ -19,6 +19,12 @@ namespace Moonlit.UI.Tests
         {
             root = new GameObject("social layout test", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler));
             root.GetComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
+            // Match the runtime canvas: the hosted test Game View need not be 1080 pixels wide.
+            var scaler = root.GetComponent<CanvasScaler>();
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1080, 1920);
+            scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
+            scaler.matchWidthOrHeight = 0;
             var popup = Child("popups", root.transform);
             var pages = Child("pages", root.transform);
             var main = Child("main", root.transform).gameObject.AddComponent<CanvasGroup>();
@@ -107,9 +113,12 @@ namespace Moonlit.UI.Tests
             var frame = GameObject.Find("프로필 frame").GetComponent<RectTransform>();
             var point = new Vector2(frame.rect.xMin + 18, frame.rect.center.y);
             var pointer = new PointerEventData(EventSystem.current) { position = RectTransformUtility.WorldToScreenPoint(null, frame.TransformPoint(point)) };
+            Assert.IsTrue(new Rect(0, 0, Screen.width, Screen.height).Contains(pointer.position),
+                $"Profile frame test point {pointer.position} must lie inside the actual {Screen.width}x{Screen.height} test viewport.");
             var hits = new System.Collections.Generic.List<RaycastResult>();
             EventSystem.current.RaycastAll(pointer, hits);
             Assert.IsNotEmpty(hits);
+            Assert.IsTrue(hits[0].gameObject.transform.IsChildOf(frame), "The modal frame or one of its children must intercept the pointer.");
             Assert.AreNotEqual("Dim", hits[0].gameObject.name);
             ExecuteEvents.ExecuteHierarchy(hits[0].gameObject, pointer, ExecuteEvents.pointerClickHandler);
             Assert.AreEqual(1, host.ModalDepth);
