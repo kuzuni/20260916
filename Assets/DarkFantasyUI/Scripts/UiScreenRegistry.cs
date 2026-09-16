@@ -35,6 +35,7 @@ namespace Moonlit.UI
         public void CloseTop() { host.CloseTop(); }
         public void ShowMainPage() { host.ClosePage(); }
         public int ModalDepth => host.ModalDepth;
+        public string ActivePageKey => host.ActivePageKey;
         internal bool TryGet(string key, out Route route) { return routes.TryGetValue(key, out route); }
     }
 
@@ -190,6 +191,7 @@ namespace Moonlit.UI
             SetGroup(mainInput, uncovered && page == null); SetGroup(navigationInput, uncovered);
             if (page != null) SetGroup(page.group, uncovered);
             for (int i = 0; i < stack.Count; i++) SetGroup(stack[i].group, i == stack.Count - 1);
+            if (main) main.RefreshNavigation(ActivePageKey);
         }
 
         static void SetGroup(CanvasGroup group, bool enabled)
