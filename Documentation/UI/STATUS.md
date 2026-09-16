@@ -1,6 +1,14 @@
 # Moonlit 30 UI — coordinator status
 
-Updated 2026-09-17, 07:48 KST. Implementation is unfinished; 15-minute heartbeat remains active.
+Updated 2026-09-17, 08:09 KST. Implementation is unfinished; 15-minute heartbeat remains active.
+
+## Language selection frames and current hosted validation
+
+- PR #44 source b971f911181cd74f198f75a9a8dc90d478b7a5b1 merged as 2bb3f884749934ac9446df4160c752b19c293e9e; original checkout fast-forwarded with all 11 modified user metadata files preserved by SHA256. Hosted run 35159343138 artifact 10472199047: downloaded actual NUnit XML reports 40 passed / 0 failed / 0 skipped, including the corrected two-session reset and new skill-catalog regression. Graphics are still pending at inspection; skill visual acceptance remains open.
+- Inspected original 28-settings-language.png at full resolution against hosted Runtime-settings-language-9x16.png from artifact 10471822442. The implementation used tiny ornate panel corners for checkbox rims; the reference has simple beveled squares and a green selected rim. Branch codex/language-selection-frames reuses the existing generated CheckboxFrame-v1 artwork through shared PopupSkin.CheckboxArt, preserving the forge appearance while using 56-unit language art to compensate for transparent padding. The checkmark remains a separate live element; selected rim turns green, prior rim restores on exclusive selection.
+- Extended the existing language interaction test to check imported/shared artwork and clearing the previous selected tint. Existing ToggleGroup, full-row hit area, scroll, parent restoration and saved session selection remain. Static diff check passed; this new source's cloud Unity and captures are pending. No local Unity was run or controlled.
+- Also inspected original 20-dungeons.png and hosted dungeon 9:19 from artifact 10471822442. Follow-up findings: backdrop is bounded to Safe Area, exposing the new main forest around the page; backdrop is stretched, dungeon card rims still obscure some banner height, and the tall layout has excessive lower empty space. Address page decorative backdrop coverage separately without moving interactive controls outside Safe Area. Header/frame and banner proportions remain unfinished.
+- Evidence root: C:/Users/user/AppData/Local/Temp/moonlit-cloud-review/artifact-{10472199047,10471822442}/unpacked. Next heartbeat: obtain PR #44 graphics and inspect skills/detail/probability/result at both aspects; obtain this language revision's actual XML and both language captures; then fix page backdrop coverage and dungeon proportions. Keep Dim alpha 0.85 and all 30-screen acceptance open.
 
 ## Session reset regression correction and latest evidence
 

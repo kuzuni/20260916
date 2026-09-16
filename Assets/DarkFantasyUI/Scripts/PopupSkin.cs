@@ -9,6 +9,20 @@ namespace Moonlit.UI
     {
         static Sprite panel, action, close, crest, crimson, gold, ribbon, parchmentRibbon;
         static Sprite[] switchParts;
+        static Sprite checkbox;
+        public static Sprite CheckboxArt
+        {
+            get
+            {
+                if (checkbox) return checkbox;
+                var texture=Resources.Load<Texture2D>("Moonlit/Forge/CheckboxFrame-v1");
+                if (!texture) return null;
+                checkbox=Sprite.Create(texture,new Rect(0,0,texture.width,texture.height),
+                    new Vector2(.5f,.5f),100,0,SpriteMeshType.FullRect);
+                checkbox.name="CheckboxFrame-v1";
+                return checkbox;
+            }
+        }
         static Sprite Load(ref Sprite cached, string name, Vector4 border, Rect? sourceRect = null, Vector2? sourceSize = null)
         {
             if (cached) return cached;
