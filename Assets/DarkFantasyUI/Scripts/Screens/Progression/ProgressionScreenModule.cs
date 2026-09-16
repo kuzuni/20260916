@@ -21,8 +21,8 @@ namespace Moonlit.UI
             new SkillData("화염 폭풍", 72, 6, 2, "+12.1m 기본 피해"), new SkillData("밤의 사역마", 100, 8, 3, "+82.8m 기본 체력"),
             new SkillData("지옥의 문장", 99, 7, 4, "+11.4m 기본 피해"), new SkillData("서리 용", 94, 4, 5, "+71.2m 기본 체력"),
             new SkillData("저자세 가시", 83, 5, 6, "+85.3k 기본 피해 +682k 기본 체력"), new SkillData("망자의 행진", 86, 2, 7, "+56.8m 기본 체력"),
-            new SkillData("별빛 심판", 45, 4, 8, "+4.2m 기본 피해"), new SkillData("유성", 43, 6, 2, "+8.4m 기본 피해"),
-            new SkillData("심연 폭탄", 44, 3, 1, "+7.1m 기본 피해"), new SkillData("봉인된 권능", 20, 0, 4, "+3.1m 기본 피해")
+            new SkillData("별빛 심판", 45, 4, 8, "+4.2m 기본 피해"), new SkillData("유성", 43, 6, 9, "+8.4m 기본 피해"),
+            new SkillData("심연 폭탄", 44, 3, 10, "+7.1m 기본 피해"), new SkillData("봉인된 권능", 20, 0, 11, "+3.1m 기본 피해")
         };
         static readonly DungeonData[] Dungeons = {
             new DungeonData("망치 도둑", "잿빛 대장간", "19-9", "강화석 346", 0),
@@ -434,12 +434,16 @@ namespace Moonlit.UI
         static void SkillSlot(Transform parent, float x, float y, float size, SkillData skill, Font font, Action click, bool compact)
         {
             var totalH = compact ? size : size + 55;
-            var button = Ui.Button("Skill " + skill.name, parent, x, y, size, totalH, "", font, click == null ? null : () => click(), Stone, 18);
-            var frame = button.GetComponent<Image>(); frame.color = new Color(.045f,.055f,.06f,.98f);
-            var icon = Ui.Image("Icon", button.transform, 10, 10, size - 20, size - 20, null, Rarity[Mathf.Abs(skill.icon) % Rarity.Length]);
-            icon.sprite = null;
-            Ui.Image("Rune", icon.transform, (size-20)*.24f, (size-20)*.18f, (size-20)*.52f, (size-20)*.52f, null, new Color(.95f,.2f + .1f*(skill.icon%4),.08f,.9f));
-            Ui.Text("Glyph", icon.transform, 0, 0, size-20, size-20, Glyph(skill.icon), Mathf.RoundToInt(size*.34f), font, Ui.Ivory);
+            var button = Ui.ArtButton("Skill " + skill.name, parent, x, y, size, totalH);
+            if (click != null) button.onClick.AddListener(() => click());
+            var icon = Ui.Image("Icon", button.transform, size * .17f, size * .17f, size * .66f, size * .66f, SkillIcon(skill.icon));
+            icon.preserveAspect = true;
+            icon.raycastTarget = false;
+            var frame = Ui.Image("Slot frame", button.transform, 0, 0, size, size, SkillRing);
+            frame.preserveAspect = true;
+            frame.raycastTarget = false;
+            button.targetGraphic = frame;
+            button.transition = Selectable.Transition.ColorTint;
             Ui.Text("Level", button.transform, 4, size - 45, size - 8, 42, "Lv." + skill.level, Mathf.RoundToInt(size*.17f), font);
             Ui.Text("Ownership", button.transform, 4, 8, size - 8, 34, skill.owned ? "" : "미보유", Mathf.RoundToInt(size*.14f), font, Ui.Ivory);
             if (!compact) {
@@ -455,10 +459,27 @@ namespace Moonlit.UI
             Ui.Text("Value", parent, x, y, w, h, label, Mathf.RoundToInt(h*.65f), font);
         }
 
-        static string Glyph(int index)
+        static Sprite[] skillIcons;
+        static Sprite skillRing;
+        static Sprite SkillRing => skillRing ? skillRing : (skillRing = Resources.Load<Sprite>("Moonlit/Skills/SkillRing-v1"));
+
+        static Sprite SkillIcon(int index)
         {
-            string[] glyphs = { "◆", "ϟ", "♨", "☾", "✹", "♜", "♆", "☠", "✦" };
-            return glyphs[Mathf.Abs(index) % glyphs.Length];
+            if (skillIcons == null || !skillIcons[0])
+            {
+                var atlas = Resources.Load<Texture2D>("Moonlit/Skills/SkillIcons-v1");
+                if (!atlas) return null;
+                skillIcons = new Sprite[12];
+                int cellWidth = atlas.width / 4, cellHeight = atlas.height / 3;
+                for (int i = 0; i < skillIcons.Length; i++)
+                {
+                    // PNG rows run top-to-bottom; Unity sprite rectangles start at the bottom.
+                    var rect = new Rect((i % 4) * cellWidth, (2 - i / 4) * cellHeight, cellWidth, cellHeight);
+                    skillIcons[i] = Sprite.Create(atlas, rect, new Vector2(.5f, .5f), 100, 0, SpriteMeshType.FullRect);
+                    skillIcons[i].name = "Skill illustration " + i;
+                }
+            }
+            return skillIcons[Mathf.Abs(index) % skillIcons.Length];
         }
 
         static Sprite GetIcon(MainScreenAssets assets, int index)
