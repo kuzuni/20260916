@@ -43,6 +43,61 @@ namespace Moonlit.UI.Tests
         }
 
         [UnityTest]
+        public IEnumerator Navigation_TogglesMatchingPage_AndRestoresIconOnEveryClosePath()
+        {
+            var screen=root.GetComponent<MainScreen>();
+            screen.screens=host.Registry;
+            screen.navigation=new Button[5];
+            string[] routes={"pvp","dungeons","skills-pets-heroes","quests","shop"};
+            ScreenContext lastContext=null;
+            foreach (string route in routes)
+                host.Registry.Register(route,ScreenPresentation.Page,context=>lastContext=context);
+            host.Registry.Register("child",ScreenPresentation.Modal,context=>{});
+            for (int i=0;i<5;i++)
+            {
+                int index=i;
+                var button=Ui.ArtButton("Navigation "+i,navigation.transform,i*200,0,190,146);
+                Ui.Image("Menu icon",button.transform,30,0,117,118,null);
+                var close=Ui.Image("Close icon",button.transform,30,0,117,118,PopupSkin.CloseArt);
+                close.gameObject.SetActive(false);
+                Ui.Image("Notification",button.transform,140,0,20,20,null);
+                button.onClick.AddListener(()=>screen.Navigate(index));
+                screen.navigation[i]=button;
+            }
+            for(int i=0;i<5;i++)
+            {
+                var button=screen.navigation[i];
+                button.onClick.Invoke(); yield return null;
+                Assert.AreEqual(routes[i],host.ActivePageKey);
+                Assert.IsTrue(button.transform.Find("Close icon").gameObject.activeSelf);
+                Assert.IsFalse(button.transform.Find("Menu icon").gameObject.activeSelf);
+                Assert.IsFalse(button.transform.Find("Notification").gameObject.activeSelf);
+                Assert.IsTrue(button.IsInteractable());
+                button.onClick.Invoke(); yield return null;
+                Assert.IsNull(host.ActivePageKey);
+                Assert.IsFalse(button.transform.Find("Close icon").gameObject.activeSelf);
+                Assert.IsTrue(button.transform.Find("Menu icon").gameObject.activeSelf);
+            }
+            screen.Navigate(0); screen.Navigate(1); yield return null;
+            Assert.AreEqual("dungeons",host.ActivePageKey);
+            Assert.IsTrue(screen.navigation[0].transform.Find("Menu icon").gameObject.activeSelf);
+            Assert.IsTrue(screen.navigation[1].transform.Find("Close icon").gameObject.activeSelf);
+            host.Registry.Open("child"); yield return null;
+            Assert.IsFalse(screen.navigation[1].IsInteractable());
+            screen.Navigate(1);
+            Assert.AreEqual(1,host.ModalDepth);
+            Assert.AreEqual("dungeons",host.ActivePageKey);
+            host.CloseTop(); yield return null;
+            Assert.IsTrue(screen.navigation[1].IsInteractable());
+            lastContext.Close(); yield return null;
+            Assert.IsNull(host.ActivePageKey);
+            Assert.IsTrue(screen.navigation[1].transform.Find("Menu icon").gameObject.activeSelf);
+            screen.Navigate(4); host.CloseTop(); yield return null;
+            Assert.IsNull(host.ActivePageKey);
+            Assert.IsTrue(screen.navigation[4].transform.Find("Menu icon").gameObject.activeSelf);
+        }
+
+        [UnityTest]
         public IEnumerator ModalStack_PopsOnlyTop_RestoresParentAndFocus()
         {
             int parentValue = 0;
