@@ -1,7 +1,6 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.InputSystem;
 
 namespace Moonlit.UI
 {
@@ -11,9 +10,10 @@ namespace Moonlit.UI
         public Sprite slotArt;
         public Sprite[] icons;
         public Transform design;
+        public Transform toastRoot;
         public EquipmentSlot[] equipment;
         public Button forgeButton, autoButton, goldButton, gemButton, profileButton, stageButton, eventButton, fairyButton, chatButton;
-        public Button forgeLevelButton;
+        public Button forgeLevelButton, playerDetailsButton;
         public Image autoIcon;
         public Button[] navigation;
         public Text oreText, powerText, goldText, gemText, autoText, stageText;
@@ -24,7 +24,17 @@ namespace Moonlit.UI
         public int stage = 13;
         public int successfulForges;
         public bool autoForge;
-        GameObject modal;
+        public int autoForgeBatchSize = 1;
+        public int autoForgeFilterMask = -1;
+        public bool autoForgeContinue = true;
+        public bool[] autoForgeKeep = new bool[4];
+        public bool offlineRewardsClaimed;
+        public ItemDefinition PendingCraftItem { get; private set; }
+        public int PendingCraftId { get; private set; }
+        public int PendingCraftLevel { get; private set; }
+        EquipmentSlot pendingCraftTarget;
+        int nextCraftId;
+        public UiScreenRegistry screens;
         Text toast;
         Coroutine toastRoutine;
         float autoClock;
@@ -34,24 +44,24 @@ namespace Moonlit.UI
         void Start()
         {
             foreach (var slot in equipment) slot.Clicked += Inspect;
-            forgeButton.onClick.AddListener(Forge);
-            if(forgeLevelButton) forgeLevelButton.onClick.AddListener(ForgeManagement);
-            autoButton.onClick.AddListener(ToggleAuto);
+            forgeButton.onClick.AddListener(() => screens.Open("forge-comparison"));
+            if(forgeLevelButton) forgeLevelButton.onClick.AddListener(() => screens.Open("forge-probability"));
+            if(playerDetailsButton) playerDetailsButton.onClick.AddListener(OpenLocalPlayerDetails);
+            autoButton.onClick.AddListener(() => screens.Open("auto-forge"));
             goldButton.onClick.AddListener(() => Currency(false));
             gemButton.onClick.AddListener(() => Currency(true));
-            profileButton.onClick.AddListener(Profile);
+            profileButton.onClick.AddListener(() => screens.Open("profile"));
             stageButton.onClick.AddListener(Stage);
-            eventButton.onClick.AddListener(() => ShowInfo("심연의 축제", "이벤트 종료까지 5일 3시간\n\n어둠 속에서 횃불을 모으고\n전설 장비를 찾아보세요.", "일일 보상 받기", ClaimEvent));
-            fairyButton.onClick.AddListener(() => ShowInfo("달빛 요정의 선물", "모험가를 위한 작은 축복\n\n요정이 강화석 300개를 준비했어요.", "선물 받기", ClaimFairy));
-            chatButton.onClick.AddListener(() => ShowInfo("월드 채팅 · 미리보기", "Tacoma : 오늘도 전설 장비 도전!\nGuest 41194 : 달빛 폐허 분위기 좋네요.\n\n현재는 로컬 UI 데모입니다.", "확인", Close));
+            eventButton.onClick.AddListener(() => screens.Open("offline-rewards"));
+            fairyButton.onClick.AddListener(() => screens.Open("progress-pass"));
+            chatButton.onClick.AddListener(() => screens.Open("chat"));
             for (int i=0;i<navigation.Length;i++) { int index=i; navigation[i].onClick.AddListener(()=>Navigate(index)); }
             Refresh();
         }
         void OnDestroy() { if(equipment != null) foreach(var s in equipment) if(s) s.Clicked -= Inspect; }
         void Update()
         {
-            if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame) Close();
-            if (autoForge && modal == null) { autoClock += Time.deltaTime; if(autoClock>=1.4f) { autoClock=0; Forge(); } }
+            if (autoForge && (screens == null || screens.ModalDepth == 0)) { autoClock += Time.deltaTime; if(autoClock>=1.4f) { autoClock=0; RunAutoForgeCycle(); } }
             if(autoIcon) autoIcon.rectTransform.localRotation=Quaternion.Euler(0,0,autoForge ? -Time.unscaledTime*90 : 0);
         }
         public void Refresh()
@@ -75,6 +85,82 @@ namespace Moonlit.UI
             Refresh(); Toast(target.item.displayName+" 강화 성공  ·  Lv."+target.level);
             StartCoroutine(Pulse(target));
         }
+        void RunAutoForgeCycle()
+        {
+            var attempts = Mathf.Max(1, autoForgeBatchSize);
+            for (var i = 0; i < attempts && autoForge; i++)
+            {
+                if (autoForgeFilterMask == 0) { StopAutoForge("선택한 능력치 필터가 없습니다"); break; }
+                Forge();
+                // The demo has no random item backend. Cycle the four visible keep tiers
+                // deterministically so the selected keep/continue choices still govern stopping.
+                var resultTier = successfulForges % 4;
+                var matchesFilter = (autoForgeFilterMask & (1 << (successfulForges % 6))) != 0;
+                if (autoForge && matchesFilter && autoForgeKeep != null && resultTier < autoForgeKeep.Length && autoForgeKeep[resultTier] && !autoForgeContinue)
+                    StopAutoForge("유지할 장비를 찾아 자동 제련을 멈췄습니다");
+            }
+        }
+
+        public void ConfigureAutoForge(int hammerCount, int filterMask, bool continueAfterMatch, bool[] keep)
+        {
+            autoForgeBatchSize = Mathf.Max(1, hammerCount);
+            autoForgeFilterMask = filterMask;
+            autoForgeContinue = continueAfterMatch;
+            autoForgeKeep = keep != null ? (bool[])keep.Clone() : new bool[4];
+            autoClock = 0;
+            autoForge = true;
+            Refresh();
+        }
+
+        public void StopAutoForge(string message = "자동 제련을 멈췄습니다")
+        {
+            autoForge = false;
+            autoClock = 0;
+            Refresh();
+            Toast(message);
+        }
+
+        public bool ClaimOfflineRewards(int goldReward, int oreReward)
+        {
+            if (offlineRewardsClaimed) return false;
+            offlineRewardsClaimed = true;
+            gold += goldReward;
+            ore += oreReward;
+            Refresh();
+            return true;
+        }
+
+        public bool BeginCraft(ItemDefinition crafted, int cost)
+        {
+            // Dismissing the comparison keeps its pending item without charging again.
+            if (PendingCraftItem != null) return true;
+            if (crafted == null || cost <= 0 || ore < cost || crafted.rarity == ItemRarity.Companion) return false;
+            pendingCraftTarget = equipment == null ? null : System.Array.Find(equipment,
+                slot => slot != null && slot.item == crafted && !slot.isLocked);
+            PendingCraftItem = crafted;
+            PendingCraftId = ++nextCraftId;
+            PendingCraftLevel = pendingCraftTarget != null ? pendingCraftTarget.level + 1 : crafted.startingLevel;
+            ore -= cost;
+            Refresh();
+            return true;
+        }
+
+        public bool ResolveCraftedEquipment(int craftId, bool equip, int saleOre)
+        {
+            // An old modal's callback must never resolve a newer pending item.
+            if (PendingCraftItem == null || craftId != PendingCraftId || saleOre < 0) return false;
+            if (equip)
+            {
+                if (pendingCraftTarget == null || pendingCraftTarget.isLocked || pendingCraftTarget.item != PendingCraftItem) return false;
+                pendingCraftTarget.Bind(PendingCraftItem, PendingCraftLevel, false, true);
+            }
+            else ore += saleOre;
+            PendingCraftItem = null;
+            pendingCraftTarget = null;
+            successfulForges++;
+            Refresh();
+            return true;
+        }
         IEnumerator Pulse(EquipmentSlot slot)
         {
             slot.SetSelected(true); yield return new WaitForSeconds(.65f); if(inspected != slot) slot.SetSelected(false);
@@ -84,6 +170,20 @@ namespace Moonlit.UI
         public void Inspect(EquipmentSlot slot)
         {
             if(slot.item == null) { Toast("비어 있는 장비 슬롯입니다"); return; }
+            inspected=slot; slot.SetSelected(true); slot.SetNotification(false);
+            screens.Open("equipment-details", slot);
+        }
+
+        void OpenLocalPlayerDetails()
+        {
+            screens.Open("player-details", new System.Collections.Generic.Dictionary<string, object> {
+                { "name", "moonzsanf" }, { "power", powerText.text }, { "rank", 389 }, { "avatarIndex", 0 }
+            });
+        }
+
+        // Retained for the unsupplied quest route only.
+        void InspectLegacy(EquipmentSlot slot)
+        {
             Close(); inspected=slot; slot.SetSelected(true); slot.SetNotification(false);
             var p=Modal(slot.item.displayName,680);
             Ui.Text("Rarity",p,36,84,668,42,slot.item.rarity==ItemRarity.Companion ? "동료  ·  달빛의 수호자" : "전설  ·  장착 중",24,font,Ui.Gold);
@@ -113,28 +213,29 @@ namespace Moonlit.UI
         {
             selectedMenu=index;
             for(int i=0;i<navigation.Length;i++) navigation[i].targetGraphic.color=i==index ? Color.white : new Color(.9f,.9f,.9f,1);
-            if(index==0) { Close(); return; }
-            if(index==1) ShowInfo("던전", "달빛 폐허\n어려움 4-"+stage+"\n\n현재 전투력 "+powerText.text,"스테이지 보기",Stage);
-            if(index==2) Inspect(equipment[equipment.Length-1]);
+            if(index==0) screens.Open("pvp");
+            if(index==1) screens.Open("dungeons");
+            if(index==2) screens.Open("skills-pets-heroes");
             if(index==3) ShowInfo("모험 퀘스트", "장비 강화  "+successfulForges+" / 10\n\n대장간에서 장비를 강화해 보세요.\n퀘스트 보상 : 루비 10개","보상 받기",ClaimQuest);
-            if(index==4) ShowInfo("교환소", "강화석 보급 상자\n\n골드 10,000 → 강화석 500\n보유 골드 "+gold.ToString("N0"),"교환하기",()=>{ if(gold<10000) { Toast("골드가 부족합니다"); return; } gold-=10000; ore+=500; Refresh(); Close(); Toast("강화석 500개를 받았습니다"); });
+            if(index==4) screens.Open("shop");
         }
         bool questClaimed;
         void ClaimQuest() { if(questClaimed) { Toast("이미 받은 보상입니다"); return; } if(successfulForges<10) { Toast("장비를 10회 강화하면 받을 수 있습니다"); return; } questClaimed=true; gems+=10; Refresh(); Close(); Toast("루비 +10"); }
 
         Transform Modal(string title, float height)
         {
-            if(modal != null) DestroyImmediate(modal);
-            var shade=Ui.Image("Modal overlay",design,0,0,1080,1920,null,new Color(0,.015f,.025f,.85f)); shade.raycastTarget=true; modal=shade.gameObject;
-            Ui.Stretch(shade.rectTransform);
-            var dismiss=shade.gameObject.AddComponent<Button>(); dismiss.onClick.AddListener(Close);
-            var panel=Ui.Panel("Dialog",shade.transform,170,(1920-height)/2,740,height,new Color(.025f,.055f,.075f)); panel.raycastTarget=true;
+            Transform result=null;
+            screens.Register("moonlit.legacy-dialog",ScreenPresentation.Modal,context=> {
+            var panel=Ui.Panel("Dialog",context.Root,170,(context.Height-height)/2,740,height,new Color(.025f,.055f,.075f)); panel.raycastTarget=true;
             panel.rectTransform.anchorMin=panel.rectTransform.anchorMax=panel.rectTransform.pivot=new Vector2(.5f,.5f);
             panel.rectTransform.anchoredPosition=Vector2.zero;
             Ui.Text("Title",panel.transform,55,25,630,56,title,35,font);
             Ui.Image("Divider",panel.transform,45,94,650,2,null,Ui.Gold);
             Ui.Button("Close",panel.transform,662,12,60,60,"×",font,Close,new Color(.06f,.08f,.1f),35);
-            return panel.transform;
+            result=panel.transform;
+            });
+            screens.Open("moonlit.legacy-dialog");
+            return result;
         }
         void ShowInfo(string title,string body,string action,UnityEngine.Events.UnityAction callback)
         {
@@ -145,13 +246,13 @@ namespace Moonlit.UI
         public void Close()
         {
             if(inspected) inspected.SetSelected(false); inspected=null;
-            if(modal) DestroyImmediate(modal); modal=null;
+            if(screens != null) screens.CloseTop();
         }
         public void Toast(string message)
         {
             if(toastRoutine != null) StopCoroutine(toastRoutine);
             if(!toast) {
-                var bg=Ui.Panel("Toast",design,140,855,800,75,new Color(.02f,.04f,.055f,.97f));
+                var bg=Ui.Panel("Toast",toastRoot ? toastRoot : design,140,855,800,75,new Color(.02f,.04f,.055f,.97f));
                 bg.rectTransform.anchorMin=bg.rectTransform.anchorMax=bg.rectTransform.pivot=new Vector2(.5f,0);
                 bg.rectTransform.anchoredPosition=new Vector2(0,995);
                 toast=Ui.Text("Message",bg.transform,12,3,776,69,"",25,font,Ui.Ivory);
@@ -162,4 +263,3 @@ namespace Moonlit.UI
         IEnumerator HideToast() { yield return new WaitForSecondsRealtime(2); if(toast) toast.transform.parent.gameObject.SetActive(false); }
     }
 }
-

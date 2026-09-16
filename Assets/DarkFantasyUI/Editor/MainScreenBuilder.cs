@@ -182,7 +182,7 @@ namespace Moonlit.Editor
         {
             if(!button) throw new Exception("Missing interactive button");
             var rect=button.GetComponent<RectTransform>(); var canvas=button.GetComponentInParent<Canvas>();
-            var position=RectTransformUtility.WorldToScreenPoint(canvas.worldCamera,rect.TransformPoint(rect.rect.center));
+            var position=RectTransformUtility.WorldToScreenPoint(canvas.rootCanvas.worldCamera,rect.TransformPoint(rect.rect.center));
             var pointer=new PointerEventData(EventSystem.current) { position=position };
             var results=new List<RaycastResult>(); EventSystem.current.RaycastAll(pointer,results);
             if(results.Count==0 || results[0].gameObject.GetComponentInParent<Button>()!=button) throw new Exception("Blocked button hit target: "+button.name);

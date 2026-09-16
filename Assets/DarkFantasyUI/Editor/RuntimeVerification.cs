@@ -18,7 +18,8 @@ namespace Moonlit.Editor
         {
             var report=new List<string>();
             var safe=Object.FindFirstObjectByType<PortraitSafeArea>();
-            var canvas=screen.GetComponentInParent<Canvas>(); var camera=canvas.worldCamera;
+            var screenHost=Object.FindFirstObjectByType<UiScreenHost>();
+            var canvas=screen.GetComponentInParent<Canvas>().rootCanvas; var camera=canvas.worldCamera;
             var oldTarget=camera.targetTexture; RenderTexture target=null; GameObject hardware=null;
             Directory.CreateDirectory("Artifacts");
             // Simulated physical display metrics; controls must stay within each OS safe rectangle.
@@ -30,18 +31,19 @@ namespace Moonlit.Editor
                 if(target) { camera.targetTexture=oldTarget; target.Release(); Object.DestroyImmediate(target); }
                 target=new RenderTexture(1080,heights[i],24); camera.targetTexture=target;
                 safe.SetPreviewMetrics(new Vector2Int(1080,heights[i]),areas[i]);
+                screenHost.SetPreviewMetrics(new Vector2Int(1080,heights[i]),areas[i]);
                 yield return null; yield return null;
                 Canvas.ForceUpdateCanvases(); safe.Apply(); Canvas.ForceUpdateCanvases();
                 try {
                     if(Mathf.Abs(canvas.pixelRect.height-heights[i])>1) throw new Exception("Canvas did not use the target display resolution");
-                    var buttons=screen.GetComponentsInChildren<Button>().Where(b=>b.gameObject.activeInHierarchy).ToArray();
+                    var buttons=canvas.GetComponentsInChildren<Button>().Where(b=>b.gameObject.activeInHierarchy).ToArray();
                     foreach(var button in buttons) { AssertInsideSafe(button.GetComponent<RectTransform>(),camera,areas[i]); AssertRaycast(button); }
-                    foreach(var text in screen.GetComponentsInChildren<Text>().Where(t=>t.gameObject.activeInHierarchy)) AssertInsideSafe(text.rectTransform,camera,areas[i]);
+                    foreach(var text in canvas.GetComponentsInChildren<Text>().Where(t=>t.gameObject.activeInHierarchy)) AssertInsideSafe(text.rectTransform,camera,areas[i]);
                     var bootstrap=Object.FindFirstObjectByType<MainScreenBootstrap>();
                     if(bootstrap.Build()!=screen || Object.FindObjectsByType<MainScreen>(FindObjectsSortMode.None).Length!=1) throw new Exception("Bootstrap must be idempotent");
                     if(Mathf.Abs(safe.bottomPanel.rect.height-PortraitSafeArea.BottomHeight)>.1f) throw new Exception("Bottom controls changed aspect ratio");
                     screen.Profile(); Canvas.ForceUpdateCanvases();
-                    var modal=screen.design.Find("Modal overlay/Dialog").GetComponent<RectTransform>();
+                    var modal=Object.FindObjectsByType<RectTransform>(FindObjectsSortMode.None).First(r=>r.name=="Dialog");
                     AssertInsideSafe(modal,camera,areas[i]);
                     Vector2 center=RectTransformUtility.WorldToScreenPoint(camera,modal.TransformPoint(modal.rect.center));
                     if(Vector2.Distance(center,areas[i].center)>2) throw new Exception("Dialog is not centered in the safe area");
@@ -52,27 +54,62 @@ namespace Moonlit.Editor
                     if(hardware) { Object.DestroyImmediate(hardware); hardware=null; }
                 } catch(Exception e) { report.Add("FAIL "+names[i]+": "+e); success=false; break; }
             }
+            if(success) yield return CaptureAllRoutes(screen, screenHost, safe, canvas, camera, report,
+                value => { target = value; camera.targetTexture = value; }, () => target, () => success=false);
             if(success) {
-                try { VerifyInteractions(screen); report.Add("PASS runtime slot binding, forge, lock exclusion, auto toggle, independent management, navigation, insufficient-resource handling"); }
+                try { VerifyInteractions(screen); report.Add("PASS runtime slot binding, pending craft cost, auto settings entry, independent management, navigation, insufficient-resource handling"); }
                 catch(Exception e) { report.Add("FAIL interactions: "+e); success=false; }
             }
             if(hardware) Object.DestroyImmediate(hardware);
             camera.targetTexture=oldTarget;
             if(target) { target.Release(); Object.DestroyImmediate(target); }
             safe.ClearPreviewMetrics();
+            screenHost.ClearPreviewMetrics();
             File.WriteAllText("Artifacts/Verification.txt",(success ? "PASS" : "FAIL")+" — runtime generation and responsive safe-area validation\n"+string.Join("\n",report)+"\nUnity "+Application.unityVersion+"\nDevice cutouts were simulated in the Editor; physical hardware was not used.");
             if(success) Debug.Log("[Moonlit] Runtime generation and all six viewport checks passed.");
             else Debug.LogError("[Moonlit] Validation failed; see Artifacts/Verification.txt");
             EditorApplication.isPlaying=false;
         }
+
+        static IEnumerator CaptureAllRoutes(MainScreen screen, UiScreenHost host, PortraitSafeArea safe,
+            Canvas canvas, Camera camera, List<string> report, Action<RenderTexture> setTarget,
+            Func<RenderTexture> getTarget, Action fail)
+        {
+            string[] routes={
+                "forge-probability","forge-probability-details","forge-item-details","dungeon-details",
+                "progress-pass","profile","settings","equipment-details","forge-comparison","offline-rewards",
+                "player-details","auto-forge","chat","skill-details","summon-probability",
+                "summon-probability-details","summon-result","power-ranking","skills-pets-heroes","dungeons",
+                "shop","pvp-opponents","pvp","pvp-rewards"
+            };
+            int[] heights={1920,2280};
+            Rect[] areas={new Rect(0,60,1080,1740),new Rect(36,84,1008,2076)};
+            foreach(var route in routes) foreach(var aspect in new[]{0,1})
+            {
+                var old=getTarget(); if(old) { camera.targetTexture=null; old.Release(); Object.DestroyImmediate(old); }
+                var target=new RenderTexture(1080,heights[aspect],24); setTarget(target);
+                safe.SetPreviewMetrics(new Vector2Int(1080,heights[aspect]),areas[aspect]);
+                host.SetPreviewMetrics(new Vector2Int(1080,heights[aspect]),areas[aspect]);
+                host.Registry.ShowMainPage(); host.Registry.Open(route);
+                yield return null; yield return null; Canvas.ForceUpdateCanvases();
+                var layer=GameObject.Find((host.ActivePageKey==route ? "Page — " : "Popup Layer ")+route);
+                var routeRoot=layer ? layer.transform.Find("SafeArea") as RectTransform : null;
+                if(!layer || !routeRoot || routeRoot.rect.height<=0 || (host.ActivePageKey!=route && host.ModalDepth!=1))
+                { report.Add("FAIL route "+route+" did not build in a resized safe layer"); fail(); yield break; }
+                SaveCamera(camera,"Artifacts/Runtime-"+route+"-"+(aspect==0?"9x16":"9x19")+".png",1080,heights[aspect]);
+                report.Add("PASS route "+route+" "+(aspect==0?"9:16 notch":"9:19 side-insets"));
+                host.Registry.ShowMainPage();
+            }
+        }
         static void VerifyInteractions(MainScreen screen)
         {
             int ore=screen.ore,total=screen.equipment.Sum(s=>s.level),locked=screen.equipment[0].level;
-            screen.forgeLevelButton.onClick.Invoke(); if(screen.ore!=ore || !screen.design.Find("Modal overlay")) throw new Exception("Forge management failed"); screen.Close();
-            screen.forgeButton.onClick.Invoke(); if(screen.ore!=ore-100 || screen.equipment.Sum(s=>s.level)!=total+1 || screen.equipment[0].level!=locked) throw new Exception("Forge cost / locked item exclusion failed");
-            screen.autoButton.onClick.Invoke(); if(!screen.autoForge) throw new Exception("Auto toggle failed"); screen.autoButton.onClick.Invoke();
-            screen.equipment[1].Button.onClick.Invoke(); if(!screen.design.Find("Modal overlay")) throw new Exception("Runtime slot click handler missing"); screen.Close();
-            foreach(var nav in screen.navigation) { nav.onClick.Invoke(); screen.Close(); }
+            screen.forgeLevelButton.onClick.Invoke(); if(screen.ore!=ore || screen.screens.ModalDepth!=1) throw new Exception("Forge probability route failed"); screen.Close();
+            bool hadPending = screen.PendingCraftItem != null;
+            screen.forgeButton.onClick.Invoke(); if(screen.ore!=ore-(hadPending?0:100) || screen.screens.ModalDepth!=1) throw new Exception("Comparison route cost or decision UI failed"); screen.Close();
+            screen.autoButton.onClick.Invoke(); if(screen.autoForge || screen.screens.ModalDepth!=1) throw new Exception("Auto settings route conflicted with the old immediate toggle"); screen.Close();
+            screen.equipment[1].Button.onClick.Invoke(); if(screen.screens.ModalDepth!=1) throw new Exception("Runtime slot click handler missing"); screen.Close();
+            for(int i=0;i<screen.navigation.Length;i++) { screen.navigation[i].onClick.Invoke(); if(i!=3 && string.IsNullOrEmpty(Object.FindFirstObjectByType<UiScreenHost>().ActivePageKey)) throw new Exception("Navigation route missing at index "+i); screen.screens.ShowMainPage(); }
             var blank=Object.Instantiate(screen.equipment[1],screen.design); blank.Bind(null);
             if(blank.icon.enabled || blank.levelLabel.text!="" || blank.lockedBadge.activeSelf || blank.notificationBadge.activeSelf) throw new Exception("Empty slot retains stale content");
             blank.Bind(screen.equipment[2].item,8,true,true);
