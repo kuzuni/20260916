@@ -107,6 +107,9 @@ namespace Moonlit.UI.Tests
             Assert.AreSame(row.GetComponent<Button>(), hits[0].gameObject.GetComponentInParent<Button>());
             ExecuteEvents.ExecuteHierarchy(hits[0].gameObject, pointer, ExecuteEvents.pointerClickHandler);
             yield return null;
+            var childPortrait = GameObject.Find("Popup Layer player-details").GetComponentsInChildren<Image>()
+                .Single(i => i.name == "Avatar artwork");
+            Assert.AreSame(row.GetComponentsInChildren<Image>().Single(i => i.name == "Avatar artwork").sprite, childPortrait.sprite);
             host.CloseTop();
             yield return null;
             Assert.AreSame(scroll, Object.FindObjectsByType<ScrollRect>(FindObjectsSortMode.None).Single());
@@ -130,6 +133,27 @@ namespace Moonlit.UI.Tests
             Assert.AreNotEqual("Dim", hits[0].gameObject.name);
             ExecuteEvents.ExecuteHierarchy(hits[0].gameObject, pointer, ExecuteEvents.pointerClickHandler);
             Assert.AreEqual(1, host.ModalDepth);
+        }
+
+        [UnityTest]
+        public IEnumerator AvatarChange_UsesPortraitAtlas_AndSurvivesProfileReopen()
+        {
+            host.Registry.Open("profile"); yield return null;
+            var portrait = GameObject.Find("Profile content").GetComponentsInChildren<Image>()
+                .Single(i => i.name == "Avatar artwork");
+            Assert.IsNotNull(portrait.sprite);
+            Assert.AreEqual("AvatarPortraits-v1", portrait.sprite.texture.name);
+            var original = portrait.sprite;
+            GameObject.Find("아바타 변경").GetComponent<Button>().onClick.Invoke();
+            var changed = portrait.sprite;
+            Assert.AreNotEqual(original.rect, changed.rect);
+            Assert.AreSame(original.texture, changed.texture);
+            host.CloseTop(); yield return null;
+            host.Registry.Open("profile"); yield return null;
+            Assert.AreSame(changed, GameObject.Find("Profile content").GetComponentsInChildren<Image>()
+                .Single(i => i.name == "Avatar artwork").sprite);
+            // Restore demo selection so this test does not change subsequent test data.
+            for (int i = 0; i < 8; i++) GameObject.Find("아바타 변경").GetComponent<Button>().onClick.Invoke();
         }
 
         static RectTransform Child(string name, Transform parent)
