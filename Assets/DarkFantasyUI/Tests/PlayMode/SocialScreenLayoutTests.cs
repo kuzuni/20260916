@@ -63,6 +63,14 @@ namespace Moonlit.UI.Tests
                 Assert.LessOrEqual(scroll.GetComponent<RectTransform>().rect.height, scroll.transform.parent.GetComponent<RectTransform>().rect.height - 330f);
                 CollectionAssert.AreEquivalent(new[] { "Gem offer 60", "Gem offer 220", "Gem offer 800", "Gem offer 1500", "Gem offer 3300" },
                     scroll.content.Cast<Transform>().Where(t => t.name.StartsWith("Gem offer ")).Select(t => t.name));
+                var illustrations = scroll.content.GetComponentsInChildren<Image>(true)
+                    .Where(i => i.name == "Ruby artwork").ToArray();
+                Assert.AreEqual(5, illustrations.Length);
+                Assert.IsTrue(illustrations.All(i => i.sprite != null && i.preserveAspect && !i.raycastTarget),
+                    "All five offers need imported, separate non-interactive illustrations.");
+                Assert.AreEqual(5, illustrations.Select(i => i.sprite.rect).Distinct().Count());
+                Assert.AreEqual(3, scroll.content.GetComponentsInChildren<Image>(true)
+                    .Count(i => i.name == "Deal illustration" && i.sprite != null));
                 Assert.AreEqual("가격 미설정", GameObject.Find("Gem offer 1500").GetComponentInChildren<Button>().name);
                 Assert.AreEqual("가격 미설정", GameObject.Find("Gem offer 3300").GetComponentInChildren<Button>().name);
                 host.CloseTop();
