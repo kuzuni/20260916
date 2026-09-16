@@ -1,6 +1,14 @@
 # Moonlit 30 UI — coordinator status
 
-Updated 2026-09-17, 07:23 KST. Implementation is unfinished; 15-minute heartbeat remains active.
+Updated 2026-09-17, 07:48 KST. Implementation is unfinished; 15-minute heartbeat remains active.
+
+## Session reset regression correction and latest evidence
+
+- Skill PR #43 source 5794836765b7c20867d1abffb0fb93e52ff9fa5e merged as 441db0eaf78d6b90648a9e06caf409070cdf1bd2. Original checkout was fast-forwarded with all 11 user metadata edits preserved by SHA256. Hosted run 35157566408, artifact 10472340055: actual NUnit XML 40 total / 39 passed / 1 failed / 0 skipped. The new skill catalog test passed. FreshSessions_ResetSpentCurrencySkillsClaimsAndProfile_WithoutReloadingStatics retained the old equipment expectation (9,10,8); runtime correctly returned the new reference equipment (15,14,13). Graphics were skipped because of that test failure.
+- Branch codex/skill-session-reset-verification corrects that stale expectation and strengthens the same two-session regression: mutate low-level owned skills and acquired unowned skills, then verify reset restores Lv.20/19/17 equipment, 15 owned total, and three unowned entries. Production behavior is unchanged. Static diff check passed; a fresh hosted Unity run is required and pending.
+- Pass PR #42 run 35155192124: downloaded graphics artifact 10471822442, Verification.txt PASS, 66 PNGs. Viewed progress-pass at 9:16 and 9:19. Gold controls render correctly, card scenery fills the card opening, and fourth-row 220 tickets / 40k gold are visible. Remaining visual differences: dark/thin card rims, repeated chest art and large sword header. This is bounded correction review, not full pass acceptance.
+- Evidence root: C:/Users/user/AppData/Local/Temp/moonlit-cloud-review/artifact-{10472340055,10471822442}/unpacked. Forest PR #40 main background has already passed its six hosted viewport/cutout capture reviews, as recorded below.
+- Next heartbeat: discover the skill-session-reset-verification PR/source run; download actual XML and inspect skills/detail/probability/result captures at both aspects once available. Then continue outstanding pass/dungeon/shop proportions and language/blocked-list artwork. Full 30-screen acceptance remains open. Preserve Dim alpha 0.85, avoid local Unity, integrate incremental main progress and preserve user metadata.
 
 ## Skill catalog and equipped-state correction
 
