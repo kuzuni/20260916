@@ -27,6 +27,7 @@ namespace Moonlit.UI
         {
             "원시적", "중세의", "근대 초기", "현대의", "우주", "항성간", "다중 우주", "양자", "지하 세계", "신성한"
         };
+        static Sprite[] tierIcons, tierBands;
         static readonly string[] Rates33 = { "0%", "0%", "0%", "0%", "0%", "0%", "28%", "58%", "13%", "1%" };
         static readonly string[] Rates34 = { "0%", "0%", "0%", "0%", "0%", "0%", "11%", "64%", "23%", "2%" };
         static readonly Color[] TierColors =
@@ -76,19 +77,84 @@ namespace Moonlit.UI
         static Button Action(ScreenContext c, Transform p, float x, float y, float w, float h, string label, UnityAction click, Color? color = null)
             => PopupSkin.Button(label, p, x, y, w, h, label, Font(c), click, color ?? Blue, 30);
 
+        static Sprite TierIcon(int index)
+        {
+            if (tierIcons == null || !tierIcons[0])
+            {
+                // The source has staggered silhouettes: the lower trident/wing tips begin
+                // above a mathematical half-height cut, and the wings extend left of column 5.
+                var regions = new[] {
+                    new Rect(0,0,396,379), new Rect(396,0,397,379), new Rect(793,0,397,379),
+                    new Rect(1190,0,396,379), new Rect(1586,0,397,379),
+                    new Rect(0,379,396,414), new Rect(396,379,397,414), new Rect(793,379,397,414),
+                    new Rect(1190,379,350,414), new Rect(1540,379,443,414)
+                };
+                tierIcons = AtlasSprites("TierIcons-v1", new Vector2(1983,793), regions, Vector4.zero);
+            }
+            return tierIcons == null ? null : tierIcons[index];
+        }
+
+        static Sprite TierBand(int index)
+        {
+            if (tierBands == null || !tierBands[0])
+            {
+                // Measured source regions exclude transparent export gutters.
+                int[] tops = { 32, 178, 327, 475, 624 };
+                var regions = new Rect[10];
+                for (int i = 0; i < regions.Length; i++)
+                    regions[i] = new Rect(i % 2 == 0 ? 24 : 983, tops[i / 2], 936, 134);
+                tierBands = AtlasSprites("TierBands-v1", new Vector2(1942,809), regions, new Vector4(40,12,40,12));
+            }
+            return tierBands == null ? null : tierBands[index];
+        }
+
+        static Sprite[] AtlasSprites(string asset, Vector2 sourceSize, Rect[] regions, Vector4 border)
+        {
+            var texture = Resources.Load<Texture2D>("Moonlit/Forge/" + asset);
+            if (!texture) return null;
+            float sx = texture.width / sourceSize.x, sy = texture.height / sourceSize.y;
+            var sprites = new Sprite[regions.Length];
+            for (int i = 0; i < sprites.Length; i++)
+            {
+                var r = regions[i];
+                sprites[i] = Sprite.Create(texture,
+                    new Rect(r.x * sx, texture.height - (r.y + r.height) * sy, r.width * sx, r.height * sy),
+                    new Vector2(.5f,.5f), 100 * sx, 0, SpriteMeshType.FullRect,
+                    new Vector4(border.x * sx, border.y * sy, border.z * sx, border.w * sy));
+                sprites[i].name = asset + " " + i;
+            }
+            return sprites;
+        }
+
+        static Sprite CurrencyIcon(ScreenContext c, int index)
+            => c.Assets != null && c.Assets.interfaceIcons != null && c.Assets.interfaceIcons.Length > index
+                ? c.Assets.interfaceIcons[index] : null;
+
+        static void ProbabilityWallet(ScreenContext c, Transform parent, float x, int iconIndex, string value)
+        {
+            PopupSkin.Panel("Wallet frame " + iconIndex, parent, x + 24, 65, 204, 46);
+            Ui.Image("Wallet icon " + iconIndex, parent, x, 55, 64, 64, CurrencyIcon(c, iconIndex)).preserveAspect = true;
+            Ui.Text("Wallet value " + iconIndex, parent, x + 63, 60, 153, 54, value, 31, Font(c));
+        }
+
         static void BuildProbability(ScreenContext c)
         {
             Frame(c, "확률 정보", 820, 1370, out var b);
             Ui.Text("Subtitle", b, 0, 0, b.rect.width, 48, "제련 확률", 30, Font(c), Ui.Gold);
             Action(c, b, b.rect.width - 70, 0, 58, 58, "i", () => c.Open("forge-probability-details"), new Color(.1f,.1f,.1f));
-            Ui.Text("Wallet", b, 20, 62, b.rect.width - 40, 52, "♛ 1.59m       ◆ 21", 31, Font(c));
+            ProbabilityWallet(c, b, 126, 0, c.Main != null && c.Main.goldText ? c.Main.goldText.text : "1.59m");
+            ProbabilityWallet(c, b, 402, 1, c.Main != null && c.Main.gemText ? c.Main.gemText.text : "21");
             Ui.Text("Levels", b, 260, 116, b.rect.width - 280, 48, "레벨 33    ▶    레벨 34", 29, Font(c), Ui.Ivory, TextAnchor.MiddleRight);
             for (var i = 0; i < Tiers.Length; i++)
             {
                 var y = 174 + i * 72;
-                var row = Ui.Panel("Rarity " + Tiers[i], b, 14, y, b.rect.width - 28, 61, TierColors[i]);
-                Ui.Text("Icon", row.transform, 12, 3, 54, 54, Glyph(i), 29, Font(c), Ui.Gold);
-                Ui.Text("Name", row.transform, 64, 3, 300, 54, Tiers[i] + " ★", 27, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
+                var row = Ui.Image("Rarity " + Tiers[i], b, 14, y, b.rect.width - 28, 61, TierBand(i));
+                row.type = Image.Type.Sliced; row.pixelsPerUnitMultiplier = 1.3f;
+                // Keep the next-level comparison darker without baking a number into the art.
+                Ui.Image("Next level shade", row.transform, 546, 5, row.rectTransform.rect.width - 556, 51, null, new Color(0,0,0,.38f));
+                Ui.Image("Tier icon", row.transform, 8, 2, 58, 58, TierIcon(i)).preserveAspect = true;
+                Ui.Text("Name", row.transform, 64, 3, 300, 54, Tiers[i], 27, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
+                Ui.Text("Rarity star", row.transform, 270, 3, 44, 54, "★", 29, Font(c), Ui.Gold);
                 Ui.Text("Current", row.transform, 430, 3, 100, 54, Rates33[i], 27, Font(c));
                 Ui.Text("Next", row.transform, 570, 3, 100, 54, Rates34[i], 27, Font(c), i > 5 ? Ui.Cyan : new Color(.7f,.7f,.7f));
             }
