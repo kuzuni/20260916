@@ -19,3 +19,8 @@ MonoBehaviour:
   startingLevel: 107
   description: "\uB2EC\uBE5B \uD3D0\uD5C8\uC758 \uD798\uC774 \uAE43\uB4E0 \uC804\uC124
     \uC7A5\uBE44."
+  baseHealth: 1420000000
+  firstBonusName: "스킬 피해"
+  firstBonusPercent: 30
+  secondBonusName: "원거리 피해"
+  secondBonusPercent: 12
