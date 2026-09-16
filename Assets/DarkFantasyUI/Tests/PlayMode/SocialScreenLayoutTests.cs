@@ -200,6 +200,18 @@ namespace Moonlit.UI.Tests
             Assert.AreEqual(20,choices.Length);
             var artworks=GameObject.Find("Avatar scroll").GetComponentsInChildren<Image>().Where(i=>i.name=="Avatar artwork").ToArray();
             Assert.AreEqual(20,artworks.Select(i=>i.sprite.rect).Distinct().Count());
+            foreach(var choice in choices)
+            {
+                var rim=choice.transform.Find("Avatar rim").GetComponent<Image>();
+                Assert.IsFalse(rim.fillCenter); Assert.IsFalse(rim.raycastTarget);
+                float coveredWidth=(rim.sprite.border.x+rim.sprite.border.z)/(rim.pixelsPerUnit*rim.pixelsPerUnitMultiplier);
+                Assert.Greater(rim.rectTransform.rect.width-coveredWidth,rim.rectTransform.rect.width*.8f,
+                    "The reusable frame must expose at least 80% of the portrait width.");
+            }
+            Canvas.ForceUpdateCanvases();
+            var avatarScroll=GameObject.Find("Avatar scroll").GetComponent<ScrollRect>();
+            Assert.LessOrEqual(avatarScroll.content.rect.height,avatarScroll.viewport.rect.height,
+                "All five rows should fit at the standard portrait viewport.");
             choices.Single(b=>b.name=="Avatar choice 19").onClick.Invoke();
             var changed = portrait.sprite;
             Assert.AreNotEqual(original.rect, changed.rect);
@@ -255,6 +267,15 @@ namespace Moonlit.UI.Tests
             string originalGender = GameObject.Find("Profile gender").GetComponent<InputField>().text;
             var inputRect = input.GetComponent<RectTransform>();
             var save = GameObject.Find("이름 변경").GetComponent<Button>();
+            foreach(var editName in new[]{"이름 변경","변경","아바타 변경"})
+            {
+                var editButton=GameObject.Find(editName).GetComponent<Button>();
+                var pencil=editButton.transform.Find("Edit pencil").GetComponent<Image>();
+                Assert.IsNotNull(pencil.sprite);
+                Assert.AreEqual("EditPencil-v1",pencil.sprite.name);
+                Assert.IsFalse(pencil.raycastTarget);
+                Assert.IsNull(editButton.transform.Find("Label"),"Compact edit buttons use separate artwork, without overflowing labels.");
+            }
             Assert.Less(inputRect.anchoredPosition.x + inputRect.rect.width,
                 save.GetComponent<RectTransform>().anchoredPosition.x, "Edit button must not cover the displayed name.");
             Assert.IsTrue(input.readOnly);

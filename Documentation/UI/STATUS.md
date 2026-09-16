@@ -1,7 +1,20 @@
 # Moonlit 30 UI — coordinator status
 
-Updated 2026-09-17, 06:15 KST. Implementation is unfinished; 15-minute heartbeat remains active.
+Updated 2026-09-17, 06:39 KST. Implementation is unfinished; 15-minute heartbeat remains active.
 
+## Profile edit controls and portrait visibility revision
+
+- Reviewed originals 06, 26 and 27 at full resolution and all six child 9:19 captures from Dim run artifact 10468593894. Concrete issues: two-line profile edit text overflow; portrait rims covered face edges; nickname input rim overlaid the text area; avatar dialog had excess bottom space. Child titles, account actions and blocked-list names were readable. Language selector ornamentation and blocked-list art still differ from originals.
+- New isolated branch codex/profile-dialog-portrait-layout: generated an independent transparent silver/blue EditPencil-v1.png (1254 square, corner alpha 0) via built-in imagegen, prompt in EditPencil-v1-prompt.md. All three profile edits use separate icon art and reusable square blue button surfaces; nickname/gender displays widen into reclaimed label space. Existing route names, state updates and click callbacks remain.
+- Avatar empty rim pixel density now exposes at least 80% of each cell width, still separate from portraits. Five rows fit the compact 908-unit dialog; real ScrollRect remains available for shorter safe areas. Nickname input rim is narrowed. Gender symbols now use the reference blue/red colors in both parent and child.
+- Extended existing PlayMode regressions for independent imported pencil sprites, no button label overflow, avatar frame opening and standard viewport row fit. Static diff check passed; new source has not yet run in Unity. No local Unity execution or secret access. Full reference fidelity remains unfinished.
+
+## Latest CI and integration evidence
+
+- Forest PR #40 source 5b26339db2b711b36f663bf158ee7806e89cc75a merged as bc36e3a3447b124b9e85e8b7cf8abddac0beacca and original checkout fast-forwarded with all 11 modified user metadata files preserved by SHA256. Hosted run 35151172098: downloaded artifact 10469019233, actual NUnit XML 39 passed / 0 failed / 0 skipped. Graphics job 104983056916 is still running. Main forest capture acceptance is pending.
+- Dim PR #39 run 35148702827: downloaded graphics artifact 10468593894, Verification.txt PASS, 66 PNGs. Inspected all six new child dialogs at 9:19 with side insets. Per-layer alpha 0.85 is visible, parent controls are dimmed and top dialogs readable. Preserve explicit alpha setting. Previous 9:16 review was from pre-Dim PR #38.
+- Evidence root: C:/Users/user/AppData/Local/Temp/moonlit-cloud-review/artifact-{10469019233,10468593894}/unpacked. Existing 39-test passes apply to prior sources only.
+- Next: discover this profile revision PR/run by branch/source, inspect actual XML and captures; obtain forest run graphics and view all six main cases; inspect revised profile/avatar/name/gender at both aspects. Continue language checkbox/frame differences and pass/dungeon/shop/skills review. Do not declare all 30 screens accepted or pause the heartbeat.
 ## Main-only forest battle background
 
 - Latest user asks to replace only the main battle environment with the supplied moonlit conifer forest/dirt trail. Generated ForestBattle-v1.png with built-in imagegen using existing party artwork and new environment reference. Original reference archived outside Assets at ArtReferences/MainBattleForest.png; exact prompt in ForestBattle-v1-prompt.md. This is an override for the existing main screen, not a 31st route.
