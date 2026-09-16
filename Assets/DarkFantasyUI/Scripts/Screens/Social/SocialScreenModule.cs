@@ -352,10 +352,10 @@ namespace Moonlit.UI
         {
             float w = c.Width, h = c.Height;
             var root = PageBackdrop(c, "Shop page");
-            Action(c, root, 28, 24, 150, 70, "‹ 메인", c.Close);
-            Ui.Text("Shop title", root, 450, 24, 310, 80, "상점", 46, Font(c), Ui.Gold);
-            Currency(c, root, 188, 28, 56, 0, "1.59m");
-            Currency(c, root, w - 270, 28, 56, 1, "21", new Color(1,.55f,.65f));
+            var title=PopupSkin.Panel("Shop title frame",root,(w-280)*.5f,34,280,88).rectTransform;
+            Ui.Text("Shop title", title, 0, 0, 280, 88, "상점", 46, Font(c), Ui.Gold);
+            PageWallet(c,root,"Gold wallet",54,44,0,c.Main ? (c.Main.gold/1000000f).ToString("0.00")+"m" : "1.59m");
+            PageWallet(c,root,"Ruby wallet",w-324,44,1,c.Main ? c.Main.gems.ToString() : "21");
             Scroll(c, root, 38, 120, w - 76, Mathf.Max(360, h - 120 - NavigationReserve), 2010, out var content);
             var special = SpritePanel(c, "Daily specials header", content, 18, 0, w - 112, 110, 1, Color.white);
             Ui.Text("Daily specials title", special.transform, 24, 12, w - 160, 76, "오늘의 특가", 42, Font(c), Ui.Gold);
@@ -377,6 +377,16 @@ namespace Moonlit.UI
                 string price = prices[i];
                 Action(c, card.transform, 12, 242, cardW - 24, 70, price, () => c.Toast(price == "가격 미설정" ? "이 상품은 가격이 구성되지 않았습니다." : "결제는 연결되지 않은 미리보기입니다."));
             }
+        }
+
+        static void PageWallet(ScreenContext c, Transform root, string name, float x, float y, int icon, string value)
+        {
+            var wallet=SpritePanel(c,name,root,x,y,270,64,2,Color.white);
+            Ui.Image("Currency icon",wallet.transform,-6,-12,76,76,Icon(c,icon)).preserveAspect=true;
+            Ui.Text("Currency amount",wallet.transform,72,0,180,64,value,35,Font(c),Ui.Ivory);
+            var add=Ui.ArtButton("Currency information",wallet.transform,45,30,44,44);
+            Ui.Text("Add",add.transform,0,0,44,44,"+",35,Font(c),new Color(.15f,.9f,.07f));
+            add.onClick.AddListener(()=>c.Toast(icon==0 ? "모험과 이벤트에서 골드를 모으세요." : "결제 기능은 연결되지 않은 미리보기입니다."));
         }
 
         static void Deal(ScreenContext c, Transform parent, float y, string title, string body, string price, float width, int artIndex)
@@ -415,7 +425,6 @@ namespace Moonlit.UI
         {
             float w = c.Width, h = c.Height;
             var root = PageBackdrop(c, "PvP page");
-            Action(c, root, 28, 24, 150, 70, "‹ 메인", c.Close);
             Ui.Image("Gold league crest", root, (w - 160) * .5f, 0, 160, 160,
                 Resources.Load<Sprite>("Moonlit/Social/GoldLeagueCrest-v1")).preserveAspect = true;
             Ui.Text("League", root, 290, 158, 500, 54, "골드 리그", 43, Font(c), Ui.Ivory);
@@ -431,13 +440,22 @@ namespace Moonlit.UI
             float actionY = h - NavigationReserve - 112;
             float stickyY = actionY - 132;
             float listHeight = Mathf.Max(380, stickyY - 310 - 18);
-            Scroll(c, root, 90, 290, w - 180, listHeight, names.Length * 130, out var content);
-            for (int i = 0; i < names.Length; i++)
-                PvpRow(c, content, "PvP rank " + (8 + i), 0, i * 130, w - 180,
-                    8 + i, names[i], powers[i], stars[i], i == 3 ? profileAvatar : i, i == 3);
+            // Reference identities at ranks 8–14 remain intact; other standings are local demo data.
+            Scroll(c, root, 90, 290, w - 180, listHeight, 100 * 130, out var content);
+            for (int rank = 1; rank <= 100; rank++)
+            {
+                int reference = rank - 8;
+                bool supplied = reference >= 0 && reference < names.Length;
+                PvpRow(c, content, "PvP rank " + rank, 0, (rank-1) * 130, w - 180,
+                    rank, supplied ? names[reference] : "도전자 " + rank.ToString("000"),
+                    supplied ? powers[reference] : (101-rank).ToString() + "m",
+                    supplied ? stars[reference] : Mathf.Max(0,23-rank- (rank>14 ? 9 : 0)),
+                    rank==11 ? profileAvatar : supplied ? reference : (rank-1)%9, rank==11);
+            }
             PvpRow(c, root, "My sticky rank", 90, stickyY, w - 180,
                 11, names[3], powers[3], stars[3], profileAvatar, true);
             Action(c, root, 330, actionY, 420, 90, "도전", () => c.Open("pvp-opponents"));
+            PopupSkin.Back("Return to main",root,40,actionY,88,Font(c),c.Close);
         }
 
         static void PvpRow(ScreenContext c, Transform parent, string objectName, float x, float y, float width,
