@@ -53,6 +53,13 @@ namespace Moonlit.UI.Tests
                     skillType.GetField("level").SetValue(skill,100);
                     skillType.GetField("shards").SetValue(skill,99);
                     skillType.GetField("owned").SetValue(skill,false);
+                    foreach(int index in new[]{13,14,15})
+                    {
+                        skillType.GetField("owned").SetValue(skills.GetValue(index),false);
+                        skillType.GetField("level").SetValue(skills.GetValue(index),100);
+                    }
+                    foreach(int index in new[]{11,16,17})
+                        skillType.GetField("owned").SetValue(skills.GetValue(index),true);
                     ((int[])Field(progression,"equippedSkills").GetValue(null))[0]=0;
                     claims.Add(1);
                     Field(social,"profileName").SetValue(null,"changed profile");
@@ -65,7 +72,21 @@ namespace Moonlit.UI.Tests
                     Assert.AreEqual(76,skillType.GetField("level").GetValue(skill));
                     Assert.AreEqual(3,skillType.GetField("shards").GetValue(skill));
                     Assert.AreEqual(true,skillType.GetField("owned").GetValue(skill));
-                    CollectionAssert.AreEqual(new[]{9,10,8},(int[])Field(progression,"equippedSkills").GetValue(null));
+                    var equipped=(int[])Field(progression,"equippedSkills").GetValue(null);
+                    CollectionAssert.AreEqual(new[]{15,14,13},equipped);
+                    var expectedLevels=new[]{20,19,17};
+                    for(int i=0;i<equipped.Length;i++)
+                    {
+                        var equippedSkill=skills.GetValue(equipped[i]);
+                        Assert.AreEqual(expectedLevels[i],skillType.GetField("level").GetValue(equippedSkill));
+                        Assert.AreEqual(true,skillType.GetField("owned").GetValue(equippedSkill),"Low-level starting equipment must remain owned after reset");
+                    }
+                    foreach(int index in new[]{11,16,17})
+                        Assert.AreEqual(false,skillType.GetField("owned").GetValue(skills.GetValue(index)),"Summoned ownership must not survive a fresh session");
+                    int ownedCount=0;
+                    foreach(var entry in skills)
+                        if((bool)skillType.GetField("owned").GetValue(entry)) ownedCount++;
+                    Assert.AreEqual(15,ownedCount);
                     Assert.IsEmpty(claims);
                     Assert.AreEqual("moonzzanf",Field(social,"profileName").GetValue(null));
                     Assert.AreEqual(false,Field(social,"profileFemale").GetValue(null));
