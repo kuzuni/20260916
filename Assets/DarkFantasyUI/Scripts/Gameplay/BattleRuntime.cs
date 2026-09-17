@@ -185,7 +185,7 @@ namespace Moonlit.UI
                     yield return ActorTurn(playerFirst);
                     if (PlayerState.Alive && EnemyState.Alive) yield return ActorTurn(!playerFirst);
                     if (failedAnimation) { complete(false); yield break; }
-                    if (!PlayerState.Alive || !EnemyState.Alive) break;
+                    if (!PlayerState.Alive || !EnemyState.Alive || CombatRules.RoundLimitLost(Round, EnemyState.Alive)) break;
                 }
                 bool wonWave = PlayerState.Alive && !EnemyState.Alive;
                 (wonWave ? enemyAnimator : playerAnimator).Play("Death", 0, 0);

@@ -23,7 +23,7 @@ namespace Moonlit.Editor
             "01_Primitive", "02_Medieval", "03_EarlyModern", "04_Modern", "05_Cyber",
             "06_Future", "07_Space", "08_Immortal", "09_Infinite", "10_Holy" };
         // Match EquipmentRules variant order.
-        static readonly string[] Variants = { "Thief", "Warrior", "Assassin" };
+        static readonly string[] Variants = EquipmentRules.VariantFolders;
 
         public static void Build()
         {
