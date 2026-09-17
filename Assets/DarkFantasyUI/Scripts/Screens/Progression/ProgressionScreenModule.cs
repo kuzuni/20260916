@@ -408,7 +408,10 @@ namespace Moonlit.UI
             var font = ctx.Assets.font;
             AddBackdrop(ctx.Root, ctx);
             PopupSkin.Back("Return to main",ctx.Root,40,ctx.Height-364,96,font,ctx.Close);
-            Panel(ctx.Root, 370, 36, 340, 100, "던전", font, 44);
+            var heading = Ui.ArtImage("Dungeon title frame", ctx.Root, 360, 0, 360, 164,
+                Resources.Load<Sprite>("Moonlit/Dungeons/DungeonTitle-v1"));
+            heading.preserveAspect = true;
+            Ui.Text("Dungeon title", ctx.Root, 415, 60, 250, 66, "던전", 44, font);
             Ui.Text("Reset", ctx.Root, 120, 145, 840, 86, "던전 열쇠는 매일 09:00에 보충됩니다.\n열쇠는 던전을 완료할 때만 소모됩니다.", 25, font);
             var available = ctx.Height - 660;
             var scroll = Scroll(ctx.Root, 60, 250, 960, available);
