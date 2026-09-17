@@ -1,3 +1,8 @@
+## 2026-09-17 — compile blocker after PR #60
+
+- User reported compilation failure. Read-only local Editor.log and hosted run 35185129607 (job 105085449367) agree: SocialScreenLayoutTests.cs:160 CS1501, CanvasRenderer.GetMesh has no one-argument overload. Previous UI changes have NOT passed Unity validation; graphics were skipped.
+- Corrected the test to use Unity 6000.3.8f1's parameterless GetMesh(), verified against the installed UIModule XML API. Inspect a copied vertex array and calculate bounds without modifying or destroying the renderer-owned mesh. Existing center/visibility assertions remain intact.
+- Static diff check only at this checkpoint. New hosted compile, PlayMode tests and graphics remain pending. No local Unity execution/control. Preserve the 19 original checkout metadata changes during the coordinator's incremental integration.
 ## 2026-09-17 — user-requested larger typography and centered shop products (in progress)
 
 - User reports shop illustrations leaning to one side and text too small across the UI. Confirmed the installed uGUI Image implementation positions preserve-aspect slack using the RectTransform pivot; shop art inherited the top-left pivot. Centered product artwork without moving the card or changing its hit target, preserving the separate atlas sprites/rims.
