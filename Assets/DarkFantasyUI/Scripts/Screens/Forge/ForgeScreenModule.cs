@@ -199,28 +199,32 @@ namespace Moonlit.UI
         static void BuildProbabilityDetails(ScreenContext c)
         {
             Frame(c, "모든 장비의 목록", 760, 1330, out var b);
-            Scroll(c, b, 0, 0, b.rect.width, b.rect.height - 18, 2580, out var content);
-            var item = 0;
+            Scroll(c, b, 0, 0, b.rect.width, b.rect.height - 18, 3060, out var content);
+            var item = 0; var top = 0;
             for (var tier = 0; tier < 5; tier++)
             {
-                var top = tier * 510;
                 var header = Ui.Panel("Tier " + Tiers[tier], content, 8, top, content.rect.width - 16, 66, TierColors[tier]);
                 Ui.Text("Tier", header.transform, 18, 2, 420, 60, Glyph(tier) + "  " + Tiers[tier] + " ★", 29, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
                 Ui.Text("Rate", header.transform, 520, 2, 130, 60, Rates33[tier], 27, Font(c), Ui.Ivory, TextAnchor.MiddleRight);
-                for (var row = 0; row < 3; row++) for (var col = 0; col < 5; col++)
+                int count=tier==0?23:15;
+                for (var cell = 0; cell < count; cell++)
                 {
                     var index = item++;
-                    var x = 12 + col * 134; var y = top + 78 + row * 132;
-                    var slot = PopupSkin.Button("Equipment " + index, content, x, y, 110, 104, "", Font(c), () => c.Open("forge-item-details", ItemAt(c, index)), Slate);
-                    Ui.Image("Item icon", slot.transform, 12, 8, 86, 78, Icon(c, index));
+                    var definition=ItemAt(c,index);
+                    var x = 12 + cell%5 * 134; var y = top + 78 + cell/5 * 150;
+                    var slot = PopupSkin.Button("Equipment " + index, content, x, y, 110, 104, "", Font(c), () => c.Open("forge-item-details", definition), Slate);
+                    Ui.Image("Item icon", slot.transform, 12, 8, 86, 78, definition ? definition.icon : Icon(c,index)).preserveAspect=true;
                     Ui.Text("Star", slot.transform, 0, 76, 110, 25, "★", 22, Font(c), Ui.Gold);
                     Ui.Text("Rate", content, x - 4, y + 101, 118, 28, tier == 0 ? "0.0000%" : (tier + 1) + ".2500%", 17, Font(c));
                 }
+                top+=78+Mathf.CeilToInt(count/5f)*150+24;
             }
         }
 
         static ItemDefinition ItemAt(ScreenContext c, int index)
         {
+            // Reference 02 places footwraps at row four, column five of the primitive tier.
+            if(index==19) return Resources.Load<ItemDefinition>("Moonlit/Forge/PrimitiveFootwrap");
             var items = c.Assets != null ? c.Assets.items : null;
             return items != null && items.Length > 0 ? items[index % items.Length] : null;
         }
@@ -228,14 +232,18 @@ namespace Moonlit.UI
         static void BuildItemDetails(ScreenContext c)
         {
             Frame(c, "모든 장비의 목록", 660, 1050, out var b);
-            var item = c.Payload as ItemDefinition;
+            var item = c.Payload as ItemDefinition ?? Resources.Load<ItemDefinition>("Moonlit/Forge/PrimitiveFootwrap");
             var name = item != null && !string.IsNullOrEmpty(item.displayName) ? item.displayName : "[원시적] 발 감싸기";
-            Ui.Panel("Item slot", b, 22, 18, 132, 132, new Color(.25f,.12f,.02f));
-            Ui.Image("Separate item icon", b, 40, 32, 96, 96, item != null ? item.icon : Icon(c, 5));
+            var slotArt=c.Assets.equipmentSlotPrefab ? c.Assets.equipmentSlotPrefab.equipmentFrame : PopupSkin.PanelArt;
+            var slot=Ui.Image("Item slot",b,22,18,132,132,slotArt);
+            slot.type=Image.Type.Sliced; slot.pixelsPerUnitMultiplier=7;
+            Ui.ArtImage("Separate item icon", b, 32, 24, 112, 112, item != null ? item.icon : null).preserveAspect=true;
+            Ui.Text("Item rarity star",b,22,130,132,34,"★",32,Font(c),Ui.Gold);
             Ui.Text("Name", b, 174, 18, b.rect.width - 190, 58, name, 29, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
-            Ui.Text("Health", b, 174, 75, b.rect.width - 190, 50, "2k 체력", 27, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
+            Ui.Text("Health", b, 174, 75, b.rect.width - 190, 50, item ? EquipmentHealthText(item,item.startingLevel) : "", 27, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
             var description = item != null && !string.IsNullOrEmpty(item.description) ? item.description : "장비은(는) 아래 목록에서 2개의 고유한 하위 스탯을 굴립니다.";
-            Ui.Panel("Stats panel", b, 10, 170, b.rect.width - 20, 610, Slate);
+            var statsPanel=PopupSkin.Panel("Stats panel", b, 10, 170, b.rect.width - 20, 610);
+            statsPanel.pixelsPerUnitMultiplier=14;
             Ui.Text("Description", b, 28, 184, b.rect.width - 56, 82, description, 24, Font(c), Ui.Ivory, TextAnchor.UpperLeft);
             Ui.Image("Rule", b, 28, 272, b.rect.width - 56, 2, null, Ui.Gold);
             var stats = "+1% - 12% 치명타 확률\n+1% - 80% 치명타 피해\n+1% - 5% 블록 확률\n+1% - 4% 체력 재생\n+1% - 20% 생명력 흡수\n+1% - 20% 더블 찬스\n+1% - 15% 피해\n+1% - 50% 근접 피해\n+1% - 15% 원거리 피해\n+1% - 40% 공격 속도\n+1% - 30% 스킬 피해\n-1% - 7% 스킬 재사용 대기시간\n+1% - 15% 체력";

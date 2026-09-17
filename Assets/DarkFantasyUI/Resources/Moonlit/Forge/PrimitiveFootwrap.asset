@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fd59a8ac40893a749ba504c676048a8a, type: 3}
+  m_Name: PrimitiveFootwrap
+  m_EditorClassIdentifier: Assembly-CSharp::Moonlit.UI.ItemDefinition
+  displayName: "[원시적] 발 감싸기"
+  icon: {fileID: 21300000, guid: 0f91851fa9914a47b331bf14b168c6b9, type: 3}
+  categoryBadgeIcon: {fileID: 0}
+  rarity: 0
+  startingLevel: 1
+  description: "장비는 아래 목록에서 2개의 고유한 하위 스탯을 굴립니다."
+  baseHealth: 2000
+  firstBonusName: "치명타 확률"
+  firstBonusPercent: 1
+  secondBonusName: "공격 속도"
+  secondBonusPercent: 2
