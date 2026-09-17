@@ -338,6 +338,9 @@ namespace Moonlit.UI
             var contents=new RectTransform[3];
             var scrolls=new ScrollRect[3];
             var buttons=new Button[3];
+            var unreadBadges=new GameObject[3];
+            // Reference counts seed this local preview, just like the sample message history.
+            int[] unread={0,70,3};
             var counts=new int[3];
             var drafts=new string[3];
             int selected=0;
@@ -359,6 +362,8 @@ namespace Moonlit.UI
             void SelectChannel(int tab) {
                 drafts[selected]=input.text;
                 selected=tab;
+                unread[tab]=0;
+                unreadBadges[tab].SetActive(false);
                 input.SetTextWithoutNotify(drafts[tab]??"");
                 for(int j=0;j<3;j++) {
                     channels[j].gameObject.SetActive(j==tab);
@@ -370,6 +375,11 @@ namespace Moonlit.UI
                 int tab = i;
                 buttons[i]=Action(c,root,i*w/3f,20,w/3f,80,tabs[i],()=>SelectChannel(tab));
                 ((Image)buttons[i].targetGraphic).sprite=i==0?PopupSkin.ActionArt:PopupSkin.PanelArt;
+                var badge=Ui.ArtImage("Unread badge",buttons[i].transform,w/3f-62,-12,48,48,PopupSkin.CloseArt);
+                badge.preserveAspect=true;
+                Ui.Text("Unread count",badge.transform,3,2,42,42,unread[i].ToString(),24,Font(c),Ui.Ivory);
+                unreadBadges[i]=badge.gameObject;
+                unreadBadges[i].SetActive(unread[i]>0);
             }
             Action(c,root,w-140,h-146,112,82,"전송",()=> {
                 if(string.IsNullOrWhiteSpace(input.text)) { c.Toast("메시지를 입력하세요."); return; }

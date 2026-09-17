@@ -68,6 +68,13 @@ namespace Moonlit.UI.Tests
                 var input=chat.GetComponentInChildren<InputField>();
                 var worldTab=chat.GetComponentsInChildren<Button>().Single(b=>b.name=="월드");
                 var clanTab=chat.GetComponentsInChildren<Button>().Single(b=>b.name=="클랜");
+                var officerTab=chat.GetComponentsInChildren<Button>().Single(b=>b.name=="클랜 간부");
+                var clanBadge=clanTab.transform.Find("Unread badge");
+                var officerBadge=officerTab.transform.Find("Unread badge");
+                Assert.IsFalse(worldTab.transform.Find("Unread badge").gameObject.activeSelf);
+                Assert.AreEqual("70",clanBadge.GetComponentInChildren<Text>().text);
+                Assert.AreEqual("3",officerBadge.GetComponentInChildren<Text>().text);
+                Assert.IsFalse(clanBadge.GetComponent<Image>().raycastTarget);
                 Assert.AreSame(PopupSkin.ActionArt,((Image)worldTab.targetGraphic).sprite);
                 Assert.AreSame(PopupSkin.PanelArt,((Image)clanTab.targetGraphic).sprite);
                 Assert.AreEqual("ProfileRuins-v1",GameObject.Find("Full viewport backdrop").transform.Find("Page scenery").GetComponent<Image>().sprite.name);
@@ -77,6 +84,8 @@ namespace Moonlit.UI.Tests
                 clanTab.onClick.Invoke(); yield return null;
                 Assert.IsFalse(world.gameObject.activeSelf);
                 Assert.IsTrue(clan.gameObject.activeSelf);
+                Assert.IsFalse(clanBadge.gameObject.activeSelf);
+                Assert.IsTrue(officerBadge.gameObject.activeSelf,"Reading clan must not mark the officer channel read");
                 Assert.AreEqual("",input.text);
                 input.text="클랜 초안";
                 worldTab.onClick.Invoke(); yield return null;
@@ -95,6 +104,9 @@ namespace Moonlit.UI.Tests
                 clanTab.onClick.Invoke(); yield return null;
                 Assert.AreEqual("클랜 초안",input.text);
                 Assert.AreEqual(12,clan.GetComponentsInChildren<Text>().Count(t=>t.name=="Message"));
+                Assert.IsFalse(clanBadge.gameObject.activeSelf,"Read badge must stay cleared when returning to the tab");
+                officerTab.onClick.Invoke(); yield return null;
+                Assert.IsFalse(officerBadge.gameObject.activeSelf);
                 GameObject.Find("Chat back").GetComponent<Button>().onClick.Invoke(); yield return null;
                 Assert.AreEqual(0,host.ModalDepth);
                 Assert.IsNull(GameObject.Find("Chat"));
