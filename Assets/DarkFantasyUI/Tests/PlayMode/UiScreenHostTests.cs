@@ -289,29 +289,36 @@ namespace Moonlit.UI.Tests
         public void LocalRewardAndForgeDecisions_MutateExactlyOnce()
         {
             PrepareMainLabels();
-            var startGold = host.GetComponent<MainScreen>().gold;
-            var startOre = host.GetComponent<MainScreen>().ore;
-            Assert.IsTrue(host.GetComponent<MainScreen>().ClaimOfflineRewards(174, 2));
-            Assert.IsFalse(host.GetComponent<MainScreen>().ClaimOfflineRewards(174, 2));
-            Assert.AreEqual(startGold + 174, host.GetComponent<MainScreen>().gold);
-            Assert.AreEqual(startOre + 2, host.GetComponent<MainScreen>().ore);
-            var screen = host.GetComponent<MainScreen>();
-            var item = ScriptableObject.CreateInstance<ItemDefinition>();
-            try
-            {
-                Assert.IsFalse(screen.BeginCraft(item, -100));
-                Assert.IsTrue(screen.BeginCraft(item, 100));
-                int firstId = screen.PendingCraftId;
-                Assert.IsTrue(screen.BeginCraft(item, 100));
-                Assert.AreEqual(startOre - 98, screen.ore, "Reopening must not charge twice");
-                Assert.IsTrue(screen.ResolveCraftedEquipment(firstId, false, 120));
-                Assert.IsFalse(screen.ResolveCraftedEquipment(firstId, false, 120));
-                Assert.AreEqual(startOre + 22, screen.ore);
-                Assert.IsTrue(screen.BeginCraft(item, 100));
-                Assert.IsFalse(screen.ResolveCraftedEquipment(firstId, false, 120), "A stale callback must not sell a new item");
-                Assert.AreEqual(startOre - 78, screen.ore);
+            var screen=host.GetComponent<MainScreen>();
+            var oldRewards=RewardState.Current;var oldForge=ForgeState.Current;
+            try {
+                long start=System.DateTimeOffset.UtcNow.ToUnixTimeSeconds()+10000;
+                var rewards=RewardState.Current=new RewardState{lastTickUtc=start};
+                int goldBefore=screen.gold,oreBefore=screen.ore;
+                rewards.Advance(start+174);rewards.Advance(start+174);rewards.Advance(start+120);
+                Assert.AreEqual(174,rewards.GoldAvailable);Assert.AreEqual(2,rewards.HammersAvailable);
+                Assert.IsTrue(rewards.Claim(screen));Assert.IsFalse(rewards.Claim(screen));
+                Assert.AreEqual(goldBefore+174,screen.gold);Assert.AreEqual(oreBefore+2,screen.ore);
+                rewards.Advance(start+180);
+                Assert.AreEqual(6,rewards.GoldAvailable);Assert.AreEqual(1,rewards.HammersAvailable);
+                Assert.IsTrue(rewards.Claim(screen));Assert.IsFalse(rewards.Claim(screen));
+                Assert.AreEqual(goldBefore+180,screen.gold);Assert.AreEqual(oreBefore+3,screen.ore);
+                var state=ForgeState.Current=new ForgeState();
+                var original=new EquipmentRoll{id=41,part=EquipmentPart.Weapon};
+                var first=new EquipmentRoll{id=42,part=EquipmentPart.Weapon,level=2};
+                var second=new EquipmentRoll{id=43,part=EquipmentPart.Weapon,level=3};
+                state.equipped[5]=original;state.pending.Add(first);state.pending.Add(second);
+                Assert.IsFalse(state.ToggleEquip(999));Assert.IsFalse(state.SellPending(999,out _));
+                Assert.IsTrue(state.SellPending(first.id,out int sale));
+                Assert.AreEqual(EquipmentRules.SaleGold(first),sale);Assert.AreSame(second,state.Pending);
+                Assert.IsFalse(state.SellPending(first.id,out _),"A stale sale callback cannot dispose of the next pending item");
+                Assert.IsFalse(state.ToggleEquip(first.id),"A stale equip callback cannot equip the next pending item");
+                Assert.AreSame(original,state.equipped[5]);Assert.AreSame(second,state.Pending);
+                Assert.IsTrue(state.ToggleEquip(second.id));Assert.AreSame(second,state.equipped[5]);
+                Assert.IsTrue(state.SellPending(original.id,out _));Assert.IsNull(state.Pending);
+                Assert.IsFalse(state.SellPending(original.id,out _));
             }
-            finally { Object.DestroyImmediate(item); }
+            finally {RewardState.Current=oldRewards;ForgeState.Current=oldForge;}
         }
 
         [UnityTest]
