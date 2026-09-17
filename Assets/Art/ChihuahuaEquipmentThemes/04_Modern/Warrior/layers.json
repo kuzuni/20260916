@@ -10,13 +10,10 @@
     "팔1",
     "팔2",
     "다리1",
-    "다리2",
-    "배경"
+    "다리2"
   ],
   "source_sha256": "c97fddf0d0b85747ae640345b94f8c98e1a4b1f278c825a8ece6102788b16cef",
-  "psb_sha256": "5334e671a9e374d9c8a1d8fae9e905306bdb44dfece84ab10a45cc0b7189c419",
-  "background_visible": false,
-  "source_reconstruction_max_channel_difference": 0,
+  "psb_sha256": "979b0e1ca769fe03aaa2a01f9972c7d3ce9927d6f4c1ddb539eea397921fd827",
   "parts": [
     {
       "name": "무기",
@@ -110,5 +107,14 @@
   },
   "title": "현대 전사",
   "grade": "현대",
-  "class": "전사"
+  "class": "전사",
+  "background_layer_included": false,
+  "repair": {
+    "compression": "RLE",
+    "visible_layer_count": 7,
+    "recovered_layer_rgba_max_channel_difference": 0,
+    "pre_repair_source_reconstruction_max_channel_difference": 0,
+    "independently_decoded": true,
+    "unity_import_verified": false
+  }
 }

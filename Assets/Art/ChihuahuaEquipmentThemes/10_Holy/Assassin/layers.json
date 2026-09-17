@@ -1,0 +1,405 @@
+{
+  "canvas": [
+    1155,
+    1362
+  ],
+  "layers_top_to_bottom": [
+    "무기",
+    "머리",
+    "몸통",
+    "팔1",
+    "팔2",
+    "다리1",
+    "다리2"
+  ],
+  "source_sha256": "52f5d6b0582bdce35e2ea05c8d9cc69cb244c32616406fe079511cf7b97c21f4",
+  "psb_sha256": "0134df5cc1faa4a3a3cde531c88a17bd6c07f6127d0fda1c3cf558cdeb8b7c01",
+  "background_layer_included": false,
+  "compression": "RLE",
+  "parts": [
+    {
+      "name": "무기",
+      "key": "Weapon",
+      "id": 1001,
+      "bbox": [
+        98,
+        76,
+        379,
+        432
+      ]
+    },
+    {
+      "name": "머리",
+      "key": "Head",
+      "id": 1002,
+      "bbox": [
+        493,
+        81,
+        950,
+        464
+      ]
+    },
+    {
+      "name": "몸통",
+      "key": "Body",
+      "id": 1003,
+      "bbox": [
+        576,
+        560,
+        875,
+        910
+      ]
+    },
+    {
+      "name": "팔1",
+      "key": "Arm1",
+      "id": 1004,
+      "bbox": [
+        82,
+        904,
+        199,
+        1195
+      ]
+    },
+    {
+      "name": "팔2",
+      "key": "Arm2",
+      "id": 1005,
+      "bbox": [
+        333,
+        983,
+        452,
+        1254
+      ]
+    },
+    {
+      "name": "다리1",
+      "key": "Leg1",
+      "id": 1006,
+      "bbox": [
+        563,
+        1066,
+        754,
+        1323
+      ]
+    },
+    {
+      "name": "다리2",
+      "key": "Leg2",
+      "id": 1007,
+      "bbox": [
+        856,
+        1068,
+        1040,
+        1324
+      ]
+    }
+  ],
+  "reference": "../../Reference/character_base.png",
+  "registration": {
+    "무기": {
+      "source_visible_bbox": [
+        107,
+        85,
+        418,
+        449
+      ],
+      "reference_visible_bbox": [
+        101,
+        78,
+        376,
+        428
+      ],
+      "source_registration_bbox": [
+        107,
+        85,
+        418,
+        449
+      ],
+      "reference_registration_bbox": [
+        101,
+        78,
+        376,
+        428
+      ],
+      "final_registration_bbox": [
+        101,
+        78,
+        376,
+        428
+      ],
+      "max_registration_error_px": 0,
+      "source_y_landmarks": [
+        85,
+        449
+      ],
+      "reference_y_landmarks": [
+        78,
+        428
+      ]
+    },
+    "머리": {
+      "source_visible_bbox": [
+        497,
+        86,
+        947,
+        461
+      ],
+      "reference_visible_bbox": [
+        497,
+        85,
+        946,
+        461
+      ],
+      "source_registration_bbox": [
+        497,
+        86,
+        947,
+        461
+      ],
+      "reference_registration_bbox": [
+        497,
+        85,
+        946,
+        461
+      ],
+      "final_registration_bbox": [
+        497,
+        85,
+        946,
+        461
+      ],
+      "max_registration_error_px": 0,
+      "source_y_landmarks": [
+        86,
+        461
+      ],
+      "reference_y_landmarks": [
+        85,
+        461
+      ]
+    },
+    "몸통": {
+      "source_visible_bbox": [
+        577,
+        564,
+        876,
+        908
+      ],
+      "reference_visible_bbox": [
+        579,
+        563,
+        871,
+        906
+      ],
+      "source_registration_bbox": [
+        577,
+        564,
+        876,
+        908
+      ],
+      "reference_registration_bbox": [
+        579,
+        563,
+        871,
+        906
+      ],
+      "final_registration_bbox": [
+        579,
+        563,
+        871,
+        906
+      ],
+      "max_registration_error_px": 0,
+      "source_y_landmarks": [
+        564,
+        908
+      ],
+      "reference_y_landmarks": [
+        563,
+        906
+      ]
+    },
+    "팔1": {
+      "source_visible_bbox": [
+        82,
+        907,
+        197,
+        1200
+      ],
+      "reference_visible_bbox": [
+        86,
+        908,
+        198,
+        1192
+      ],
+      "source_registration_bbox": [
+        118,
+        914,
+        176,
+        1046
+      ],
+      "reference_registration_bbox": [
+        120,
+        915,
+        175,
+        1055
+      ],
+      "final_registration_bbox": [
+        120,
+        915,
+        175,
+        1054
+      ],
+      "max_registration_error_px": 1,
+      "source_y_landmarks": [
+        907,
+        914,
+        1046,
+        1200
+      ],
+      "reference_y_landmarks": [
+        908,
+        915,
+        1055,
+        1192
+      ]
+    },
+    "팔2": {
+      "source_visible_bbox": [
+        335,
+        986,
+        450,
+        1255
+      ],
+      "reference_visible_bbox": [
+        337,
+        987,
+        448,
+        1251
+      ],
+      "source_registration_bbox": [
+        369,
+        993,
+        422,
+        1118
+      ],
+      "reference_registration_bbox": [
+        370,
+        994,
+        421,
+        1134
+      ],
+      "final_registration_bbox": [
+        370,
+        995,
+        421,
+        1134
+      ],
+      "max_registration_error_px": 1,
+      "source_y_landmarks": [
+        986,
+        993,
+        1118,
+        1255
+      ],
+      "reference_y_landmarks": [
+        987,
+        994,
+        1134,
+        1251
+      ]
+    },
+    "다리1": {
+      "source_visible_bbox": [
+        566,
+        1069,
+        751,
+        1320
+      ],
+      "reference_visible_bbox": [
+        569,
+        1070,
+        741,
+        1320
+      ],
+      "source_registration_bbox": [
+        608,
+        1077,
+        637,
+        1186
+      ],
+      "reference_registration_bbox": [
+        608,
+        1078,
+        637,
+        1205
+      ],
+      "final_registration_bbox": [
+        608,
+        1078,
+        637,
+        1205
+      ],
+      "max_registration_error_px": 0,
+      "source_y_landmarks": [
+        1069,
+        1077,
+        1186,
+        1320
+      ],
+      "reference_y_landmarks": [
+        1070,
+        1078,
+        1205,
+        1320
+      ]
+    },
+    "다리2": {
+      "source_visible_bbox": [
+        860,
+        1066,
+        1043,
+        1320
+      ],
+      "reference_visible_bbox": [
+        860,
+        1071,
+        1032,
+        1321
+      ],
+      "source_registration_bbox": [
+        899,
+        1075,
+        929,
+        1186
+      ],
+      "reference_registration_bbox": [
+        898,
+        1078,
+        927,
+        1206
+      ],
+      "final_registration_bbox": [
+        898,
+        1078,
+        927,
+        1206
+      ],
+      "max_registration_error_px": 0,
+      "source_y_landmarks": [
+        1066,
+        1075,
+        1186,
+        1320
+      ],
+      "reference_y_landmarks": [
+        1071,
+        1078,
+        1206,
+        1321
+      ]
+    }
+  },
+  "source_reconstruction_max_channel_difference": 0
+}

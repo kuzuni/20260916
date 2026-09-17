@@ -10,13 +10,10 @@
     "팔1",
     "팔2",
     "다리1",
-    "다리2",
-    "배경"
+    "다리2"
   ],
   "source_sha256": "2d792b35b26e02c2516e976b1a1bb015675b9255f225de68cfbbf45477a202fd",
-  "psb_sha256": "03f4a99478b6b91f6939feabb923282ace695d338af827d009b6237c19d9deba",
-  "background_visible": false,
-  "source_reconstruction_max_channel_difference": 0,
+  "psb_sha256": "b49b08f78414676b895aa334b7a30254fbe60ee4aebf085cd0f84afbec21a4c4",
   "parts": [
     {
       "name": "무기",
@@ -110,5 +107,14 @@
   },
   "title": "중세 도적",
   "grade": "중세",
-  "class": "도적"
+  "class": "도적",
+  "background_layer_included": false,
+  "repair": {
+    "compression": "RLE",
+    "visible_layer_count": 7,
+    "recovered_layer_rgba_max_channel_difference": 0,
+    "pre_repair_source_reconstruction_max_channel_difference": 0,
+    "independently_decoded": true,
+    "unity_import_verified": false
+  }
 }

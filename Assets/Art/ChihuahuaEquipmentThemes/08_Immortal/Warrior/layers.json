@@ -10,13 +10,10 @@
     "팔1",
     "팔2",
     "다리1",
-    "다리2",
-    "배경"
+    "다리2"
   ],
   "source_sha256": "08dcf00ccceff9cf503c875deeaa9ccd25aeb55fdb3037672707c466e439434f",
-  "psb_sha256": "411659475d6a456af7c9b52d2c11421604b57e3ed7268028842c0d0c88c232d6",
-  "background_visible": false,
-  "source_reconstruction_max_channel_difference": 0,
+  "psb_sha256": "1f50200604d389fd31dba2eb0cc12bd63745a261c7ea695ba35f4765af2e43a6",
   "parts": [
     {
       "name": "무기",
@@ -110,5 +107,14 @@
   },
   "title": "불멸 전사",
   "grade": "불멸",
-  "class": "전사"
+  "class": "전사",
+  "background_layer_included": false,
+  "repair": {
+    "compression": "RLE",
+    "visible_layer_count": 7,
+    "recovered_layer_rgba_max_channel_difference": 0,
+    "pre_repair_source_reconstruction_max_channel_difference": 0,
+    "independently_decoded": true,
+    "unity_import_verified": false
+  }
 }

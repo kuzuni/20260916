@@ -1,0 +1,17 @@
+{
+  "id": "10_Holy/Thief",
+  "grade_id": "10_Holy",
+  "grade": "신성한",
+  "class_id": "Thief",
+  "job": "도적",
+  "title": "신성한 도적",
+  "prompt": "CLASS: HOLY THIEF. Compact ivory cloth rogue cap hugging the skull between existing ears, thin antique gold band with a small emerald seal, full original face visible. Torso is an ivory sleeveless fitted leather vest with narrow green diagonal sash entirely contained INSIDE the torso, fine gold piping and tiny sun seal buckle. Ivory-gold light fingerless gloves with emerald cuffs, ivory-gold low agile boots. Weapon is one slender single-edged sacred curved dagger, pearl steel blade, narrow gold guard and emerald pommel, diagonal matching reference club length. Elegant agile sacred treasure-seeker. No dangling belt tails or scarf. Three colors ivory, pale gold, emerald green.",
+  "restrictions": [
+    "no sleeves",
+    "no shoulder extensions",
+    "no back ornaments",
+    "no wings",
+    "no cape"
+  ],
+  "provenance": "Artifacts/HolyTheme-20260918/generation-provenance.json"
+}

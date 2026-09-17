@@ -1,0 +1,106 @@
+{
+  "source": "character_base.png",
+  "canvas": [
+    1155,
+    1362
+  ],
+  "source_sha256": "2452ddade14c0333d4a272a4d28004f346a5c933f1c730906b6a997dbeeedafd",
+  "psb_sha256": "3e3a5cf794336e5b352d39363747f0ef2d8e7872c17f8d96b9442602c290bc20",
+  "layers_top_to_bottom": [
+    "무기",
+    "머리",
+    "몸통",
+    "팔1",
+    "팔2",
+    "다리1",
+    "다리2"
+  ],
+  "background_layer_included": false,
+  "compression": "RLE",
+  "parts": [
+    {
+      "bbox": [
+        99,
+        76,
+        378,
+        428
+      ],
+      "id": 1001,
+      "opaque_pixel_count": 38120,
+      "edge_pixel_count": 968,
+      "name": "무기"
+    },
+    {
+      "bbox": [
+        495,
+        84,
+        946,
+        462
+      ],
+      "id": 1002,
+      "opaque_pixel_count": 114837,
+      "edge_pixel_count": 1545,
+      "name": "머리"
+    },
+    {
+      "bbox": [
+        578,
+        562,
+        872,
+        907
+      ],
+      "id": 1003,
+      "opaque_pixel_count": 80051,
+      "edge_pixel_count": 1074,
+      "name": "몸통"
+    },
+    {
+      "bbox": [
+        84,
+        907,
+        198,
+        1193
+      ],
+      "id": 1004,
+      "opaque_pixel_count": 19170,
+      "edge_pixel_count": 754,
+      "name": "팔1"
+    },
+    {
+      "bbox": [
+        335,
+        986,
+        449,
+        1253
+      ],
+      "id": 1005,
+      "opaque_pixel_count": 17587,
+      "edge_pixel_count": 796,
+      "name": "팔2"
+    },
+    {
+      "bbox": [
+        569,
+        1069,
+        743,
+        1322
+      ],
+      "id": 1006,
+      "opaque_pixel_count": 22296,
+      "edge_pixel_count": 832,
+      "name": "다리1"
+    },
+    {
+      "bbox": [
+        858,
+        1070,
+        1033,
+        1322
+      ],
+      "id": 1007,
+      "opaque_pixel_count": 22257,
+      "edge_pixel_count": 801,
+      "name": "다리2"
+    }
+  ]
+}

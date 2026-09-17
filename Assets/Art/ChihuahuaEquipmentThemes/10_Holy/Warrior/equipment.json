@@ -1,0 +1,10 @@
+{
+  "id": "10_Holy/Warrior",
+  "title": "신성한 전사",
+  "grade": "신성한",
+  "job": "전사",
+  "original": "rigging_original.png",
+  "psb": "rigging_layers.psb",
+  "scope": "rigging_artwork",
+  "complete": true
+}

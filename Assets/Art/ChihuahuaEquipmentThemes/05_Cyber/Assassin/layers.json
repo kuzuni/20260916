@@ -10,13 +10,10 @@
     "팔1",
     "팔2",
     "다리1",
-    "다리2",
-    "배경"
+    "다리2"
   ],
   "source_sha256": "94892cfc96e4e9441397547ac6eaca8f89ea90b70bf50876291637d61075e349",
-  "psb_sha256": "59c866822efeb1c7bed29588deda4c15f60a35cdaeb6277d3c18900e25e05713",
-  "background_visible": false,
-  "source_reconstruction_max_channel_difference": 0,
+  "psb_sha256": "cad7cc45bfe045da12f1234df7c666e10451e4ae323f7915389e38cca576de39",
   "parts": [
     {
       "name": "무기",
@@ -110,5 +107,14 @@
   },
   "title": "사이버 암살자",
   "grade": "사이버",
-  "class": "암살자"
+  "class": "암살자",
+  "background_layer_included": false,
+  "repair": {
+    "compression": "RLE",
+    "visible_layer_count": 7,
+    "recovered_layer_rgba_max_channel_difference": 0,
+    "pre_repair_source_reconstruction_max_channel_difference": 0,
+    "independently_decoded": true,
+    "unity_import_verified": false
+  }
 }

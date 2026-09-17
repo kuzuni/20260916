@@ -1,0 +1,17 @@
+{
+  "id": "10_Holy/Assassin",
+  "grade_id": "10_Holy",
+  "grade": "신성한",
+  "class_id": "Assassin",
+  "job": "암살자",
+  "title": "신성한 암살자",
+  "prompt": "CLASS: HOLY ASSASSIN. Close fitting pearl-white assassin cowl wrapping ONLY the head between existing ears, thin white-gold brow line with a small violet sacred lozenge, full original face visible, no fabric tails. Torso is a compact sleeveless pearl-white leather cuirass, fine white-gold diagonal seams wholly inside reference trunk silhouette and a tiny inset amethyst seal at sternum. White-gold fitted gloves with violet cuffs and close fitting pearl boots with tiny amethyst accents, all golden connector shafts unchanged. Weapon is one slim pointed sacred stiletto dagger, polished pale silver blade, small white-gold geometric guard and violet gem on pommel, diagonal matching reference club length. Three colors pearl white, white gold, pale amethyst purple. No hood collar projecting out of torso, no cloak, no cloth hanging off back.",
+  "restrictions": [
+    "no sleeves",
+    "no shoulder extensions",
+    "no back ornaments",
+    "no wings",
+    "no cape"
+  ],
+  "provenance": "Artifacts/HolyTheme-20260918/generation-provenance.json"
+}

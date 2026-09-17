@@ -1,0 +1,10 @@
+{
+  "id": "10_Holy/Assassin",
+  "title": "신성한 암살자",
+  "grade": "신성한",
+  "job": "암살자",
+  "original": "rigging_original.png",
+  "psb": "rigging_layers.psb",
+  "scope": "rigging_artwork",
+  "complete": true
+}

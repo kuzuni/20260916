@@ -1,0 +1,17 @@
+{
+  "id": "10_Holy/Warrior",
+  "grade_id": "10_Holy",
+  "grade": "신성한",
+  "class_id": "Warrior",
+  "job": "전사",
+  "title": "신성한 전사",
+  "prompt": "CLASS: HOLY WARRIOR. Compact ivory-gold open-face paladin headband/helmet hugging the skull between existing ears, low inset sapphire sun crest, full original face visible, no top ornament beyond ears. Torso is a pearl ivory sleeveless cuirass with smooth rounded trunk silhouette, narrow gold borders, one flat engraved sun medallion with small blue sapphire, no shoulder armor whatsoever. Compact ivory-gold gauntlets and ivory-gold armored shoes with small blue gems, original golden connector shafts exposed. Weapon is one short straight holy sword, broad pearl silver blade, compact gold guard and sapphire pommel, diagonal matching reference club length. Three colors ivory, warm pale gold, sapphire blue. No shield, no cape.",
+  "restrictions": [
+    "no sleeves",
+    "no shoulder extensions",
+    "no back ornaments",
+    "no wings",
+    "no cape"
+  ],
+  "provenance": "Artifacts/HolyTheme-20260918/generation-provenance.json"
+}

@@ -10,13 +10,10 @@
     "팔1",
     "팔2",
     "다리1",
-    "다리2",
-    "배경"
+    "다리2"
   ],
   "source_sha256": "68972e32be3c4240a8d775811cc8b44cd05188f1f73ec29aba3af310b805d7d9",
-  "psb_sha256": "592bcc004081f75b0574ac60fa501ca6dbb148cd7a2ee470594eee526a91b459",
-  "background_visible": false,
-  "source_reconstruction_max_channel_difference": 0,
+  "psb_sha256": "c9501473a7fb44af2b2405516fd12b0f36f197527b90f2ab26e87dadb1278eb1",
   "parts": [
     {
       "name": "무기",
@@ -110,5 +107,14 @@
   },
   "title": "우주 암살자",
   "grade": "우주",
-  "class": "암살자"
+  "class": "암살자",
+  "background_layer_included": false,
+  "repair": {
+    "compression": "RLE",
+    "visible_layer_count": 7,
+    "recovered_layer_rgba_max_channel_difference": 0,
+    "pre_repair_source_reconstruction_max_channel_difference": 0,
+    "independently_decoded": true,
+    "unity_import_verified": false
+  }
 }

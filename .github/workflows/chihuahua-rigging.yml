@@ -1,0 +1,47 @@
+name: Chihuahua reference bones and auto geometry
+on:
+  push:
+    branches: [codex/chihuahua-bones-autogeometry]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: chihuahua-rigging
+  cancel-in-progress: false
+jobs:
+  rig:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare isolated artwork project
+        run: |
+          python3 tools/cloud/prepare_rig_project.py
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL
+      - name: Unity 6000.3.8f1 bone transfer and Auto Geometry
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          unityVersion: 6000.3.8f1
+          targetPlatform: StandaloneLinux64
+          projectPath: RiggingProject
+          buildMethod: ChihuahuaRigBatch.Run
+          customParameters: -moonlitCloudRig
+          manualExit: true
+          enableGpu: true
+          versioning: Custom
+          version: 0.1.0
+      - name: Preserve generated metadata and verification
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: chihuahua-rigging-output
+          path: |
+            RiggingProject/RiggingOutput
+            RiggingProject/Logs
+            RiggingOutput
+          if-no-files-found: error
+          retention-days: 7
