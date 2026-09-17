@@ -1,0 +1,14 @@
+{
+  "id": "05_Cyber/Thief",
+  "grade_id": "05_Cyber",
+  "grade": "사이버",
+  "class_id": "Thief",
+  "job": "도적",
+  "title": "사이버 도적",
+  "era": "cyberpunk: dark metal, visible circuit panels and small crisp neon strips, no bloom clouds or floating effects",
+  "palette": "black and electric cyan",
+  "hat": "black hacker headband with angular cyan panel above the eyes",
+  "armor": "black lightweight hacker vest with cyan circuit strips and compact lock module",
+  "weapon": "curved cyber blade with cyan edge and black circuit grip",
+  "jewel": "black circuit key and cyan chip"
+}

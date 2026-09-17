@@ -1,0 +1,114 @@
+{
+  "canvas": [
+    1155,
+    1362
+  ],
+  "layers_top_to_bottom": [
+    "무기",
+    "머리",
+    "몸통",
+    "팔1",
+    "팔2",
+    "다리1",
+    "다리2",
+    "배경"
+  ],
+  "source_sha256": "40360183a10aa40a924b30989cd24548d856370ad3fb50cb7a0d7a2cca750bb1",
+  "psb_sha256": "26f77d8f9202618a9e1efc41cdb4cd365c250f6e1a62298377620d3fc328e1e6",
+  "background_visible": false,
+  "source_reconstruction_max_channel_difference": 0,
+  "parts": [
+    {
+      "name": "무기",
+      "key": "Weapon",
+      "id": 1001,
+      "bbox": [
+        83,
+        86,
+        377,
+        426
+      ]
+    },
+    {
+      "name": "머리",
+      "key": "Head",
+      "id": 1002,
+      "bbox": [
+        493,
+        84,
+        948,
+        464
+      ]
+    },
+    {
+      "name": "몸통",
+      "key": "Body",
+      "id": 1003,
+      "bbox": [
+        564,
+        554,
+        900,
+        930
+      ]
+    },
+    {
+      "name": "팔1",
+      "key": "Arm1",
+      "id": 1004,
+      "bbox": [
+        77,
+        903,
+        200,
+        1196
+      ]
+    },
+    {
+      "name": "팔2",
+      "key": "Arm2",
+      "id": 1005,
+      "bbox": [
+        330,
+        982,
+        452,
+        1255
+      ]
+    },
+    {
+      "name": "다리1",
+      "key": "Leg1",
+      "id": 1006,
+      "bbox": [
+        567,
+        1065,
+        757,
+        1323
+      ]
+    },
+    {
+      "name": "다리2",
+      "key": "Leg2",
+      "id": 1007,
+      "bbox": [
+        857,
+        1066,
+        1047,
+        1323
+      ]
+    }
+  ],
+  "weapon_normalization": {
+    "axis": [
+      0.5813315663054309,
+      0.8136667684112916
+    ],
+    "reference_length_px": 407.3316167606306,
+    "generated_length_px": 519.9755112643223,
+    "final_length_px": 407.0992815585247,
+    "length_error_px": 0.23233520210590086,
+    "width_scale": 1,
+    "generated_sha256": "7be6744779cd47416e283ff9b56975cea495ffbe1f8282e62cdebc609dd03eb4"
+  },
+  "title": "무한 도적",
+  "grade": "무한",
+  "class": "도적"
+}

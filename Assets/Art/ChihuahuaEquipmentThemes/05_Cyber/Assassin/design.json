@@ -1,0 +1,14 @@
+{
+  "id": "05_Cyber/Assassin",
+  "grade_id": "05_Cyber",
+  "grade": "사이버",
+  "class_id": "Assassin",
+  "job": "암살자",
+  "title": "사이버 암살자",
+  "era": "cyberpunk: dark metal, visible circuit panels and small crisp neon strips, no bloom clouds or floating effects",
+  "palette": "black and neon magenta",
+  "hat": "black angular stealth hood with short magenta circuit lines, face unobstructed",
+  "armor": "slim black cyber stealth armor with magenta crossed channels and silver clasp",
+  "weapon": "narrow black cyber dagger with magenta cutting edge",
+  "jewel": "black crescent and magenta circuit gem"
+}

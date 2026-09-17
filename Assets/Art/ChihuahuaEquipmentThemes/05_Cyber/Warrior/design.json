@@ -1,0 +1,14 @@
+{
+  "id": "05_Cyber/Warrior",
+  "grade_id": "05_Cyber",
+  "grade": "사이버",
+  "class_id": "Warrior",
+  "job": "전사",
+  "title": "사이버 전사",
+  "era": "cyberpunk: dark metal, visible circuit panels and small crisp neon strips, no bloom clouds or floating effects",
+  "palette": "gunmetal and electric red",
+  "hat": "open-face angular gunmetal cyber helmet with red visor panel above the brow",
+  "armor": "heavy gunmetal cyber breastplate with bold red channels and a central power cell",
+  "weapon": "broad cyber energy axe with crisp red blade edge and gunmetal handle",
+  "jewel": "gunmetal shield and red power core"
+}

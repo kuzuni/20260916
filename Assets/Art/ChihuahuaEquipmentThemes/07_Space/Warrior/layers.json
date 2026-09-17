@@ -1,0 +1,114 @@
+{
+  "canvas": [
+    1155,
+    1362
+  ],
+  "layers_top_to_bottom": [
+    "무기",
+    "머리",
+    "몸통",
+    "팔1",
+    "팔2",
+    "다리1",
+    "다리2",
+    "배경"
+  ],
+  "source_sha256": "a8bf3d8124b8a3b3e34f1f72fc5bdc41fae881a4ac5679bd3b2d844e5e990d47",
+  "psb_sha256": "88cb3161d66cdcaf1b33d82e6b95dd764cea96d1d4a13cf8ba2f12d314e6a9c5",
+  "background_visible": false,
+  "source_reconstruction_max_channel_difference": 0,
+  "parts": [
+    {
+      "name": "무기",
+      "key": "Weapon",
+      "id": 1001,
+      "bbox": [
+        77,
+        121,
+        378,
+        429
+      ]
+    },
+    {
+      "name": "머리",
+      "key": "Head",
+      "id": 1002,
+      "bbox": [
+        492,
+        84,
+        951,
+        464
+      ]
+    },
+    {
+      "name": "몸통",
+      "key": "Body",
+      "id": 1003,
+      "bbox": [
+        549,
+        555,
+        898,
+        925
+      ]
+    },
+    {
+      "name": "팔1",
+      "key": "Arm1",
+      "id": 1004,
+      "bbox": [
+        75,
+        902,
+        202,
+        1196
+      ]
+    },
+    {
+      "name": "팔2",
+      "key": "Arm2",
+      "id": 1005,
+      "bbox": [
+        328,
+        983,
+        452,
+        1255
+      ]
+    },
+    {
+      "name": "다리1",
+      "key": "Leg1",
+      "id": 1006,
+      "bbox": [
+        562,
+        1066,
+        746,
+        1322
+      ]
+    },
+    {
+      "name": "다리2",
+      "key": "Leg2",
+      "id": 1007,
+      "bbox": [
+        855,
+        1066,
+        1037,
+        1322
+      ]
+    }
+  ],
+  "weapon_normalization": {
+    "axis": [
+      0.5813315663054309,
+      0.8136667684112916
+    ],
+    "reference_length_px": 407.3316167606306,
+    "generated_length_px": 492.19911558665245,
+    "final_length_px": 407.33852661520143,
+    "length_error_px": 0.006909854570835705,
+    "width_scale": 1,
+    "generated_sha256": "f3ed3a8f7ffa4f75490be1a9a431c47f01e9cd677b18088eef061c9c2bb18fae"
+  },
+  "title": "우주 전사",
+  "grade": "우주",
+  "class": "전사"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "01_Primitive/Warrior",
+  "grade_id": "01_Primitive",
+  "grade": "원시",
+  "class_id": "Warrior",
+  "job": "전사",
+  "title": "원시 전사",
+  "era": "prehistoric stone, rawhide, bone and vine; handmade and rough, no metal or machines",
+  "palette": "ochre brown and ivory",
+  "hat": "open-face primitive bone helmet with a short boar-bone crest between the ears",
+  "armor": "thick ochre hide cuirass with overlapping ivory bone plates and rawhide belt",
+  "weapon": "single broad stone axe tied to a wooden handle with rawhide",
+  "jewel": "ivory bone shield and amber pebble"
+}

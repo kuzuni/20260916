@@ -1,0 +1,14 @@
+{
+  "id": "02_Medieval/Thief",
+  "grade_id": "02_Medieval",
+  "grade": "중세",
+  "class_id": "Thief",
+  "job": "도적",
+  "title": "중세 도적",
+  "era": "medieval fantasy leather, iron, steel and simple gemstones; no modern technology",
+  "palette": "forest green and brass",
+  "hat": "soft forest-green open-face thief hood with brass leaf pin",
+  "armor": "green leather jerkin with brown cross strap, brass buckle and coin pouch",
+  "weapon": "curved steel cutlass with brass guard and green leather grip",
+  "jewel": "brass key and green emerald"
+}

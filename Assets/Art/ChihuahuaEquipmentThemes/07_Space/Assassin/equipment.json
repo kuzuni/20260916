@@ -1,0 +1,17 @@
+{
+  "id": "07_Space/Assassin",
+  "title": "우주 암살자",
+  "grade": "우주",
+  "job": "암살자",
+  "original": "rigging_original.png",
+  "psb": "rigging_layers.psb",
+  "thumbnails": {
+    "hat": "Thumbnails/hat.png",
+    "armor": "Thumbnails/armor.png",
+    "ring": "Thumbnails/ring.png",
+    "necklace": "Thumbnails/necklace.png",
+    "earring": "Thumbnails/earring.png",
+    "weapon": "Thumbnails/weapon.png"
+  },
+  "complete": true
+}

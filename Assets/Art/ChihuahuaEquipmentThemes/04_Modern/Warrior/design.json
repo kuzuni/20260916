@@ -1,0 +1,14 @@
+{
+  "id": "04_Modern/Warrior",
+  "grade_id": "04_Modern",
+  "grade": "현대",
+  "class_id": "Warrior",
+  "job": "전사",
+  "title": "현대 전사",
+  "era": "present-day urban and tactical equipment, practical synthetic cloth, matte steel and rubber; no sci-fi glow",
+  "palette": "olive drab and gunmetal",
+  "hat": "open-face olive ballistic helmet with a small red insignia patch",
+  "armor": "olive tactical plate carrier with gunmetal chest plate and red shield patch",
+  "weapon": "heavy tactical breaching axe with matte black handle and red grip accent",
+  "jewel": "gunmetal shield and red enamel"
+}

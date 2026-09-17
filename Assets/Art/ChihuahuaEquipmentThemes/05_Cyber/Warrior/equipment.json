@@ -1,0 +1,17 @@
+{
+  "id": "05_Cyber/Warrior",
+  "title": "사이버 전사",
+  "grade": "사이버",
+  "job": "전사",
+  "original": "rigging_original.png",
+  "psb": "rigging_layers.psb",
+  "thumbnails": {
+    "hat": "Thumbnails/hat.png",
+    "armor": "Thumbnails/armor.png",
+    "ring": "Thumbnails/ring.png",
+    "necklace": "Thumbnails/necklace.png",
+    "earring": "Thumbnails/earring.png",
+    "weapon": "Thumbnails/weapon.png"
+  },
+  "complete": true
+}

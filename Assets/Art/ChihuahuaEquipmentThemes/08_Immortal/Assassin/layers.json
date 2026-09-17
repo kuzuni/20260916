@@ -1,0 +1,114 @@
+{
+  "canvas": [
+    1155,
+    1362
+  ],
+  "layers_top_to_bottom": [
+    "무기",
+    "머리",
+    "몸통",
+    "팔1",
+    "팔2",
+    "다리1",
+    "다리2",
+    "배경"
+  ],
+  "source_sha256": "66172154c1c8fe0debb7a8d26f4f876037f8eb5609b28165457b7331203110ce",
+  "psb_sha256": "30fb389e9c18fffeb89e9b2cefebb32965e3d0f6cf0503918c621734c2a1ffbf",
+  "background_visible": false,
+  "source_reconstruction_max_channel_difference": 0,
+  "parts": [
+    {
+      "name": "무기",
+      "key": "Weapon",
+      "id": 1001,
+      "bbox": [
+        112,
+        94,
+        383,
+        432
+      ]
+    },
+    {
+      "name": "머리",
+      "key": "Head",
+      "id": 1002,
+      "bbox": [
+        493,
+        83,
+        948,
+        481
+      ]
+    },
+    {
+      "name": "몸통",
+      "key": "Body",
+      "id": 1003,
+      "bbox": [
+        561,
+        553,
+        885,
+        950
+      ]
+    },
+    {
+      "name": "팔1",
+      "key": "Arm1",
+      "id": 1004,
+      "bbox": [
+        81,
+        903,
+        205,
+        1196
+      ]
+    },
+    {
+      "name": "팔2",
+      "key": "Arm2",
+      "id": 1005,
+      "bbox": [
+        332,
+        982,
+        450,
+        1254
+      ]
+    },
+    {
+      "name": "다리1",
+      "key": "Leg1",
+      "id": 1006,
+      "bbox": [
+        566,
+        1066,
+        744,
+        1323
+      ]
+    },
+    {
+      "name": "다리2",
+      "key": "Leg2",
+      "id": 1007,
+      "bbox": [
+        857,
+        1066,
+        1036,
+        1323
+      ]
+    }
+  ],
+  "weapon_normalization": {
+    "axis": [
+      0.5813315663054309,
+      0.8136667684112916
+    ],
+    "reference_length_px": 407.3316167606306,
+    "generated_length_px": 472.43186808810475,
+    "final_length_px": 407.4492650448058,
+    "length_error_px": 0.11764828417523177,
+    "width_scale": 1,
+    "generated_sha256": "63790adb43640a8a3a08d0fc1802e15bf69be3d27cdf741012a8849e5279f3be"
+  },
+  "title": "불멸 암살자",
+  "grade": "불멸",
+  "class": "암살자"
+}

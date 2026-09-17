@@ -1,0 +1,114 @@
+{
+  "canvas": [
+    1155,
+    1362
+  ],
+  "layers_top_to_bottom": [
+    "무기",
+    "머리",
+    "몸통",
+    "팔1",
+    "팔2",
+    "다리1",
+    "다리2",
+    "배경"
+  ],
+  "source_sha256": "2d551d04d35f05995fcf2fed1e2442bd9b61cb2fd9a343e4cd601f800cfaf168",
+  "psb_sha256": "32076ace704a75b5d7ca1156cd79ae019dee06cc056dfb5f7219d64f295f842d",
+  "background_visible": false,
+  "source_reconstruction_max_channel_difference": 0,
+  "parts": [
+    {
+      "name": "무기",
+      "key": "Weapon",
+      "id": 1001,
+      "bbox": [
+        105,
+        76,
+        379,
+        430
+      ]
+    },
+    {
+      "name": "머리",
+      "key": "Head",
+      "id": 1002,
+      "bbox": [
+        494,
+        83,
+        948,
+        464
+      ]
+    },
+    {
+      "name": "몸통",
+      "key": "Body",
+      "id": 1003,
+      "bbox": [
+        562,
+        557,
+        884,
+        913
+      ]
+    },
+    {
+      "name": "팔1",
+      "key": "Arm1",
+      "id": 1004,
+      "bbox": [
+        79,
+        904,
+        204,
+        1194
+      ]
+    },
+    {
+      "name": "팔2",
+      "key": "Arm2",
+      "id": 1005,
+      "bbox": [
+        330,
+        984,
+        454,
+        1256
+      ]
+    },
+    {
+      "name": "다리1",
+      "key": "Leg1",
+      "id": 1006,
+      "bbox": [
+        560,
+        1066,
+        748,
+        1324
+      ]
+    },
+    {
+      "name": "다리2",
+      "key": "Leg2",
+      "id": 1007,
+      "bbox": [
+        853,
+        1067,
+        1041,
+        1323
+      ]
+    }
+  ],
+  "weapon_normalization": {
+    "axis": [
+      0.5813315663054309,
+      0.8136667684112916
+    ],
+    "reference_length_px": 407.3316167606306,
+    "generated_length_px": 429.5329547098412,
+    "final_length_px": 407.3296425164674,
+    "length_error_px": 0.0019742441631933616,
+    "width_scale": 1,
+    "generated_sha256": "8ddc600d22cb49cd5f349493276b9a28f13a1d28511d1b207ef84857c7c76e6d"
+  },
+  "title": "사이버 도적",
+  "grade": "사이버",
+  "class": "도적"
+}

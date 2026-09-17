@@ -1,0 +1,17 @@
+{
+  "id": "05_Cyber/Thief",
+  "title": "사이버 도적",
+  "grade": "사이버",
+  "job": "도적",
+  "original": "rigging_original.png",
+  "psb": "rigging_layers.psb",
+  "thumbnails": {
+    "hat": "Thumbnails/hat.png",
+    "armor": "Thumbnails/armor.png",
+    "ring": "Thumbnails/ring.png",
+    "necklace": "Thumbnails/necklace.png",
+    "earring": "Thumbnails/earring.png",
+    "weapon": "Thumbnails/weapon.png"
+  },
+  "complete": true
+}

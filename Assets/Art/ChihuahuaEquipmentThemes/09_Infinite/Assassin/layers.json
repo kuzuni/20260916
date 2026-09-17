@@ -1,0 +1,114 @@
+{
+  "canvas": [
+    1155,
+    1362
+  ],
+  "layers_top_to_bottom": [
+    "무기",
+    "머리",
+    "몸통",
+    "팔1",
+    "팔2",
+    "다리1",
+    "다리2",
+    "배경"
+  ],
+  "source_sha256": "11b5427f944b47a8b9de50d1fca07bf28af2f0ccec2fae0e64706246b65ba5b4",
+  "psb_sha256": "fe33e1fb2d36bc660c5aaaf17c9a285c3b8d78725df778e1645fbf88b11ff84e",
+  "background_visible": false,
+  "source_reconstruction_max_channel_difference": 0,
+  "parts": [
+    {
+      "name": "무기",
+      "key": "Weapon",
+      "id": 1001,
+      "bbox": [
+        110,
+        96,
+        376,
+        426
+      ]
+    },
+    {
+      "name": "머리",
+      "key": "Head",
+      "id": 1002,
+      "bbox": [
+        492,
+        83,
+        946,
+        484
+      ]
+    },
+    {
+      "name": "몸통",
+      "key": "Body",
+      "id": 1003,
+      "bbox": [
+        568,
+        557,
+        884,
+        915
+      ]
+    },
+    {
+      "name": "팔1",
+      "key": "Arm1",
+      "id": 1004,
+      "bbox": [
+        76,
+        904,
+        201,
+        1196
+      ]
+    },
+    {
+      "name": "팔2",
+      "key": "Arm2",
+      "id": 1005,
+      "bbox": [
+        328,
+        983,
+        449,
+        1257
+      ]
+    },
+    {
+      "name": "다리1",
+      "key": "Leg1",
+      "id": 1006,
+      "bbox": [
+        563,
+        1067,
+        746,
+        1322
+      ]
+    },
+    {
+      "name": "다리2",
+      "key": "Leg2",
+      "id": 1007,
+      "bbox": [
+        854,
+        1068,
+        1037,
+        1323
+      ]
+    }
+  ],
+  "weapon_normalization": {
+    "axis": [
+      0.5813315663054309,
+      0.8136667684112916
+    ],
+    "reference_length_px": 407.3316167606306,
+    "generated_length_px": 488.0091849720945,
+    "final_length_px": 407.5659262068996,
+    "length_error_px": 0.23430944626898054,
+    "width_scale": 1,
+    "generated_sha256": "643e6c877a86b64653063e015992a9a54b5ca2d18b8fa9e5694b50c9665b9dcc"
+  },
+  "title": "무한 암살자",
+  "grade": "무한",
+  "class": "암살자"
+}

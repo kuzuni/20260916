@@ -1,0 +1,17 @@
+{
+  "id": "09_Infinite/Warrior",
+  "title": "무한 전사",
+  "grade": "무한",
+  "job": "전사",
+  "original": "rigging_original.png",
+  "psb": "rigging_layers.psb",
+  "thumbnails": {
+    "hat": "Thumbnails/hat.png",
+    "armor": "Thumbnails/armor.png",
+    "ring": "Thumbnails/ring.png",
+    "necklace": "Thumbnails/necklace.png",
+    "earring": "Thumbnails/earring.png",
+    "weapon": "Thumbnails/weapon.png"
+  },
+  "complete": true
+}

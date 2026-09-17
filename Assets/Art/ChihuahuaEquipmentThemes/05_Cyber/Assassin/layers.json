@@ -1,0 +1,114 @@
+{
+  "canvas": [
+    1155,
+    1362
+  ],
+  "layers_top_to_bottom": [
+    "무기",
+    "머리",
+    "몸통",
+    "팔1",
+    "팔2",
+    "다리1",
+    "다리2",
+    "배경"
+  ],
+  "source_sha256": "94892cfc96e4e9441397547ac6eaca8f89ea90b70bf50876291637d61075e349",
+  "psb_sha256": "59c866822efeb1c7bed29588deda4c15f60a35cdaeb6277d3c18900e25e05713",
+  "background_visible": false,
+  "source_reconstruction_max_channel_difference": 0,
+  "parts": [
+    {
+      "name": "무기",
+      "key": "Weapon",
+      "id": 1001,
+      "bbox": [
+        116,
+        93,
+        381,
+        431
+      ]
+    },
+    {
+      "name": "머리",
+      "key": "Head",
+      "id": 1002,
+      "bbox": [
+        493,
+        83,
+        947,
+        489
+      ]
+    },
+    {
+      "name": "몸통",
+      "key": "Body",
+      "id": 1003,
+      "bbox": [
+        561,
+        552,
+        889,
+        923
+      ]
+    },
+    {
+      "name": "팔1",
+      "key": "Arm1",
+      "id": 1004,
+      "bbox": [
+        80,
+        903,
+        204,
+        1197
+      ]
+    },
+    {
+      "name": "팔2",
+      "key": "Arm2",
+      "id": 1005,
+      "bbox": [
+        332,
+        982,
+        451,
+        1257
+      ]
+    },
+    {
+      "name": "다리1",
+      "key": "Leg1",
+      "id": 1006,
+      "bbox": [
+        564,
+        1067,
+        749,
+        1325
+      ]
+    },
+    {
+      "name": "다리2",
+      "key": "Leg2",
+      "id": 1007,
+      "bbox": [
+        855,
+        1067,
+        1040,
+        1325
+      ]
+    }
+  ],
+  "weapon_normalization": {
+    "axis": [
+      0.5813315663054309,
+      0.8136667684112916
+    ],
+    "reference_length_px": 407.3316167606306,
+    "generated_length_px": 452.90189140207065,
+    "final_length_px": 406.8679334785004,
+    "length_error_px": 0.46368328213020504,
+    "width_scale": 1,
+    "generated_sha256": "922d5f9cde19c0117597ac668369c053e95ec237a610a1e20af32887e3b65c4f"
+  },
+  "title": "사이버 암살자",
+  "grade": "사이버",
+  "class": "암살자"
+}

@@ -1,0 +1,17 @@
+{
+  "id": "04_Modern/Assassin",
+  "title": "현대 암살자",
+  "grade": "현대",
+  "job": "암살자",
+  "original": "rigging_original.png",
+  "psb": "rigging_layers.psb",
+  "thumbnails": {
+    "hat": "Thumbnails/hat.png",
+    "armor": "Thumbnails/armor.png",
+    "ring": "Thumbnails/ring.png",
+    "necklace": "Thumbnails/necklace.png",
+    "earring": "Thumbnails/earring.png",
+    "weapon": "Thumbnails/weapon.png"
+  },
+  "complete": true
+}

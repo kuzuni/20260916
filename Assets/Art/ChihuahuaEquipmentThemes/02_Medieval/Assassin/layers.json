@@ -1,0 +1,114 @@
+{
+  "canvas": [
+    1155,
+    1362
+  ],
+  "layers_top_to_bottom": [
+    "무기",
+    "머리",
+    "몸통",
+    "팔1",
+    "팔2",
+    "다리1",
+    "다리2",
+    "배경"
+  ],
+  "source_sha256": "c40e64308035c07f9ff3b07044d307b477b0da057ed46fedf243be6c814fdf93",
+  "psb_sha256": "2745499542c980df367cf0d0d03f2072c8491643a3db895095acb5bb80cd5359",
+  "background_visible": false,
+  "source_reconstruction_max_channel_difference": 0,
+  "parts": [
+    {
+      "name": "무기",
+      "key": "Weapon",
+      "id": 1001,
+      "bbox": [
+        106,
+        95,
+        376,
+        427
+      ]
+    },
+    {
+      "name": "머리",
+      "key": "Head",
+      "id": 1002,
+      "bbox": [
+        494,
+        83,
+        964,
+        489
+      ]
+    },
+    {
+      "name": "몸통",
+      "key": "Body",
+      "id": 1003,
+      "bbox": [
+        568,
+        549,
+        884,
+        923
+      ]
+    },
+    {
+      "name": "팔1",
+      "key": "Arm1",
+      "id": 1004,
+      "bbox": [
+        79,
+        904,
+        204,
+        1194
+      ]
+    },
+    {
+      "name": "팔2",
+      "key": "Arm2",
+      "id": 1005,
+      "bbox": [
+        335,
+        984,
+        455,
+        1254
+      ]
+    },
+    {
+      "name": "다리1",
+      "key": "Leg1",
+      "id": 1006,
+      "bbox": [
+        565,
+        1066,
+        747,
+        1321
+      ]
+    },
+    {
+      "name": "다리2",
+      "key": "Leg2",
+      "id": 1007,
+      "bbox": [
+        855,
+        1067,
+        1038,
+        1321
+      ]
+    }
+  ],
+  "weapon_normalization": {
+    "axis": [
+      0.5813315663054309,
+      0.8136667684112916
+    ],
+    "reference_length_px": 407.3316167606306,
+    "generated_length_px": 463.0158761092872,
+    "final_length_px": 407.2169298427,
+    "length_error_px": 0.11468691793061225,
+    "width_scale": 1,
+    "generated_sha256": "bcf2b1f27016146c7eff29def479ef929d6825716510d216853e47e8114987d5"
+  },
+  "title": "중세 암살자",
+  "grade": "중세",
+  "class": "암살자"
+}
