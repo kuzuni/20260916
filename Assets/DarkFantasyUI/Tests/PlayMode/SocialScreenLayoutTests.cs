@@ -154,18 +154,18 @@ namespace Moonlit.UI.Tests
                 yield return null; Canvas.ForceUpdateCanvases();
                 foreach (var art in shop.GetComponentsInChildren<Image>().Where(i=>i.name=="Ruby artwork"))
                 {
-                    var mesh=new Mesh();
-                    try
-                    {
-                        art.canvasRenderer.GetMesh(mesh);
-                        Assert.Greater(mesh.vertexCount,0,"The scrolled offer must actually render");
-                        mesh.RecalculateBounds();
-                        var card=art.transform.parent.GetComponent<RectTransform>();
-                        var center=card.InverseTransformPoint(art.transform.TransformPoint(mesh.bounds.center));
-                        Assert.That(center.x,Is.EqualTo(card.rect.center.x).Within(1),"Product drawing must be centered, including narrow gem bags");
-                        Assert.That(mesh.bounds.center.y,Is.EqualTo(art.rectTransform.rect.center.y).Within(1));
-                    }
-                    finally { Object.DestroyImmediate(mesh); }
+                    // Unity 6 returns the renderer-owned mesh; inspect a vertex copy without
+                    // recalculating or destroying the live mesh used by the canvas.
+                    var mesh=art.canvasRenderer.GetMesh();
+                    Assert.IsNotNull(mesh,"The scrolled offer must have a rendered mesh");
+                    var vertices=mesh.vertices;
+                    Assert.Greater(vertices.Length,0,"The scrolled offer must actually render");
+                    var bounds=new Bounds(vertices[0],Vector3.zero);
+                    foreach(var vertex in vertices) bounds.Encapsulate(vertex);
+                    var card=art.transform.parent.GetComponent<RectTransform>();
+                    var center=card.InverseTransformPoint(art.transform.TransformPoint(bounds.center));
+                    Assert.That(center.x,Is.EqualTo(card.rect.center.x).Within(1),"Product drawing must be centered, including narrow gem bags");
+                    Assert.That(bounds.center.y,Is.EqualTo(art.rectTransform.rect.center.y).Within(1));
                 }
                 host.CloseTop(); yield return null;
             }
