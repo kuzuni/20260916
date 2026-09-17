@@ -67,7 +67,7 @@ Additional child dialogs (each opens above the existing profile/settings modal, 
 
 ## Visual acceptance
 
-Main battle background override (2026-09-17): use the forest and horizontal dirt road in ArtReferences/MainBattleForest.png for the battle viewport only. HUD, forge, navigation, popup backgrounds and latest functional pass/offline icons remain unchanged. This is an environment revision, not a 31st screen.
+Main battle background override (2026-09-18, supersedes the forest request): use the empty gothic stone crypt environment from ArtReferences/MainBattleCrypt.jpg for the battle viewport only. No displayed player, pet, monster or health bar; remove the former cyan particle overlay. HUD, forge, navigation, popup backgrounds and latest functional pass/offline icons remain unchanged. This is an environment revision, not a 31st screen. Generated asset and exact prompt: EmptyCryptBattle-v1-prompt.md.
 
 Preserve dark stone, thin ornate gold/bronze frames, silver-trim blue buttons, crimson circular close buttons, illustrated icons, readable Korean type and original layout proportions. No generic plain-list replacement for these detailed references. Existing generated main-screen art is the shared baseline. Gold is the crown coin, ruby is the elongated red diamond. No added frame around timed event buttons. Anvil remains a separate foreground button.
 
