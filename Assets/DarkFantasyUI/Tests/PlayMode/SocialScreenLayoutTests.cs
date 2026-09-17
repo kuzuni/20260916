@@ -188,6 +188,10 @@ namespace Moonlit.UI.Tests
                 Assert.Less(gold.anchoredPosition.x+gold.rect.width,title.anchoredPosition.x);
                 Assert.Greater(ruby.anchoredPosition.x,title.anchoredPosition.x+title.rect.width);
                 var scroll = shop.GetComponentInChildren<ScrollRect>();
+                var viewport=scroll.viewport;
+                var titleBottom=shop.InverseTransformPoint(title.TransformPoint(new Vector3(0,title.rect.yMin,0))).y;
+                var contentTop=shop.InverseTransformPoint(viewport.TransformPoint(new Vector3(0,viewport.rect.yMax,0))).y;
+                Assert.GreaterOrEqual(titleBottom-contentTop,40,"Keep a visible gap below the fixed shop title, including while scrolling");
                 Assert.LessOrEqual(scroll.GetComponent<RectTransform>().rect.height, scroll.transform.parent.GetComponent<RectTransform>().rect.height - 330f);
                 CollectionAssert.AreEquivalent(new[] { "Gem offer 60", "Gem offer 220", "Gem offer 800", "Gem offer 1500", "Gem offer 3300" },
                     scroll.content.Cast<Transform>().Where(t => t.name.StartsWith("Gem offer ")).Select(t => t.name));
@@ -211,10 +215,17 @@ namespace Moonlit.UI.Tests
                     float coveredHeight=(rim.sprite.border.y+rim.sprite.border.w)/(rim.pixelsPerUnit*rim.pixelsPerUnitMultiplier);
                     Assert.Less(coveredHeight,card.rect.height*.15f);
                 }
-                foreach(int amount in new[]{60,220,800}) {
+                // Header breathing room can put the first prices below the initial viewport.
+                // All five purchase controls must remain fully reachable above navigation.
+                scroll.verticalNormalizedPosition=0;
+                yield return null; Canvas.ForceUpdateCanvases();
+                foreach(int amount in new[]{60,220,800,1500,3300}) {
                     var card=GameObject.Find("Gem offer "+amount).GetComponent<RectTransform>();
-                    Assert.LessOrEqual(-card.anchoredPosition.y+card.rect.height,scroll.viewport.rect.height,
-                        "The first three gem prices should fit at the initial scroll position even with cutouts");
+                    var price=card.GetComponentInChildren<Button>().GetComponent<RectTransform>();
+                    var corners=new Vector3[4]; price.GetWorldCorners(corners);
+                    foreach(var corner in corners)
+                        Assert.IsTrue(viewport.rect.Contains((Vector2)viewport.InverseTransformPoint(corner)),
+                            "Every gem price must be reachable inside the scrolled viewport");
                 }
                 Assert.AreEqual("가격 미설정", GameObject.Find("Gem offer 1500").GetComponentInChildren<Button>().name);
                 Assert.AreEqual("가격 미설정", GameObject.Find("Gem offer 3300").GetComponentInChildren<Button>().name);

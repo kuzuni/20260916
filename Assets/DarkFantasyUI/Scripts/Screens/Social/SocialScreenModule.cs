@@ -432,7 +432,8 @@ namespace Moonlit.UI
             Ui.Text("Shop title", title, 0, 0, 280, 88, "상점", 46, Font(c), Ui.Gold);
             PageWallet(c,root,"Gold wallet",54,44,0,c.Main ? (c.Main.gold/1000000f).ToString("0.00")+"m" : "1.59m");
             PageWallet(c,root,"Ruby wallet",w-324,44,1,c.Main ? c.Main.gems.ToString() : "21");
-            Scroll(c, root, 38, 120, w - 76, Mathf.Max(360, h - 120 - NavigationReserve), 1740, out var content);
+            const float shopContentTop = 180;
+            Scroll(c, root, 38, shopContentTop, w - 76, Mathf.Max(360, h - shopContentTop - NavigationReserve), 1740, out var content);
             var special = PopupSkin.Panel("Daily specials header", content, 18, 0, w - 112, 110);
             Ui.Text("Daily specials title", special.transform, 24, 12, w - 160, 76, "오늘의 특가", 42, Font(c), Ui.Gold);
             Ui.Text("Daily specials hint", content, 40, 116, w - 156, 52, "일일 특가 3개 모두 구매하면 새로운 3개가 나와요!", 25, Font(c), Ui.Ivory);

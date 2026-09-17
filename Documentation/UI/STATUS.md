@@ -1,3 +1,8 @@
+## 2026-09-17 — shop header spacing
+
+- User requested more space between the shop title and daily specials. The old title ends at y=122 while the scroll viewport starts at y=120, so the frames nearly touch/overlap. Move the viewport start to y=180 (58 logical units of separation) and shorten its height by the same 60 units, retaining the navigation reserve and readable card/type sizes.
+- Existing two-aspect Safe Area test now checks the fixed header gap and all five price buttons fully reachable after scrolling. The older initial-view first-three-price condition is intentionally replaced because the user's larger spacing takes priority over packing cards onto the initial screen. No new test suite or bitmap artwork.
+- Static diff check passed; new hosted compilation and captures pending. Previous compile fix PR #61/run 35186026172 is still in progress at this checkpoint. No local Unity execution/control; preserve local user modifications when syncing.
 ## 2026-09-17 — compile blocker after PR #60
 
 - User reported compilation failure. Read-only local Editor.log and hosted run 35185129607 (job 105085449367) agree: SocialScreenLayoutTests.cs:160 CS1501, CanvasRenderer.GetMesh has no one-argument overload. Previous UI changes have NOT passed Unity validation; graphics were skipped.
