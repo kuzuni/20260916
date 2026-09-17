@@ -7,7 +7,7 @@ using UnityEngine.UI;
 namespace Moonlit.UI
 {
     /// <summary>Runtime-only forge, equipment, offline reward, and progress-pass screens.</summary>
-    public static class ForgeScreenModule
+    public static partial class ForgeScreenModule
     {
         static readonly Color Ink = new Color(.025f, .04f, .055f, .97f);
         static readonly Color Slate = new Color(.055f, .09f, .12f, .98f);
@@ -26,7 +26,7 @@ namespace Moonlit.UI
 
         static readonly string[] Tiers =
         {
-            "원시적", "중세의", "근대 초기", "현대의", "우주", "항성간", "다중 우주", "양자", "지하 세계", "신성한"
+            "원시적", "중세의", "근대 초기", "현대의", "우주", "항성간", "다중 우주", "양자", "지하 세계", "천상"
         };
         static Sprite[] tierIcons, tierBands, passChests;
         static Sprite passStone;
@@ -43,13 +43,13 @@ namespace Moonlit.UI
 
         public static void Register(UiScreenRegistry registry)
         {
-            registry.Register("forge-probability", ScreenPresentation.Modal, BuildProbability, false);
-            registry.Register("forge-probability-details", ScreenPresentation.Modal, BuildProbabilityDetails, false);
-            registry.Register("forge-item-details", ScreenPresentation.Modal, BuildItemDetails, false);
-            registry.Register("equipment-details", ScreenPresentation.Modal, BuildEquipmentDetails, true);
-            registry.Register("forge-comparison", ScreenPresentation.Modal, BuildComparison, false);
+            registry.Register("forge-probability", ScreenPresentation.Modal, BuildProbabilityLive, false);
+            registry.Register("forge-probability-details", ScreenPresentation.Modal, BuildProbabilityDetailsLive, false);
+            registry.Register("forge-item-details", ScreenPresentation.Modal, BuildItemDetailsLive, false);
+            registry.Register("equipment-details", ScreenPresentation.Modal, BuildEquipmentDetailsLive, true);
+            registry.Register("forge-comparison", ScreenPresentation.Modal, BuildComparisonLive, false);
             registry.Register("offline-rewards", ScreenPresentation.Modal, BuildOfflineRewards, false);
-            registry.Register("auto-forge", ScreenPresentation.Modal, BuildAutoForge, false);
+            registry.Register("auto-forge", ScreenPresentation.Modal, BuildAutoForgeLive, false);
             registry.Register("progress-pass", ScreenPresentation.Modal, BuildProgressPass, false);
         }
 
