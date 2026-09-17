@@ -1,6 +1,14 @@
 # Moonlit 30 UI — coordinator status
 
-Updated 2026-09-17, 13:25 KST. Implementation is unfinished; 15-minute heartbeat remains active.
+Updated 2026-09-17, 13:45 KST. Implementation is unfinished; 15-minute heartbeat remains active.
+
+## Chat unread channel badges and pass visibility verification
+
+- PR #58 source 747db08bc71104c46717184669512b04f5b17fcd merged as b01191aaeb5ae4034f09af39ddbd1886e16c4c04; original checkout synchronized preserving all 11 user metadata edits by SHA256. Run 35181856570 artifact 10480672919 downloaded: actual XML 43 passed / 0 failed / 0 skipped, including the new footwrap/catalog/parent-scroll regression. Item and expanded catalog screenshots remain pending.
+- PR #57 graphics artifact 10480292713 downloaded: Verification.txt PASS with 68 PNGs. Both pass tint-response assertions passed (0.1059743 and 0.1046723 green-channel difference). Viewed normal pass 9:16 and claimed pass 9:19: the stone painting now visibly contributes across the body. The opaque-overlay bug is resolved in these hosted cases; enlarged stone sampling is somewhat soft and broader frame/card fidelity remains open.
+- Reference 13's clan and officer unread badges were absent. Branch codex/chat-unread-badges adds the reference 70/3 local demo counts as live labels over existing empty crimson circular art. Each badge is a separate child of its tab and ignores raycasts. Opening one channel clears only its badge, which stays cleared while switching within that chat preview. Closing/reopening chat starts a new local sample session; no backend unread count is claimed.
+- Extended the existing two-aspect chat regression to check badge counts, non-intercepting art, independent read clearing and return-to-tab behavior alongside preserved drafts/scroll and local send isolation. Static diff check passed; new-source hosted tests and badge captures pending. No new bitmap generation or local Unity execution.
+- Evidence: C:/Users/user/AppData/Local/Temp/moonlit-cloud-review/artifact-{10480672919,10480292713}/unpacked. Next heartbeat: inspect PR #58 item/catalog captures, this source XML and chat badge placement at both ratios. Remaining chat gaps include bubble-tail and battle-result attachment artwork; continue all 30 screens without declaring final acceptance or pausing the heartbeat.
 
 ## Primitive footwrap identity and catalog layout
 
