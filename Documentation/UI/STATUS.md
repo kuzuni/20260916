@@ -1,6 +1,15 @@
 # Moonlit 30 UI — coordinator status
 
-Updated 2026-09-17, 09:35 KST. Implementation is unfinished; 15-minute heartbeat remains active.
+Updated 2026-09-17, 10:20 KST. Implementation is unfinished; 15-minute heartbeat remains active.
+
+## Dungeon title plaque and shop capture review
+
+- Restored main at 2e20433227c0df1fe264b51ecf8de729ed21ef59 (PR #49, source 1afa59ccb57085ca71c39a29a5acbcf845fdd4bf). Original checkout retains 11 user metadata edits. Working branch codex/dungeon-title-art is isolated from those changes.
+- PR #49 run 35167179673: actual XML in downloaded artifact 10475319339 reports 41 passed / 0 failed / 0 skipped. Downloaded graphics artifact 10475896608: Verification.txt PASS, 66 PNGs. Inspected shop at both ratios: illustrated products fill more of each card, separate scenery no longer repeats the party inside offers, first three gem prices fit 9:16, all five offers are visible in taller 9:19 and navigation is visible. Last two prices remain explicitly unconfigured. Remaining generic headings, frame style and repeated scenery are not final fidelity acceptance.
+- PR #48 graphics artifact 10475074799 has Verification.txt PASS and 66 PNGs, confirming recovery of the earlier page-navigation pixel failure. Reviewed dungeon and summon-result at both ratios in the previous inspection; this run additionally viewed collection 9:16 and PvP 9:19. Navigation/active close artwork is visible and skill currency/icons render. Summon effects and collection rings, plus PvP portrait subject fidelity, still have reference differences.
+- Inspected original 20-dungeons.png at full resolution. Built-in imagegen produced a standalone empty skull/bronze title plaque, DungeonTitle-v1.png, 1860x846 with real alpha. Exact prompt/source/inspection are in DungeonTitle-v1-prompt.md. BuildDungeons now uses the dedicated preserved-aspect artwork with independent live Korean title, replacing its generic rectangular panel. Reset notice and cards retain their geometry and interaction. No new tests for this decorative replacement; existing hosted import/route/capture checks will verify it.
+- Static diff check passed. New title source Unity execution and captures are pending; no local Unity execution. Evidence roots: C:/Users/user/AppData/Local/Temp/moonlit-cloud-review/artifact-{10475319339,10475896608,10475074799}/unpacked.
+- Next heartbeat: inspect this branch's actual XML and both dungeon captures, checking crest/title/notice separation and SafeArea. Continue pass/dungeon/card frame fidelity and all 30-screen visual acceptance. Keep Dim alpha 0.85, incremental main integration and original user edits preserved.
 
 ## Shop card composition and latest validation
 
