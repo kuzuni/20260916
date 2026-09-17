@@ -1,6 +1,15 @@
 # Moonlit 30 UI — coordinator status
 
-Updated 2026-09-17, 10:44 KST. Implementation is unfinished; 15-minute heartbeat remains active.
+Updated 2026-09-17, 11:05 KST. Implementation is unfinished; 15-minute heartbeat remains active.
+
+## Pass stone backing and heading proportions
+
+- PR #51 source cda04aa9b14f3467c5c3f4ce8cbcae6ff15c9232 merged as 2cf6213be05b9531ebf4da5f7f88f435d9c4753c; original checkout synchronized preserving all 11 modified user metadata files by SHA256. Run 35171639983, downloaded artifact 10477281874: actual XML 41 passed / 0 failed / 0 skipped, including distinct chest regions and claimed-state reopen regression. Pass reward/claimed captures remain pending.
+- PR #50 graphics artifact 10476628562 downloaded: Verification.txt PASS, 66 PNGs. Viewed dungeon at 9:16 and 9:19: skull plaque loads with transparent silhouette, live heading stays centered, notice and cards remain clear, and bottom navigation/close state is visible. Generic card rims and banner/key/portrait illustration differences remain open; this confirms the bounded title revision rather than final dungeon fidelity.
+- Revisited original 05 reference and current pass capture from artifact 10475896608. Main pass panel uses a leather-like center and oversized sword/title artwork, whereas the reference has cracked stone and a narrower decorative heading. Branch codex/pass-frame-proportions reuses the existing Frame_04 cracked-stone tile from InterfaceFrames-v2 through MainScreenAssets.panels[4], with an independent empty outer rim. The backing receives pointer hits so the panel interior still blocks the modal dim. Existing fallback skin remains available to minimal asset fixtures.
+- Reduced the preserved-aspect sword/header from 970x410 to 900x381, centered within the panel, with live title repositioned over the empty face. Reward layout, claims, pricing and scrolling remain intact. Existing artwork reused; no image generation in this revision. No new tests for the decorative adjustment; existing hosted modal/capture validation is required.
+- Static diff check passed. New-source Unity and screenshots pending; no local Unity execution. Evidence: C:/Users/user/AppData/Local/Temp/moonlit-cloud-review/artifact-{10477281874,10476628562,10475896608}/unpacked.
+- Next heartbeat: download PR #51 pass captures and inspect all four normal/claimed aspect views, then this frame revision's XML and pass captures. Verify tile repetition/contrast and header/price separation; continue reference fidelity across all 30 pages. Keep Dim alpha 0.85 and incremental main/original synchronization with user changes preserved.
 
 ## Pass reward variants and claimed-state artwork
 
