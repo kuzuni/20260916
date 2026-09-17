@@ -1,0 +1,9 @@
+# Summon dais background
+
+Mode: built-in image_gen, reference-guided environment generation. Reference: ../UI/References/17-summon-result.png. Generated output: exec-de500812-c045-4a30-9278-67a0cd2ae90b.png. Copied unchanged to Assets/DarkFantasyUI/Resources/Moonlit/Skills/SummonDais-v1.png.
+
+The production PNG contains only the environment. Live reward sprites, frames, stars, particles and controls remain independent Unity objects. Inspected generation: no reward medallions, characters, text or HUD; cyan floor dais, statues, banners, bridges and moonlit castle remain.
+
+## Exact prompt
+
+Use case: stylized-concept. Asset type: production Unity game background, portrait 9:16, high detail. Use the supplied image ONLY as a visual composition/style reference. Create a fresh EMPTY summoning sanctuary background matching its hand-painted dark fantasy game aesthetic: blue moonlit ruined gothic castle towers and soaring arches in the distance, hooded stone statues and black/navy gold-patterned banners at the left and right edges, scattered warm braziers and candles, a circular broken-stone summoning dais with thin cyan arcane lines in the lower quarter, misty layered bridges and waterfalls. Keep a calm open horizontal zone across the middle around 48-56 percent image height for five separately rendered reward icons. Match the reference's detailed inked/painterly edges and readable blue-black stone, warm small fire accents. FULL BLEED opaque environment, composition usable with modest vertical/side cover crops for 9:19. No people or party, no dragons, no floating reward medallions, no stars or skill symbols, no UI frames, no text, no buttons, no labels, no HUD, no watermark. The architectural banners and statues are environment only. The magic floor circle is allowed environmental decoration. Final deliverable is just one clean empty environment image, with all reward icons and interface removed.

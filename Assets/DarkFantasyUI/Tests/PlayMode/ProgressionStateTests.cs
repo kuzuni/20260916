@@ -301,6 +301,7 @@ namespace Moonlit.UI.Tests
         [UnityTest]
         public IEnumerator RepeatedSummon_MutatesCardsCurrencyAndCollection_WithSameFrameGuard()
         {
+            assets.circle=PopupSkin.RewardIcon(1); // A supplied sprite exercises the live particle lifecycle in this fixture.
             host.Registry.Open("skills-pets-heroes");
             yield return null;
             var currency = GameObject.Find("Currency").GetComponent<Text>();
@@ -310,12 +311,28 @@ namespace Moonlit.UI.Tests
             yield return null;
             var firstNames = ResultNames();
             Assert.AreEqual(5, firstNames.Length);
+            var resultLayer=GameObject.Find("Popup Layer summon-result");
+            var backdrop=resultLayer.transform.Find("Full viewport backdrop");
+            Assert.IsNull(backdrop.GetComponent<RectMask2D>(),"Fullscreen results must cover the inactive navigation too");
+            Assert.AreEqual("SummonDais-v1",backdrop.Find("Page scenery").GetComponent<Image>().sprite.name);
+            var resultCards=GameObject.Find("Summon result cards");
+            var revealSlots=resultCards.GetComponentsInChildren<Button>();
+            Assert.AreEqual(5,revealSlots.Length);
+            foreach(var slot in revealSlots) {
+                Assert.IsNull(slot.transform.Find("Level"));
+                Assert.IsNull(slot.transform.Find("Progress"));
+                Assert.IsNotNull(slot.transform.Find("Star"));
+            }
+            Assert.IsNull(resultCards.transform.Find("Reveal glow"));
+            Assert.AreEqual(5,resultCards.GetComponentsInChildren<Atmosphere>().Length);
+            Assert.AreEqual(60,resultCards.GetComponentsInChildren<Image>().Count(i=>i.name.StartsWith("Spark ")&&!i.raycastTarget));
 
             var again = GameObject.Find("Again").GetComponent<Button>();
             again.onClick.Invoke();
             again.onClick.Invoke(); // deliberately rapid: only one decision may resolve this frame
             yield return null;
             Assert.IsFalse(firstNames.SequenceEqual(ResultNames()));
+            Assert.AreEqual(5,resultCards.GetComponentsInChildren<Atmosphere>().Length,"Repeat must replace effects instead of accumulating them");
             GameObject.Find("Return").GetComponent<Button>().onClick.Invoke();
             yield return null;
 

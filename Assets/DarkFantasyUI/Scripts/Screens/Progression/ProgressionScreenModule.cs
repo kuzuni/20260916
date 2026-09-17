@@ -290,11 +290,10 @@ namespace Moonlit.UI
                 // A direct preview route must not grant free shards or spend currency.
                 for (var i = 0; i < session.results.Length; i++) session.results[i] = Skills[i];
             }
-            AddBackdrop(ctx.Root, ctx);
+            var scenery=Resources.Load<Sprite>("Moonlit/Skills/SummonDais-v1");
+            PopupSkin.FullViewportBackdrop(ctx,scenery,Color.white);
             UnityEngine.Events.UnityAction close = () => { RefreshCollection(ctx, session.parent); ctx.Close(); };
             PopupSkin.Button("Return to collection", ctx.Root, 34, 34, 150, 70, "‹ 이전", font, close, Stone, 25);
-            Ui.Text("Title", ctx.Root, 90, 80, 900, 90, "소환 결과", 46, font, Ui.Gold);
-            Ui.Text("Subtitle", ctx.Root, 90, 170, 900, 60, "새로운 힘이 달빛 아래 깨어납니다", 24, font);
             var results = Ui.Rect("Summon result cards", ctx.Root, 0, 0, ctx.Width, ctx.Height);
             RenderSummonResults(ctx, results, session);
             var again = PopupSkin.Button("Again", ctx.Root, 170, ctx.Height - 250, 340, 88, "다시 소환 x5", font, null, Blue, 28);
@@ -382,11 +381,23 @@ namespace Moonlit.UI
             {
                 var skill = session.results[i];
                 SkillSlot(root, 45 + i * 205, y, 170, skill, ctx.Assets.font,
-                    () => ctx.Open("skill-details", new SkillDetailsPayload(skill, session.parent)), false);
-                Ui.Text("Summon status " + i, root, 45 + i * 205, y + 225, 170, 42,
+                    () => ctx.Open("skill-details", new SkillDetailsPayload(skill, session.parent)), false, true);
+                Ui.Text("Summon status " + i, root, 45 + i * 205, y + 205, 170, 42,
                     session.wasNew[i] ? "신규 획득" : "+1 조각", 20, ctx.Assets.font, session.wasNew[i] ? Green : Ui.Gold);
-                var glow = Ui.Image("Reveal glow", root, 53 + i * 205, y + 8, 154, 154, null, new Color(.1f,.65f,1f,.12f));
-                glow.transform.SetAsFirstSibling();
+                if(ctx.Assets.circle) {
+                    var color=session.wasNew[i]?new Color(.2f,1f,.55f):new Color(1f,.65f,.2f);
+                    var effects=Ui.Rect("Reveal particles "+i,root,45+i*205,y,170,170);
+                    effects.SetAsFirstSibling(); effects.gameObject.SetActive(false);
+                    var motes=new RectTransform[12]; var lights=new Image[12];
+                    for(int j=0;j<motes.Length;j++) {
+                        float size=3+j%3;
+                        lights[j]=Ui.Image("Spark "+j,effects,18+(j*37)%134,-30-(j*23)%90,size,size,ctx.Assets.circle,color);
+                        motes[j]=lights[j].rectTransform;
+                    }
+                    var atmosphere=effects.gameObject.AddComponent<Atmosphere>();
+                    atmosphere.motes=motes; atmosphere.lights=lights;
+                    effects.gameObject.SetActive(true);
+                }
             }
         }
 

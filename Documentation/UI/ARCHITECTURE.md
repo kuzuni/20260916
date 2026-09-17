@@ -39,6 +39,7 @@ This supports the user's main/nav/popup/detail/deeper arrangement without hard-c
 - Tooltip/notification art never captures raycasts.
 - Screen.safeArea changes apply to every active layer; no fixed assumption of zero insets. Existing scene must remain bootstrap-only. No editor-generated UI persisted in scenes.
 - Page/fullscreen decorative scenery is a sibling of SafeArea within its owning layer. It covers the full viewport with preserved image aspect ratio, never receives raycasts, and is removed with the layer. Interactive page content retains the SafeArea mask and bottom-navigation clipping.
+- Page decoration has its own bottom-only clip at the safe navigation top; its top and sides stay full bleed. Both the opaque backing and painted image are children of this clip. Fullscreen result decoration has no navigation clip. Recompute the page clip after SafeArea changes; canvas sorting alone did not preserve rendered navigation in hosted captures.
 
 ## Common module API (frozen for parallel implementation)
 
