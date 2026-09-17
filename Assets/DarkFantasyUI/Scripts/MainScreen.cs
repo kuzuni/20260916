@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 namespace Moonlit.UI
 {
-    public sealed class MainScreen : MonoBehaviour
+    public sealed partial class MainScreen : MonoBehaviour
     {
         public Font font;
         public Sprite slotArt;
@@ -17,11 +17,11 @@ namespace Moonlit.UI
         public Image autoIcon;
         public Button[] navigation;
         public Text oreText, powerText, goldText, gemText, autoText, stageText;
-        public int ore = 40351;
-        public int gems = 21;
-        public int gold = 1550000;
-        public int forgeLevel = 33;
-        public int stage = 13;
+        public int ore = 1000;
+        public int gems = 0;
+        public int gold = 0;
+        public int forgeLevel = 1;
+        public int stage = 1;
         public int successfulForges;
         public bool autoForge;
         public int autoForgeBatchSize = 1;
@@ -44,7 +44,7 @@ namespace Moonlit.UI
         void Start()
         {
             foreach (var slot in equipment) slot.Clicked += Inspect;
-            forgeButton.onClick.AddListener(() => screens.Open("forge-comparison"));
+            forgeButton.onClick.AddListener(Forge);
             if(forgeLevelButton) forgeLevelButton.onClick.AddListener(() => screens.Open("forge-probability"));
             if(playerDetailsButton) playerDetailsButton.onClick.AddListener(OpenLocalPlayerDetails);
             autoButton.onClick.AddListener(() => screens.Open("auto-forge"));
@@ -61,74 +61,48 @@ namespace Moonlit.UI
         void OnDestroy() { if(equipment != null) foreach(var s in equipment) if(s) s.Clicked -= Inspect; }
         void Update()
         {
-            if (autoForge && (screens == null || screens.ModalDepth == 0)) { autoClock += Time.deltaTime; if(autoClock>=1.4f) { autoClock=0; RunAutoForgeCycle(); } }
+            TickGameplay();
             if(autoIcon) autoIcon.rectTransform.localRotation=Quaternion.Euler(0,0,autoForge ? -Time.unscaledTime*90 : 0);
         }
         public void Refresh()
         {
-            oreText.text = ore.ToString();
-            goldText.text = (gold/1000000f).ToString("0.00")+"m";
-            gemText.text = gems.ToString();
-            powerText.text = (65.5f+successfulForges*.12f).ToString("0.0")+"b";
-            stageText.text = "어려움 4-"+stage;
-            autoText.text = "자동";
-            autoText.color = autoForge ? Ui.Cyan : Ui.Ivory;
-            if(autoIcon) autoIcon.color=autoForge ? Ui.Cyan : Color.white;
-        }
-        public void Forge()
-        {
-            if(ore<100) { autoForge=false; Refresh(); Toast("강화석이 부족합니다"); return; }
-            var available = System.Array.FindAll(equipment,s=>s.item != null && !s.isLocked && s.item.rarity!=ItemRarity.Companion);
-            if(available.Length==0) { autoForge=false; Refresh(); Toast("강화할 수 있는 장비가 없습니다"); return; }
-            var target=available[successfulForges%available.Length];
-            ore-=100; successfulForges++; target.level++; target.Refresh();
-            Refresh(); Toast(target.item.displayName+" 강화 성공  ·  Lv."+target.level);
-            StartCoroutine(Pulse(target));
-        }
-        void RunAutoForgeCycle()
-        {
-            var attempts = Mathf.Max(1, autoForgeBatchSize);
-            for (var i = 0; i < attempts && autoForge; i++)
-            {
-                if (autoForgeFilterMask == 0) { StopAutoForge("선택한 능력치 필터가 없습니다"); break; }
-                Forge();
-                // The demo has no random item backend. Cycle the four visible keep tiers
-                // deterministically so the selected keep/continue choices still govern stopping.
-                var resultTier = successfulForges % 4;
-                var matchesFilter = (autoForgeFilterMask & (1 << (successfulForges % 6))) != 0;
-                if (autoForge && matchesFilter && autoForgeKeep != null && resultTier < autoForgeKeep.Length && autoForgeKeep[resultTier] && !autoForgeContinue)
-                    StopAutoForge("유지할 장비를 찾아 자동 제련을 멈췄습니다");
+            forgeLevel=ForgeState.Current.level;
+            highestClearedStage=System.Math.Max(highestClearedStage,stage-1);
+            if(oreText) oreText.text=ore.ToString("N0");
+            if(goldText) goldText.text=Compact(gold);
+            if(gemText) gemText.text=Compact(gems);
+            var stats=ForgeState.Current.TotalStats;
+            if(powerText) powerText.text=Compact(stats.health+stats.attack*8+CollectionProgression.OwnedHealth+CollectionProgression.EquippedHealth);
+            if(stageText) stageText.text="스테이지 "+stage;
+            if(autoText){ autoText.text="자동";autoText.color=autoForge?Ui.Cyan:Ui.Ivory; }
+            if(autoIcon)autoIcon.color=autoForge?Ui.Cyan:Color.white;
+            if(forgeLevelButton) {
+                var label=forgeLevelButton.transform.Find("Forge level");
+                if(label)label.GetComponent<Text>().text="대장간\n레벨 "+forgeLevel;
             }
+            if(gameplayInitialized) SaveGame();
+        }
+        public static string Compact(double value)
+        {
+            if(value>=1e12)return value.ToString("0.##E+0",System.Globalization.CultureInfo.InvariantCulture);
+            if(value>=1e9)return (value/1e9).ToString("0.##")+"b";
+            if(value>=1e6)return (value/1e6).ToString("0.##")+"m";
+            if(value>=10000)return (value/1e3).ToString("0.##")+"k";
+            return value.ToString("N0");
+        }
+        public void Forge() { ForgeRuntime.Ensure(this).BeginManual(); }
+        public void ConfigureAutoForge(int hammerCount,int filterMask,bool continueAfterMatch,bool[] keep)
+        {
+            autoForgeBatchSize=Mathf.Max(1,hammerCount);autoForgeFilterMask=filterMask;
+            autoForgeContinue=continueAfterMatch;autoForgeKeep=keep==null?new bool[4]:(bool[])keep.Clone();
+            ForgeRuntime.Ensure(this).StartAuto();
+        }
+        public void StopAutoForge(string message="자동 제련을 멈췄습니다")
+        {
+            ForgeRuntime.Ensure(this).StopAuto();Toast(message);
         }
 
-        public void ConfigureAutoForge(int hammerCount, int filterMask, bool continueAfterMatch, bool[] keep)
-        {
-            autoForgeBatchSize = Mathf.Max(1, hammerCount);
-            autoForgeFilterMask = filterMask;
-            autoForgeContinue = continueAfterMatch;
-            autoForgeKeep = keep != null ? (bool[])keep.Clone() : new bool[4];
-            autoClock = 0;
-            autoForge = true;
-            Refresh();
-        }
-
-        public void StopAutoForge(string message = "자동 제련을 멈췄습니다")
-        {
-            autoForge = false;
-            autoClock = 0;
-            Refresh();
-            Toast(message);
-        }
-
-        public bool ClaimOfflineRewards(int goldReward, int oreReward)
-        {
-            if (offlineRewardsClaimed) return false;
-            offlineRewardsClaimed = true;
-            gold += goldReward;
-            ore += oreReward;
-            Refresh();
-            return true;
-        }
+        public bool ClaimOfflineRewards(int goldReward,int oreReward) => RewardState.Current.Claim(this);
 
         public bool BeginCraft(ItemDefinition crafted, int cost)
         {
@@ -165,11 +139,13 @@ namespace Moonlit.UI
         {
             slot.SetSelected(true); yield return new WaitForSeconds(.65f); if(inspected != slot) slot.SetSelected(false);
         }
-        public void ToggleAuto() { autoForge=!autoForge; autoClock=0; Refresh(); Toast(autoForge ? "자동 강화를 시작합니다 · 1회 100 강화석" : "자동 강화를 멈췄습니다"); }
+        public void ToggleAuto() { if(autoForge)StopAutoForge();else ForgeRuntime.Ensure(this).StartAuto(); }
 
         public void Inspect(EquipmentSlot slot)
         {
-            if(slot.item == null) { Toast("비어 있는 장비 슬롯입니다"); return; }
+            int index=System.Array.IndexOf(equipment,slot);
+            if(index>=6){Toast(new[]{"엠블렘","날개","정령"}[index-6]+" · 기능 준비 중");return;}
+            if(slot.item == null) { Toast("아직 장착한 장비가 없습니다. 모루를 눌러 제작하세요."); return; }
             inspected=slot; slot.SetSelected(true); slot.SetNotification(false);
             screens.Open("equipment-details", slot);
         }
@@ -199,16 +175,16 @@ namespace Moonlit.UI
         void Upgrade(EquipmentSlot slot)
         {
             if(slot.isLocked) { Toast("잠금을 해제한 뒤 강화하세요"); return; }
-            if(ore<100) { Toast("강화석이 부족합니다"); return; }
+            if(ore<100) { Toast("망치이 부족합니다"); return; }
             ore-=100; successfulForges++; slot.level++; slot.Refresh(); Refresh(); Inspect(slot); Toast("강화 성공!");
         }
         bool eventClaimed, fairyClaimed;
         void ClaimEvent() { if(eventClaimed) { Toast("오늘의 보상을 이미 받았습니다"); return; } eventClaimed=true; gold+=10000; Refresh(); Close(); Toast("골드 +10,000"); }
-        void ClaimFairy() { if(fairyClaimed) { Toast("요정의 선물을 이미 받았습니다"); return; } fairyClaimed=true; ore+=300; Refresh(); Close(); Toast("강화석 +300"); }
-        void Currency(bool ruby) { ShowInfo(ruby ? "루비" : "골드",ruby ? "보유 루비  "+gems+"\n\n루비는 모험 보상으로 획득할 수 있습니다." : "보유 골드  "+gold.ToString("N0")+"\n\n모험과 이벤트에서 골드를 모으세요.","확인",Close); }
-        public void Profile() { ShowInfo("moonzsanf", "그림자 검객  ·  Lv.108\n\n전투력 "+powerText.text+"\n최고 기록 : 어려움 4-"+stage+"\n대장간 레벨 "+forgeLevel,"확인",Close); }
-        public void ForgeManagement() { ShowInfo("대장간  ·  레벨 "+forgeLevel,"모루를 눌러 장비를 강화하세요.\n\n강화 1회 : 강화석 100개\n자동 강화에서는 잠긴 장비가 제외됩니다.\n\n남은 시간  1일 7시","확인",Close); }
-        void Stage() { ShowInfo("달빛 폐허  ·  4-"+stage, "고대 성당 너머의 어둠\n\n권장 전투력 62.0b\n완료 보상 : 골드 5,000 · 강화석 150\n\nUI 데모에서 스테이지 완료를 시뮬레이션합니다.","스테이지 완료 체험",()=>{ stage++; gold+=5000; ore+=150; Refresh(); Close(); Toast("스테이지 완료! 다음 구역으로 이동합니다"); }); }
+        void ClaimFairy() { if(fairyClaimed) { Toast("요정의 선물을 이미 받았습니다"); return; } fairyClaimed=true; ore+=300; Refresh(); Close(); Toast("망치 +300"); }
+        void Currency(bool ruby) { screens.Open("wallet"); }
+        public void Profile() { screens.Open("profile"); }
+        public void ForgeManagement() { screens.Open("forge-probability"); }
+        void Stage() { Toast("스테이지 "+stage+" · 3웨이브 · 웨이브당 15라운드"); }
         public void Navigate(int index)
         {
             if (screens == null || index < 0 || index >= NavigationRoutes.Length || screens.ModalDepth > 0) return;
@@ -218,7 +194,7 @@ namespace Moonlit.UI
                 Ui.Image("Quest page shade",context.Root,0,0,context.Width,context.Height,null,new Color(0,.015f,.025f,.65f)).raycastTarget=true;
                 var panel=PopupSkin.Panel("Quest panel",context.Root,150,(context.Height-210-620)/2,780,620).rectTransform;
                 Ui.Text("Quest title",panel,40,42,700,70,"모험 퀘스트",40,font,Ui.Gold);
-                Ui.Text("Quest progress",panel,60,155,660,230,"장비 강화  "+successfulForges+" / 10\n\n대장간에서 장비를 강화해 보세요.\n퀘스트 보상 : 루비 10개",29,font);
+                Ui.Text("Quest progress",panel,60,155,660,230,"장비 강화  "+successfulForges+" / 10\n\n대장간에서 장비를 강화해 보세요.\n퀘스트 보상 : 다이아 10개",29,font);
                 PopupSkin.Button("Quest reward",panel,200,428,380,88,"보상 받기",font,ClaimQuest);
                 PopupSkin.Close("Close",panel,348,548,84,font,context.Close);
             },false);
@@ -250,7 +226,7 @@ namespace Moonlit.UI
             }
         }
         bool questClaimed;
-        void ClaimQuest() { if(questClaimed) { Toast("이미 받은 보상입니다"); return; } if(successfulForges<10) { Toast("장비를 10회 강화하면 받을 수 있습니다"); return; } questClaimed=true; gems+=10; Refresh(); Close(); Toast("루비 +10"); }
+        void ClaimQuest() { if(questClaimed) { Toast("이미 받은 보상입니다"); return; } if(successfulForges<10) { Toast("장비를 10회 강화하면 받을 수 있습니다"); return; } questClaimed=true; gems+=10; Refresh(); Close(); Toast("다이아 +10"); }
 
         Transform Modal(string title, float height)
         {

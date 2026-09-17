@@ -436,14 +436,14 @@ namespace Moonlit.UI
             Scroll(c, root, 38, shopContentTop, w - 76, Mathf.Max(360, h - shopContentTop - NavigationReserve), 1740, out var content);
             var special = PopupSkin.Panel("Daily specials header", content, 18, 0, w - 112, 110);
             Ui.Text("Daily specials title", special.transform, 24, 12, w - 160, 76, "오늘의 특가", 42, Font(c), Ui.Gold);
-            Ui.Text("Daily specials hint", content, 40, 116, w - 156, 52, "일일 특가 3개 모두 구매하면 새로운 3개가 나와요!", 25, Font(c), Ui.Ivory);
+            Ui.Text("Daily specials hint", content, 40, 116, w - 156, 52, "버튼을 누르면 상품이 지급됩니다 · 로컬 구매", 25, Font(c), Ui.Ivory);
             Deal(c, content, 170, "자원 거래", "₩2,800", w - 76, 0);
             Deal(c, content, 450, "펫 거래", "₩9,500", w - 76, 1);
             Deal(c, content, 730, "던전 거래", "₩27,500", w - 76, 2);
             PopupSkin.Panel("Gem section frame",content,150,1010,w-376,70);
-            Ui.Text("Gem title", content, 20, 1010, w - 116, 70, "보석", 42, Font(c), Ui.Gold);
-            int[] gems = { 60, 220, 800, 1500, 3300 };
-            string[] prices = { "₩2,800", "₩9,500", "₩34,500", "가격 미설정", "가격 미설정" };
+            Ui.Text("Gem title", content, 20, 1010, w - 116, 70, "다이아", 42, Font(c), Ui.Gold);
+            int[] gems = { 600, 2200, 8000, 15000, 33000 };
+            string[] prices = { "₩2,800", "₩9,500", "₩34,500", "₩60,000", "₩110,000" };
             for (int i = 0; i < gems.Length; i++)
             {
                 int col = i % 3, row = i / 3;
@@ -453,8 +453,12 @@ namespace Moonlit.UI
                 Ui.Image("Ruby amount icon", card.transform, 20, 12, 48, 48, Icon(c, 1)).preserveAspect = true;
                 Ui.Text("Amount", card.transform, 72, 8, cardW - 82, 54, gems[i].ToString(), 29, Font(c), new Color(1,.75f,.78f), TextAnchor.MiddleLeft);
                 var ruby = Ui.ArtImage("Ruby artwork", card.transform, 10, 44, cardW - 20, 190, ShopIllustration(3 + i)); Ui.CenterAspect(ruby);
-                string price = prices[i];
-                Action(c, card.transform, 12, 222, cardW - 24, 66, price, () => c.Toast(price == "가격 미설정" ? "이 상품은 가격이 구성되지 않았습니다." : "결제는 연결되지 않은 미리보기입니다."));
+                string price = prices[i]; int amount=gems[i]; int lastPurchaseFrame=-1;
+                Action(c, card.transform, 12, 222, cardW - 24, 66, price, () => {
+                    if(lastPurchaseFrame==Time.frameCount || !c.Main)return;
+                    lastPurchaseFrame=Time.frameCount;c.Main.gems=RewardRules.Add(c.Main.gems,amount);
+                    c.Main.Refresh();c.Main.SaveGame();c.Toast("구매 완료 · 다이아 "+amount+" (로컬)");
+                });
             }
         }
 
@@ -462,10 +466,11 @@ namespace Moonlit.UI
         {
             var wallet=SpritePanel(c,name,root,x,y,270,64,1,Color.white);
             Ui.Image("Currency icon",wallet.transform,-6,-12,76,76,Icon(c,icon)).preserveAspect=true;
-            Ui.Text("Currency amount",wallet.transform,72,0,180,64,value,35,Font(c),Ui.Ivory);
+            var amount=Ui.Text("Currency amount",wallet.transform,72,0,180,64,value,35,Font(c),Ui.Ivory);
+            wallet.gameObject.AddComponent<LiveUiRefresh>().RefreshView=()=>{if(c.Main)amount.text=(icon==0?c.Main.gold:c.Main.gems).ToString("N0");};
             var add=Ui.ArtButton("Currency information",wallet.transform,45,30,44,44);
             Ui.Text("Add",add.transform,0,0,44,44,"+",35,Font(c),new Color(.15f,.9f,.07f));
-            add.onClick.AddListener(()=>c.Toast(icon==0 ? "모험과 이벤트에서 골드를 모으세요." : "결제 기능은 연결되지 않은 미리보기입니다."));
+            add.onClick.AddListener(()=>c.Open("wallet"));
         }
 
         static Sprite ShopCardScenery => Resources.Load<Sprite>("Moonlit/Social/ProfileRuins-v1");
@@ -480,18 +485,30 @@ namespace Moonlit.UI
             Ui.Image("Ribbon",card.transform,0,10,430,52,PopupSkin.RibbonArt,new Color(1,.22f,.16f));
             Ui.Text("Title", card.transform, 20, 2, 390, 56, title, 31, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
             var ticket=Resources.Load<Sprite>("Moonlit/Skills/SummonTicket-v1");
-            Sprite[] icons = artIndex==0 ? new[]{Icon(c,0),PopupSkin.RewardIcon(0),ticket,Icon(c,2),PopupSkin.RewardIcon(1),PopupSkin.RewardIcon(4)}
-                : artIndex==1 ? new[]{PopupSkin.RewardIcon(0),Icon(c,2),Icon(c,1)}
-                : new[]{PopupSkin.RewardIcon(5),PopupSkin.RewardIcon(3),PopupSkin.RewardIcon(2),PopupSkin.RewardIcon(4),PopupSkin.RewardIcon(4)};
-            string[] values=artIndex==0 ? new[]{"1k","150","200","50","50","62"} : artIndex==1 ? new[]{"660","200","20"} : new[]{"2","2","2","250","2"};
+            Sprite[] icons = artIndex==0 ? new[]{Icon(c,0),PopupSkin.RewardIcon(0),ticket,ticket,ticket,Icon(c,1)}
+                : artIndex==1 ? new[]{ticket,PopupSkin.RewardIcon(0),Icon(c,1)}
+                : new[]{PopupSkin.RewardIcon(5),PopupSkin.RewardIcon(3),PopupSkin.RewardIcon(2),PopupSkin.RewardIcon(4)};
+            string[] values=artIndex==0 ? new[]{"골드 1,000","망치 50","스킬권 200","펫권 50","탈것권 50","다이아 62"}
+                : artIndex==1 ? new[]{"펫권 660","망치 200","다이아 20"} : new[]{"망치 키 2","유령 키 2","침략 키 2","좀비 키 2"};
             for(int i=0;i<icons.Length;i++)
             {
                 int col=artIndex==1?0:i%2, row=artIndex==1?i:i/2;
                 var cell=PopupSkin.Panel("Reward cell "+i,card,32+col*222,76+row*52,212,48).rectTransform;
-                Ui.Image("Reward icon",cell,10,4,40,40,icons[i]).preserveAspect=true;
-                Ui.Text("Reward amount",cell,60,0,145,48,values[i],28,Font(c),Ui.Ivory,TextAnchor.MiddleLeft);
+                Ui.Image("Reward icon",cell,8,7,34,34,icons[i]).preserveAspect=true;
+                Ui.Text("Reward amount",cell,46,0,164,48,values[i],20,Font(c),Ui.Ivory,TextAnchor.MiddleLeft);
             }
-            Action(c, card.transform, width - 330, 180, 280, 68, price, () => c.Toast("결제 기능은 연결되지 않았습니다."));
+            int lastFrame=-1;
+            Action(c, card.transform, width - 330, 180, 280, 68, price, () => {
+                if(!c.Main||lastFrame==Time.frameCount)return;lastFrame=Time.frameCount;
+                if(artIndex==0) {
+                    c.Main.gold=RewardRules.Add(c.Main.gold,1000);c.Main.ore=RewardRules.Add(c.Main.ore,50);
+                    c.Main.skillTickets=RewardRules.Add(c.Main.skillTickets,200);c.Main.petTickets=RewardRules.Add(c.Main.petTickets,50);
+                    c.Main.mountTickets=RewardRules.Add(c.Main.mountTickets,50);c.Main.gems=RewardRules.Add(c.Main.gems,62);
+                } else if(artIndex==1) {
+                    c.Main.petTickets=RewardRules.Add(c.Main.petTickets,660);c.Main.ore=RewardRules.Add(c.Main.ore,200);c.Main.gems=RewardRules.Add(c.Main.gems,20);
+                } else c.Main.AddDungeonKeys(2);
+                c.Main.Refresh();c.Main.SaveGame();c.Toast(title+" 구매 완료 (로컬)");
+            });
         }
 
         static Sprite[] shopIllustrations;
@@ -523,12 +540,12 @@ namespace Moonlit.UI
             var root = PageBackdrop(c, "PvP page");
             Ui.Image("Gold league crest", root, (w - 160) * .5f, 0, 160, 160,
                 Resources.Load<Sprite>("Moonlit/Social/GoldLeagueCrest-v1")).preserveAspect = true;
-            Ui.Text("League", root, 290, 158, 500, 54, "골드 리그", 43, Font(c), Ui.Ivory);
+            Ui.Text("League", root, 290, 158, 500, 54, "아레나", 43, Font(c), Ui.Ivory);
             var rewards = Ui.ArtButton("Season rewards", root, (w - 560) * .5f, 218, 560, 64, PanelSprite(c, 1), true, 5);
             Ui.Image("Season gift", rewards.transform, 22, 0, 64, 64,
                 Resources.Load<Sprite>("Moonlit/Social/SeasonGift-v1")).preserveAspect = true;
             Ui.Text("Season timer", rewards.transform, 100, 0, 440, 64,
-                "시즌 종료: <color=#5CFF46>4일 18시</color>", 26, Font(c));
+                "도전할 때마다 보상 · "+RewardRules.TierName(RewardState.Current.arenaPoints), 26, Font(c));
             rewards.onClick.AddListener(() => c.Open("pvp-rewards"));
             string[] names = { "tewtee", "CreeGuy", "MenoT", profileName, "Guest 86680", "mrmaingo1868", "Epsylon" };
             string[] powers = { "212m", "12.9m", "16b", "65.5b", "5.52m", "2.57m", "821b" };
@@ -549,7 +566,7 @@ namespace Moonlit.UI
                     rank==11 ? profileAvatar : supplied ? reference : (rank-1)%9, rank==11);
             }
             PvpRow(c, root, "My sticky rank", 90, stickyY, w - 180,
-                11, names[3], powers[3], stars[3], profileAvatar, true);
+                RewardRules.ArenaRank(RewardState.Current.arenaPoints), names[3], c.Main.powerText.text, RewardState.Current.arenaPoints, profileAvatar, true);
             Action(c, root, 330, actionY, 420, 90, "도전", () => c.Open("pvp-opponents"));
             PopupSkin.Back("Return to main",root,40,actionY,88,Font(c),c.Close);
         }
@@ -577,7 +594,7 @@ namespace Moonlit.UI
         static void BuildOpponents(ScreenContext c)
         {
             float w, h; var frame = Frame(c, "상대 선택", 1260, out w, out h);
-            Ui.Text("Ticket note", frame, 50, 94, w - 100, 70, "도전 티켓은 매일 09:00에 보충됩니다!\n🎟 5/5", 24, Font(c));
+            Ui.Text("Ticket note", frame, 50, 94, w - 100, 70, "더미 상대와 1대1 전투 · 도전마다 보상\n승리 +25 승점 / 패배 -10 승점", 24, Font(c));
             string[] names = { "tewtee", "CreeGuy", "MenoT", "Guest 86680", "mrmaingo1868" };
             string[] powers = { "212m", "12.9m", "16b", "5.52m", "2.57m" };
             Scroll(c, frame, 42, 180, w - 84, h - 310, names.Length * 164, out var content);
@@ -591,7 +608,10 @@ namespace Moonlit.UI
                 Ui.Text("Name", row.transform, 154, 18, 330, 44, names[i], 29, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
                 Ui.Image("Power icon", row.transform, 154, 72, 32, 32, Icon(c, 12)).preserveAspect = true;
                 Ui.Text("Power", row.transform, 194, 68, 290, 40, powers[i], 25, Font(c), Green, TextAnchor.MiddleLeft);
-                Action(c, row.transform, w - 350, 36, 230, 80, "도전 🎟 1", () => c.Toast("로컬 데모: " + names[index] + " 도전을 선택했습니다."));
+                Action(c, row.transform, w - 350, 36, 230, 80, "도전", () => {
+                    if(!c.Main)return;
+                    c.Main.StartArena(Mathf.Max(1,c.Main.stage+index-2),won=>RewardRules.FinishArena(c.Main,won));
+                });
                 Ui.Image("Reward star", row.transform, w - 340, 3, 30, 30, Icon(c, 15)).preserveAspect = true;
                 Ui.Text("Reward", row.transform, w - 305, 4, 175, 34, "+" + (5 - i), 23, Font(c), Ui.Gold);
             }
@@ -600,22 +620,21 @@ namespace Moonlit.UI
 
         static void BuildRewards(ScreenContext c)
         {
-            float w, h; var frame = Frame(c, "골드 리그 보상", 1320, out w, out h);
-            Ui.Text("Explanation", frame, 65, 105, w - 130, 90, "현재 순위(11)를 유지하면 시즌 종료 시 다음 보상을 받을 수 있습니다.", 26, Font(c));
-            Ui.Text("Current rewards", frame, 74, 210, w - 148, 145, "주괴 560        골드 28k        티켓 672\n방패 186        물약 560        열쇠 280", 28, Font(c), Ui.Ivory);
-            Ui.Image("Current crown coin", frame, 320, 222, 38, 38, Icon(c, 0)).preserveAspect = true;
-            Ui.Text("Timer", frame, 290, 365, w - 580, 80, "수집까지: 4일 17시", 26, Font(c), Green);
-            string[] tiers = { "🥇  1", "🥈  2", "🥉  3", "4–5" };
-            string[] rewards = { "주괴 910   골드 45.5k   티켓 1.09k\n방패 302   물약 910   열쇠 455", "주괴 840   골드 42k   티켓 1k\n방패 279   물약 840   열쇠 420", "주괴 770   골드 38.5k   티켓 924\n방패 256   물약 770   열쇠 385", "주괴 700   골드 35k   티켓 840\n방패 232   물약 700   열쇠 350" };
-            Scroll(c, frame, 52, 465, w - 104, h - 590, tiers.Length * 188, out var content);
-            for (int i = 0; i < tiers.Length; i++)
+            float w,h; var frame=Frame(c,"아레나 도전 보상",1420,out w,out h);
+            int points=RewardState.Current.arenaPoints, rank=RewardRules.ArenaRank(points);
+            Ui.Text("Explanation",frame,60,108,w-120,98,"매 도전 전투가 끝나면 보상을 받습니다.\n1~5등은 티어 보상을 대신하여 순위 보상을 받습니다.",25,Font(c));
+            Ui.Text("Current rewards",frame,60,210,w-120,110,RewardRules.TierName(points)+" · 승점 "+points+" · "+rank+"등\n"+RewardRules.ArenaRewardText(points,rank),27,Font(c),Ui.Gold);
+            Scroll(c,frame,40,348,w-80,h-455,50*124,out var content);
+            for(int i=0;i<50;i++)
             {
-                var row = Ui.Panel("Reward tier " + tiers[i], content, 0, i * 188, w - 104, 174, Stone);
-                Ui.Text("Tier", row.transform, 14, 14, 170, 142, tiers[i], 34, Font(c), Ui.Gold);
-                Ui.Text("Rewards", row.transform, 190, 18, w - 320, 134, rewards[i], 24, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
-                Ui.Image("Crown coin", row.transform, 370, 25, 32, 32, Icon(c, 0)).preserveAspect = true;
+                bool podium=i<5;int tier=i-5;
+                var row=PopupSkin.Panel("Arena reward "+i,content,0,i*124,w-80,114).rectTransform;
+                string label=podium?(i+1)+"등":RewardRules.TierLabel(tier);
+                int factor=podium?50-i:tier+1;
+                Ui.Text("Tier",row,18,6,260,100,label+(podium?"":"\n승점 "+RewardRules.TierRange(tier)),24,Font(c),Ui.Gold);
+                Ui.Text("Rewards",row,290,10,w-400,94,"망치 "+factor*10+" · 다이아 "+factor*5+"\n골드 "+factor*100,25,Font(c),Ui.Ivory,TextAnchor.MiddleLeft);
             }
-            Close(c, frame, w, h);
+            Close(c,frame,w,h);
         }
     }
 

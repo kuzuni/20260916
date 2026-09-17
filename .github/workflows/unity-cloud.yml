@@ -59,6 +59,13 @@ jobs:
             Artifacts/TestResults
             Logs
           if-no-files-found: error
+      - name: Upload generated combat assets
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: combat-runtime-assets
+          path: Assets/DarkFantasyUI/Resources/Moonlit/Combat*
+          if-no-files-found: warn
 
   screenshots:
     name: Graphics runtime captures
