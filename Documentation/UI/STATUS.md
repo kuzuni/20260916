@@ -1,6 +1,15 @@
 # Moonlit 30 UI — coordinator status
 
-Updated 2026-09-17, 09:12 KST. Implementation is unfinished; 15-minute heartbeat remains active.
+Updated 2026-09-17, 09:35 KST. Implementation is unfinished; 15-minute heartbeat remains active.
+
+## Shop card composition and latest validation
+
+- PR #48 source e587ea74c3de5538b44f005ea8621c656aa44631 merged as 7d25545407e26fa4829e27594d90d93d37e320c6; original checkout synchronized with all 11 user metadata edits preserved by SHA256. Hosted run 35165601486, downloaded artifact 10475202126: actual XML 41 passed / 0 failed / 0 skipped, including page clip and summon effect lifecycle checks. Graphics remain pending; navigation visual recovery and new summon-dais captures still require actual inspection.
+- Downloaded PR #47 graphics artifact 10474507287: same inherited navigation failure as PR #46 (equipment navigation mean RGB difference 0.3989017), before PR #48's bottom clip fix. Viewed both probability-details captures: chance numbers no longer overlap shard/level labels, rarity headings/rates are separated, and icons/stars remain distinct. Flat dark group interiors/generic frame differences remain; this is bounded overlap correction review only.
+- Inspected original 21-shop.png at full resolution and older hosted Runtime-shop-9x16.png from artifact 10473781516. Store cards repeated the main party behind products, stone rims consumed artwork space, and initial gem prices fell below the notch viewport. Branch codex/shop-card-framing reuses generated ProfileRuins-v1 for all deal/gem backdrops, narrows their independent rims, and retains the existing large standalone product illustrations.
+- Tightened deal heights/spacing and gem-card placement while retaining readable text/targets: first three gem offers now end at content y=1390 within the 1410-unit standard 9:16-notch viewport. Added a framed gem section heading. Second-row 1500/3300 offers remain scrollable, with unconfigured prices; all quantities and local-only purchase feedback are unchanged.
+- Extended the existing shop test to use notch/side-inset cases, require separate scenery identity and banner exposure, and verify the first three complete cards/prices fit at initial scroll. Existing five-offer uniqueness, fourteen reward cells and sprite checks remain. Static diff check passed; new-source cloud Unity/capture validation pending. No local Unity execution.
+- Evidence root: C:/Users/user/AppData/Local/Temp/moonlit-cloud-review/artifact-{10475202126,10474507287,10473781516}/unpacked. Next heartbeat: first inspect PR #48 graphics to confirm navigation pixel checks and summon-result at both ratios; then inspect this shop revision's XML/captures. Continue pass/dungeon/general frame fidelity; all 30-screen acceptance remains open. Preserve Dim alpha 0.85 and user metadata during incremental main integration.
 
 ## Summon result environment and page navigation occlusion fix
 

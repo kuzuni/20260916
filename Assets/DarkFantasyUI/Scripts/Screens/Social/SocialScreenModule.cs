@@ -370,26 +370,28 @@ namespace Moonlit.UI
             Ui.Text("Shop title", title, 0, 0, 280, 88, "상점", 46, Font(c), Ui.Gold);
             PageWallet(c,root,"Gold wallet",54,44,0,c.Main ? (c.Main.gold/1000000f).ToString("0.00")+"m" : "1.59m");
             PageWallet(c,root,"Ruby wallet",w-324,44,1,c.Main ? c.Main.gems.ToString() : "21");
-            Scroll(c, root, 38, 120, w - 76, Mathf.Max(360, h - 120 - NavigationReserve), 2010, out var content);
+            Scroll(c, root, 38, 120, w - 76, Mathf.Max(360, h - 120 - NavigationReserve), 1740, out var content);
             var special = PopupSkin.Panel("Daily specials header", content, 18, 0, w - 112, 110);
             Ui.Text("Daily specials title", special.transform, 24, 12, w - 160, 76, "오늘의 특가", 42, Font(c), Ui.Gold);
             Ui.Text("Daily specials hint", content, 40, 116, w - 156, 52, "일일 특가 3개 모두 구매하면 새로운 3개가 나와요!", 25, Font(c), Ui.Ivory);
-            Deal(c, content, 180, "자원 거래", "      1k        방패 150\n티켓 200     주괴 50\n물약 50      열쇠 62", "₩2,800", w - 76, 0);
-            Deal(c, content, 480, "펫 거래", "방패 660\n주괴 200\n펫 보석 20", "₩9,500", w - 76, 1);
-            Deal(c, content, 780, "던전 거래", "은빛 열쇠 2    붉은 열쇠 2\n초록 열쇠 2    황금 열쇠 250\n주황 열쇠 2", "₩27,500", w - 76, 2);
-            Ui.Text("Gem title", content, 20, 1080, w - 116, 70, "보석", 42, Font(c), Ui.Gold);
+            Deal(c, content, 170, "자원 거래", "₩2,800", w - 76, 0);
+            Deal(c, content, 450, "펫 거래", "₩9,500", w - 76, 1);
+            Deal(c, content, 730, "던전 거래", "₩27,500", w - 76, 2);
+            PopupSkin.Panel("Gem section frame",content,150,1010,w-376,70);
+            Ui.Text("Gem title", content, 20, 1010, w - 116, 70, "보석", 42, Font(c), Ui.Gold);
             int[] gems = { 60, 220, 800, 1500, 3300 };
             string[] prices = { "₩2,800", "₩9,500", "₩34,500", "가격 미설정", "가격 미설정" };
             for (int i = 0; i < gems.Length; i++)
             {
                 int col = i % 3, row = i / 3;
                 float cardW = (w - 124) / 3f;
-                var card = PopupSkin.IllustratedCard("Gem offer " + gems[i], content, 20 + col * (cardW + 14), 1160 + row * 360, cardW, 330, c.Assets.worldBackground, new Color(.65f,.75f,.85f));
+                var card = PopupSkin.IllustratedCard("Gem offer " + gems[i], content, 20 + col * (cardW + 14), 1090 + row * 320, cardW, 300, ShopCardScenery, new Color(.65f,.75f,.85f));
+                card.Find("Card rim").GetComponent<Image>().pixelsPerUnitMultiplier=18;
                 Ui.Image("Ruby amount icon", card.transform, 20, 12, 48, 48, Icon(c, 1)).preserveAspect = true;
                 Ui.Text("Amount", card.transform, 72, 8, cardW - 82, 54, gems[i].ToString(), 29, Font(c), new Color(1,.75f,.78f), TextAnchor.MiddleLeft);
-                var ruby = Ui.ArtImage("Ruby artwork", card.transform, 10, 54, cardW - 20, 206, ShopIllustration(3 + i)); ruby.preserveAspect = true;
+                var ruby = Ui.ArtImage("Ruby artwork", card.transform, 10, 44, cardW - 20, 190, ShopIllustration(3 + i)); ruby.preserveAspect = true;
                 string price = prices[i];
-                Action(c, card.transform, 12, 242, cardW - 24, 70, price, () => c.Toast(price == "가격 미설정" ? "이 상품은 가격이 구성되지 않았습니다." : "결제는 연결되지 않은 미리보기입니다."));
+                Action(c, card.transform, 12, 222, cardW - 24, 66, price, () => c.Toast(price == "가격 미설정" ? "이 상품은 가격이 구성되지 않았습니다." : "결제는 연결되지 않은 미리보기입니다."));
             }
         }
 
@@ -403,10 +405,13 @@ namespace Moonlit.UI
             add.onClick.AddListener(()=>c.Toast(icon==0 ? "모험과 이벤트에서 골드를 모으세요." : "결제 기능은 연결되지 않은 미리보기입니다."));
         }
 
-        static void Deal(ScreenContext c, Transform parent, float y, string title, string body, string price, float width, int artIndex)
+        static Sprite ShopCardScenery => Resources.Load<Sprite>("Moonlit/Social/ProfileRuins-v1");
+
+        static void Deal(ScreenContext c, Transform parent, float y, string title, string price, float width, int artIndex)
         {
-            var card = PopupSkin.IllustratedCard(title,parent,18,y,width-36,280,c.Assets.worldBackground,new Color(.16f,.22f,.27f));
-            var artwork = Ui.ArtImage("Deal illustration", card.transform, width - 414, 8, 378, 258, ShopIllustration(artIndex));
+            var card = PopupSkin.IllustratedCard(title,parent,18,y,width-36,260,ShopCardScenery,new Color(.24f,.3f,.36f));
+            card.Find("Card rim").GetComponent<Image>().pixelsPerUnitMultiplier=18;
+            var artwork = Ui.ArtImage("Deal illustration", card.transform, width - 414, 8, 378, 240, ShopIllustration(artIndex));
             artwork.preserveAspect = true;
             artwork.raycastTarget = false;
             Ui.Image("Ribbon",card.transform,0,10,430,52,PopupSkin.RibbonArt,new Color(1,.22f,.16f));
@@ -419,11 +424,11 @@ namespace Moonlit.UI
             for(int i=0;i<icons.Length;i++)
             {
                 int col=artIndex==1?0:i%2, row=artIndex==1?i:i/2;
-                var cell=PopupSkin.Panel("Reward cell "+i,card,32+col*222,82+row*54,212,48).rectTransform;
+                var cell=PopupSkin.Panel("Reward cell "+i,card,32+col*222,76+row*52,212,48).rectTransform;
                 Ui.Image("Reward icon",cell,10,4,40,40,icons[i]).preserveAspect=true;
                 Ui.Text("Reward amount",cell,60,0,145,48,values[i],28,Font(c),Ui.Ivory,TextAnchor.MiddleLeft);
             }
-            Action(c, card.transform, width - 330, 196, 280, 72, price, () => c.Toast("결제 기능은 연결되지 않았습니다."));
+            Action(c, card.transform, width - 330, 180, 280, 68, price, () => c.Toast("결제 기능은 연결되지 않았습니다."));
         }
 
         static Sprite[] shopIllustrations;

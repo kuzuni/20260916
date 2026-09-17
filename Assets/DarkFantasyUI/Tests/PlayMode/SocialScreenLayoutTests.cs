@@ -60,7 +60,7 @@ namespace Moonlit.UI.Tests
         {
             foreach (var height in new[] { 1920, 2280 })
             {
-                host.SetPreviewMetrics(new Vector2Int(1080, height), new Rect(0, 0, 1080, height));
+                host.SetPreviewMetrics(new Vector2Int(1080, height),height==1920?new Rect(0,60,1080,1740):new Rect(36,84,1008,2076));
                 host.Registry.Open("shop");
                 yield return null;
                 var shop=GameObject.Find("Shop page").transform;
@@ -89,6 +89,16 @@ namespace Moonlit.UI.Tests
                     var card=art.transform.parent.GetComponent<RectTransform>();
                     Assert.Greater(art.rectTransform.rect.height,card.rect.height*.6f,"Illustrations should fill the card, not sit as tiny thumbnails.");
                     Assert.IsFalse(card.Find("Card rim").GetComponent<Image>().fillCenter);
+                    Assert.AreEqual("ProfileRuins-v1",card.Find("Card painting crop/Card painting").GetComponent<Image>().sprite.name,
+                        "Store cards must not repeat the main party painting");
+                    var rim=card.Find("Card rim").GetComponent<Image>();
+                    float coveredHeight=(rim.sprite.border.y+rim.sprite.border.w)/(rim.pixelsPerUnit*rim.pixelsPerUnitMultiplier);
+                    Assert.Less(coveredHeight,card.rect.height*.15f);
+                }
+                foreach(int amount in new[]{60,220,800}) {
+                    var card=GameObject.Find("Gem offer "+amount).GetComponent<RectTransform>();
+                    Assert.LessOrEqual(-card.anchoredPosition.y+card.rect.height,scroll.viewport.rect.height,
+                        "The first three gem prices should fit at the initial scroll position even with cutouts");
                 }
                 Assert.AreEqual("가격 미설정", GameObject.Find("Gem offer 1500").GetComponentInChildren<Button>().name);
                 Assert.AreEqual("가격 미설정", GameObject.Find("Gem offer 3300").GetComponentInChildren<Button>().name);
