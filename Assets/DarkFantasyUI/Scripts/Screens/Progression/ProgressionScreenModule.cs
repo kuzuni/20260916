@@ -439,7 +439,8 @@ namespace Moonlit.UI
             var h = Mathf.Min(1050, ctx.Height - 180);
             var panel = PopupSkin.Panel("Dungeon detail frame",ctx.Root,105,(ctx.Height-h)/2,870,h).rectTransform;
             var banner = DungeonBanner(dungeon);
-            PopupSkin.IllustratedCard("Dungeon hero painting",panel,6,6,858,390,banner,Color.white);
+            var painting=PopupSkin.IllustratedCard("Dungeon hero painting",panel,6,6,858,390,banner,Color.white);
+            painting.Find("Card rim").GetComponent<Image>().pixelsPerUnitMultiplier=18;
             Panel(panel,235,20,400,90,dungeon.name,font,38);
             Ui.Text("Difficulty label",panel,285,414,300,44,"난이도",28,font);
             var difficulty=Ui.Text("Difficulty",panel,285,460,300,72,dungeon.stage,48,font,Ui.Ivory);

@@ -1,6 +1,16 @@
 # Moonlit 30 UI — coordinator status
 
-Updated 2026-09-17, 11:05 KST. Implementation is unfinished; 15-minute heartbeat remains active.
+Updated 2026-09-17, 11:28 KST. Implementation is unfinished; 15-minute heartbeat remains active.
+
+## Child-dialog capture context and dungeon detail banner
+
+- PR #52 source 55ab2d1a29e5644ff7397464c953bf4802f42b67 merged as c03d0695cb9d3c81fad21df59247241a0621e94c; original checkout synchronized with 11 user metadata edits preserved by SHA256. Run 35173026108, downloaded artifact 10478180642: actual XML 41 passed / 0 failed / 0 skipped. New stone backing/header captures are pending.
+- PR #51 graphics artifact 10477591736 downloaded: Verification.txt PASS, 68 PNGs including the two additional claimed-pass images. Inspected claimed pass at both ratios: four distinct premium chests render without opaque atlas cell backgrounds, three green checks replace the claimed actions, locks/amounts remain separate and readable. Full pass outer-frame fidelity remains open; these captures predate PR #52's stone/header adjustment.
+- Inspected original 08-equipment-details.png and current equipment capture: compact layout and selected-item content are present, while watermark/frame differences remain. Then inspected original 04-dungeon-details.png and current hosted detail: the banner has wide stone strips, and the capture incorrectly opens above main rather than the dungeon page. The actual dungeon button path already preserves its page.
+- Branch codex/dungeon-detail-composition narrows the detail banner's independent rim using the same 18 multiplier as dungeon cards, exposing more artwork without moving controls. Existing generated banner is reused. No new tests for the decorative adjustment.
+- Hosted capture setup now opens the reference parent chain for dungeon details, forge probability/details, collection child dialogs, ranking, PvP children and profile/settings children. Each parent must exist, expected modal depth derives from the opened stack, and the report records actual depth. This corrects verification context; it does not replace runtime routing. Existing navigation-blocking/pixel checks and 68 output captures remain. Newly realistic nested captures can reveal previously hidden fidelity/input problems; fresh hosted results are required.
+- Static diff check passed; new-source cloud execution/captures pending, no local Unity execution. Evidence roots: C:/Users/user/AppData/Local/Temp/moonlit-cloud-review/artifact-{10478180642,10477591736}/unpacked.
+- Next heartbeat: inspect PR #52 graphics, this source XML and the nested capture verification result. Review dungeon detail and forge/progression probability children at both ratios with their parent layers and compounded Dim 0.85. Continue 30-screen fidelity and preserve original user edits during incremental integration.
 
 ## Pass stone backing and heading proportions
 
