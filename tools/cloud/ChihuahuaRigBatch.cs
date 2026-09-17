@@ -75,7 +75,7 @@ public static class ChihuahuaRigBatch
         rotation = parentRotation * bone.rotation;
     }
 
-    static LayerReport Generate(ISpriteEditorDataProvider provider, SpriteRect rect, CharacterPart part, List<SpriteBone> bones)
+    static LayerReport Generate(ISpriteEditorDataProvider provider, ITextureDataProvider texture, SpriteRect rect, CharacterPart part, List<SpriteBone> bones)
     {
         var mesh = New("SpriteMeshData");
         Call(mesh, "SetFrame", rect.rect);
@@ -96,7 +96,7 @@ public static class ChihuahuaRigBatch
         }
         var controller = New("SpriteMeshDataController");
         Set(controller, "spriteMeshData", mesh);
-        Call(controller, "OutlineFromAlpha", New("OutlineGenerator"), provider.GetDataProvider<ITextureDataProvider>(), 0.1f, (byte)10);
+        Call(controller, "OutlineFromAlpha", New("OutlineGenerator"), texture, 0.1f, (byte)10);
         Require((int)Get(mesh, "vertexCount") > 4, "Alpha outline was not generated: " + rect.name);
         Call(controller, "Triangulate", New("Triangulator"));
         var positions = (Vector2[])Get(mesh, "vertices");
@@ -141,6 +141,7 @@ public static class ChihuahuaRigBatch
             var referenceRects = referenceProvider.GetSpriteRects().ToDictionary(r => r.name);
             var referenceCharacter = referenceProvider.GetDataProvider<ICharacterDataProvider>().GetCharacterData();
             var referenceBones = referenceProvider.GetDataProvider<ISpriteBoneDataProvider>();
+            var referenceSpriteBones = referenceRects.ToDictionary(p => p.Key, p => referenceBones.GetBones(p.Value.spriteID).ToArray());
             Require(referenceCharacter.bones.Length == 11 && referenceCharacter.parts.Length == 7, "Reference must have 11 bones and 7 parts");
             var paths = Directory.GetFiles(Root, "rigging_layers.psb", SearchOption.AllDirectories).OrderBy(p => p).ToArray();
             Require(paths.Length == 30, "Expected 30 target PSBs");
@@ -148,6 +149,12 @@ public static class ChihuahuaRigBatch
             foreach (var path in paths)
             {
                 var provider = Provider(path);
+                // ForceReserializeAssets can unload non-dirty importers during asset GC.
+                // Keep the importer alive until its modifications are serialized.
+                var importerObject = (UnityEngine.Object)provider.targetObject;
+                var originalFlags = importerObject.hideFlags;
+                importerObject.hideFlags |= HideFlags.DontUnloadUnusedAsset;
+                var texture = provider.GetDataProvider<ITextureDataProvider>();
                 var rects = provider.GetSpriteRects();
                 Require(rects.Length == 7 && rects.All(r => referenceRects.ContainsKey(r.name)), "Unexpected parts in " + path);
                 var characterProvider = provider.GetDataProvider<ICharacterDataProvider>();
@@ -160,7 +167,7 @@ public static class ChihuahuaRigBatch
                     var rr = referenceRects[rect.name];
                     var rp = referenceCharacter.parts.Single(p => p.spriteId == rr.spriteID.ToString());
                     var targetPart = character.parts.Single(p => p.spriteId == rect.spriteID.ToString());
-                    var bones = referenceBones.GetBones(rr.spriteID).ToList();
+                    var bones = referenceSpriteBones[rect.name].ToList();
                     var offset = (Vector2)(rp.spritePosition.position - targetPart.spritePosition.position);
                     for (int i = 0; i < bones.Count; ++i)
                     {
@@ -173,20 +180,22 @@ public static class ChihuahuaRigBatch
                     targetPart.parentGroup = rp.parentGroup;
                     targetPart.order = rp.order;
                     parts.Add(targetPart);
-                    layerReports.Add(Generate(provider, rect, targetPart, bones));
+                    layerReports.Add(Generate(provider, texture, rect, targetPart, bones));
                 }
                 character.bones = (SpriteBone[])referenceCharacter.bones.Clone();
                 character.parts = parts.ToArray();
                 character.characterGroups = (CharacterGroup[])referenceCharacter.characterGroups.Clone();
                 character.pivot = referenceCharacter.pivot;
                 characterProvider.SetCharacterData(character);
-                provider.Apply();
-                EditorUtility.SetDirty(provider.targetObject);
+                EditorUtility.SetDirty(importerObject);
                 AssetDatabase.WriteImportSettingsIfDirty(path);
+                provider.Apply();
+                importerObject.hideFlags = originalFlags;
+                UnityEngine.Object.DestroyImmediate(texture.GetReadableTexture2D());
                 AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
                 var verify = Provider(path);
                 var vc = verify.GetDataProvider<ICharacterDataProvider>().GetCharacterData();
-                Require(vc.bones.Length == referenceCharacter.bones.Length, "Skeleton bone count changed: " + path);
+                Require(vc.bones.Length == referenceCharacter.bones.Length, "Skeleton bone count changed: " + path + " actual=" + vc.bones.Length);
                 for (int bi = 0; bi < vc.bones.Length; ++bi)
                 {
                     var actual = vc.bones[bi];
