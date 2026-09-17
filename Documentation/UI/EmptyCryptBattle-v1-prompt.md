@@ -1,0 +1,16 @@
+# Empty crypt battle background
+
+User request (2026-09-18): use the stone crypt environment from KakaoTalk_20260917_160742570.jpg for the main combat viewport, with no characters displayed. Existing HUD and other UI are outside this change. Original reference copied byte-for-byte to ArtReferences/MainBattleCrypt.jpg.
+
+## Generated asset
+
+Built-in imagegen, reference-guided generation. Source: exec-f5166128-3b60-44ae-a6ce-6706744e636f.png. Copied unchanged into Assets/DarkFantasyUI/Resources/Moonlit/Main/EmptyCryptBattle-v1.png with a unique single-sprite importer. No external API or runtime image generation.
+
+## Exact prompt
+
+Use case: stylized-concept. Asset type: finished 2D mobile dark fantasy RPG battle BACKGROUND ONLY, opaque portrait illustration about 4:5 aspect ratio, high resolution. Input image role: environment style and architecture reference only; ignore and exclude every UI element and every living figure in that screenshot. Create an empty ancient underground gothic crypt / ruined stone cathedral interior matching the reference's hand-painted game art: heavy black ink contour work, gritty textured olive-grey stone, ribbed vaulted arches across the upper half, thick weathered columns, recessed dark archways, a few carved stone funerary statues clearly part of the walls, sparse warm amber wall torches, cracked flagstone floor with rubble at the edges. Camera faces a wide side-view battle stage with slightly elevated view of the floor, not a long narrow central hallway with an extreme vanishing point. Upper 55 percent layered arches and wall architecture; lower 45 percent broad empty continuous walkable stone floor spanning the entire image, especially a clear empty horizontal fighting area at 65-80 percent image height. Keep useful floor and wall detail in center for both square and tall portrait crops. Muted dark olive, charcoal, dusty brown and warm restrained torchlight, illustrated outlines rather than photorealistic 3D. CRITICAL: environment ONLY. Absolutely no player, humans, living figures, monsters, pets, skeleton creatures, dragon, character silhouettes, weapons lying as rewards, health bars, damage numbers, text, letters, HUD, interface, border frames, item slots, coins, gems or watermark. Stone wall statues may be weathered architectural reliefs, never free-standing characters in the combat area. All foreground floor space is EMPTY. Fill the entire canvas with finished scenery, no transparency.
+
+## Review and integration
+
+Visually inspected the complete generated image: empty flagstone floor, ribbed arches, carved wall statues and amber torches. No player, pet, monster, text, health bar or screenshot UI. Architectural statues are part of the reference environment. Only the main battle resource changes; shared page/card scenery is retained. Removed the old cyan mote overlay so the battle viewport contains only the background image. Existing cover/crop logic and Safe Area remain. RuntimeVerification checks the dedicated sprite and single-child battle viewport across its six display cases; hosted results are pending, not claimed passed. The earlier forest asset is retained for rollback and its locally modified importer is not touched.
+

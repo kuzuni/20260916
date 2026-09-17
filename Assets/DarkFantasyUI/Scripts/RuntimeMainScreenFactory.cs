@@ -36,7 +36,7 @@ namespace Moonlit.UI
             var world=Ui.Rect("Elastic battle viewport",mainCanvas.transform,0,0,1080,1000); world.gameObject.AddComponent<RectMask2D>();
             // Main battle scenery has its own asset; collection/shop/pass still use their existing backdrop.
             var worldArt=Ui.ArtImage("Moonlit scenery",world,0,0,1080,1080,
-                Resources.Load<Sprite>("Moonlit/Main/ForestBattle-v1"));
+                Resources.Load<Sprite>("Moonlit/Main/EmptyCryptBattle-v1"));
             var safeFrame=Ui.Rect("Device Safe Area",mainCanvas.transform,0,0,1080,1920); Ui.Stretch(safeFrame);
             var design=Ui.Rect("Responsive content",safeFrame,0,0,1080,1920);
             var main=design.gameObject.AddComponent<MainScreen>(); main.font=font; main.design=design; main.icons=icons; main.slotArt=frame;
@@ -68,7 +68,6 @@ namespace Moonlit.UI
             var navigationBottom=Ui.Rect("Bottom navigation",navigationDesign,0,0,1080,PortraitSafeArea.BottomHeight);
             BuildNavigation(main,navigationBottom);
             for(int i=0;i<navigationBottom.childCount;i++) navigationBottom.GetChild(i).GetComponent<RectTransform>().anchoredPosition+=new Vector2(0,935);
-            BuildMotes(world);
             var safe=canvas.gameObject.AddComponent<PortraitSafeArea>(); safe.canvasRect=canvas.GetComponent<RectTransform>(); safe.safeFrame=safeFrame;
             safe.design=design; safe.bottomPanel=bottom; safe.battleViewport=world; safe.battleArt=worldArt.rectTransform;
             var pageHost=Ui.Rect("PageHost",canvas.transform,0,0,1080,1920); Ui.Stretch(pageHost);
@@ -99,16 +98,6 @@ namespace Moonlit.UI
         {
             var rim=Ui.Image("Notification",parent,x,y,size,size,circle,Ui.Ivory);
             Ui.Image("Red dot",rim.transform,2,2,size-4,size-4,circle,new Color(1,.08f,.08f)); return rim.gameObject;
-        }
-        void BuildMotes(Transform parent)
-        {
-            var group=Ui.Rect("Cyan drifting embers",parent,0,0,1080,1920);
-            var fx=group.gameObject.AddComponent<Atmosphere>(); var rects=new List<RectTransform>(); var images=new List<Image>();
-            for(int i=0;i<22;i++) {
-                float x=35+(i*179)%1010, y=500+(i*67)%450, size=3+i%4;
-                var image=Ui.Image("Ember "+i,group,x,y,size,size,circle,new Color(.22f,.85f,1,.5f)); rects.Add(image.rectTransform); images.Add(image);
-            }
-            fx.motes=rects.ToArray(); fx.lights=images.ToArray();
         }
     }
 }

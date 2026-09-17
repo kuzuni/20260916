@@ -71,9 +71,9 @@ Assign a different sprite to an item's `icon` field to reuse the slot with any f
 
 ## Artwork
 
-Main combat scenery uses the dedicated `Resources/Moonlit/Main/ForestBattle-v1.png`: a moonlit conifer forest and horizontal dirt trail, with the existing three-character party composition. Other pages/cards retain `MainScreenAssets.worldBackground`. The battle image follows the same elastic crop and does not change HUD/forge/navigation layout. Source reference and exact built-in imagegen edit prompt: `Documentation/UI/ForestBattle-v1-prompt.md`.
+Main combat scenery uses the dedicated `Resources/Moonlit/Main/EmptyCryptBattle-v1.png`: an empty stone crypt with ribbed arches, wall statues, warm torches and a cracked flagstone floor. No character, pet, monster or health bar is painted into this background; the previous cyan particle overlay is also removed. Other pages/cards retain `MainScreenAssets.worldBackground`. The battle image follows the same elastic crop and does not change HUD/forge/navigation layout. Source reference and exact built-in imagegen prompt: `Documentation/UI/EmptyCryptBattle-v1-prompt.md`. The older forest asset remains available for rollback.
 
-Production images were generated using the built-in image generation tool. Original prompts are in `Art/GENERATION.md`; reference-fidelity revision prompts are in `Art/GENERATION-v2.md` and `Art/CompanionFrame-v2-prompt.md`. New files use a v2 suffix, preserving the first-pass artwork. All project references use local assets. No reference screenshot is baked into the UI. The environment painting includes the hero and companions; animated embers are a separate UI layer.
+Production images were generated using the built-in image generation tool. Original prompts are in `Art/GENERATION.md`; reference-fidelity revision prompts are in `Art/GENERATION-v2.md` and `Art/CompanionFrame-v2-prompt.md`. Versioned files preserve earlier artwork. All project references use local assets. No reference screenshot is baked into the UI. The main battle viewport contains only its empty environment painting.
 
 Noto Sans KR and Noto Sans CJK KR Bold are bundled under the SIL Open Font License, included in `Fonts/OFL.txt`.
 

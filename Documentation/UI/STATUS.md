@@ -1,3 +1,10 @@
+## 2026-09-18 — requested empty crypt battle background
+
+- Automation moonlit-24-ui is PAUSED at the user's request. Do not restart recurring work or use older instructions below to resume it. This change responds only to the new explicit background request.
+- User supplied KakaoTalk_20260917_160742570.jpg and requested its environment style for the main battle viewport with no characters. Archived the original outside Assets as ArtReferences/MainBattleCrypt.jpg. Generated EmptyCryptBattle-v1.png with built-in imagegen; exact prompt and provenance in EmptyCryptBattle-v1-prompt.md.
+- Full generated image visually reviewed: broad empty cracked-stone floor, ribbed stone arches, background carved statues and warm wall torches. No player, monster, pet, health bars or baked UI. Copied output byte-for-byte; SHA256 matches. Runtime main loads the new independent sprite; cyan motes removed. Shared popup/page backgrounds and main controls are preserved.
+- Existing six-case runtime verification now checks the new resource and a background-only battle viewport. No new test suite for the art swap. Static diff/importer checks only so far; new-source hosted compilation and captures pending. Prior source cb4c00b workflow 35186285320 reports success, not evidence for this new asset.
+- Preserve the original checkout's 19 modified importer files, including ForestBattle-v1.png.meta. Retain the old forest asset for rollback. Local Unity is not executed or controlled. Overall UI acceptance is not reopened; handle further work on request.
 ## 2026-09-17 — shop header spacing
 
 - User requested more space between the shop title and daily specials. The old title ends at y=122 while the scroll viewport starts at y=120, so the frames nearly touch/overlap. Move the viewport start to y=180 (58 logical units of separation) and shorten its height by the same 60 units, retaining the navigation reserve and readable card/type sizes.

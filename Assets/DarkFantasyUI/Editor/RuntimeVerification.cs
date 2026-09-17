@@ -43,8 +43,10 @@ namespace Moonlit.Editor
                     if(bootstrap.Build()!=screen || Object.FindObjectsByType<MainScreen>(FindObjectsSortMode.None).Length!=1) throw new Exception("Bootstrap must be idempotent");
                     if(Mathf.Abs(safe.bottomPanel.rect.height-PortraitSafeArea.BottomHeight)>.1f) throw new Exception("Bottom controls changed aspect ratio");
                     var battleImage=safe.battleArt.GetComponent<Image>();
-                    if(!battleImage.sprite || battleImage.sprite.name!="ForestBattle-v1" || battleImage.raycastTarget)
-                        throw new Exception("Main battle must load its independent non-interactive forest scenery");
+                    if(!battleImage.sprite || battleImage.sprite.name!="EmptyCryptBattle-v1" || battleImage.raycastTarget)
+                        throw new Exception("Main battle must load its independent non-interactive empty crypt scenery");
+                    if(safe.battleViewport.childCount!=1 || safe.battleArt.parent!=safe.battleViewport)
+                        throw new Exception("Battle viewport must contain only the scenery, with no character or effect overlays");
                     if(battleImage.sprite==bootstrap.assets.worldBackground)
                         throw new Exception("Main battle scenery must not replace the shared page/card backdrop");
                     screen.Profile(); Canvas.ForceUpdateCanvases();
