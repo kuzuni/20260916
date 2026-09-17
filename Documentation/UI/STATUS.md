@@ -1,6 +1,16 @@
 # Moonlit 30 UI — coordinator status
 
-Updated 2026-09-17, 13:03 KST. Implementation is unfinished; 15-minute heartbeat remains active.
+Updated 2026-09-17, 13:25 KST. Implementation is unfinished; 15-minute heartbeat remains active.
+
+## Primitive footwrap identity and catalog layout
+
+- PR #57 source 630f732cfffb0dc47ce1f5d8b87302c00af4a708 merged as 9665ec92892191c45d884fb807cd78ed7d283334; original checkout synchronized retaining 11 user metadata edits by SHA256. Run 35180375627 artifact 10480860945 downloaded and parsed: actual XML 42 passed / 0 failed / 0 skipped. The pass backing pixel assertion and its new screenshots remain pending; do not count the unit-test result as that render check passing.
+- PR #56 graphics artifact 10480480781 downloaded: Verification.txt PASS and 68 PNGs. Viewed both chat ratios. The gold and horned helmet paintings render in separate ornate rims, without opaque atlas cells or missing sprites. Chat badge, bubble-tail and battle-attachment fidelity gaps remain.
+- Inspected originals 02-forge-probability-details.png and 03-forge-item-details.png at full resolution. The primitive catalog has 23 items, with footwraps in row four/column five. Existing code showed only 15 per tier and used a winged emblem for the footwrap fallback. Built-in imagegen created PrimitiveFootwrap-v1.png (1254x1254; outer alpha 0, center 253), saved unchanged with exact prompt/source provenance in PrimitiveFootwrap-v1-prompt.md.
+- Branch codex/forge-footwrap-reference adds a dedicated ItemDefinition asset for [원시적] 발 감싸기 with the reference 2000 health. Primitive catalog layout now has 23 slots, while four other existing demo tiers retain 15 each; scroll height follows the expanded rows. The footwrap entry occupies index 19. Each cell binds its displayed icon and child payload from one ItemDefinition, preventing divergent index-based artwork. Main equipped items are unchanged. Other catalog subjects still reuse existing art and are not visually complete.
+- Direct item-details capture and the catalog click use the same footwrap data. The detail preview uses existing reusable equipment frame art plus an independent generated boot and live star; health derives from the selected item instead of being hardcoded. The stats area now reuses the ornate panel at a thin border scale. Broader frame/tier catalog fidelity remains open.
+- Added a two-aspect hosted regression for catalog entry count, footwrap icon/name/health identity, child depth, surviving parent scroll and direct-capture fallback. Static diff and unique-meta checks passed; new-source import/tests and both-ratio item/catalog captures are pending. No local Unity execution.
+- Evidence: C:/Users/user/AppData/Local/Temp/moonlit-cloud-review/artifact-{10480860945,10480480781}/unpacked. Next heartbeat: review PR #57 pass render assertion/captures first, then this source test XML and item/catalog geometry. Continue the 30-screen reference audit with Dim 0.85 and preserve all original user edits.
 
 ## Pass painted backing occlusion fix
 

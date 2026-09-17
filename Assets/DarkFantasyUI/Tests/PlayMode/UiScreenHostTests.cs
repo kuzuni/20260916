@@ -43,6 +43,42 @@ namespace Moonlit.UI.Tests
         }
 
         [UnityTest]
+        public IEnumerator ForgeCatalog_FootwrapSelectionPreservesIdentityAndParentScroll()
+        {
+            ForgeScreenModule.Register(host.Registry);
+            var footwrap=Resources.Load<ItemDefinition>("Moonlit/Forge/PrimitiveFootwrap");
+            Assert.IsNotNull(footwrap);
+            Assert.IsNotNull(footwrap.icon);
+            foreach(int height in new[]{1920,2280}) {
+                host.SetPreviewMetrics(new Vector2Int(1080,height),new Rect(36,84,1008,height-168));
+                host.Registry.Open("forge-probability-details"); yield return null;
+                var parent=GameObject.Find("Popup Layer forge-probability-details");
+                var scroll=parent.GetComponentInChildren<ScrollRect>();
+                var cells=scroll.content.GetComponentsInChildren<Button>();
+                Assert.AreEqual(83,cells.Length,"23 primitive entries plus four existing 15-entry demo tiers");
+                var selected=cells.Single(b=>b.name=="Equipment 19");
+                Assert.AreSame(footwrap.icon,selected.transform.Find("Item icon").GetComponent<Image>().sprite);
+                scroll.verticalNormalizedPosition=.65f; Canvas.ForceUpdateCanvases();
+                selected.onClick.Invoke(); yield return null;
+                var child=GameObject.Find("Popup Layer forge-item-details");
+                var icon=child.GetComponentsInChildren<Image>().Single(i=>i.name=="Separate item icon");
+                Assert.AreSame(footwrap.icon,icon.sprite);
+                Assert.AreEqual(footwrap.displayName,child.GetComponentsInChildren<Text>().Single(t=>t.name=="Name").text);
+                Assert.AreEqual("2k 체력",child.GetComponentsInChildren<Text>().Single(t=>t.name=="Health").text);
+                Assert.AreEqual(2,host.ModalDepth);
+                host.CloseTop(); yield return null;
+                Assert.AreSame(parent,GameObject.Find("Popup Layer forge-probability-details"));
+                Assert.That(scroll.verticalNormalizedPosition,Is.EqualTo(.65f).Within(.02f));
+                host.CloseTop(); yield return null;
+                host.Registry.Open("forge-item-details"); yield return null;
+                child=GameObject.Find("Popup Layer forge-item-details");
+                Assert.AreSame(footwrap.icon,child.GetComponentsInChildren<Image>().Single(i=>i.name=="Separate item icon").sprite,
+                    "Direct reference capture must use the same footwrap as the catalog entry");
+                host.CloseTop(); yield return null;
+            }
+        }
+
+        [UnityTest]
         public IEnumerator Navigation_TogglesMatchingPage_AndRestoresIconOnEveryClosePath()
         {
             var screen=root.GetComponent<MainScreen>();
