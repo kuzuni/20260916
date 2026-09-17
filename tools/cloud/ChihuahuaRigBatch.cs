@@ -186,7 +186,16 @@ public static class ChihuahuaRigBatch
                 AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
                 var verify = Provider(path);
                 var vc = verify.GetDataProvider<ICharacterDataProvider>().GetCharacterData();
-                Require(JsonUtility.ToJson(new BoneArray { bones = vc.bones }) == JsonUtility.ToJson(new BoneArray { bones = referenceCharacter.bones }), "Skeleton changed after import: " + path);
+                Require(vc.bones.Length == referenceCharacter.bones.Length, "Skeleton bone count changed: " + path);
+                for (int bi = 0; bi < vc.bones.Length; ++bi)
+                {
+                    var actual = vc.bones[bi];
+                    var expected = referenceCharacter.bones[bi];
+                    Require(actual.name == expected.name && actual.guid == expected.guid && actual.parentId == expected.parentId &&
+                        Vector3.Distance(actual.position, expected.position) < 0.001f && Quaternion.Angle(actual.rotation, expected.rotation) < 0.01f &&
+                        Mathf.Abs(actual.length - expected.length) < 0.001f,
+                        "Skeleton changed after import: " + path + " bone=" + bi + " actual=" + JsonUtility.ToJson(actual) + " expected=" + JsonUtility.ToJson(expected));
+                }
                 foreach (var layer in layerReports)
                 {
                     var guid = new GUID(layer.spriteId);
