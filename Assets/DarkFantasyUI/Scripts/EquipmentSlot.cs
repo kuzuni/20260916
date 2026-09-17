@@ -21,6 +21,7 @@ namespace Moonlit.UI
         public GameObject selection;
         [Header("Optional initial binding (leave empty for an empty slot)")]
         public ItemDefinition item;
+        [NonSerialized] public EquipmentRoll roll;
         public int level;
         public bool isLocked;
         public bool hasNotification;
@@ -55,7 +56,7 @@ namespace Moonlit.UI
             notificationBadge.SetActive(occupied && hasNotification);
             if(categoryBadge) { categoryBadge.sprite=occupied ? item.categoryBadgeIcon : null; categoryBadge.transform.parent.gameObject.SetActive(occupied && !isLocked && item.categoryBadgeIcon!=null); }
             if(equipmentFrame) frame.sprite=occupied && item.rarity==ItemRarity.Companion && companionFrame ? companionFrame : equipmentFrame;
-            frame.color = !occupied ? new Color(.45f,.48f,.51f) : item.rarity==ItemRarity.Companion && companionFrame ? Color.white : RarityTint(item.rarity);
+            frame.color = roll != null ? EquipmentRules.TierColor(roll.tier) : !occupied ? new Color(.45f,.48f,.51f) : item.rarity==ItemRarity.Companion && companionFrame ? Color.white : RarityTint(item.rarity);
         }
 
         public static Color RarityTint(ItemRarity rarity)

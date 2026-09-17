@@ -26,7 +26,7 @@ namespace Moonlit.UI
         void BuildStage(MainScreen main,Transform parent)
         {
             main.stageButton=Ui.ArtButton("Stage selector",parent,320,146,440,120);
-            main.stageText=Ui.Text("Stage title",parent,290,146,500,58,"어려움 4-13",45,font,Color.white);
+            main.stageText=Ui.Text("Stage title",parent,290,146,500,58,"스테이지 1",45,font,Color.white);
             Ui.Image("Progress shadow",parent,409,222,256,17,null,new Color(0,.015f,.025f));
             Ui.Image("Progress cyan",parent,409,227,256,7,null,Ui.Cyan);
             for(int i=0;i<3;i++) {
@@ -38,26 +38,26 @@ namespace Moonlit.UI
             var eventIcon=Ui.ArtImage("Offline reward clock and chest",main.eventButton.transform,5,0,101,100,
                 Resources.Load<Sprite>("Moonlit/Main/OfflineRewardIcon-v1"));
             eventIcon.preserveAspect=true; main.eventButton.targetGraphic=eventIcon; main.eventButton.transition=Selectable.Transition.ColorTint;
-            Ui.Text("Event timer",main.eventButton.transform,-10,102,132,39,"5일 3시",29,font);
+            Ui.Text("Event timer",main.eventButton.transform,-10,102,132,39,"보상 수집",29,font);
             main.fairyButton=Ui.ArtButton("Progress pass — frameless",parent,934,349,120,130);
             var passIcon=Ui.ArtImage("Progress pass sword and pennant",main.fairyButton.transform,10,-8,100,100,
                 Resources.Load<Sprite>("Moonlit/Main/ProgressPassIcon-v1"));
             passIcon.preserveAspect=true; main.fairyButton.targetGraphic=passIcon; main.fairyButton.transition=Selectable.Transition.ColorTint;
-            Ui.Text("Gift timer",main.fairyButton.transform,-14,90,152,38,"47일 21시",27,font);
+            Ui.Text("Gift timer",main.fairyButton.transform,-14,90,152,38,"진행 패스",27,font);
         }
         void BuildForgeAndChat(MainScreen main,Transform parent)
         {
             // The anvil itself is the primary forge button. Its background contains no anvil.
             main.forgeButton=Ui.ArtButton("Anvil — forge button",parent,352,1341,384,263,assets.anvil);
             main.forgeLevelButton=Ui.ArtButton("Forge level — management button",parent,665,1434,192,108,panels[0],true,5.7f);
-            Ui.Text("Forge level",main.forgeLevelButton.transform,5,10,182,87,"대장간\n레벨 33",28,font,Color.white);
+            Ui.Text("Forge level",main.forgeLevelButton.transform,5,10,182,87,"대장간\n레벨 1",28,font,Color.white);
             main.autoButton=Ui.ArtButton("Automatic forging",parent,873,1434,130,108,panels[0],true,5.7f);
             main.autoText=Ui.Text("Auto label",main.autoButton.transform,4,8,122,41,"자동",27,font,Color.white);
             main.autoIcon=Ui.Image("Circular arrows",main.autoButton.transform,43,52,44,40,referenceIcons[11]); main.autoIcon.preserveAspect=true;
             main.autoIcon.rectTransform.pivot=new Vector2(.5f,.5f); main.autoIcon.rectTransform.anchoredPosition+=new Vector2(22,-20);
-            Ui.Text("Forge level timer",parent,675,1550,175,31,"1일 7시",21,font);
-            Ui.Image("Silver ingot",main.forgeButton.transform,105,193,41,40,referenceIcons[2]).preserveAspect=true;
-            main.oreText=Ui.Text("Stone amount",main.forgeButton.transform,150,190,145,45,"40351",31,font,Ui.Ivory,TextAnchor.MiddleLeft);
+            Ui.Text("Forge level timer",parent,675,1550,175,31,"레벨업 관리",21,font);
+            Ui.Image("Hammer currency",main.forgeButton.transform,105,193,41,40,PopupSkin.RewardIcon(0)).preserveAspect=true;
+            main.oreText=Ui.Text("Stone amount",main.forgeButton.transform,150,190,145,45,"1000",31,font,Ui.Ivory,TextAnchor.MiddleLeft);
             var info=Ui.ArtButton("Player details",parent,110,1347,45,45);
             main.playerDetailsButton=info;
             Ui.Image("Info bronze rim",info.transform,0,0,45,45,circle,Ui.Gold);

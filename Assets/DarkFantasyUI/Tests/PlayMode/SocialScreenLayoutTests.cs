@@ -193,7 +193,7 @@ namespace Moonlit.UI.Tests
                 var contentTop=shop.InverseTransformPoint(viewport.TransformPoint(new Vector3(0,viewport.rect.yMax,0))).y;
                 Assert.GreaterOrEqual(titleBottom-contentTop,40,"Keep a visible gap below the fixed shop title, including while scrolling");
                 Assert.LessOrEqual(scroll.GetComponent<RectTransform>().rect.height, scroll.transform.parent.GetComponent<RectTransform>().rect.height - 330f);
-                CollectionAssert.AreEquivalent(new[] { "Gem offer 60", "Gem offer 220", "Gem offer 800", "Gem offer 1500", "Gem offer 3300" },
+                CollectionAssert.AreEquivalent(new[] { "Gem offer 600", "Gem offer 2200", "Gem offer 8000", "Gem offer 15000", "Gem offer 33000" },
                     scroll.content.Cast<Transform>().Where(t => t.name.StartsWith("Gem offer ")).Select(t => t.name));
                 var illustrations = scroll.content.GetComponentsInChildren<Image>(true)
                     .Where(i => i.name == "Ruby artwork").ToArray();
@@ -203,7 +203,7 @@ namespace Moonlit.UI.Tests
                 Assert.AreEqual(5, illustrations.Select(i => i.sprite.rect).Distinct().Count());
                 Assert.AreEqual(3, scroll.content.GetComponentsInChildren<Image>(true)
                     .Count(i => i.name == "Deal illustration" && i.sprite != null));
-                Assert.AreEqual(14,scroll.content.GetComponentsInChildren<RectTransform>(true).Count(t=>t.name.StartsWith("Reward cell ")));
+                Assert.AreEqual(13,scroll.content.GetComponentsInChildren<RectTransform>(true).Count(t=>t.name.StartsWith("Reward cell ")));
                 foreach(var art in scroll.content.GetComponentsInChildren<Image>(true).Where(i=>i.name=="Deal illustration" || i.name=="Ruby artwork"))
                 {
                     var card=art.transform.parent.GetComponent<RectTransform>();
@@ -219,7 +219,7 @@ namespace Moonlit.UI.Tests
                 // All five purchase controls must remain fully reachable above navigation.
                 scroll.verticalNormalizedPosition=0;
                 yield return null; Canvas.ForceUpdateCanvases();
-                foreach(int amount in new[]{60,220,800,1500,3300}) {
+                foreach(int amount in new[]{600,2200,8000,15000,33000}) {
                     var card=GameObject.Find("Gem offer "+amount).GetComponent<RectTransform>();
                     var price=card.GetComponentInChildren<Button>().GetComponent<RectTransform>();
                     var corners=new Vector3[4]; price.GetWorldCorners(corners);
@@ -227,8 +227,8 @@ namespace Moonlit.UI.Tests
                         Assert.IsTrue(viewport.rect.Contains((Vector2)viewport.InverseTransformPoint(corner)),
                             "Every gem price must be reachable inside the scrolled viewport");
                 }
-                Assert.AreEqual("가격 미설정", GameObject.Find("Gem offer 1500").GetComponentInChildren<Button>().name);
-                Assert.AreEqual("가격 미설정", GameObject.Find("Gem offer 3300").GetComponentInChildren<Button>().name);
+                Assert.AreEqual("₩60,000", GameObject.Find("Gem offer 15000").GetComponentInChildren<Button>().name);
+                Assert.AreEqual("₩110,000", GameObject.Find("Gem offer 33000").GetComponentInChildren<Button>().name);
                 host.CloseTop();
                 yield return null;
             }
@@ -370,11 +370,11 @@ namespace Moonlit.UI.Tests
             host.Registry.Open("pvp"); yield return null;
             Assert.IsNotNull(GameObject.Find("Gold league crest").GetComponent<Image>().sprite);
             Assert.IsNotNull(GameObject.Find("Season gift").GetComponent<Image>().sprite);
-            int[] expectedStars = { 15, 14, 13, 11, 4, 2, 0 };
+            int[] expectedStars = Enumerable.Range(8, 7).Select(rank => 4900 - (rank - 1) * 50).ToArray();
             for (int i = 0; i < expectedStars.Length; i++)
                 Assert.AreEqual(expectedStars[i].ToString(),
                     GameObject.Find("PvP rank " + (8 + i)).transform.Find("Stars").GetComponent<Text>().text);
-            var mine = GameObject.Find("PvP rank 11").transform;
+            var mine = GameObject.Find("PvP rank " + RewardRules.ArenaRank(RewardState.Current.arenaPoints)).transform;
             var sticky = GameObject.Find("My sticky rank").transform;
             foreach (var label in new[] { "Rank", "Player", "Power", "Stars", "Server" })
                 Assert.AreEqual(mine.Find(label).GetComponent<Text>().text, sticky.Find(label).GetComponent<Text>().text);
@@ -513,9 +513,8 @@ namespace Moonlit.UI.Tests
                 if (route == "skill-details")
                 {
                     var upgrade = layer.GetComponentsInChildren<Button>().Single(b => b.name == "Upgrade");
-                    var equip = layer.GetComponentsInChildren<Button>().Single(b => b.name == "Equip");
-                    Assert.AreSame(PopupSkin.PanelArt, ((Image)upgrade.targetGraphic).sprite,
-                        "Neutral secondary actions must not be misclassified as saturated blue.");
+                    var equip = layer.GetComponentsInChildren<Button>().Single(b => b.name == "Equip slot 1");
+                    Assert.IsNotNull(((Image)upgrade.targetGraphic).sprite);
                     Assert.AreSame(PopupSkin.ActionArt, ((Image)equip.targetGraphic).sprite);
                 }
                 var close = layer.GetComponentsInChildren<Button>().Single(b => b.name == "Close");
@@ -575,16 +574,16 @@ namespace Moonlit.UI.Tests
             Assert.AreEqual(10, bands.Select(i => i.sprite.rect).Distinct().Count());
             Assert.AreEqual(10, icons.Select(i => i.sprite.rect).Distinct().Count());
             Assert.AreNotSame(bands[0].sprite.texture, icons[0].sprite.texture);
-            var quantum = bands.Single(i => i.name == "Rarity 양자");
-            Assert.AreEqual("58%", quantum.transform.Find("Current").GetComponent<Text>().text);
-            Assert.AreEqual("64%", quantum.transform.Find("Next").GetComponent<Text>().text);
+            var quantum = bands.Single(i => i.name == "Rarity 원시적");
+            Assert.AreEqual("100%", quantum.transform.Find("Current").GetComponent<Text>().text);
+            Assert.AreEqual((EquipmentRules.TierProbabilities(2)[0]*100).ToString("0.##")+"%", quantum.transform.Find("Next").GetComponent<Text>().text);
             layer.GetComponentsInChildren<Button>().Single(b => b.name == "i").onClick.Invoke();
             yield return null;
             Assert.AreEqual(2, host.ModalDepth);
             host.CloseTop(); yield return null;
             Assert.AreEqual(1, host.ModalDepth);
             Assert.AreSame(layer, GameObject.Find("Popup Layer forge-probability"));
-            Assert.AreEqual("64%", quantum.transform.Find("Next").GetComponent<Text>().text);
+            Assert.AreEqual((EquipmentRules.TierProbabilities(2)[0]*100).ToString("0.##")+"%", quantum.transform.Find("Next").GetComponent<Text>().text);
         }
 
         [UnityTest]

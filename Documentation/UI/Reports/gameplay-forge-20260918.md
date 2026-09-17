@@ -1,0 +1,17 @@
+# Forge gameplay implementation — 2026-09-18
+
+Implements the user's newer gameplay directions above older screenshot values. Real runtime uGUI uses the original tier strips, panels and separate thumbnail icons. Catalog covers 10 grades × 3 visual variants × 6 slots, and links all 162 supplied thumbnails. The final 18 celestial thumbnails are absent in supplied art and explicitly say artwork pending; no substituted old-tier icon is claimed as celestial artwork.
+
+EquipmentRules is the single numerical source for six-slot equipment and collection/combat consumers. Armor, hat and necklace grant health plus speed; earring, ring and weapon grant attack. Level growth is interpreted as multiplicative 10% per level. Every next-tier level 1 equals previous-tier level 100 × 2. Speed grows by 1 per level and follows the same tier boundary × 2 rule. All stats use double.
+
+Each rarity has its own capped 100 draw counter. Exact specified nine affix ranges, no duplicates, zero affixes before early modern, one until cosmos, then two. Grade labels/colors follow probability reference, final grade renamed 천상. Existing art folders remain ordinal mapped; their old thematic labels differ from gameplay grade names.
+
+Forge uses a moving rarity probability window, with exact impossible-grade zeros, primitive-only at level 1 and celestial 4% at level 35. Intermediate weights, sale values (10 × tier number + 2 × item level), gold segment costs (20 × forge level squared), 3–6 segments, and timer duration (10 seconds × 1.3 per level) are tuneable balancing assumptions because the user supplied no complete table.
+
+Gold segments → explicit timer start → countdown → explicit claim. Diamond cost is ceil(seconds / 6), corresponding to 10 diamonds/minute with integer rounding. Free skip 30 minutes up to four/day, using UTC date. Both modes leave explicit level claim.
+
+Runtime manual forge spends one hammer, runs the anvil animation for one second, displays overlapping equipment cards for half a second, then compares. Auto uses 1–99 hammers, keeps only matching grade/optional any-affix filter, shows a gold sale effect before repeating, and pauses for comparison at 25 or more saved matches (assumption based on the user's 10+11+5 = 26 example). Stop or exhausted hammers also flushes retained matches into comparison. Equip swaps top/current and bottom/pending cards; even clicks restore the original. Sale disposes only the unequipped card and grants gold. Empty slots expose equip only. Closing preserves pending equipment.
+
+Integration: MainScreen delegates anvil to ForgeRuntime.Ensure(main).BeginManual, auto start/stop to StartAuto/StopAuto and must remove its old auto loop. Initialize/load ForgeState.Current, then call SyncSlots. EquipmentSlot exposes public EquipmentRoll roll and uses its tier tint. Root coordinator owns wallet persistence, main empty/demo slots, pass/offline route replacements, and cloud CI.
+
+Tests added: ForgeRulesTests (10 meaningful tests): six-slot baselines, all-tier boundaries, every probability sum, exact zero/top probabilities, 2,000 affix samples, per-grade counters/cap, equip toggle and stale-sale rejection, empty-slot behavior, upgrade phases, diamond/free skip/day reset, retain threshold/filtering, JSON round trip. These tests have not been run locally: local Unity is prohibited. Cloud compile/playmode/modal/capture validation required, not yet claimed passed.

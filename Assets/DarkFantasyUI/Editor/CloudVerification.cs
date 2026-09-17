@@ -20,6 +20,7 @@ namespace Moonlit.Editor
 
         public static void Run()
         {
+            CombatAssetBuilder.Build();
             Directory.CreateDirectory("Artifacts");
             if (File.Exists("Artifacts/Verification.txt")) File.Delete("Artifacts/Verification.txt");
             SessionState.SetBool(ActiveKey, true);

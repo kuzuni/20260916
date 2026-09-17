@@ -8,6 +8,10 @@ namespace Moonlit.UI
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         public static void ResetSession()
         {
+            ForgeState.Current=new ForgeState();
+            CollectionProgression.Reset();
+            DungeonProgression.Reset();
+            RewardState.Current=new RewardState();
             ForgeScreenModule.ResetSession();
             ProgressionScreenModule.ResetSession();
             SocialScreenModule.ResetSession();
