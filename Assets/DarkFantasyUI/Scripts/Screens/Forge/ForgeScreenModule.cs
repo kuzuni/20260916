@@ -499,9 +499,15 @@ namespace Moonlit.UI
         {
             float h=Mathf.Min(1360,c.Height-240),w=940;
             var root=Ui.Rect("진행 패스 Dialog",c.Root,(c.Width-w)/2,(c.Height-h)/2+25,w,h);
-            PopupSkin.Panel("Pass stone frame",root,0,0,w,h);
-            Ui.ArtImage("Pass sword header",root,-15,-190,970,410,PopupSkin.PassHeaderArt).preserveAspect=true;
-            Ui.Text("Title",root,90,38,760,100,"진행 패스",52,Font(c));
+            var stone = c.Assets.panels!=null && c.Assets.panels.Length>4
+                ? c.Assets.panels[4] : PopupSkin.PanelArt;
+            var backing=Ui.Image("Pass stone backing",root,6,6,w-12,h-12,stone,new Color(.65f,.7f,.75f,1));
+            backing.type=Image.Type.Tiled;
+            backing.raycastTarget=true;
+            var rim=PopupSkin.Panel("Pass stone frame",root,0,0,w,h);
+            rim.fillCenter=false;
+            Ui.ArtImage("Pass sword header",root,20,-162,900,381,PopupSkin.PassHeaderArt).preserveAspect=true;
+            Ui.Text("Title",root,90,46,760,100,"진행 패스",52,Font(c));
             var b=Ui.Rect("Live content",root,30,155,880,h-215);
             Ui.Text("Prompt",b,20,0,390,110,"전투를 진행하여 보상을\n받으세요!",30,Font(c));
             var purchase=Ui.ArtButton("₩13,900",b,465,4,375,100,PopupSkin.GoldActionArt,true,8);
