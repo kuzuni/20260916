@@ -1,6 +1,15 @@
 # Moonlit 30 UI — coordinator status
 
-Updated 2026-09-17, 11:52 KST. Implementation is unfinished; 15-minute heartbeat remains active.
+Updated 2026-09-17, 12:17 KST. Implementation is unfinished; 15-minute heartbeat remains active.
+
+## Forge texture visibility and item-detail footer spacing
+
+- PR #54 source 1724617f21912f08c775839f6b3326efda225645 merged as d4d7c2e1a59401072bcea6dc4f922e914a0ccff3; original checkout synchronized with all 11 user metadata edits preserved by SHA256. Run 35176069489, downloaded artifact 10479315994: actual XML 42 passed / 0 failed / 0 skipped, including new chat channel/draft/scroll/local-message regression. Chat captures remain pending.
+- PR #53 graphics artifact 10478059865 downloaded: Verification.txt PASS, 68 PNGs. Viewed dungeon detail 9:16, forge item detail 9:19 and summon probability details 9:16 with their actual parent contexts. Reports confirm modal depths 1, 3 and 2 respectively; navigation is blocked. Narrower dungeon hero rim exposes the banner, and stacked dim layers render. Remaining frame/art differences are still open.
+- Inspected original 03-forge-item-details.png at full resolution. The current next-tier row reached beyond the usable body and crowded the close button. Increased this dialog height from 990 to 1050, retaining stat layout, and replaced its space-padded glyph line with separate existing tier artwork, label and right-aligned chance. Reference item subject and broader stat-panel/frame styling remain approximate.
+- Investigated the flat-looking pass stone from PR #52: source Frame_04 samples have alpha 252-253 and dark RGB around 26-35, so transparency loss is not established as the cause. Branch codex/pass-stone-rendering instead uses the full cracked face of existing Frame_02, excluding its border, with white tint and a larger repeat scale. Runtime sprite crop follows imported rect/border dimensions and the cache is reset between sessions. This is a targeted visibility revision; actual rendering must be reviewed in new hosted captures before claiming it resolved.
+- Static diff check passed. No new tests for these decorative/spacing edits; existing hosted import/modal/capture workflow required. No local Unity execution or new bitmap generation. Source images remain unchanged.
+- Evidence: C:/Users/user/AppData/Local/Temp/moonlit-cloud-review/artifact-{10479315994,10478059865,10478012713}/unpacked. Next heartbeat: inspect PR #54 chat captures and this source XML, then both pass and item-detail captures. Confirm stone texture visibility, footer/close gap, new chat visual/input state and remaining nested routes; continue all 30-screen fidelity with Dim 0.85 and original user edits preserved.
 
 ## Chat reference layout and local channel behavior
 
