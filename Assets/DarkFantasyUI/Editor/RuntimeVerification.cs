@@ -118,6 +118,13 @@ namespace Moonlit.Editor
                 if(!layer || !routeRoot || routeRoot.rect.height<=0 || (host.ActivePageKey!=route && host.ModalDepth!=expectedDepth))
                 { report.Add("FAIL route "+route+" did not build in a resized safe layer"); fail(); yield break; }
                 SaveCamera(camera,"Artifacts/Runtime-"+route+"-"+(aspect==0?"9x16":"9x19")+".png",1080,heights[aspect]);
+                foreach(var label in layer.GetComponentsInChildren<Text>()) {
+                    if(string.IsNullOrWhiteSpace(label.text) || !label.text.Any(char.IsLetterOrDigit)) continue;
+                    if(label.preferredHeight>label.rectTransform.rect.height+4)
+                        report.Add("REVIEW typography "+route+" "+heights[aspect]+" "+label.name+
+                            " font="+label.fontSize+" preferredHeight="+label.preferredHeight.ToString("0.0")+
+                            " boxHeight="+label.rectTransform.rect.height.ToString("0.0"));
+                }
                 bool navigationFailed = false;
                 try
                 {

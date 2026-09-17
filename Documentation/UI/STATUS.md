@@ -1,3 +1,11 @@
+## 2026-09-17 — user-requested larger typography and centered shop products (in progress)
+
+- User reports shop illustrations leaning to one side and text too small across the UI. Confirmed the installed uGUI Image implementation positions preserve-aspect slack using the RectTransform pivot; shop art inherited the top-left pivot. Centered product artwork without moving the card or changing its hit target, preserving the separate atlas sprites/rims.
+- Shared runtime type increases 25%, capped at +8 logical units. Main serialized slot labels explicitly use the same policy without compounding on rebind/restart. Symbol-only glyphs retain size. Expanded the skill description box and positioned the rarity star using measured title width.
+- Removed chat's 16–25 best-fit shrink. Message bubbles and following rows grow from measured text height; channel drafts, counts and scroll state still belong to their existing channel.
+- Added hosted regressions for actual gem mesh centers at both safe aspect ratios and an 80-character Korean chat message followed by another message. Route captures now record typography review candidates where preferred text height exceeds its box. This is review evidence, not automatic visual acceptance.
+- Static diff review only so far; new cloud compile, PlayMode tests and 68 captures remain pending. Previous head has 43 passing tests; those do not validate these new edits. Original local Unity has not been run or controlled. Preserve all 19 local metadata edits when integrating.
+- This branch also includes the preceding forge tier header art and item-detail crown removal. Other reference artwork/fidelity work remains incomplete. Keep the 15-minute heartbeat active.
 # Moonlit 30 UI — coordinator status
 
 Updated 2026-09-17, 14:06 KST. Implementation is unfinished; 15-minute heartbeat remains active.

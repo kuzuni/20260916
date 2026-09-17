@@ -51,6 +51,10 @@ namespace Moonlit.UI
                 var slot=Object.Instantiate(assets.equipmentSlotPrefab,slotRoot);
                 slot.name=assets.items[i].displayName+" Slot";
                 var rect=slot.GetComponent<RectTransform>(); rect.anchoredPosition=new Vector2(122+col*171,-(65+row*177)); rect.sizeDelta=new Vector2(i==8 ? 320 : 148,148);
+                // Serialized slot labels bypass Ui.Text at runtime. Set the design size explicitly
+                // so repeat bindings and domain-reload-free Play sessions never compound scaling.
+                slot.levelLabel.fontSize=Ui.ReadableFontSize(32);
+                slot.levelLabel.rectTransform.anchorMax=new Vector2(1,.38f);
                 slot.Bind(assets.items[i],-1,i==0,i==8); slots.Add(slot);
             }
             main.equipment=slots.ToArray();

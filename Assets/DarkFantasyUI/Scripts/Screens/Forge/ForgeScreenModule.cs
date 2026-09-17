@@ -421,7 +421,7 @@ namespace Moonlit.UI
                 claim.interactable = false;
                 claim.GetComponentInChildren<Text>().text = "수집 완료"; c.Toast("골드 +174 · 강화석 +2 수집 완료");
             });
-            claim.GetComponentInChildren<Text>().fontSize = 42;
+            claim.GetComponentInChildren<Text>().fontSize = Ui.ReadableFontSize(42);
             claim.interactable = !c.Main.offlineRewardsClaimed;
         }
 

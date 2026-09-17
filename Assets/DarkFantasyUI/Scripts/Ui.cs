@@ -35,10 +35,31 @@ namespace Moonlit.UI
             }
             return image;
         }
+        public static void CenterAspect(Image image)
+        {
+            // uGUI uses the RectTransform pivot to place the unused preserve-aspect space.
+            // Move the pivot without moving the rectangle or changing its hit area.
+            var rect = image.rectTransform;
+            var center = new Vector2(.5f, .5f);
+            rect.anchoredPosition += Vector2.Scale(center - rect.pivot, rect.rect.size);
+            rect.pivot = center;
+            image.preserveAspect = true;
+        }
+        public static int ReadableFontSize(int designSize)
+            => designSize + Mathf.Min(8, Mathf.RoundToInt(designSize * .25f));
+
+        static bool IsSymbol(string value)
+        {
+            if (string.IsNullOrEmpty(value)) return false;
+            if (value == "i") return true;
+            foreach (char character in value)
+                if (char.IsLetterOrDigit(character)) return false;
+            return true;
+        }
         public static Text Text(string name, Transform parent, float x, float y, float w, float h, string value, int size, Font font, Color? color = null, TextAnchor align = TextAnchor.MiddleCenter)
         {
             var t = Rect(name,parent,x,y,w,h).gameObject.AddComponent<Text>();
-            t.font = font; t.fontSize = size; t.fontStyle = FontStyle.Bold;
+            t.font = font; t.fontSize = IsSymbol(value) ? size : ReadableFontSize(size); t.fontStyle = FontStyle.Bold;
             t.text = value; t.color = color ?? Ivory; t.alignment = align;
             t.raycastTarget = false; t.horizontalOverflow = HorizontalWrapMode.Wrap;
             t.verticalOverflow = VerticalWrapMode.Overflow;

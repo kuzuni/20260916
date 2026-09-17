@@ -19,6 +19,10 @@ The optional Unity MCP server no longer starts automatically (`ProjectSettings/M
 
 ## Responsive portrait layout and Safe Area
 
+Runtime typography enlarges original design sizes by 25%, capped at eight additional logical units per label (25 → 31, 32 → 40, 44 → 52). This applies to the main HUD, feature pages and dialogs, including independently instantiated equipment labels. Symbol-only close/back/star controls keep their designed size. Long chat messages wrap into taller bubbles instead of shrinking the type. All sizes remain in the shared 1080-unit layout.
+
+Shop product art uses a centered RectTransform pivot with unchanged outer bounds. Unity uGUI uses this pivot for preserve-aspect placement, so narrow gem bags no longer stick to the left edge of their card.
+
 Both 9:16 (1080 × 1920) and 9:19 (1080 × 2280) use a 1080-unit logical width. The HUD anchors to the safe top, and the equipment/forge/chat/navigation block anchors to the safe bottom. Additional height expands the battle viewport; buttons retain their proportions. The scenery fills the screen and is cropped proportionally instead of stretched.
 
 `PortraitSafeArea` reads `Screen.safeArea` and the current screen dimensions before rendering and on each update, so OS-reported camera cutouts, notches, home-indicator insets and size changes are respected. Interactive controls and centered dialogs live inside that safe rectangle; decorative scenery may extend behind system areas. There is a compact-layout fallback for unusually short viewports. Preview overrides exist only in Editor builds.

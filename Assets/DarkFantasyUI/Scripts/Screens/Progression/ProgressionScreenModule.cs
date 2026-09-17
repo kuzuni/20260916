@@ -209,7 +209,7 @@ namespace Moonlit.UI
             Ui.Text("Name", panel, 305, 86, 550, 64, "[서사시] " + skill.name, 34, font, Green, TextAnchor.MiddleLeft);
             Ui.Text("Passive", panel, 60, 330, 800, 50, "패시브:", 28, font, Ui.Gold, TextAnchor.MiddleLeft);
             Panel(panel, 60, 388, 800, 92, skill.passive, font, 25);
-            var description = Ui.Text("Description", panel, 305, 155, 540, 130, "전장에 마력을 펼쳐 모든 적에게 강력한 피해를 줍니다.\n현재 레벨 " + skill.level, 25, font, Ui.Ivory, TextAnchor.UpperLeft);
+            var description = Ui.Text("Description", panel, 305, 155, 540, 165, "전장에 마력을 펼쳐 모든 적에게 강력한 피해를 줍니다.\n현재 레벨 " + skill.level, 25, font, Ui.Ivory, TextAnchor.UpperLeft);
             Button upgrade = null;
             upgrade = PopupSkin.Button("Upgrade", panel, 80, h - 150, 350, 86, skill.IsMaxLevel ? "최대 레벨" : "업그레이드", font, () => {
                 if (!skill.owned) { ctx.Toast("먼저 스킬을 획득하세요."); return; }
@@ -267,8 +267,8 @@ namespace Moonlit.UI
                 rim.type=Image.Type.Sliced; rim.fillCenter=false; rim.pixelsPerUnitMultiplier=18;
                 var header=Ui.Image("Rarity header",scroll.content,20,yy,760,60,PopupSkin.PanelArt,colors[g]);
                 header.type=Image.Type.Sliced; header.pixelsPerUnitMultiplier=12;
-                Ui.Text("Rarity name",scroll.content,60,yy+4,330,52,groups[g],28,font,Ui.Ivory,TextAnchor.MiddleLeft);
-                Ui.Text("Rarity star",scroll.content,60+groups[g].Length*28+14,yy+4,44,52,"★",30,font,Gold);
+                var rarityName=Ui.Text("Rarity name",scroll.content,60,yy+4,330,52,groups[g],28,font,Ui.Ivory,TextAnchor.MiddleLeft);
+                Ui.Text("Rarity star",scroll.content,60+rarityName.preferredWidth+14,yy+4,44,52,"★",30,font,Gold);
                 Ui.Text("Rarity chance",scroll.content,550,yy+4,190,52,totals[g],28,font,Ui.Ivory,TextAnchor.MiddleRight);
                 for (var j = 0; j < 3; j++) {
                     var skill = Skills[SkillDisplayOrder[g * 3 + j]];

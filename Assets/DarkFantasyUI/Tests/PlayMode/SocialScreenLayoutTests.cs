@@ -34,6 +34,9 @@ namespace Moonlit.UI.Tests
             screen.enabled = false;
             assets = ScriptableObject.CreateInstance<MainScreenAssets>();
             assets.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+#if UNITY_EDITOR
+            assets.font = UnityEditor.AssetDatabase.LoadAssetAtPath<Font>("Assets/DarkFantasyUI/Fonts/NotoSansCJKkr-Bold.otf");
+#endif
             // Minimal wallet sprite injection; hosted captures use the real serialized catalog.
             assets.interfaceIcons = new[] { PopupSkin.CloseArt, PopupSkin.CloseArt };
             screen.font = assets.font;
@@ -110,6 +113,61 @@ namespace Moonlit.UI.Tests
                 GameObject.Find("Chat back").GetComponent<Button>().onClick.Invoke(); yield return null;
                 Assert.AreEqual(0,host.ModalDepth);
                 Assert.IsNull(GameObject.Find("Chat"));
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator Chat_LongKoreanMessageKeepsReadableTypeAndExpandsBubble()
+        {
+            foreach (int height in new[] { 1920, 2280 })
+            {
+                host.SetPreviewMetrics(new Vector2Int(1080,height),new Rect(36,84,1008,height-168));
+                host.Registry.Open("chat"); yield return null;
+                var chat=GameObject.Find("Chat");
+                var input=chat.GetComponentInChildren<InputField>();
+                var send=chat.GetComponentsInChildren<Button>().Single(b=>b.name=="전송");
+                input.text=new string('가',80);
+                send.onClick.Invoke(); yield return null; Canvas.ForceUpdateCanvases();
+                var message=chat.GetComponentsInChildren<Text>().Last(t=>t.name=="Message");
+                Assert.GreaterOrEqual(message.fontSize,31);
+                Assert.IsFalse(message.resizeTextForBestFit,"Long messages must grow instead of shrinking the type");
+                Assert.LessOrEqual(message.preferredHeight,message.rectTransform.rect.height+1);
+                var bubble=message.transform.parent.GetComponent<RectTransform>();
+                Assert.Greater(bubble.rect.height,100);
+                input.text="다음 메시지"; send.onClick.Invoke(); yield return null;
+                var next=chat.GetComponentsInChildren<Text>().Last(t=>t.name=="Message").transform.parent.GetComponent<RectTransform>();
+                Assert.Greater(-next.anchoredPosition.y,-bubble.anchoredPosition.y+bubble.rect.height);
+                host.CloseTop(); yield return null;
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator Shop_GemMeshesStayCenteredWhileScrollingAtBothAspectRatios()
+        {
+            foreach (int height in new[] { 1920,2280 })
+            {
+                host.SetPreviewMetrics(new Vector2Int(1080,height),new Rect(36,84,1008,height-168));
+                host.Registry.Open("shop"); yield return null;
+                var shop=GameObject.Find("Shop page");
+                var scroll=shop.GetComponentInChildren<ScrollRect>();
+                scroll.verticalNormalizedPosition=0;
+                yield return null; Canvas.ForceUpdateCanvases();
+                foreach (var art in shop.GetComponentsInChildren<Image>().Where(i=>i.name=="Ruby artwork"))
+                {
+                    var mesh=new Mesh();
+                    try
+                    {
+                        art.canvasRenderer.GetMesh(mesh);
+                        Assert.Greater(mesh.vertexCount,0,"The scrolled offer must actually render");
+                        mesh.RecalculateBounds();
+                        var card=art.transform.parent.GetComponent<RectTransform>();
+                        var center=card.InverseTransformPoint(art.transform.TransformPoint(mesh.bounds.center));
+                        Assert.That(center.x,Is.EqualTo(card.rect.center.x).Within(1),"Product drawing must be centered, including narrow gem bags");
+                        Assert.That(mesh.bounds.center.y,Is.EqualTo(art.rectTransform.rect.center.y).Within(1));
+                    }
+                    finally { Object.DestroyImmediate(mesh); }
+                }
+                host.CloseTop(); yield return null;
             }
         }
 
