@@ -99,6 +99,7 @@ namespace Moonlit.UI
                     var item=new EquipmentRoll {tier=tier,level=Math.Max(1,ForgeState.Current.draws[tier]),variant=n/6,part=(EquipmentPart)(n%6)};
                     float x=15+n%4*180,y=top+82+n/4*151;
                     var slot=Action(c,content,x,y,155,112,"",()=>c.Open("forge-item-details",item),EquipmentRules.TierColor(tier));
+                    slot.name="Equipment "+tier+" "+item.variant+" "+item.part;
                     var icon=EquipmentArt.Icon(item);
                     if(icon)Ui.Image("Thumbnail",slot.transform,14,7,126,92,icon).preserveAspect=true;
                     else Ui.Text("Pending art",slot.transform,6,20,143,74,"썸네일\n준비 중",21,Font(c));

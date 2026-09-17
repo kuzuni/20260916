@@ -22,7 +22,7 @@ namespace Moonlit.UI
             if(!main)return;
             main.autoForge=ForgeState.Current.autoEnabled;
             main.forgeLevel=ForgeState.Current.level;
-            if(!Busy && ForgeState.Current.autoEnabled && main.screens.ModalDepth==0) {
+            if(!Busy && ForgeState.Current.autoEnabled && main.screens!=null && main.screens.ModalDepth==0) {
                 if(ForgeState.Current.ShouldCompare) { ForgeState.Current.autoEnabled=false;main.screens.Open("forge-comparison"); }
                 else StartCoroutine(Cycle(true));
             }
@@ -42,7 +42,7 @@ namespace Moonlit.UI
         public void StopAuto()
         {
             ForgeState.Current.autoEnabled=false;main.autoForge=false;main.Refresh();
-            if(!Busy && ForgeState.Current.Pending!=null && main.screens.ModalDepth==0)main.screens.Open("forge-comparison");
+            if(!Busy && ForgeState.Current.Pending!=null && main.screens!=null && main.screens.ModalDepth==0)main.screens.Open("forge-comparison");
         }
         IEnumerator Cycle(bool automatic)
         {
