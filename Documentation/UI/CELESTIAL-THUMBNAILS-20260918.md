@@ -1,0 +1,7 @@
+# Celestial equipment thumbnails
+
+Twelve missing isolated illustrations were generated with the built-in imagegen tool using each supplied celestial rigging PNG as style/equipment reference: three hats and nine earrings/necklaces/rings. All twelve were visually inspected; white/gold style, class gemstones (Thief green, Warrior blue, Assassin purple), transparent margins, and absence of characters/text were checked. Native PNGs are 1254x1254 ARGB; transparent corner alpha was verified from files. Exact prompts, reference paths, output mapping, and cloud blob identities are recorded in CELESTIAL-THUMBNAIL-PROVENANCE-20260918.json.
+
+Six armor/weapon images must be produced by the explicit cloud-only `Moonlit.Editor.CelestialThumbnailBuilder.Build()` before runtime validation. It reads the supplied celestial `layers.json` bounding boxes and `rigging_original.png` pixels, preserving original art on centered transparent512px squares. It imports all eighteen as single sprites with max texture size512. No source files under Assets/Art are modified.
+
+Coordinator integration: use `Resources.Load<Sprite>("Moonlit/Forge/CelestialThumbnails/" + EquipmentRules.VariantFolders[variant] + "/" + partLowercase)` for tier9 before legacy atlas fallback. Invoke the builder in the authorized Unity6000.3.8f1 cloud preparation job and retain its generated sixPNG artifacts (metas already provided). Verify all eighteen Resources sprites load and appear in the equipment catalog/compare cards. This work does not claim a Unity pass before that cloud run.

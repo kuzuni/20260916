@@ -43,7 +43,7 @@ namespace Moonlit.UI
         }
         public void ResetDaily(DateTime now)
         {
-            string day=now.ToString("yyyy-MM-dd");
+            string day=now.ToUniversalTime().AddHours(9).ToString("yyyy-MM-dd");
             if(freeSkipDay==day)return;freeSkipDay=day;freeSkipsUsed=0;
         }
         public bool FreeSkip(DateTime now)
@@ -68,6 +68,54 @@ namespace Moonlit.UI
             if(!filterEnabled)return true;
             foreach(var affix in item.affixes)if((affixMask&(1<<(int)affix.kind))!=0)return true;
             return false;
+        }
+        public int CompleteAutoBatch(IReadOnlyList<EquipmentRoll> batch)
+        {
+            int gold=0;
+            foreach(var item in batch) {
+                // Settlement is idempotent and never sells an already equipped item.
+                if(item==null || !pending.Contains(item) || Array.Exists(equipped,e=>e!=null && e.id==item.id))continue;
+                if(!Matches(item) && pending.Remove(item))gold+=EquipmentRules.SaleGold(item);
+            }
+            return gold;
+        }
+        public void NormalizeAfterLoad()
+        {
+            level=Math.Max(1,Math.Min(35,level));
+            filledSegments=Math.Max(0,Math.Min(Segments,filledSegments));
+            upgradeEndsUtcTicks=Math.Max(0,upgradeEndsUtcTicks);
+            freeSkipsUsed=Math.Max(0,Math.Min(4,freeSkipsUsed));
+            batchSize=Math.Max(1,Math.Min(99,batchSize));affixMask&=511;
+            autoEnabled=false; // A restored queue is reviewed before new hammers are spent.
+            if(draws==null)draws=new int[10];else if(draws.Length!=10)Array.Resize(ref draws,10);
+            for(int i=0;i<10;i++)draws[i]=Math.Max(0,Math.Min(100,draws[i]));
+            if(keepTiers==null)keepTiers=new[]{true,true,true,true,true,true,true,true,true,true};
+            else if(keepTiers.Length!=10)Array.Resize(ref keepTiers,10);
+            var oldEquipment=equipped;equipped=new EquipmentRoll[6];
+            var identities=new HashSet<int>();nextId=Math.Max(0,nextId);
+            if(oldEquipment!=null)foreach(var item in oldEquipment) {
+                if(!ValidSavedItem(item) || equipped[(int)item.part]!=null || !identities.Add(item.id))continue;
+                NormalizeItem(item);equipped[(int)item.part]=item;
+            }
+            var oldPending=pending;pending=new List<EquipmentRoll>();
+            if(oldPending!=null)foreach(var item in oldPending) {
+                if(!ValidSavedItem(item) || !identities.Add(item.id))continue;
+                NormalizeItem(item);pending.Add(item);
+            }
+        }
+        static bool ValidSavedItem(EquipmentRoll item)
+            => item!=null && item.id>0 && item.tier>=0 && item.tier<10 && (int)item.part>=0 && (int)item.part<6;
+        void NormalizeItem(EquipmentRoll item)
+        {
+            item.level=Math.Max(1,Math.Min(100,item.level));item.variant=Math.Max(0,Math.Min(2,item.variant));
+            nextId=Math.Max(nextId,item.id);draws[item.tier]=Math.Max(draws[item.tier],item.level);
+            var affixes=new List<EquipmentAffix>();var kinds=new HashSet<EquipmentAffixKind>();
+            if(item.affixes!=null)foreach(var a in item.affixes) {
+                if(a==null || (int)a.kind<0 || (int)a.kind>=9 || !kinds.Add(a.kind))continue;
+                if(affixes.Count>=EquipmentRules.AffixCount(item.tier))break;
+                a.percent=Math.Max(1,Math.Min(EquipmentRules.AffixMaximums[(int)a.kind],a.percent));affixes.Add(a);
+            }
+            item.affixes=affixes.ToArray();
         }
         public bool ShouldCompare => pending.Count>0 && (!continueAfterMatch || pending.Count>=25);
         public EquipmentRoll Pending => pending.Count>0 ? pending[0] : null;

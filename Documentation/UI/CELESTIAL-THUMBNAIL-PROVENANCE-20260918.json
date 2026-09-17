@@ -1,0 +1,194 @@
+{
+  "purpose": "Missing10_Holy equipment thumbnails only; supplied Art files left unchanged",
+  "generated": [
+    {
+      "output": "Assets/DarkFantasyUI/Resources/Moonlit/Forge/CelestialThumbnails/Thief/hat.png",
+      "reference": "Assets/Art/ChihuahuaEquipmentThemes/10_Holy/Thief/rigging_original.png",
+      "prompt": "Use case: stylized-concept. Asset type: one transparent square inventory icon for the Moonlit game, celestial Thief hat. Input image is a STYLE AND EQUIPMENT REFERENCE only; make only the requested separate item, never a character. Primary request: a compact ivory cloth rogue cap with a thin antique gold band and one emerald diamond seal. Match the supplied cartoon equipment's hand-painted cel shading, clean bold dark outlines, soft ivory material, polished warm gold edges and emerald green gem. Composition: one isolated object centered, completely visible, approximately 76 percent of canvas, generous transparent margins, square canvas. Background must be genuinely transparent alpha. No character, no face, no ears, no hands, no body, no mannequin, no text, no numbers, no slot frame, no badge, no extra objects, no cast shadow plane, no watermarks. For headwear preserve the exact compact shape and single gemstone design worn by the reference, remove all wearer pixels and show a natural hollow interior.",
+      "tool": "image_gen.imagegen",
+      "generatedAt": "2026-09-18",
+      "sourceFile": "C:\\Users\\user\\.codex\\generated_images\\01a0b1a8-3b60-75b1-9a0d-2b769f3bf9fa\\exec-fd302c7e-4be3-47ee-b517-7994abec0306.png",
+      "blobSha": "26a62725f38b05cc190dce2ea93feb58a11db289",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "alpha": "32-bit ARGB; corner alpha verified0",
+      "visualReview": "Accepted: isolated full item, transparent margins, no text or wearer; class gem color matches reference."
+    },
+    {
+      "output": "Assets/DarkFantasyUI/Resources/Moonlit/Forge/CelestialThumbnails/Thief/earring.png",
+      "reference": "Assets/Art/ChihuahuaEquipmentThemes/10_Holy/Thief/rigging_original.png",
+      "prompt": "Use case: stylized-concept. Asset type: one transparent square inventory icon for the Moonlit game, celestial Thief earring. Input image is a STYLE AND EQUIPMENT REFERENCE only; make only the requested separate item, never a character. Primary request: one single small gold earring with one emerald green gemstone, matching the reference celestial equipment ornament. Match the supplied cartoon equipment's hand-painted cel shading, clean bold dark outlines, soft ivory material, polished warm gold edges and emerald green gem. Composition: one isolated object centered, completely visible, approximately 76 percent of canvas, generous transparent margins, square canvas. Background must be genuinely transparent alpha. No character, no face, no ears, no hands, no body, no mannequin, no text, no numbers, no slot frame, no badge, no extra objects, no cast shadow plane, no watermarks. For headwear preserve the exact compact shape and single gemstone design worn by the reference, remove all wearer pixels and show a natural hollow interior.",
+      "tool": "image_gen.imagegen",
+      "generatedAt": "2026-09-18",
+      "sourceFile": "C:\\Users\\user\\.codex\\generated_images\\01a0b1a8-3b60-75b1-9a0d-2b769f3bf9fa\\exec-eb3d7c6e-b912-46d5-9257-f2075882428f.png",
+      "blobSha": "5755f54b82ee327ad05e5f72dddf5f96a36b638c",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "alpha": "32-bit ARGB; corner alpha verified0",
+      "visualReview": "Accepted: isolated full item, transparent margins, no text or wearer; class gem color matches reference."
+    },
+    {
+      "output": "Assets/DarkFantasyUI/Resources/Moonlit/Forge/CelestialThumbnails/Thief/necklace.png",
+      "reference": "Assets/Art/ChihuahuaEquipmentThemes/10_Holy/Thief/rigging_original.png",
+      "prompt": "Use case: stylized-concept. Asset type: one transparent square inventory icon for the Moonlit game, celestial Thief necklace. Input image is a STYLE AND EQUIPMENT REFERENCE only; make only the requested separate item, never a character. Primary request: one short fine gold necklace arranged as an oval chain with a celestial emerald green gemstone pendant. Match the supplied cartoon equipment's hand-painted cel shading, clean bold dark outlines, soft ivory material, polished warm gold edges and emerald green gem. Composition: one isolated object centered, completely visible, approximately 76 percent of canvas, generous transparent margins, square canvas. Background must be genuinely transparent alpha. No character, no face, no ears, no hands, no body, no mannequin, no text, no numbers, no slot frame, no badge, no extra objects, no cast shadow plane, no watermarks. For headwear preserve the exact compact shape and single gemstone design worn by the reference, remove all wearer pixels and show a natural hollow interior.",
+      "tool": "image_gen.imagegen",
+      "generatedAt": "2026-09-18",
+      "sourceFile": "C:\\Users\\user\\.codex\\generated_images\\01a0b1a8-3b60-75b1-9a0d-2b769f3bf9fa\\exec-7f84b57e-5890-455a-a780-b23ba5bd9d64.png",
+      "blobSha": "ef8eb46620628d74c8795aaadf55fff46fdcd0a1",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "alpha": "32-bit ARGB; corner alpha verified0",
+      "visualReview": "Accepted: isolated full item, transparent margins, no text or wearer; class gem color matches reference."
+    },
+    {
+      "output": "Assets/DarkFantasyUI/Resources/Moonlit/Forge/CelestialThumbnails/Thief/ring.png",
+      "reference": "Assets/Art/ChihuahuaEquipmentThemes/10_Holy/Thief/rigging_original.png",
+      "prompt": "Use case: stylized-concept. Asset type: one transparent square inventory icon for the Moonlit game, celestial Thief ring. Input image is a STYLE AND EQUIPMENT REFERENCE only; make only the requested separate item, never a character. Primary request: one gold finger ring in three-quarter view with a single prominent emerald green gemstone and ivory enamel band. Match the supplied cartoon equipment's hand-painted cel shading, clean bold dark outlines, soft ivory material, polished warm gold edges and emerald green gem. Composition: one isolated object centered, completely visible, approximately 76 percent of canvas, generous transparent margins, square canvas. Background must be genuinely transparent alpha. No character, no face, no ears, no hands, no body, no mannequin, no text, no numbers, no slot frame, no badge, no extra objects, no cast shadow plane, no watermarks. For headwear preserve the exact compact shape and single gemstone design worn by the reference, remove all wearer pixels and show a natural hollow interior.",
+      "tool": "image_gen.imagegen",
+      "generatedAt": "2026-09-18",
+      "sourceFile": "C:\\Users\\user\\.codex\\generated_images\\01a0b1a8-3b60-75b1-9a0d-2b769f3bf9fa\\exec-d904fa1c-fec9-4faa-869d-91c4f7cc105c.png",
+      "blobSha": "045d466e5debee0a942b925933f65357c012f843",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "alpha": "32-bit ARGB; corner alpha verified0",
+      "visualReview": "Accepted: isolated full item, transparent margins, no text or wearer; class gem color matches reference."
+    },
+    {
+      "output": "Assets/DarkFantasyUI/Resources/Moonlit/Forge/CelestialThumbnails/Warrior/hat.png",
+      "reference": "Assets/Art/ChihuahuaEquipmentThemes/10_Holy/Warrior/rigging_original.png",
+      "prompt": "Use case: stylized-concept. Asset type: one transparent square inventory icon for the Moonlit game, celestial Warrior hat. Input image is a STYLE AND EQUIPMENT REFERENCE only; make only the requested separate item, never a character. Primary request: a compact ivory-gold open-face paladin helmet with low sapphire sun crest, curved side guards, no horns or plume. Match the supplied cartoon equipment's hand-painted cel shading, clean bold dark outlines, soft ivory material, polished warm gold edges and sapphire blue gem. Composition: one isolated object centered, completely visible, approximately 76 percent of canvas, generous transparent margins, square canvas. Background must be genuinely transparent alpha. No character, no face, no ears, no hands, no body, no mannequin, no text, no numbers, no slot frame, no badge, no extra objects, no cast shadow plane, no watermarks. For headwear preserve the exact compact shape and single gemstone design worn by the reference, remove all wearer pixels and show a natural hollow interior.",
+      "tool": "image_gen.imagegen",
+      "generatedAt": "2026-09-18",
+      "sourceFile": "C:\\Users\\user\\.codex\\generated_images\\01a0b1a8-3b60-75b1-9a0d-2b769f3bf9fa\\exec-4acc4436-09c7-4346-b6cf-16affadc5e94.png",
+      "blobSha": "e2a89309d41a7b58845d474babe29cbca1a17ba7",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "alpha": "32-bit ARGB; corner alpha verified0",
+      "visualReview": "Accepted: isolated full item, transparent margins, no text or wearer; class gem color matches reference."
+    },
+    {
+      "output": "Assets/DarkFantasyUI/Resources/Moonlit/Forge/CelestialThumbnails/Warrior/earring.png",
+      "reference": "Assets/Art/ChihuahuaEquipmentThemes/10_Holy/Warrior/rigging_original.png",
+      "prompt": "Use case: stylized-concept. Asset type: one transparent square inventory icon for the Moonlit game, celestial Warrior earring. Input image is a STYLE AND EQUIPMENT REFERENCE only; make only the requested separate item, never a character. Primary request: one single small gold earring with one sapphire blue gemstone, matching the reference celestial equipment ornament. Match the supplied cartoon equipment's hand-painted cel shading, clean bold dark outlines, soft ivory material, polished warm gold edges and sapphire blue gem. Composition: one isolated object centered, completely visible, approximately 76 percent of canvas, generous transparent margins, square canvas. Background must be genuinely transparent alpha. No character, no face, no ears, no hands, no body, no mannequin, no text, no numbers, no slot frame, no badge, no extra objects, no cast shadow plane, no watermarks. For headwear preserve the exact compact shape and single gemstone design worn by the reference, remove all wearer pixels and show a natural hollow interior.",
+      "tool": "image_gen.imagegen",
+      "generatedAt": "2026-09-18",
+      "sourceFile": "C:\\Users\\user\\.codex\\generated_images\\01a0b1a8-3b60-75b1-9a0d-2b769f3bf9fa\\exec-8d5b848f-d367-401a-bf76-bb4bd9ebed01.png",
+      "blobSha": "6675e206d9fae2e2b01cbab2b721e69c26adc01e",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "alpha": "32-bit ARGB; corner alpha verified0",
+      "visualReview": "Accepted: isolated full item, transparent margins, no text or wearer; class gem color matches reference."
+    },
+    {
+      "output": "Assets/DarkFantasyUI/Resources/Moonlit/Forge/CelestialThumbnails/Warrior/necklace.png",
+      "reference": "Assets/Art/ChihuahuaEquipmentThemes/10_Holy/Warrior/rigging_original.png",
+      "prompt": "Use case: stylized-concept. Asset type: one transparent square inventory icon for the Moonlit game, celestial Warrior necklace. Input image is a STYLE AND EQUIPMENT REFERENCE only; make only the requested separate item, never a character. Primary request: one short fine gold necklace arranged as an oval chain with a celestial sapphire blue gemstone pendant. Match the supplied cartoon equipment's hand-painted cel shading, clean bold dark outlines, soft ivory material, polished warm gold edges and sapphire blue gem. Composition: one isolated object centered, completely visible, approximately 76 percent of canvas, generous transparent margins, square canvas. Background must be genuinely transparent alpha. No character, no face, no ears, no hands, no body, no mannequin, no text, no numbers, no slot frame, no badge, no extra objects, no cast shadow plane, no watermarks. For headwear preserve the exact compact shape and single gemstone design worn by the reference, remove all wearer pixels and show a natural hollow interior.",
+      "tool": "image_gen.imagegen",
+      "generatedAt": "2026-09-18",
+      "sourceFile": "C:\\Users\\user\\.codex\\generated_images\\01a0b1a8-3b60-75b1-9a0d-2b769f3bf9fa\\exec-832d475d-09e7-4e11-a1a2-1276f60e9a33.png",
+      "blobSha": "2fd79c7c0d7212a068a9d111f32a4b39ef9687bc",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "alpha": "32-bit ARGB; corner alpha verified0",
+      "visualReview": "Accepted: isolated full item, transparent margins, no text or wearer; class gem color matches reference."
+    },
+    {
+      "output": "Assets/DarkFantasyUI/Resources/Moonlit/Forge/CelestialThumbnails/Warrior/ring.png",
+      "reference": "Assets/Art/ChihuahuaEquipmentThemes/10_Holy/Warrior/rigging_original.png",
+      "prompt": "Use case: stylized-concept. Asset type: one transparent square inventory icon for the Moonlit game, celestial Warrior ring. Input image is a STYLE AND EQUIPMENT REFERENCE only; make only the requested separate item, never a character. Primary request: one gold finger ring in three-quarter view with a single prominent sapphire blue gemstone and ivory enamel band. Match the supplied cartoon equipment's hand-painted cel shading, clean bold dark outlines, soft ivory material, polished warm gold edges and sapphire blue gem. Composition: one isolated object centered, completely visible, approximately 76 percent of canvas, generous transparent margins, square canvas. Background must be genuinely transparent alpha. No character, no face, no ears, no hands, no body, no mannequin, no text, no numbers, no slot frame, no badge, no extra objects, no cast shadow plane, no watermarks. For headwear preserve the exact compact shape and single gemstone design worn by the reference, remove all wearer pixels and show a natural hollow interior.",
+      "tool": "image_gen.imagegen",
+      "generatedAt": "2026-09-18",
+      "sourceFile": "C:\\Users\\user\\.codex\\generated_images\\01a0b1a8-3b60-75b1-9a0d-2b769f3bf9fa\\exec-72f7cdf3-5b0e-4733-8e36-ac6d5408cbe9.png",
+      "blobSha": "77ac53f7152747a6e4243947f8e14c518e0230c6",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "alpha": "32-bit ARGB; corner alpha verified0",
+      "visualReview": "Accepted: isolated full item, transparent margins, no text or wearer; class gem color matches reference."
+    },
+    {
+      "output": "Assets/DarkFantasyUI/Resources/Moonlit/Forge/CelestialThumbnails/Assassin/hat.png",
+      "reference": "Assets/Art/ChihuahuaEquipmentThemes/10_Holy/Assassin/rigging_original.png",
+      "prompt": "Use case: stylized-concept. Asset type: one transparent square inventory icon for the Moonlit game, celestial Assassin hat. Input image is a STYLE AND EQUIPMENT REFERENCE only; make only the requested separate item, never a character. Primary request: a close-fitting pearl-white assassin cowl with thin gold brow trim and one violet lozenge seal, no fabric tails. Match the supplied cartoon equipment's hand-painted cel shading, clean bold dark outlines, soft ivory material, polished warm gold edges and amethyst purple gem. Composition: one isolated object centered, completely visible, approximately 76 percent of canvas, generous transparent margins, square canvas. Background must be genuinely transparent alpha. No character, no face, no ears, no hands, no body, no mannequin, no text, no numbers, no slot frame, no badge, no extra objects, no cast shadow plane, no watermarks. For headwear preserve the exact compact shape and single gemstone design worn by the reference, remove all wearer pixels and show a natural hollow interior.",
+      "tool": "image_gen.imagegen",
+      "generatedAt": "2026-09-18",
+      "sourceFile": "C:\\Users\\user\\.codex\\generated_images\\01a0b1a8-3b60-75b1-9a0d-2b769f3bf9fa\\exec-ebcd80c8-1ae0-4aff-9f64-86cba499ac5d.png",
+      "blobSha": "cadcf1decaec9b23de21f4ee3015a1c761fb8b0f",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "alpha": "32-bit ARGB; corner alpha verified0",
+      "visualReview": "Accepted: isolated full item, transparent margins, no text or wearer; class gem color matches reference."
+    },
+    {
+      "output": "Assets/DarkFantasyUI/Resources/Moonlit/Forge/CelestialThumbnails/Assassin/earring.png",
+      "reference": "Assets/Art/ChihuahuaEquipmentThemes/10_Holy/Assassin/rigging_original.png",
+      "prompt": "Use case: stylized-concept. Asset type: one transparent square inventory icon for the Moonlit game, celestial Assassin earring. Input image is a STYLE AND EQUIPMENT REFERENCE only; make only the requested separate item, never a character. Primary request: one single small gold earring with one amethyst purple gemstone, matching the reference celestial equipment ornament. Match the supplied cartoon equipment's hand-painted cel shading, clean bold dark outlines, soft ivory material, polished warm gold edges and amethyst purple gem. Composition: one isolated object centered, completely visible, approximately 76 percent of canvas, generous transparent margins, square canvas. Background must be genuinely transparent alpha. No character, no face, no ears, no hands, no body, no mannequin, no text, no numbers, no slot frame, no badge, no extra objects, no cast shadow plane, no watermarks. For headwear preserve the exact compact shape and single gemstone design worn by the reference, remove all wearer pixels and show a natural hollow interior.",
+      "tool": "image_gen.imagegen",
+      "generatedAt": "2026-09-18",
+      "sourceFile": "C:\\Users\\user\\.codex\\generated_images\\01a0b1a8-3b60-75b1-9a0d-2b769f3bf9fa\\exec-fe83b291-98c6-4ad2-9ed3-2b45eaed94e2.png",
+      "blobSha": "cccd73cb53b40deee13326ec7ef7ef8da3dc9548",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "alpha": "32-bit ARGB; corner alpha verified0",
+      "visualReview": "Accepted: isolated full item, transparent margins, no text or wearer; class gem color matches reference."
+    },
+    {
+      "output": "Assets/DarkFantasyUI/Resources/Moonlit/Forge/CelestialThumbnails/Assassin/necklace.png",
+      "reference": "Assets/Art/ChihuahuaEquipmentThemes/10_Holy/Assassin/rigging_original.png",
+      "prompt": "Use case: stylized-concept. Asset type: one transparent square inventory icon for the Moonlit game, celestial Assassin necklace. Input image is a STYLE AND EQUIPMENT REFERENCE only; make only the requested separate item, never a character. Primary request: one short fine gold necklace arranged as an oval chain with a celestial amethyst purple gemstone pendant. Match the supplied cartoon equipment's hand-painted cel shading, clean bold dark outlines, soft ivory material, polished warm gold edges and amethyst purple gem. Composition: one isolated object centered, completely visible, approximately 76 percent of canvas, generous transparent margins, square canvas. Background must be genuinely transparent alpha. No character, no face, no ears, no hands, no body, no mannequin, no text, no numbers, no slot frame, no badge, no extra objects, no cast shadow plane, no watermarks. For headwear preserve the exact compact shape and single gemstone design worn by the reference, remove all wearer pixels and show a natural hollow interior.",
+      "tool": "image_gen.imagegen",
+      "generatedAt": "2026-09-18",
+      "sourceFile": "C:\\Users\\user\\.codex\\generated_images\\01a0b1a8-3b60-75b1-9a0d-2b769f3bf9fa\\exec-257db655-9256-4e15-8f88-b6ee07ca077a.png",
+      "blobSha": "0b58b793de1d9261a90039751872fed2e9c7f2f7",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "alpha": "32-bit ARGB; corner alpha verified0",
+      "visualReview": "Accepted: isolated full item, transparent margins, no text or wearer; class gem color matches reference."
+    },
+    {
+      "output": "Assets/DarkFantasyUI/Resources/Moonlit/Forge/CelestialThumbnails/Assassin/ring.png",
+      "reference": "Assets/Art/ChihuahuaEquipmentThemes/10_Holy/Assassin/rigging_original.png",
+      "prompt": "Use case: stylized-concept. Asset type: one transparent square inventory icon for the Moonlit game, celestial Assassin ring. Input image is a STYLE AND EQUIPMENT REFERENCE only; make only the requested separate item, never a character. Primary request: one gold finger ring in three-quarter view with a single prominent amethyst purple gemstone and ivory enamel band. Match the supplied cartoon equipment's hand-painted cel shading, clean bold dark outlines, soft ivory material, polished warm gold edges and amethyst purple gem. Composition: one isolated object centered, completely visible, approximately 76 percent of canvas, generous transparent margins, square canvas. Background must be genuinely transparent alpha. No character, no face, no ears, no hands, no body, no mannequin, no text, no numbers, no slot frame, no badge, no extra objects, no cast shadow plane, no watermarks. For headwear preserve the exact compact shape and single gemstone design worn by the reference, remove all wearer pixels and show a natural hollow interior.",
+      "tool": "image_gen.imagegen",
+      "generatedAt": "2026-09-18",
+      "sourceFile": "C:\\Users\\user\\.codex\\generated_images\\01a0b1a8-3b60-75b1-9a0d-2b769f3bf9fa\\exec-e69dce1a-517d-4ece-8eed-c0f38711a791.png",
+      "blobSha": "8877500cf0fc77f0ed9b7067d9c39973fa4eee83",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "alpha": "32-bit ARGB; corner alpha verified0",
+      "visualReview": "Accepted: isolated full item, transparent margins, no text or wearer; class gem color matches reference."
+    }
+  ],
+  "sourceCrops": {
+    "builder": "Moonlit.Editor.CelestialThumbnailBuilder.Build",
+    "parts": {
+      "armor": "Body",
+      "weapon": "Weapon"
+    },
+    "count": 6,
+    "method": "Read supplied layers.json bounding box, convert top-left to bottom-left texture coordinates, preserve original pixels and alpha, center in512x512 transparent image. No synthesis/rescaling of source equipment."
+  }
+}

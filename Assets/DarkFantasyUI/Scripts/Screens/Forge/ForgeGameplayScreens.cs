@@ -99,6 +99,7 @@ namespace Moonlit.UI
                     var item=new EquipmentRoll {tier=tier,level=Math.Max(1,ForgeState.Current.draws[tier]),variant=n/6,part=(EquipmentPart)(n%6)};
                     float x=15+n%4*180,y=top+82+n/4*151;
                     var slot=Action(c,content,x,y,155,112,"",()=>c.Open("forge-item-details",item),EquipmentRules.TierColor(tier));
+                    slot.name="Equipment "+item.tier+" "+item.variant+" "+item.part;
                     var icon=EquipmentArt.Icon(item);
                     if(icon)Ui.Image("Thumbnail",slot.transform,14,7,126,92,icon).preserveAspect=true;
                     else Ui.Text("Pending art",slot.transform,6,20,143,74,"썸네일\n준비 중",21,Font(c));
@@ -186,7 +187,7 @@ namespace Moonlit.UI
             Ui.Text("Continue label",b,10,1310,624,88,"목표 장비를 찾아도 제련 계속하기\n25개 이상 보관 시 배치 완료 후 비교",24,Font(c),Ui.Ivory,TextAnchor.MiddleLeft);
             Ui.Text("Filter help",b,12,1410,690,120,"체크한 등급과 옵션이 일치하는 장비만 보관합니다.\n그 외 장비는 골드로 자동 판매합니다.\n원시 / 중세 장비는 추가 옵션이 없습니다.",23,Font(c),Ui.Ivory,TextAnchor.UpperLeft);
             Action(c,b,174,1570,370,100,s.autoEnabled?"정지":"시작",()=>{
-                if(s.autoEnabled){ForgeRuntime.Ensure(c.Main).StopAuto();c.Close();if(s.Pending!=null)c.Open("forge-comparison");return;}
+                if(s.autoEnabled){var runtime=ForgeRuntime.Ensure(c.Main);runtime.StopAuto();c.Close();if(!runtime.Busy && s.Pending!=null)c.Open("forge-comparison");return;}
                 if(!Array.Exists(s.keepTiers,value=>value)){c.Toast("유지할 등급을 선택하세요.");return;}
                 if(s.filterEnabled && s.affixMask==0){c.Toast("추가 옵션 필터를 선택하세요.");return;}
                 c.Close();ForgeRuntime.Ensure(c.Main).StartAuto();

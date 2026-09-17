@@ -80,7 +80,7 @@ namespace Moonlit.UI
                 int index=i;float y=i*178;
                 Ui.Text("Stage milestone "+i,content,295,y,240,40,"스테이지 "+((i+1)*5),25,c.Assets.font,Ui.Gold);
                 var left=PopupSkin.IllustratedCard("Hammer reward "+i,content,8,y+42,332,126,Resources.Load<Sprite>("Moonlit/Social/ProfileRuins-v1"),new Color(.5f,.65f,.8f));
-                Ui.ArtImage("Hammer",left,18,14,86,86,PopupSkin.RewardIcon(0)).preserveAspect=true;
+                Ui.ArtImage("Hammer",left,18,14,86,86,HammerArt).preserveAspect=true;
                 Ui.Text("Amount",left,112,24,200,65,"망치 100",29,c.Assets.font);
                 var right=PopupSkin.IllustratedCard("Ticket reward "+i,content,356,y+42,332,126,Resources.Load<Sprite>("Moonlit/Social/ProfileRuins-v1"),new Color(.5f,.65f,.8f));
                 Ui.ArtImage("Ticket",right,10,23,70,70,Resources.Load<Sprite>("Moonlit/Skills/SummonTicket-v1")).preserveAspect=true;

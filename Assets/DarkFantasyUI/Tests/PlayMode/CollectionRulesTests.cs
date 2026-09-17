@@ -62,6 +62,26 @@ namespace Moonlit.UI.Tests
             Assert.AreEqual(full.attack/2,skills[1].FixedDamage);Assert.AreEqual(full.attack*1.5,skills[2].FixedDamage);
             skills[2].level=100;Assert.AreEqual(EquipmentRules.FullSetStats(0,100).attack*1.5,skills[2].FixedDamage);
         }
+        [Test] public void JsonRestoreRetainsUnlockedZeroFragmentEntryAndIndependentSummonProgress()
+        {
+            var entry=CollectionProgression.Data.categories[1].entries[0];
+            entry.unlocked=true;entry.fragments=2;Assert.IsTrue(entry.Upgrade());
+            Assert.IsTrue(CollectionProgression.Equip(entry,2));
+            CollectionProgression.Data.categories[2].summonLevel=12;
+            CollectionProgression.Data.categories[2].experience=7;
+            double owned=CollectionProgression.OwnedHealth,equipped=CollectionProgression.EquippedHealth;
+            string json=UnityEngine.JsonUtility.ToJson(CollectionProgression.Data);
+            CollectionProgression.Reset();
+            UnityEngine.JsonUtility.FromJsonOverwrite(json,CollectionProgression.Data);
+            var restored=CollectionProgression.Data.categories[1].entries[0];
+            Assert.IsTrue(restored.unlocked);Assert.AreEqual(0,restored.fragments);Assert.AreEqual(2,restored.level);
+            Assert.AreEqual(0,CollectionProgression.Data.categories[1].equipped[2]);
+            Assert.AreEqual(12,CollectionProgression.Data.categories[2].summonLevel);
+            Assert.AreEqual(7,CollectionProgression.Data.categories[2].experience);
+            Assert.AreEqual(1,CollectionProgression.Data.categories[0].summonLevel);
+            Assert.AreEqual(owned,CollectionProgression.OwnedHealth);
+            Assert.AreEqual(equipped,CollectionProgression.EquippedHealth);
+        }
         [Test] public void EquipHasCategoryCapAndNoDuplicates()
         {
             var pets=CollectionProgression.Data.categories[1].entries;foreach(var entry in pets.Take(3))entry.unlocked=true;

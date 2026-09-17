@@ -68,29 +68,50 @@ namespace Moonlit.UI
             }
             anvil.localScale=originalScale;
             var host=(RectTransform)main.design;
-            var cards=Ui.Rect("Forged equipment hand",host,40,host.rect.height*.39f,1000,360);
-            int rows=Mathf.CeilToInt(count/22f);
+            int columns=count<=12?count:count<=24?Mathf.CeilToInt(count/2f):22;
+            int rows=Mathf.CeilToInt(count/(float)columns);
+            float size=Mathf.Min(118,940/(1+(columns-1)*.5f)),cardHeight=size*1.4f,pitch=cardHeight*.75f;
+            var cards=Ui.Rect("Forged equipment hand",host,40,host.rect.height*.39f,1000,(rows-1)*pitch+cardHeight+60);
             for(int i=0;i<count;i++) {
-                var item=items[i];int row=i/22,col=i%22,n=Math.Min(22,count-row*22);
-                float size=118,step=Mathf.Min(60,(940-size)/Mathf.Max(1,n-1));
-                var card=Ui.Image("Forged card "+item.id,cards,30+col*step,row*58,size,166,PopupSkin.PanelArt,EquipmentRules.TierColor(item.tier));
+                var item=items[i];int row=i/columns,col=i%columns,n=Math.Min(columns,count-row*columns);
+                float step=size*.5f,left=(1000-(n-1)*step-size)*.5f;
+                var card=Ui.Image("Forged card "+item.id,cards,left+col*step,row*pitch,size,cardHeight,PopupSkin.PanelArt,EquipmentRules.TierColor(item.tier));
                 card.type=Image.Type.Sliced;card.pixelsPerUnitMultiplier=8;
-                Ui.Image("Equipment thumbnail",card.transform,8,12,102,102,EquipmentArt.Icon(item)).preserveAspect=true;
-                Ui.Text("Level",card.transform,2,122,114,38,"Lv."+item.level,22,main.font);
+                Ui.Image("Equipment thumbnail",card.transform,8,8,size-16,size-16,EquipmentArt.Icon(item)).preserveAspect=true;
+                Ui.Text("Level",card.transform,2,size,size-4,cardHeight-size,"Lv."+item.level,Mathf.RoundToInt(size*.19f),main.font);
             }
-            Ui.Text("Batch count",cards,20,rows*58+170,940,44,count+"개 제작 · 보관 "+state.pending.Count+"개",28,main.font);
+            Ui.Text("Batch count",cards,20,(rows-1)*pitch+cardHeight+8,940,44,count+"개 제작 · 보관 "+state.pending.Count+"개",28,main.font);
             yield return new WaitForSecondsRealtime(.5f);
             Destroy(cards.gameObject);
             int sold=0;
             if(automatic) {
-                foreach(var item in items)if(!state.Matches(item)) { sold+=EquipmentRules.SaleGold(item);state.pending.Remove(item); }
+                sold=state.CompleteAutoBatch(items);
                 if(sold>0) {
                     main.gold=(int)Math.Min(int.MaxValue,(long)main.gold+sold);main.Refresh();
                     var effect=Ui.Text("Gold sale effect",host,220,host.rect.height*.42f,640,80,"골드 +"+sold,44,main.font,Ui.Gold);
                     var effectGroup=effect.gameObject.AddComponent<CanvasGroup>();effectGroup.blocksRaycasts=false;
+                    var coinRoot=Ui.Rect("Gold coin burst",host,220,host.rect.height*.42f,640,130);
+                    var coinGroup=coinRoot.gameObject.AddComponent<CanvasGroup>();coinGroup.blocksRaycasts=false;
+                    var source=main.goldButton?main.goldButton.transform.Find("Crown coin"):null;
+                    var coinSprite=source?source.GetComponent<Image>().sprite:null;
+                    var coins=new RectTransform[coinSprite?8:0];
+                    for(int i=0;i<coins.Length;i++) {
+                        var coin=Ui.Image("Sale coin "+i,coinRoot,290,30,46,46,coinSprite);
+                        coin.preserveAspect=true;coins[i]=coin.rectTransform;
+                    }
                     float t=0;
-                    while(t<.55f) {t+=Time.unscaledDeltaTime;effect.rectTransform.anchoredPosition+=Vector2.up*Time.unscaledDeltaTime*140;effectGroup.alpha=1-t/.55f;yield return null;}
-                    Destroy(effect.gameObject);
+                    while(t<.55f) {
+                        t+=Time.unscaledDeltaTime;float progress=Mathf.Clamp01(t/.55f);
+                        effect.rectTransform.anchoredPosition+=Vector2.up*Time.unscaledDeltaTime*140;effectGroup.alpha=1-progress;
+                        coinGroup.alpha=1-progress;
+                        for(int i=0;i<coins.Length;i++) {
+                            float spread=(i-(coins.Length-1)*.5f)*44;
+                            coins[i].anchoredPosition=new Vector2(290+spread*progress,-30+Mathf.Sin(progress*Mathf.PI)*100+progress*90);
+                            coins[i].localRotation=Quaternion.Euler(0,0,(i%2==0?1:-1)*progress*220);
+                        }
+                        yield return null;
+                    }
+                    Destroy(coinRoot.gameObject);Destroy(effect.gameObject);
                 }
             }
             Busy=false;main.forgeButton.interactable=true;main.Refresh();

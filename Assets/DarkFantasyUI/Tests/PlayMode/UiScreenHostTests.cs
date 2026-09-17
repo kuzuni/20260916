@@ -58,6 +58,7 @@ namespace Moonlit.UI.Tests
                 var scroll=parent.GetComponentInChildren<ScrollRect>();
                 var cells=scroll.content.GetComponentsInChildren<Button>();
                 Assert.AreEqual(180,cells.Length,"10 tiers × 3 art variants × 6 equipment parts");
+                foreach(var cell in cells) Assert.IsNotNull(cell.transform.Find("Thumbnail").GetComponent<Image>().sprite, cell.name+" must have its own equipment artwork");
                 var selected=cells.Single(b=>b.name=="Equipment 0 0 Armor");
                 Assert.AreSame(thumbnail,selected.transform.Find("Thumbnail").GetComponent<Image>().sprite);
                 scroll.verticalNormalizedPosition=.65f; Canvas.ForceUpdateCanvases();

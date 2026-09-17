@@ -35,6 +35,7 @@ namespace Moonlit.UI
         public void Bind(ItemDefinition definition, int itemLevel = -1, bool locked = false, bool notify = false)
         {
             item = definition;
+            if (definition == null) roll = null;
             level = definition == null ? 0 : (itemLevel < 0 ? definition.startingLevel : itemLevel);
             isLocked = definition != null && locked;
             hasNotification = definition != null && notify;

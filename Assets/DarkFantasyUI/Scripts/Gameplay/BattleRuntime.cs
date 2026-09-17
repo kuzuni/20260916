@@ -116,11 +116,14 @@ namespace Moonlit.UI
             var design = main.design as RectTransform;
             float height = Mathf.Max(110, design.rect.height - PortraitSafeArea.BottomHeight - 495);
             view.sizeDelta = new Vector2(1080, height);
+            // The last-action label extends to y=136; hide only this secondary line in the compact fallback.
+            actionText.gameObject.SetActive(height >= 150);
             if (renderCamera)
             {
                 renderCamera.orthographicSize = Mathf.Max(2, height / 200f);
                 renderCamera.aspect = 1080 / height;
-                renderCamera.transform.localPosition = new Vector3(0, Mathf.Min(1.7f, height / 400f), -12);
+                // Compact Safe Areas must keep the complete 2.55-unit actor (plus skill lift) in frame.
+                renderCamera.transform.localPosition = new Vector3(0, Mathf.Clamp(height / 400f, 1.35f, 1.7f), -12);
             }
             if (appearance) appearance.Refresh(ForgeState.Current.equipped);
             RefreshHealth();

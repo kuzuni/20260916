@@ -1,5 +1,7 @@
 # 30-screen reference catalog
 
+> 2026-09-18 gameplay update: [current game rules](../Gameplay-20260918.md) supersede screenshot/demo economy, equipment, collection, combat and reward values. The 30 reference routes and safe-area contracts remain in effect. Three primitive skill effects are implemented; higher skill and pet/mount illustrations remain deferred by user request.
+
 The user supplied 24 initial images and six additional profile/settings dialogs on 2026-09-17, explicitly making their filenames the screen and navigation requirements. Full original names are preserved in reference-manifest.json. Short ASCII filenames avoid Windows path limits. Reference PNGs are byte-for-byte copies, outside Assets so Unity does not import them into the player.
 
 Read the corresponding original image at full resolution before implementing. These are visual references, not runtime backgrounds containing baked UI. Create real controls, text, scroll lists, independent item icons, reusable empty slot frames and separate decorative art.

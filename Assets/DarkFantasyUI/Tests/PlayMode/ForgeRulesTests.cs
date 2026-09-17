@@ -103,5 +103,69 @@ namespace Moonlit.UI.Tests
             Assert.AreEqual(state.Pending.id,restored.Pending.id);Assert.AreEqual(100,restored.draws[8]);
             Assert.AreEqual(1,restored.Pending.affixes.Length);
         }
+        [Test] public void FreeSkipsResetAtKoreanMidnightNotUtcMidnight()
+        {
+            var before=new DateTime(2026,9,18,14,59,59,DateTimeKind.Utc);
+            var state=new ForgeState {freeSkipDay="2026-09-18",freeSkipsUsed=4};
+            state.ResetDaily(before);Assert.AreEqual(4,state.freeSkipsUsed);
+            state.ResetDaily(before.AddSeconds(1));Assert.AreEqual(0,state.freeSkipsUsed);
+            Assert.AreEqual("2026-09-19",state.freeSkipDay);
+            state.freeSkipsUsed=4;
+            state.ResetDaily(new DateTime(2026,9,19,0,0,0,DateTimeKind.Utc));
+            Assert.AreEqual(4,state.freeSkipsUsed,"UTC midnight is 09:00 in the same Korean day");
+        }
+        [Test] public void ThreeTwentyTwoItemBatchesRetainTenElevenFiveBeforeComparison()
+        {
+            var state=new ForgeState {continueAfterMatch=true,keepTiers=new bool[10]};
+            state.keepTiers[2]=true;
+            var random=new System.Random(811);
+            int[] keepCounts={10,11,5},totals={10,21,26};
+            for(int batch=0;batch<3;batch++) {
+                var items=new EquipmentRoll[22];int expectedGold=0;
+                for(int i=0;i<items.Length;i++) {
+                    items[i]=state.DrawTier(i<keepCounts[batch]?2:0,random);state.pending.Add(items[i]);
+                    if(i>=keepCounts[batch])expectedGold+=EquipmentRules.SaleGold(items[i]);
+                }
+                Assert.AreEqual(expectedGold,state.CompleteAutoBatch(items));
+                Assert.AreEqual(totals[batch],state.pending.Count);
+                Assert.AreEqual(batch==2,state.ShouldCompare);
+                Assert.AreEqual(0,state.CompleteAutoBatch(items),"Repeated settlement cannot pay twice");
+            }
+            Assert.IsTrue(state.pending.All(item=>item.tier==2));
+        }
+        [Test] public void FilterMatchesZeroOneAndTwoAffixesWithoutInventingOptions()
+        {
+            var state=new ForgeState {filterEnabled=true,affixMask=1<<(int)EquipmentAffixKind.Regeneration};
+            var primitive=new EquipmentRoll{tier=0};
+            var earlyModern=new EquipmentRoll{tier=2,affixes=new[]{new EquipmentAffix{kind=EquipmentAffixKind.Regeneration,percent=1}}};
+            var space=new EquipmentRoll{tier=4,affixes=new[]{new EquipmentAffix{kind=EquipmentAffixKind.CriticalChance,percent=2},new EquipmentAffix{kind=EquipmentAffixKind.Regeneration,percent=3}}};
+            Assert.IsFalse(state.Matches(primitive));Assert.IsTrue(state.Matches(earlyModern));Assert.IsTrue(state.Matches(space));
+            state.keepTiers[4]=false;Assert.IsFalse(state.Matches(space));
+            state.filterEnabled=false;Assert.IsTrue(state.Matches(primitive));Assert.IsFalse(state.Matches(space));
+        }
+        [Test] public void NormalizeSaveRemovesPhantomNullsAndRebuildsIdentityAndArrays()
+        {
+            var state=new ForgeState {equipped=new EquipmentRoll[8],draws=new[]{500},keepTiers=null,autoEnabled=true,nextId=0,batchSize=999};
+            state.equipped[0]=new EquipmentRoll();
+            state.equipped[6]=new EquipmentRoll{id=17,part=EquipmentPart.Weapon,level=21};
+            state.pending.Add(new EquipmentRoll());
+            state.pending.Add(new EquipmentRoll{id=17,part=EquipmentPart.Weapon});
+            state.pending.Add(new EquipmentRoll{id=18,tier=4,part=EquipmentPart.Hat,level=200,variant=9,affixes=new[]{
+                new EquipmentAffix{kind=EquipmentAffixKind.LifeSteal,percent=99},
+                new EquipmentAffix{kind=EquipmentAffixKind.LifeSteal,percent=1},
+                new EquipmentAffix{kind=EquipmentAffixKind.Regeneration,percent=3}}});
+            var restored=JsonUtility.FromJson<ForgeState>(JsonUtility.ToJson(state));
+            restored.NormalizeAfterLoad();
+            Assert.AreEqual(6,restored.equipped.Length);Assert.IsNull(restored.equipped[0]);
+            Assert.AreEqual(17,restored.equipped[5].id);Assert.AreEqual(1,restored.pending.Count);
+            Assert.AreEqual(18,restored.Pending.id);Assert.AreEqual(100,restored.Pending.level);Assert.AreEqual(2,restored.Pending.variant);
+            Assert.AreEqual(10,restored.draws.Length);Assert.AreEqual(100,restored.draws[0]);Assert.AreEqual(100,restored.draws[4]);
+            Assert.AreEqual(2,restored.Pending.affixes.Length);Assert.AreEqual(5,restored.Pending.affixes[0].percent);
+            Assert.AreEqual(10,restored.keepTiers.Length);Assert.AreEqual(99,restored.batchSize);Assert.IsFalse(restored.autoEnabled);
+            Assert.AreEqual(19,restored.DrawTier(1,new System.Random(2)).id);
+            var empty=JsonUtility.FromJson<ForgeState>(JsonUtility.ToJson(new ForgeState()));
+            empty.NormalizeAfterLoad();Assert.IsTrue(empty.equipped.All(item=>item==null));Assert.AreEqual(0,empty.TotalStats.health);
+        }
+
     }
 }
