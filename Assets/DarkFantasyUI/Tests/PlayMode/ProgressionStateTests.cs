@@ -179,6 +179,43 @@ namespace Moonlit.UI.Tests
         }
 
         [UnityTest]
+        public IEnumerator DungeonDailyRefill_UpdatesOpenDialogKeysAndDisabledActions()
+        {
+            DungeonProgression.Data.refillDay=System.DateTime.UtcNow.AddHours(9).ToString("yyyy-MM-dd");
+            DungeonProgression.Data.keys[0]=0;
+            DungeonProgression.Data.highestCleared[0]=1;
+            host.Registry.Open("dungeons");yield return null;
+            var pageScroll=GameObject.Find("Page — dungeons").GetComponentInChildren<ScrollRect>();
+            pageScroll.content.GetChild(0).Find("Open").GetComponent<Button>().onClick.Invoke();yield return null;
+            var panel=GameObject.Find("Dungeon detail frame");
+            var enter=panel.transform.Find("Enter").GetComponent<Button>();
+            var sweep=panel.transform.Find("Previous").GetComponent<Button>();
+            var keys=panel.transform.Find("Keys").GetComponent<Text>();
+            Assert.AreEqual("열쇠 0",keys.text);Assert.IsFalse(enter.interactable);Assert.IsFalse(sweep.interactable);
+            // Move only the recorded day back: the next tick represents crossing the KST reset boundary.
+            DungeonProgression.Data.refillDay=System.DateTime.UtcNow.AddHours(9).AddDays(-1).ToString("yyyy-MM-dd");
+            yield return new WaitForSecondsRealtime(1.1f);
+            Assert.AreSame(panel,GameObject.Find("Dungeon detail frame"));
+            Assert.AreEqual("열쇠 2",keys.text);Assert.IsTrue(enter.interactable);Assert.IsTrue(sweep.interactable);
+            Assert.AreSame(pageScroll,GameObject.Find("Page — dungeons").GetComponentInChildren<ScrollRect>());
+            Assert.AreEqual(1,host.ModalDepth);
+        }
+
+        [UnityTest]
+        public IEnumerator DungeonRejectedBattle_RefundsKeyAndReleasesEntryReservation()
+        {
+            host.Registry.Open("dungeon-details");yield return null;
+            int keys=DungeonProgression.Data.keys[0];
+            // This fixture intentionally has no BattleRuntime, so MainScreen rejects the battle request.
+            GameObject.Find("Enter").GetComponent<Button>().onClick.Invoke();yield return null;
+            Assert.AreEqual(keys,DungeonProgression.Data.keys[0]);
+            Assert.AreEqual(0,DungeonProgression.Data.highestCleared[0]);
+            Assert.IsFalse(DungeonProgression.CompleteEntry(true,out _,out _),"A rejected battle cannot later grant rewards.");
+            Assert.IsTrue(DungeonProgression.BeginEntry(0,1),"Rejection must release the active reservation.");
+            DungeonProgression.CancelEntry();
+        }
+
+        [UnityTest]
         public IEnumerator Collection_HeaderIsCentered_AndFooterTracksSafeBottom()
         {
             foreach (int height in new[] { 1920,2280 })
