@@ -28,7 +28,7 @@ namespace Moonlit.UI
         {
             "원시적", "중세의", "근대 초기", "현대의", "우주", "항성간", "다중 우주", "양자", "지하 세계", "신성한"
         };
-        static Sprite[] tierIcons, tierBands;
+        static Sprite[] tierIcons, tierBands, passChests;
         static readonly string[] Rates33 = { "0%", "0%", "0%", "0%", "0%", "0%", "28%", "58%", "13%", "1%" };
         static readonly string[] Rates34 = { "0%", "0%", "0%", "0%", "0%", "0%", "11%", "64%", "23%", "2%" };
         static readonly Color[] TierColors =
@@ -43,7 +43,7 @@ namespace Moonlit.UI
             passClaims.Clear(); autoHammerCount=22; autoContinue=true; autoFilterEnabled=true;
             for(int i=0;i<autoKeep.Length;i++) autoKeep[i]=i==3;
             for(int i=0;i<autoFilters.Length;i++) autoFilters[i]=i==0 || i==1 || i==5;
-            tierIcons=null; tierBands=null;
+            tierIcons=null; tierBands=null; passChests=null;
         }
 
         public static void Register(UiScreenRegistry registry)
@@ -531,18 +531,42 @@ namespace Moonlit.UI
             string amount=index%3==0?"220":index%3==1?"150":"500";
             PassReward(c,free,20,14,primary,amount);
             if(index!=3) PassReward(c,free,20,77,CurrencyIcon(c,2),"100");
+            var claimed = Ui.ArtImage("Claimed reward check",free,312,58,84,78,
+                Resources.Load<Sprite>("Moonlit/Forge/ClaimedCheck-v1"));
+            claimed.preserveAspect=true;
+            claimed.gameObject.SetActive(passClaims.Contains(index));
             Button claim=null;
-            claim=Action(c,free,310,74,82,54,passClaims.Contains(index)?"✓":"받기",()=>
+            claim=Action(c,free,310,74,82,54,"받기",()=>
             {
                 if(!passClaims.Add(index)){c.Toast("이미 받은 보상입니다.");return;}
-                claim.interactable=false; claim.GetComponentInChildren<Text>().text="✓"; c.Toast(stage+" 무료 보상을 받았습니다.");
-            },passClaims.Contains(index)?Slate:Blue,18);
+                claim.interactable=false;
+                claim.gameObject.SetActive(false);
+                claimed.gameObject.SetActive(true);
+                c.Toast(stage+" 무료 보상을 받았습니다.");
+            },Blue,18);
             claim.interactable=!passClaims.Contains(index);
+            claim.gameObject.SetActive(!passClaims.Contains(index));
             var premium=PassCard("Premium reward",p,462,y+52,new Color(.7f,.5f,.3f));
-            Ui.ArtImage("Premium chest",premium,235,27,165,112,PopupSkin.RewardIcon(7)).preserveAspect=true;
+            Ui.ArtImage("Premium chest",premium,222,16,182,124,PassChest(index)).preserveAspect=true;
             PassReward(c,premium,20,14,index==3?CurrencyIcon(c,0):primary,index==3?"40k":index%3==1?"200":amount);
             if(index!=3) PassReward(c,premium,20,77,CurrencyIcon(c,1),"5");
             Ui.ArtImage("Premium lock",premium,340,4,55,55,PopupSkin.RewardIcon(6)).preserveAspect=true;
+        }
+
+        static Sprite PassChest(int index)
+        {
+            if(passChests==null || !passChests[0]) {
+                var atlas=Resources.Load<Texture2D>("Moonlit/Forge/PassChests-v1");
+                if(!atlas) return null;
+                passChests=new Sprite[4];
+                float w=atlas.width/2f,h=atlas.height/2f;
+                for(int i=0;i<4;i++) {
+                    passChests[i]=Sprite.Create(atlas,new Rect(i%2*w,(1-i/2)*h,w,h),
+                        new Vector2(.5f,.5f),100,0,SpriteMeshType.FullRect);
+                    passChests[i].name="Pass chest "+i;
+                }
+            }
+            return passChests[Mathf.Clamp(index,0,3)];
         }
 
         static RectTransform PassCard(string name,Transform parent,float x,float y,Color tint)

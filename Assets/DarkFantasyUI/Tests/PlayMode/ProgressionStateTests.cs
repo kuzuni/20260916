@@ -171,11 +171,26 @@ namespace Moonlit.UI.Tests
             var locks=pass.GetComponentsInChildren<Image>(true).Where(i=>i.name=="Premium lock").ToArray();
             Assert.AreEqual(6,locks.Length);
             Assert.IsTrue(locks.All(i=>i.sprite!=null && !i.raycastTarget));
+            var chests=pass.GetComponentsInChildren<Image>(true).Where(i=>i.name=="Premium chest").ToArray();
+            Assert.AreEqual(6,chests.Length);
+            Assert.AreEqual(4,chests.Take(4).Select(i=>i.sprite.rect).Distinct().Count());
+            Assert.IsTrue(chests.All(i=>i.sprite!=null && !i.raycastTarget));
             var claim=pass.GetComponentsInChildren<Button>().First(b=>b.name=="받기");
+            var claimed=claim.transform.parent.Find("Claimed reward check").GetComponent<Image>();
+            Assert.IsFalse(claimed.gameObject.activeSelf);
+            Assert.IsNotNull(claimed.sprite);
+            Assert.IsFalse(claimed.raycastTarget);
             claim.onClick.Invoke(); yield return null;
             Assert.IsFalse(claim.interactable);
+            Assert.IsFalse(claim.gameObject.activeSelf);
+            Assert.IsTrue(claimed.gameObject.activeSelf);
             claim.onClick.Invoke();
-            Assert.AreEqual("✓",claim.GetComponentInChildren<Text>().text);
+            Assert.AreEqual(1,pass.GetComponentsInChildren<Image>().Count(i=>i.name=="Claimed reward check"));
+            host.CloseTop(); yield return null;
+            host.Registry.Open("progress-pass"); yield return null;
+            pass=GameObject.Find("Popup Layer progress-pass");
+            Assert.AreEqual(1,pass.GetComponentsInChildren<Image>().Count(i=>i.name=="Claimed reward check"),
+                "Claimed artwork must survive closing and reopening the pass without duplicate claims");
         }
 
         [UnityTest]

@@ -138,6 +138,17 @@ namespace Moonlit.Editor
                 }
                 if (navigationFailed) yield break;
                 report.Add("PASS route "+route+" "+(aspect==0?"9:16 notch":"9:19 side-insets")+" navigation="+(host.ActivePageKey==route?"clickable":"blocked"));
+                if(route=="progress-pass") {
+                    // Capture the first three claimed states as separate art overlays too.
+                    int claimed=0;
+                    foreach(var card in layer.GetComponentsInChildren<RectTransform>(true)) {
+                        if(card.name!="Free reward" || claimed>=3) continue;
+                        card.GetComponentInChildren<Button>(true).onClick.Invoke();
+                        claimed++;
+                    }
+                    yield return null; Canvas.ForceUpdateCanvases();
+                    SaveCamera(camera,"Artifacts/Runtime-progress-pass-claimed-"+(aspect==0?"9x16":"9x19")+".png",1080,heights[aspect]);
+                }
                 host.Registry.ShowMainPage();
             }
         }
