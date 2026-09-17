@@ -223,6 +223,7 @@ namespace Moonlit.UI
             root.anchorMin = root.anchorMax = new Vector2((safe.xMin + safe.xMax) * .5f / size.x, (safe.yMin + safe.yMax) * .5f / size.y);
             root.sizeDelta = new Vector2(1080, logicalHeight);
             root.localScale = Vector3.one * (safe.width / size.x);
+            PopupSkin.UpdateBackdropClip(root);
         }
 
         void OnDestroy()

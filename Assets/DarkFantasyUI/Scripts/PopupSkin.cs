@@ -75,22 +75,37 @@ namespace Moonlit.UI
 
         // Decoration is a sibling of SafeArea, so camera cutouts cannot expose the main scene.
         // Its lifetime and sorting still belong to the page/fullscreen layer.
-        public static RectTransform FullViewportBackdrop(ScreenContext context)
+        public static RectTransform FullViewportBackdrop(ScreenContext context, Sprite scenery=null, Color? tint=null)
         {
-            var backing=Ui.Image("Full viewport backdrop",context.Root.parent,0,0,1,1,null,
-                new Color(.015f,.045f,.06f,1f)).rectTransform;
+            var backing=Ui.Rect("Full viewport backdrop",context.Root.parent,0,0,1,1);
             Ui.Stretch(backing);
             backing.SetSiblingIndex(context.Root.GetSiblingIndex());
-            var sprite=context.Assets ? context.Assets.worldBackground : null;
+            var opaque=Ui.Image("Opaque page backing",backing,0,0,1,1,null,new Color(.015f,.045f,.06f,1f));
+            Ui.Stretch(opaque.rectTransform);
+            var sprite=scenery ? scenery : context.Assets ? context.Assets.worldBackground : null;
             if(sprite)
             {
-                var art=Ui.Image("Page scenery",backing,0,0,1,1,sprite,new Color(.28f,.48f,.62f,1f));
+                var art=Ui.Image("Page scenery",backing,0,0,1,1,sprite,tint??new Color(.28f,.48f,.62f,1f));
                 art.rectTransform.pivot=new Vector2(.5f,.5f);
                 var fit=art.gameObject.AddComponent<AspectRatioFitter>();
                 fit.aspectRatio=sprite.rect.width/sprite.rect.height;
                 fit.aspectMode=AspectRatioFitter.AspectMode.EnvelopeParent;
             }
+            if(context.Root.GetComponent<RectMask2D>()) {
+                backing.gameObject.AddComponent<RectMask2D>();
+                UpdateBackdropClip(context.Root);
+            }
             return backing;
+        }
+
+        internal static void UpdateBackdropClip(RectTransform safeRoot)
+        {
+            var backing=safeRoot.parent.Find("Full viewport backdrop") as RectTransform;
+            var mask=backing ? backing.GetComponent<RectMask2D>() : null;
+            if(!mask) return;
+            var navTop=safeRoot.TransformPoint(new Vector3(0,safeRoot.rect.yMin+PortraitSafeArea.NavigationTopFromBottom,0));
+            float bottom=backing.InverseTransformPoint(navTop).y-backing.rect.yMin;
+            mask.padding=new Vector4(0,Mathf.Max(0,bottom),0,0);
         }
 
         // Art fills the card; its reusable empty rim is independent of rewards and controls.

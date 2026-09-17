@@ -1,6 +1,16 @@
 # Moonlit 30 UI — coordinator status
 
-Updated 2026-09-17, 08:48 KST. Implementation is unfinished; 15-minute heartbeat remains active.
+Updated 2026-09-17, 09:12 KST. Implementation is unfinished; 15-minute heartbeat remains active.
+
+## Summon result environment and page navigation occlusion fix
+
+- PR #47 source 1848ec450bcc8e3b4153598c4ca8b1d5615d2bbf merged as 3ba2f279fc4f8c03caf259e0148b9c82d153bb9f; original checkout fast-forwarded preserving 11 user metadata edits by SHA256. Run 35163911373, actual XML from downloaded artifact 10473819987: 41 passed / 0 failed / 0 skipped. Graphics remain pending at inspection; this source still inherits the page-navigation defect below.
+- Downloaded PR #46 graphics artifact 10474290846: Verification.txt FAIL. It stopped at skills-pets-heroes 9:16 because the page scenery obscured the equipment navigation icon (mean RGB difference 0.3989017). Inspected the failing screenshot and summon-result 9:19: viewport edge seams are gone, but the page background covers navigation. Do not treat the earlier 41-test pass as complete visual validation; later route captures were not produced.
+- Branch codex/summon-result-dais adds a bottom-only clip to page decoration at the safe navigation top, recomputed after SafeArea changes. Top/side edges remain full bleed. Both opaque backing and artwork are children of the clip so neither can hide navigation. Fullscreen result decoration remains unclipped. Existing pixel-based navigation verification is unchanged; the structural regression now also checks the bottom boundary, mask ancestry and mask-child backing.
+- Built-in imagegen generated SummonDais-v1.png from original 17 as environment reference: 941x1672, copied unchanged from exec-de500812-c045-4a30-9278-67a0cd2ae90b.png with unique Sprite importer. Inspected output has a cyan stone dais, hooded statues, banners, bridges and moonlit castle, no party/reward medallions/HUD. Exact prompt and provenance are in SummonDais-v1-prompt.md.
+- Summon-result uses this dedicated background at original color, removes the extra title/subtitle and collection level/shard overlays, retaining five live icon/star slots, acquisition feedback and exit/repeat controls. Replaces flat blue squares with separate rising sparkle sprites using the existing circle sprite and Atmosphere component. Effects are configured while inactive before Awake and replaced on repeat. This is local demo reveal behavior, not backend RNG.
+- Extended the repeat-summon regression for dedicated scenery, fullscreen coverage, five icon/star slots without collection overlays, 60 non-interactive sparks and effect cleanup on repeat. Static diff check passed; new-source Unity and capture results are pending. No local Unity execution.
+- Evidence root: C:/Users/user/AppData/Local/Temp/moonlit-cloud-review/artifact-{10473819987,10474290846}/unpacked. Next heartbeat: inspect this branch's hosted XML and all page navigation pixel checks first; then both probability-details and summon-result captures and remaining 30-screen route captures. PR #47 graphics may fail the same inherited navigation issue; fix-forward validation is required. Continue reference fidelity after navigation visibility is confirmed. Preserve Dim 0.85, user metadata and incremental main integration.
 
 ## Summon probability reference layout correction
 

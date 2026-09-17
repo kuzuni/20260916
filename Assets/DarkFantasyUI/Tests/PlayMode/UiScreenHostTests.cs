@@ -210,8 +210,14 @@ namespace Moonlit.UI.Tests
                 yield return null;
                 Canvas.ForceUpdateCanvases();
                 Assert.AreSame(safeRoot.parent,backdrop.parent);
-                Assert.IsNull(backdrop.GetComponentInParent<RectMask2D>(),"Decoration must not inherit the SafeArea clip");
+                Assert.IsNull(backdrop.parent.GetComponentInParent<RectMask2D>(),"Decoration must not inherit the SafeArea clip");
+                var clip=backdrop.GetComponent<RectMask2D>();
+                Assert.IsNotNull(clip,"Page scenery must stop above navigation even when canvas render ordering differs");
+                float navTop=backdrop.InverseTransformPoint(safeRoot.TransformPoint(new Vector3(0,safeRoot.rect.yMin+PortraitSafeArea.NavigationTopFromBottom,0))).y;
+                Assert.That(backdrop.rect.yMin+clip.padding.y,Is.EqualTo(navTop).Within(.1f));
+                Assert.AreEqual(0,clip.padding.x); Assert.AreEqual(0,clip.padding.z); Assert.AreEqual(0,clip.padding.w);
                 Assert.AreEqual(0,backdrop.GetComponentsInChildren<Graphic>().Count(g=>g.raycastTarget));
+                Assert.IsNull(backdrop.GetComponent<Graphic>(),"Opaque backing must be a mask child so it cannot cover navigation");
                 var painting=backdrop.Find("Page scenery").GetComponent<RectTransform>();
                 Assert.GreaterOrEqual(painting.rect.width,backdrop.rect.width-.1f);
                 Assert.GreaterOrEqual(painting.rect.height,backdrop.rect.height-.1f);
