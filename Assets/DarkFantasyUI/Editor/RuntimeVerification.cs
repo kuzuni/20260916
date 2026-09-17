@@ -104,13 +104,18 @@ namespace Moonlit.Editor
                 if (pageRoute) screen.RefreshNavigation(route);
                 var navigationPixels = pageRoute ? ReadNavigationPixels(screen, camera) : null;
                 if (pageRoute) screen.RefreshNavigation(null);
-                bool childRoute=route.StartsWith("profile-") || route.StartsWith("settings-");
-                if(childRoute) host.Registry.Open(route.StartsWith("profile-")?"profile":"settings");
+                foreach(var parent in CaptureParents(route)) {
+                    host.Registry.Open(parent);
+                    if(host.ActivePageKey!=parent && !GameObject.Find("Popup Layer "+parent)) {
+                        report.Add("FAIL route "+route+" missing parent "+parent); fail(); yield break;
+                    }
+                }
+                int expectedDepth=host.ModalDepth+(pageRoute?0:1);
                 host.Registry.Open(route);
                 yield return null; yield return null; Canvas.ForceUpdateCanvases();
                 var layer=GameObject.Find((host.ActivePageKey==route ? "Page — " : "Popup Layer ")+route);
                 var routeRoot=layer ? layer.transform.Find("SafeArea") as RectTransform : null;
-                if(!layer || !routeRoot || routeRoot.rect.height<=0 || (host.ActivePageKey!=route && host.ModalDepth!=(childRoute?2:1)))
+                if(!layer || !routeRoot || routeRoot.rect.height<=0 || (host.ActivePageKey!=route && host.ModalDepth!=expectedDepth))
                 { report.Add("FAIL route "+route+" did not build in a resized safe layer"); fail(); yield break; }
                 SaveCamera(camera,"Artifacts/Runtime-"+route+"-"+(aspect==0?"9x16":"9x19")+".png",1080,heights[aspect]);
                 bool navigationFailed = false;
@@ -137,7 +142,7 @@ namespace Moonlit.Editor
                     fail(); navigationFailed = true;
                 }
                 if (navigationFailed) yield break;
-                report.Add("PASS route "+route+" "+(aspect==0?"9:16 notch":"9:19 side-insets")+" navigation="+(host.ActivePageKey==route?"clickable":"blocked"));
+                report.Add("PASS route "+route+" "+(aspect==0?"9:16 notch":"9:19 side-insets")+" navigation="+(host.ActivePageKey==route?"clickable":"blocked")+" modalDepth="+host.ModalDepth);
                 if(route=="progress-pass") {
                     // Capture the first three claimed states as separate art overlays too.
                     int claimed=0;
@@ -150,6 +155,24 @@ namespace Moonlit.Editor
                     SaveCamera(camera,"Artifacts/Runtime-progress-pass-claimed-"+(aspect==0?"9x16":"9x19")+".png",1080,heights[aspect]);
                 }
                 host.Registry.ShowMainPage();
+            }
+        }
+        static string[] CaptureParents(string route)
+        {
+            if(route.StartsWith("profile-")) return new[]{"profile"};
+            if(route.StartsWith("settings-")) return new[]{"settings"};
+            switch(route) {
+                case "forge-probability-details": return new[]{"forge-probability"};
+                case "forge-item-details": return new[]{"forge-probability","forge-probability-details"};
+                case "dungeon-details": return new[]{"dungeons"};
+                case "skill-details":
+                case "summon-probability":
+                case "summon-result": return new[]{"skills-pets-heroes"};
+                case "summon-probability-details": return new[]{"skills-pets-heroes","summon-probability"};
+                case "power-ranking": return new[]{"profile"};
+                case "pvp-opponents":
+                case "pvp-rewards": return new[]{"pvp"};
+                default: return Array.Empty<string>();
             }
         }
         // Raycast sorting can pass even while a lower-order page obscures the rendered icons.
