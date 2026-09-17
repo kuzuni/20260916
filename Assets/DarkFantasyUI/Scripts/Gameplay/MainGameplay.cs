@@ -46,7 +46,7 @@ namespace Moonlit.UI
                 RewardState.Current.passClaimed=new bool[100];
             RewardState.Current.Advance(DateTimeOffset.UtcNow.ToUnixTimeSeconds());
             gameplayInitialized=true;
-            ForgeRuntime.Ensure(this);
+            ForgeRuntime.Ensure(this).SyncSlots();
             battle=gameObject.AddComponent<BattleRuntime>(); battle.Initialize(this,assets);
             SaveGame();
         }
@@ -70,17 +70,17 @@ namespace Moonlit.UI
         }
         void OnApplicationPause(bool paused){if(paused)SaveGame();}
         void OnApplicationQuit(){SaveGame();}
-        public void StartDungeon(int index,int difficulty,int waves,Action<bool> completed)
+        public bool StartDungeon(int index,int difficulty,int waves,Action<bool> completed)
         {
-            if(!battle){Toast("전투 리소스를 준비 중입니다.");return;}
+            if(!battle){Toast("전투 리소스를 준비 중입니다.");return false;}
             while(screens.ModalDepth>0)screens.CloseTop();screens.ShowMainPage();
-            battle.StartDungeon(index,difficulty,waves,completed);
+            return battle.StartDungeon(index,difficulty,waves,completed);
         }
-        public void StartArena(int opponentRating,Action<bool> completed)
+        public bool StartArena(int opponentRating,Action<bool> completed)
         {
-            if(!battle){Toast("전투 리소스를 준비 중입니다.");return;}
+            if(!battle){Toast("전투 리소스를 준비 중입니다.");return false;}
             while(screens.ModalDepth>0)screens.CloseTop();screens.ShowMainPage();
-            battle.StartArena(opponentRating,completed);
+            return battle.StartArena(opponentRating,completed);
         }
         public void PreviewPrimitiveSkill(int variant)
         {

@@ -1,0 +1,13 @@
+# Collections and dungeons gameplay change
+
+User 2026-09-18 overrides the old 18-entry/15-owned skill demo, hero tab, shard-free upgrades and completion-only key consumption. Read README, SCREENS, ARCHITECTURE, progression task brief and inspected reference 04/14/15/16/17/19/20 PNGs at original resolution.
+
+- Three categories (skills/pets/mounts), 10 equipment grades x 3 entries, permanent unlocks, first copy included in fragments, actual fragment consumption, level 1 start, requirement min(level+1,20).
+- Three equipped skills, three pets, one mount; explicit slot replacement, unequip and quick equip; owned and equipped effects derive live from EquipmentRules.FullSetStats. Primitive skill buff/weak/strong fixed values and cooldowns exposed to combat. Independent summon level/experience; tickets first then 100 diamonds per item, atomic affordability check.
+- All category probability dialogs display shared equipment grades and exact rates used by sampler. Probability preview never mutates actual summon level. Parent ScrollRect/tab survive nested modal refresh.
+- Four dungeons use 1/2/3/3 waves, normal stage difficulty x5, actual MainScreen.StartDungeon bridge, key charged at entry even on loss, single-use completion callback, scaling rewards and previous-highest sweep. Daily refill is minimum 2 per type; Korean calendar midnight; keys above 2 preserved.
+- Runtime pages retain existing artwork, distinct rims/icons/live labels, safe-root layouts, real scroll lists and independent close. Existing primitive skill icons are reused; primitive VFX preview forwards MainScreen.PreviewPrimitiveSkill. Pet/mount artwork deliberately deferred. Higher-grade skill effects/art are not presented as finished.
+
+Explicit balancing assumptions: collection level and summon level capped at 100; summon levels map linearly onto forge probability levels 1..35; all collections start locked. Skill attack buff does not stack. These choices are centralized for revision. No extra illustrated skills generated beyond requested primitive three. No local Unity process or editor touched.
+
+Validation: added CollectionRulesTests covering independent experience, fragment spending/permanent unlock, exact currency fallback/atomic refusal, collection stat ratios/caps, summon probability normalization, dungeon daily key floor, loss/duplicate callback safety, scaling and sweep offset. Cloud Unity 6000.3.8f1 compile/runtime tests and visual captures MUST run on integrated branch; not yet run in this delegated task. This branch depends on shared EquipmentRules, MainScreen ticket fields, preview/dungeon bridges supplied by coordinator/forge/combat; standalone branch is not an asserted compile pass.
