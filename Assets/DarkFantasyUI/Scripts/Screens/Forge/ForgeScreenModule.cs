@@ -32,12 +32,6 @@ namespace Moonlit.UI
         static Sprite passStone;
         static readonly string[] Rates33 = { "0%", "0%", "0%", "0%", "0%", "0%", "28%", "58%", "13%", "1%" };
         static readonly string[] Rates34 = { "0%", "0%", "0%", "0%", "0%", "0%", "11%", "64%", "23%", "2%" };
-        static readonly Color[] TierColors =
-        {
-            new Color(.22f,.20f,.18f), new Color(.02f,.25f,.45f), new Color(.02f,.34f,.16f), new Color(.44f,.34f,.03f),
-            new Color(.42f,.02f,.04f), new Color(.23f,.03f,.46f), new Color(.02f,.36f,.43f), new Color(.04f,.12f,.48f),
-            new Color(.30f,.10f,.07f), new Color(.55f,.22f,.02f)
-        };
 
         internal static void ResetSession()
         {
@@ -175,7 +169,6 @@ namespace Moonlit.UI
             Action(c, b, 230, 1025, 300, 90, "건너뛰기\n◆ 190", () => c.Toast("루비가 부족합니다."), Slate);
         }
 
-        static string Glyph(int i) => new[] { "⚒", "†", "⌁", "▰", "✦", "◉", "▣", "⚛", "♜", "♛" }[i % 10];
 
         static ScrollRect Scroll(ScreenContext c, Transform parent, float x, float y, float w, float h, float contentHeight, out RectTransform content)
         {
@@ -203,9 +196,12 @@ namespace Moonlit.UI
             var item = 0; var top = 0;
             for (var tier = 0; tier < 5; tier++)
             {
-                var header = Ui.Panel("Tier " + Tiers[tier], content, 8, top, content.rect.width - 16, 66, TierColors[tier]);
-                Ui.Text("Tier", header.transform, 18, 2, 420, 60, Glyph(tier) + "  " + Tiers[tier] + " ★", 29, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
-                Ui.Text("Rate", header.transform, 520, 2, 130, 60, Rates33[tier], 27, Font(c), Ui.Ivory, TextAnchor.MiddleRight);
+                var header = Ui.ArtImage("Tier " + Tiers[tier], content, 8, top, content.rect.width - 16, 66, TierBand(tier));
+                header.type=Image.Type.Sliced; header.pixelsPerUnitMultiplier=1.3f;
+                Ui.ArtImage("Tier icon",header.transform,14,3,60,60,TierIcon(tier)).preserveAspect=true;
+                var tierLabel=Ui.Text("Tier",header.transform,86,2,300,60,Tiers[tier],29,Font(c),Ui.Ivory,TextAnchor.MiddleLeft);
+                Ui.Text("Tier star",header.transform,96+Mathf.Min(300,tierLabel.preferredWidth),2,44,60,"★",31,Font(c),Ui.Gold);
+                Ui.Text("Rate", header.transform, header.rectTransform.rect.width-150, 2, 130, 60, Rates33[tier], 27, Font(c), Ui.Ivory, TextAnchor.MiddleRight);
                 int count=tier==0?23:15;
                 for (var cell = 0; cell < count; cell++)
                 {
@@ -244,6 +240,8 @@ namespace Moonlit.UI
             var description = item != null && !string.IsNullOrEmpty(item.description) ? item.description : "장비은(는) 아래 목록에서 2개의 고유한 하위 스탯을 굴립니다.";
             var statsPanel=PopupSkin.Panel("Stats panel", b, 10, 170, b.rect.width - 20, 610);
             statsPanel.pixelsPerUnitMultiplier=14;
+            // This inset is a simple framed stat list in reference 03, not a second title.
+            statsPanel.transform.Find("Crown filigree").gameObject.SetActive(false);
             Ui.Text("Description", b, 28, 184, b.rect.width - 56, 82, description, 24, Font(c), Ui.Ivory, TextAnchor.UpperLeft);
             Ui.Image("Rule", b, 28, 272, b.rect.width - 56, 2, null, Ui.Gold);
             var stats = "+1% - 12% 치명타 확률\n+1% - 80% 치명타 피해\n+1% - 5% 블록 확률\n+1% - 4% 체력 재생\n+1% - 20% 생명력 흡수\n+1% - 20% 더블 찬스\n+1% - 15% 피해\n+1% - 50% 근접 피해\n+1% - 15% 원거리 피해\n+1% - 40% 공격 속도\n+1% - 30% 스킬 피해\n-1% - 7% 스킬 재사용 대기시간\n+1% - 15% 체력";
@@ -423,7 +421,7 @@ namespace Moonlit.UI
                 claim.interactable = false;
                 claim.GetComponentInChildren<Text>().text = "수집 완료"; c.Toast("골드 +174 · 강화석 +2 수집 완료");
             });
-            claim.GetComponentInChildren<Text>().fontSize = 42;
+            claim.GetComponentInChildren<Text>().fontSize = Ui.ReadableFontSize(42);
             claim.interactable = !c.Main.offlineRewardsClaimed;
         }
 

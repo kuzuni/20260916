@@ -342,14 +342,17 @@ namespace Moonlit.UI
             // Reference counts seed this local preview, just like the sample message history.
             int[] unread={0,70,3};
             var counts=new int[3];
+            var nextMessageY=new float[3];
             var drafts=new string[3];
             int selected=0;
             for(int i=0;i<3;i++) {
                 channels[i]=Ui.Rect("Chat channel "+i,root,0,0,w,h);
-                Scroll(c,channels[i],54,126,w-108,h-308,messages.Length*128+36,out contents[i]);
+                Scroll(c,channels[i],54,126,w-108,h-308,1,out contents[i]);
                 scrolls[i]=contents[i].GetComponentInParent<ScrollRect>();
+                nextMessageY[i]=18;
                 for(int j=0;j<messages.Length;j++)
-                    ChatMessage(c,contents[i],j,"["+tabs[i]+"] "+(j%2==0?"moonzzanf":"Raven"),messages[j],w-108);
+                    nextMessageY[i]=ChatMessage(c,contents[i],j,nextMessageY[i],"["+tabs[i]+"] "+(j%2==0?"moonzzanf":"Raven"),messages[j],w-108);
+                contents[i].sizeDelta=new Vector2(0,nextMessageY[i]+18);
                 counts[i]=messages.Length;
                 channels[i].gameObject.SetActive(i==0);
             }
@@ -383,8 +386,8 @@ namespace Moonlit.UI
             }
             Action(c,root,w-140,h-146,112,82,"전송",()=> {
                 if(string.IsNullOrWhiteSpace(input.text)) { c.Toast("메시지를 입력하세요."); return; }
-                ChatMessage(c,contents[selected],counts[selected]++,"[나] moonzzanf",input.text.Trim(),w-108);
-                contents[selected].sizeDelta=new Vector2(0,counts[selected]*128+36);
+                nextMessageY[selected]=ChatMessage(c,contents[selected],counts[selected]++,nextMessageY[selected],"[나] moonzzanf",input.text.Trim(),w-108);
+                contents[selected].sizeDelta=new Vector2(0,nextMessageY[selected]+18);
                 drafts[selected]=""; input.text="";
                 Canvas.ForceUpdateCanvases(); scrolls[selected].verticalNormalizedPosition=0;
             });
@@ -392,9 +395,8 @@ namespace Moonlit.UI
             Ui.Text("Offline notice", root, 136, h - 55, w - 164, 40, "로컬 채팅 미리보기 · 다른 사용자에게 전송되지 않습니다", 19, Font(c), new Color(.65f,.68f,.7f));
         }
 
-        static void ChatMessage(ScreenContext c, Transform parent, int index, string name, string message, float width)
+        static float ChatMessage(ScreenContext c, Transform parent, int index, float y, string name, string message, float width)
         {
-            float y = 18 + index * 128;
             var portrait=Ui.Rect("Chat portrait",parent,18,y,92,92);
             var portraitSprite=name.StartsWith("[나]") ? AvatarPortrait(profileAvatar)
                 : Resources.Load<Sprite>("Moonlit/Social/"+(index%2==0?"ChatGoldKnight-v1":"ChatHornedKnight-v1"));
@@ -408,7 +410,11 @@ namespace Moonlit.UI
             bubble.pixelsPerUnitMultiplier=14;
             var text=Ui.Text("Message", bubble.transform, 18, 3, width - 190, 66, message, 25, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
             text.supportRichText=false;
-            text.resizeTextForBestFit=true; text.resizeTextMinSize=16; text.resizeTextMaxSize=25;
+            float textHeight=Mathf.Max(66,Mathf.Ceil(text.preferredHeight));
+            text.rectTransform.sizeDelta=new Vector2(width-190,textHeight);
+            text.rectTransform.anchoredPosition=new Vector2(18,-8);
+            bubble.rectTransform.sizeDelta=new Vector2(width-154,textHeight+16);
+            return y+48+textHeight+16+18;
         }
 
         // Scenery fills the viewport; page controls remain clipped inside SafeArea above navigation.
@@ -445,7 +451,7 @@ namespace Moonlit.UI
                 card.Find("Card rim").GetComponent<Image>().pixelsPerUnitMultiplier=18;
                 Ui.Image("Ruby amount icon", card.transform, 20, 12, 48, 48, Icon(c, 1)).preserveAspect = true;
                 Ui.Text("Amount", card.transform, 72, 8, cardW - 82, 54, gems[i].ToString(), 29, Font(c), new Color(1,.75f,.78f), TextAnchor.MiddleLeft);
-                var ruby = Ui.ArtImage("Ruby artwork", card.transform, 10, 44, cardW - 20, 190, ShopIllustration(3 + i)); ruby.preserveAspect = true;
+                var ruby = Ui.ArtImage("Ruby artwork", card.transform, 10, 44, cardW - 20, 190, ShopIllustration(3 + i)); Ui.CenterAspect(ruby);
                 string price = prices[i];
                 Action(c, card.transform, 12, 222, cardW - 24, 66, price, () => c.Toast(price == "가격 미설정" ? "이 상품은 가격이 구성되지 않았습니다." : "결제는 연결되지 않은 미리보기입니다."));
             }
@@ -468,7 +474,7 @@ namespace Moonlit.UI
             var card = PopupSkin.IllustratedCard(title,parent,18,y,width-36,260,ShopCardScenery,new Color(.24f,.3f,.36f));
             card.Find("Card rim").GetComponent<Image>().pixelsPerUnitMultiplier=18;
             var artwork = Ui.ArtImage("Deal illustration", card.transform, width - 414, 8, 378, 240, ShopIllustration(artIndex));
-            artwork.preserveAspect = true;
+            Ui.CenterAspect(artwork);
             artwork.raycastTarget = false;
             Ui.Image("Ribbon",card.transform,0,10,430,52,PopupSkin.RibbonArt,new Color(1,.22f,.16f));
             Ui.Text("Title", card.transform, 20, 2, 390, 56, title, 31, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);

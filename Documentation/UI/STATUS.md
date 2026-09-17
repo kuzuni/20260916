@@ -1,6 +1,22 @@
+## 2026-09-17 — user-requested larger typography and centered shop products (in progress)
+
+- User reports shop illustrations leaning to one side and text too small across the UI. Confirmed the installed uGUI Image implementation positions preserve-aspect slack using the RectTransform pivot; shop art inherited the top-left pivot. Centered product artwork without moving the card or changing its hit target, preserving the separate atlas sprites/rims.
+- Shared runtime type increases 25%, capped at +8 logical units. Main serialized slot labels explicitly use the same policy without compounding on rebind/restart. Symbol-only glyphs retain size. Expanded the skill description box and positioned the rarity star using measured title width.
+- Removed chat's 16–25 best-fit shrink. Message bubbles and following rows grow from measured text height; channel drafts, counts and scroll state still belong to their existing channel.
+- Added hosted regressions for actual gem mesh centers at both safe aspect ratios and an 80-character Korean chat message followed by another message. Route captures now record typography review candidates where preferred text height exceeds its box. This is review evidence, not automatic visual acceptance.
+- Static diff review only so far; new cloud compile, PlayMode tests and 68 captures remain pending. Previous head has 43 passing tests; those do not validate these new edits. Original local Unity has not been run or controlled. Preserve all 19 local metadata edits when integrating.
+- This branch also includes the preceding forge tier header art and item-detail crown removal. Other reference artwork/fidelity work remains incomplete. Keep the 15-minute heartbeat active.
 # Moonlit 30 UI — coordinator status
 
-Updated 2026-09-17, 13:45 KST. Implementation is unfinished; 15-minute heartbeat remains active.
+Updated 2026-09-17, 14:06 KST. Implementation is unfinished; 15-minute heartbeat remains active.
+
+## Illustrated forge catalog tier headers
+
+- PR #59 source 88f6160f1953d183b2b0a1e4348dd207fcc6d7ea merged as f073993016f9243d8bcd69ae57c3161781ed2723. Run 35183183325 artifact 10481238073 downloaded: actual XML 43 passed / 0 failed / 0 skipped, including chat badge state assertions. Badge screenshots remain pending. Original checkout now has 19 modified metadata files (up from 11 after local imports); preserve all of them during synchronization.
+- PR #58 graphics artifact 10481595640 downloaded: Verification.txt PASS and 68 PNGs. Viewed item detail 9:16 and catalog 9:19. The boot illustration, independent slot/star, data-based name/health and 23-entry primitive grid render. The boot appears in row four/column five; other catalog subjects are visibly repeated shared items and remain unfinished. Stats text is readable, but its inset inherited an extra crown ornament absent from reference 03.
+- Branch codex/forge-catalog-tier-art replaces all five flat catalog tier headers and placeholder text glyphs with existing generated TierBands-v1 and TierIcons-v1. Korean tier name, gold star and right-aligned chance remain independent live labels. Star position follows the tier label width; scroll geometry and item selection are unchanged. Removed the now-unused glyph helper/color array. The item-detail stat inset's extra crown is hidden to preserve its simple framed-list role.
+- Static diff check passed. No new tests for these decorative changes; existing hosted catalog identity/scroll tests and per-route captures remain required. No new bitmap generation, no local Unity execution. New-source cloud tests and header/stat-inset screenshots pending.
+- Evidence: C:/Users/user/AppData/Local/Temp/moonlit-cloud-review/artifact-{10481238073,10481595640}/unpacked. Next heartbeat: inspect PR #59 badge graphics, this source XML and both catalog/item ratios. Continue missing catalog subjects and remaining chat attachment/bubble-tail and other screen fidelity work; overall 30-screen acceptance is not complete.
 
 ## Chat unread channel badges and pass visibility verification
 
