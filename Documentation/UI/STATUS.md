@@ -1,6 +1,15 @@
 # Moonlit 30 UI — coordinator status
 
-Updated 2026-09-17, 10:20 KST. Implementation is unfinished; 15-minute heartbeat remains active.
+Updated 2026-09-17, 10:44 KST. Implementation is unfinished; 15-minute heartbeat remains active.
+
+## Pass reward variants and claimed-state artwork
+
+- PR #50 source 49db50eb4a72370fb4c3b365a28e5dd36b5997cf merged as 18c79b5e9b1d706ca279af4591e9835a01727f20; original checkout synchronized with all 11 user metadata edits preserved by SHA256. Hosted run 35170155193: downloaded artifact 10476602313, actual NUnit XML 41 passed / 0 failed / 0 skipped. Dungeon title captures are still pending; no visual acceptance claimed for the new plaque.
+- Inspected original 05-progress-pass.png at full resolution and current hosted Runtime-progress-pass-9x16.png from artifact 10475896608. Premium rows still reused one red-gem chest, and claimed rewards used a glyph inside a blue button instead of the reference's independent green check.
+- Branch codex/pass-reward-art adds built-in imagegen PassChests-v1.png (four distinct red/cyan/amber/crown chests, 1536x1024 atlas) and ClaimedCheck-v1.png (green check, 1254x1254). Both retain generated RGBA, verified alpha-zero background samples, unique import GUIDs and exact prompts in PassRewards-v1-prompt.md. No bitmap postprocessing. The first four premium rows use distinct chest cells; extra demo stages reuse the crown chest. Locks, reward quantities, empty card frames and text remain separate.
+- Claiming a free reward now hides its action button and reveals the non-interactive check image; reopen restores claimed state and duplicate callbacks cannot create a second claim. Extended the existing pass test for atlas uniqueness, separate check, duplicate invocation and reopen persistence. Reset clears new atlas caches for domain-reload-disabled sessions. Existing hosted capture loop adds two claimed-pass images at 9:16 and 9:19; base capture on the second aspect may already show the first three claims from the previous aspect.
+- Static diff check passed. New-source cloud Unity tests and captures remain pending. No local Unity execution. Large pass header/sword proportions, generic outer frame and repeated card scenery remain fidelity work; this is a bounded reward-art/state improvement, not all-screen acceptance.
+- Evidence: C:/Users/user/AppData/Local/Temp/moonlit-cloud-review/artifact-{10476602313,10475896608}/unpacked. Next heartbeat: review PR #50 graphics and this pass source XML, then inspect normal/claimed pass at both ratios for chest crops, lock/text overlap and check visibility. Continue all 30-screen fidelity; preserve Dim 0.85 and original user edits during incremental main integration.
 
 ## Dungeon title plaque and shop capture review
 
