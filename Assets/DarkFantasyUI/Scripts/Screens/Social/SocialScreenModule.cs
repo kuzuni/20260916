@@ -385,7 +385,13 @@ namespace Moonlit.UI
         static void ChatMessage(ScreenContext c, Transform parent, int index, string name, string message, float width)
         {
             float y = 18 + index * 128;
-            Avatar(c, parent, 18, y, 92, name.StartsWith("[나]")?0:index%2);
+            var portrait=Ui.Rect("Chat portrait",parent,18,y,92,92);
+            var portraitSprite=name.StartsWith("[나]") ? AvatarPortrait(profileAvatar)
+                : Resources.Load<Sprite>("Moonlit/Social/"+(index%2==0?"ChatGoldKnight-v1":"ChatHornedKnight-v1"));
+            var artwork=Ui.ArtImage("Avatar artwork",portrait,4,4,84,84,portraitSprite);
+            artwork.preserveAspect=true;
+            var rim=Ui.Image("Portrait rim",portrait,0,0,92,92,PopupSkin.PanelArt);
+            rim.type=Image.Type.Sliced; rim.fillCenter=false; rim.pixelsPerUnitMultiplier=18;
             Ui.Text("Sender", parent, 130, y, width - 278, 45, name, 24, Font(c), Ui.Gold, TextAnchor.MiddleLeft);
             Ui.Text("Message time",parent,width-138,y,110,45,"14:"+(40+index%20).ToString("00"),22,Font(c),Ui.Ivory,TextAnchor.MiddleRight);
             var bubble = PopupSkin.Panel("Message bubble", parent, 126, y + 48, width - 154, 72);

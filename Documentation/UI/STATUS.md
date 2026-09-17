@@ -1,6 +1,15 @@
 # Moonlit 30 UI — coordinator status
 
-Updated 2026-09-17, 12:17 KST. Implementation is unfinished; 15-minute heartbeat remains active.
+Updated 2026-09-17, 12:40 KST. Implementation is unfinished; 15-minute heartbeat remains active.
+
+## Chat knight portrait fidelity
+
+- PR #55 source 6a8bb10c325b7a15203f6116641b54c8caab27e8 merged as 7e83e37c9581fddfa58e850d743c136810abc637; original checkout is synchronized, retaining the same 11 user metadata edits. Run 35177775600 artifact 10479587704 downloaded and parsed: actual XML 42 passed / 0 failed / 0 skipped. The new pass stone/detail footer graphics artifact is still pending; neither visual fix is accepted yet.
+- PR #54 graphics artifact 10479631199 downloaded: Verification.txt PASS, 68 PNGs. Viewed Runtime-chat-9x16.png and Runtime-chat-9x19.png. Fullscreen scenery, selected-only blue tab, separate timestamps, bubbles and composer render; the taller view leaves open scenery beneath its 12 sample messages. The previous 42-test result covers drafts, parent scroll, local append isolation and plain-text input. Portrait subject, bubble-tail, tab-badge and battle-attachment differences remain visible.
+- Re-inspected original 13-chat.png at full resolution and the existing 20-choice avatar atlas. The atlas lacks the reference's gold/red-crested and black horned knight subjects. Branch codex/chat-portrait-fidelity adds two built-in imagegen paintings for the local chat sample participants. Exact prompts and source filenames are in ChatKnightPortraits-v1-prompts.md. Both unchanged PNGs are 1254x1254 with opaque backgrounds, visually inspected; unique .meta GUIDs and no-mipmap single-sprite imports supplied.
+- Chat portraits now use independent 84-unit illustrations within a reusable empty 92-unit ornate rim. Sent local messages retain the selected profile avatar. The profile avatar catalog and PvP rows are unchanged. No screenshot UI is baked into an asset, no remote message is sent, and artwork/rims do not receive raycasts.
+- Static diff and metadata uniqueness checks passed. No new tests for this decorative change; new-source hosted import, existing chat regression and both-ratio visual captures are pending. No local Unity execution. Remaining chat gaps include badge artwork, bubble-tail silhouette and illustrated battle-result attachment; all 30 screens remain under review.
+- Evidence: C:/Users/user/AppData/Local/Temp/moonlit-cloud-review/artifact-{10479587704,10479631199}/unpacked. Next heartbeat: inspect PR #55 pass/item graphics, this portrait source XML and chat captures; confirm art scale/rim occlusion, then address another remaining reference gap. Preserve Dim 0.85, safe areas and all user edits during incremental main integration.
 
 ## Forge texture visibility and item-detail footer spacing
 
