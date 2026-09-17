@@ -1,0 +1,873 @@
+{
+  "format": "PSB v2, RGB 8-bit, RLE layers and composite",
+  "files": [
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/01_Primitive/Assassin/rigging_layers.psb",
+      "old_sha256": "a608d0e1e54995d5cff488e13f6947d591de5704366d066fc8e0e736cf72c67f",
+      "new_sha256": "71925f03bb9f9df8f3db90ff5eb6003c90f70315292810e524dc1f2ede936283",
+      "original_sha256": "4c39f84f5231c0437f89f518641ef7b75d1a041249450aea9ecfe20ae9fbe616",
+      "meta_sha256": "0bf3d2fa13044d9e1b9587cd64d42c5ddca720a71db676817840ddfb8d44bc02",
+      "layers": [
+        "무기",
+        "머리",
+        "몸통",
+        "팔1",
+        "팔2",
+        "다리1",
+        "다리2"
+      ],
+      "layer_ids": [
+        1001,
+        1002,
+        1003,
+        1004,
+        1005,
+        1006,
+        1007
+      ],
+      "canvas": [
+        1155,
+        1362
+      ],
+      "rgba_pixel_difference": 0,
+      "source_reconstruction_difference": 0,
+      "independent_rle_decode": "PASS"
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/01_Primitive/Thief/rigging_layers.psb",
+      "old_sha256": "642acd8bce1d05b322a64ce5ee228a8864ac115594a9acd407ad2b662d0523bf",
+      "new_sha256": "bb1f65c70a9dc7650866f9e14ed527411eb34c87c019187e41170faa8f6c6128",
+      "original_sha256": "caf666e3d0541bb5280711be1e84ab3069399e866e530e1d350d94b88dcf3b47",
+      "meta_sha256": "533efeb465c0a41cd69cb87b592636b417d4ceee2e245e9ba2b4eb6e5a33a6c8",
+      "layers": [
+        "무기",
+        "머리",
+        "몸통",
+        "팔1",
+        "팔2",
+        "다리1",
+        "다리2"
+      ],
+      "layer_ids": [
+        1001,
+        1002,
+        1003,
+        1004,
+        1005,
+        1006,
+        1007
+      ],
+      "canvas": [
+        1155,
+        1362
+      ],
+      "rgba_pixel_difference": 0,
+      "source_reconstruction_difference": 0,
+      "independent_rle_decode": "PASS"
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/01_Primitive/Warrior/rigging_layers.psb",
+      "old_sha256": "0a5efdd5098625efd8fab694917360a9bce5ef35b84300589f61cafd08756c7a",
+      "new_sha256": "e06aeca6498c76dc05862bf54bae74a954fcceb5a4860c17af41814e5f3fffa4",
+      "original_sha256": "8e5b059975758e701765f12b878a2a6a3a8b01dccf1be611872b840cf287882b",
+      "meta_sha256": "cb60b0793a96739e4cd3b411cb2a14f2e57662ce0a3fa355c6af1630cd1e196d",
+      "layers": [
+        "무기",
+        "머리",
+        "몸통",
+        "팔1",
+        "팔2",
+        "다리1",
+        "다리2"
+      ],
+      "layer_ids": [
+        1001,
+        1002,
+        1003,
+        1004,
+        1005,
+        1006,
+        1007
+      ],
+      "canvas": [
+        1155,
+        1362
+      ],
+      "rgba_pixel_difference": 0,
+      "source_reconstruction_difference": 0,
+      "independent_rle_decode": "PASS"
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/02_Medieval/Assassin/rigging_layers.psb",
+      "old_sha256": "2745499542c980df367cf0d0d03f2072c8491643a3db895095acb5bb80cd5359",
+      "new_sha256": "955843484744ad711d2aa38d981691d1bfaeaf3a0ea9644ccf1bcd0082457059",
+      "original_sha256": "c40e64308035c07f9ff3b07044d307b477b0da057ed46fedf243be6c814fdf93",
+      "meta_sha256": "961643b4e21ab5b6870f3140db3f8fa06cba60824e1d1161cebdc39ef041d6ef",
+      "layers": [
+        "무기",
+        "머리",
+        "몸통",
+        "팔1",
+        "팔2",
+        "다리1",
+        "다리2"
+      ],
+      "layer_ids": [
+        1001,
+        1002,
+        1003,
+        1004,
+        1005,
+        1006,
+        1007
+      ],
+      "canvas": [
+        1155,
+        1362
+      ],
+      "rgba_pixel_difference": 0,
+      "source_reconstruction_difference": 0,
+      "independent_rle_decode": "PASS"
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/02_Medieval/Thief/rigging_layers.psb",
+      "old_sha256": "03f4a99478b6b91f6939feabb923282ace695d338af827d009b6237c19d9deba",
+      "new_sha256": "b49b08f78414676b895aa334b7a30254fbe60ee4aebf085cd0f84afbec21a4c4",
+      "original_sha256": "2d792b35b26e02c2516e976b1a1bb015675b9255f225de68cfbbf45477a202fd",
+      "meta_sha256": "f15bd3779d3db06fdcd35e3422d788dc06f461b2461c3153a24b7e5993f03395",
+      "layers": [
+        "무기",
+        "머리",
+        "몸통",
+        "팔1",
+        "팔2",
+        "다리1",
+        "다리2"
+      ],
+      "layer_ids": [
+        1001,
+        1002,
+        1003,
+        1004,
+        1005,
+        1006,
+        1007
+      ],
+      "canvas": [
+        1155,
+        1362
+      ],
+      "rgba_pixel_difference": 0,
+      "source_reconstruction_difference": 0,
+      "independent_rle_decode": "PASS"
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/02_Medieval/Warrior/rigging_layers.psb",
+      "old_sha256": "392dac588cb11b30dc05d9d2cae89efc220b569bd3da6cdaefe1011527046b44",
+      "new_sha256": "f62997c88555a2804f499c78765fb6f9e43dc12034fb13e9040a585c024e5084",
+      "original_sha256": "364719f9d56f25975a16e7f25646e860cf619faa81914dc42981ebde405d0eaf",
+      "meta_sha256": "df9aee696157a9334d5ac4ca71fb62ae715ccd311d69295ea16769cd8e1b99cc",
+      "layers": [
+        "무기",
+        "머리",
+        "몸통",
+        "팔1",
+        "팔2",
+        "다리1",
+        "다리2"
+      ],
+      "layer_ids": [
+        1001,
+        1002,
+        1003,
+        1004,
+        1005,
+        1006,
+        1007
+      ],
+      "canvas": [
+        1155,
+        1362
+      ],
+      "rgba_pixel_difference": 0,
+      "source_reconstruction_difference": 0,
+      "independent_rle_decode": "PASS"
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/03_EarlyModern/Assassin/rigging_layers.psb",
+      "old_sha256": "64d84070ee2dd6c4e22afb39ce47c0d244e8ea695ac5d72f7dc2c92c4450922f",
+      "new_sha256": "450023117264e86f8a175fe594456bb8b2f6b35489a42f27a1d56196c460c9dd",
+      "original_sha256": "2f69edf994e42f3e7758af6bb1f520b561575d3e796660fd89ca8bfa156789c2",
+      "meta_sha256": "cfe337bde6bbeea7e91fc24962972fb253da658b0fc2c5e3b9aaad8a790b433f",
+      "layers": [
+        "무기",
+        "머리",
+        "몸통",
+        "팔1",
+        "팔2",
+        "다리1",
+        "다리2"
+      ],
+      "layer_ids": [
+        1001,
+        1002,
+        1003,
+        1004,
+        1005,
+        1006,
+        1007
+      ],
+      "canvas": [
+        1155,
+        1362
+      ],
+      "rgba_pixel_difference": 0,
+      "source_reconstruction_difference": 0,
+      "independent_rle_decode": "PASS"
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/03_EarlyModern/Thief/rigging_layers.psb",
+      "old_sha256": "c8f7f633a14b7a320f56cad93cd1fd53daff3e018230ce098b31dfd2b3d8e933",
+      "new_sha256": "3e5b658e5fa8f3648ba0fc190d7ff26e70ac71b810cf62579b6737689a655930",
+      "original_sha256": "6dc5fb1b40403cebeb7b45b94f3372bf5ab285cc38f6e9dd7843740feec8fa60",
+      "meta_sha256": "83c105316dad293f978631cd713b412d2e2982fc6685fc9e8c4dc830abe2a35d",
+      "layers": [
+        "무기",
+        "머리",
+        "몸통",
+        "팔1",
+        "팔2",
+        "다리1",
+        "다리2"
+      ],
+      "layer_ids": [
+        1001,
+        1002,
+        1003,
+        1004,
+        1005,
+        1006,
+        1007
+      ],
+      "canvas": [
+        1155,
+        1362
+      ],
+      "rgba_pixel_difference": 0,
+      "source_reconstruction_difference": 0,
+      "independent_rle_decode": "PASS"
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/03_EarlyModern/Warrior/rigging_layers.psb",
+      "old_sha256": "888abb82c7d0bf1a8bb477f49484c943c95324a1a1123bc424e4e614cc75f6c8",
+      "new_sha256": "e15244512b668b7524ab393958070414b9f11a39b3c2a1666d1d3472331e47d9",
+      "original_sha256": "aac3c999c076a3a6f2ba766f0656cb7af2423d01f8790596a2da9d3097562c77",
+      "meta_sha256": "4d1fba731f304f5184c753695d5108a0d53a4c33d54575c156688bb0575a1111",
+      "layers": [
+        "무기",
+        "머리",
+        "몸통",
+        "팔1",
+        "팔2",
+        "다리1",
+        "다리2"
+      ],
+      "layer_ids": [
+        1001,
+        1002,
+        1003,
+        1004,
+        1005,
+        1006,
+        1007
+      ],
+      "canvas": [
+        1155,
+        1362
+      ],
+      "rgba_pixel_difference": 0,
+      "source_reconstruction_difference": 0,
+      "independent_rle_decode": "PASS"
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/04_Modern/Assassin/rigging_layers.psb",
+      "old_sha256": "5b5e206bab2372344e795e61ac6e6f6470deab7e8f7d85949d9d898d873e9bd3",
+      "new_sha256": "3b87e675eb8610d19c2f46ee42bcc7c4c1d1fd2d93dd28bdcdc7a9a4a4180faf",
+      "original_sha256": "1a48385b55889a624ee39c965cc7bc5b12b17497a913db06a6dfdc7eacf1c568",
+      "meta_sha256": "97fef4e0de559a21a9ea0d3a17db766c61f7c823d0aa9ef5ef9d8f796ec060a1",
+      "layers": [
+        "무기",
+        "머리",
+        "몸통",
+        "팔1",
+        "팔2",
+        "다리1",
+        "다리2"
+      ],
+      "layer_ids": [
+        1001,
+        1002,
+        1003,
+        1004,
+        1005,
+        1006,
+        1007
+      ],
+      "canvas": [
+        1155,
+        1362
+      ],
+      "rgba_pixel_difference": 0,
+      "source_reconstruction_difference": 0,
+      "independent_rle_decode": "PASS"
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/04_Modern/Thief/rigging_layers.psb",
+      "old_sha256": "72f9158f82eb31de8af9552752a3af29e65ba6965cd67668d0cc5418df26c865",
+      "new_sha256": "318b74bb511bcffb9e8564c1db93c71e6f4c2f60abe238f289086682775fae73",
+      "original_sha256": "aba3262b079c8aa5280aaa19ee2f832f288f7936d4a40cffbe4194eb4a7518a3",
+      "meta_sha256": "49dd3578118adb32b7bec6a8436f5d19084986cb50a6bbc4ebb47df4c9819602",
+      "layers": [
+        "무기",
+        "머리",
+        "몸통",
+        "팔1",
+        "팔2",
+        "다리1",
+        "다리2"
+      ],
+      "layer_ids": [
+        1001,
+        1002,
+        1003,
+        1004,
+        1005,
+        1006,
+        1007
+      ],
+      "canvas": [
+        1155,
+        1362
+      ],
+      "rgba_pixel_difference": 0,
+      "source_reconstruction_difference": 0,
+      "independent_rle_decode": "PASS"
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/04_Modern/Warrior/rigging_layers.psb",
+      "old_sha256": "5334e671a9e374d9c8a1d8fae9e905306bdb44dfece84ab10a45cc0b7189c419",
+      "new_sha256": "979b0e1ca769fe03aaa2a01f9972c7d3ce9927d6f4c1ddb539eea397921fd827",
+      "original_sha256": "c97fddf0d0b85747ae640345b94f8c98e1a4b1f278c825a8ece6102788b16cef",
+      "meta_sha256": "a2f6f8a460e8c53ba41a976f0adf7d711a6d541d152be509cb2bbd0fe7d50a69",
+      "layers": [
+        "무기",
+        "머리",
+        "몸통",
+        "팔1",
+        "팔2",
+        "다리1",
+        "다리2"
+      ],
+      "layer_ids": [
+        1001,
+        1002,
+        1003,
+        1004,
+        1005,
+        1006,
+        1007
+      ],
+      "canvas": [
+        1155,
+        1362
+      ],
+      "rgba_pixel_difference": 0,
+      "source_reconstruction_difference": 0,
+      "independent_rle_decode": "PASS"
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/05_Cyber/Assassin/rigging_layers.psb",
+      "old_sha256": "59c866822efeb1c7bed29588deda4c15f60a35cdaeb6277d3c18900e25e05713",
+      "new_sha256": "cad7cc45bfe045da12f1234df7c666e10451e4ae323f7915389e38cca576de39",
+      "original_sha256": "94892cfc96e4e9441397547ac6eaca8f89ea90b70bf50876291637d61075e349",
+      "meta_sha256": "3150781a092c82c67b39d303060aa04bf6fe3f59da752ee7777c505e719a7ff1",
+      "layers": [
+        "무기",
+        "머리",
+        "몸통",
+        "팔1",
+        "팔2",
+        "다리1",
+        "다리2"
+      ],
+      "layer_ids": [
+        1001,
+        1002,
+        1003,
+        1004,
+        1005,
+        1006,
+        1007
+      ],
+      "canvas": [
+        1155,
+        1362
+      ],
+      "rgba_pixel_difference": 0,
+      "source_reconstruction_difference": 0,
+      "independent_rle_decode": "PASS"
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/05_Cyber/Thief/rigging_layers.psb",
+      "old_sha256": "32076ace704a75b5d7ca1156cd79ae019dee06cc056dfb5f7219d64f295f842d",
+      "new_sha256": "e5c96c00a38599a174edf175daa66b4d3511d446ba35a6993830e0c52e4da077",
+      "original_sha256": "2d551d04d35f05995fcf2fed1e2442bd9b61cb2fd9a343e4cd601f800cfaf168",
+      "meta_sha256": "5cc15bab89ccc4810f8563fc34aa7d05268124e45d5abf9294451bc01d583dbe",
+      "layers": [
+        "무기",
+        "머리",
+        "몸통",
+        "팔1",
+        "팔2",
+        "다리1",
+        "다리2"
+      ],
+      "layer_ids": [
+        1001,
+        1002,
+        1003,
+        1004,
+        1005,
+        1006,
+        1007
+      ],
+      "canvas": [
+        1155,
+        1362
+      ],
+      "rgba_pixel_difference": 0,
+      "source_reconstruction_difference": 0,
+      "independent_rle_decode": "PASS"
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/05_Cyber/Warrior/rigging_layers.psb",
+      "old_sha256": "9cc8297d683025145a60a6051951427c90d19e2dc0cf689d6d2d23d60b4cc782",
+      "new_sha256": "189d638028f4dc7e826cdad736294e193810466e5c72599b58f41f3f189dcdd6",
+      "original_sha256": "7f40a27b23aa5afa03a2732c15c711ec77e9732fcab5ece698b9c73044ba0750",
+      "meta_sha256": "899eb12d07746f944c6567c738202ea1ff978a0d95f0ced8b03ca4b44dc96c9b",
+      "layers": [
+        "무기",
+        "머리",
+        "몸통",
+        "팔1",
+        "팔2",
+        "다리1",
+        "다리2"
+      ],
+      "layer_ids": [
+        1001,
+        1002,
+        1003,
+        1004,
+        1005,
+        1006,
+        1007
+      ],
+      "canvas": [
+        1155,
+        1362
+      ],
+      "rgba_pixel_difference": 0,
+      "source_reconstruction_difference": 0,
+      "independent_rle_decode": "PASS"
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/06_Future/Assassin/rigging_layers.psb",
+      "old_sha256": "755e62a93c6824ce5261bb08f6b11583edf6a0abc5a0074c26f5705adf4c4cc1",
+      "new_sha256": "66fd9b316151f98bfc03343a7f3a90021f107665d056c6c619a0f7cc17f563e9",
+      "original_sha256": "1636e7ca160489211469f43a05bde0c4711eeb7979aeff02f5500b937fbe0a00",
+      "meta_sha256": "fe563897b4d95b31b5d5bf10009ba450306e657db785d4070a2c82595ed142d0",
+      "layers": [
+        "무기",
+        "머리",
+        "몸통",
+        "팔1",
+        "팔2",
+        "다리1",
+        "다리2"
+      ],
+      "layer_ids": [
+        1001,
+        1002,
+        1003,
+        1004,
+        1005,
+        1006,
+        1007
+      ],
+      "canvas": [
+        1155,
+        1362
+      ],
+      "rgba_pixel_difference": 0,
+      "source_reconstruction_difference": 0,
+      "independent_rle_decode": "PASS"
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/06_Future/Thief/rigging_layers.psb",
+      "old_sha256": "00e9bae0df8b12d81a537189f9e4eb6822817d6feef1d232df0a17b8d562ec0b",
+      "new_sha256": "5c20de1f4ecce22b9aa0b02b44564f6ce67582b0c31864fa081c56c4766dace6",
+      "original_sha256": "c5d997e00d932c9b1f5ec2db103caeebb2f9874bc795b189a7de2a508bf406e2",
+      "meta_sha256": "b573479188073f39d3aaf61fac9dbbb581649d9982af879d834be8e26807a06d",
+      "layers": [
+        "무기",
+        "머리",
+        "몸통",
+        "팔1",
+        "팔2",
+        "다리1",
+        "다리2"
+      ],
+      "layer_ids": [
+        1001,
+        1002,
+        1003,
+        1004,
+        1005,
+        1006,
+        1007
+      ],
+      "canvas": [
+        1155,
+        1362
+      ],
+      "rgba_pixel_difference": 0,
+      "source_reconstruction_difference": 0,
+      "independent_rle_decode": "PASS"
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/06_Future/Warrior/rigging_layers.psb",
+      "old_sha256": "459ce24891546af5135b2e5c8e47870656660f07d7173719a180dae61df5151f",
+      "new_sha256": "0e423469f86931ee4fe94bd72862af2bded5dbba43e2b2a86f3f230ce65610f7",
+      "original_sha256": "307a5ec1bf179064daf7bdd471fc5d8f83d03e8642d62f54b37482c1be1e4858",
+      "meta_sha256": "7df7cc4c8e6c6b47a3917bbd1af6a1e50d3afb254420c6d05bd50a7d95564e37",
+      "layers": [
+        "무기",
+        "머리",
+        "몸통",
+        "팔1",
+        "팔2",
+        "다리1",
+        "다리2"
+      ],
+      "layer_ids": [
+        1001,
+        1002,
+        1003,
+        1004,
+        1005,
+        1006,
+        1007
+      ],
+      "canvas": [
+        1155,
+        1362
+      ],
+      "rgba_pixel_difference": 0,
+      "source_reconstruction_difference": 0,
+      "independent_rle_decode": "PASS"
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/07_Space/Assassin/rigging_layers.psb",
+      "old_sha256": "592bcc004081f75b0574ac60fa501ca6dbb148cd7a2ee470594eee526a91b459",
+      "new_sha256": "c9501473a7fb44af2b2405516fd12b0f36f197527b90f2ab26e87dadb1278eb1",
+      "original_sha256": "68972e32be3c4240a8d775811cc8b44cd05188f1f73ec29aba3af310b805d7d9",
+      "meta_sha256": "1533f0380672f7abd8eb362b5936e71bbfa915c4f56af88dd4aa6187343589e2",
+      "layers": [
+        "무기",
+        "머리",
+        "몸통",
+        "팔1",
+        "팔2",
+        "다리1",
+        "다리2"
+      ],
+      "layer_ids": [
+        1001,
+        1002,
+        1003,
+        1004,
+        1005,
+        1006,
+        1007
+      ],
+      "canvas": [
+        1155,
+        1362
+      ],
+      "rgba_pixel_difference": 0,
+      "source_reconstruction_difference": 0,
+      "independent_rle_decode": "PASS"
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/07_Space/Thief/rigging_layers.psb",
+      "old_sha256": "4c78d02b82f174e0067975ce3495a27066bcc8765520d56ed67186f3b2366415",
+      "new_sha256": "62de6c1cf67b88b4c7e97c8d3ac9a45d2d56ec72d61466881fbb58c8c2bb4225",
+      "original_sha256": "65a1edb96d99d51a453ede6aca983a63d29f713fa24a3dbaaac58417e3b75327",
+      "meta_sha256": "26f9db712f694492d3c9c467d284970a6bb53a94e8d1d06253168c255dc8f90e",
+      "layers": [
+        "무기",
+        "머리",
+        "몸통",
+        "팔1",
+        "팔2",
+        "다리1",
+        "다리2"
+      ],
+      "layer_ids": [
+        1001,
+        1002,
+        1003,
+        1004,
+        1005,
+        1006,
+        1007
+      ],
+      "canvas": [
+        1155,
+        1362
+      ],
+      "rgba_pixel_difference": 0,
+      "source_reconstruction_difference": 0,
+      "independent_rle_decode": "PASS"
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/07_Space/Warrior/rigging_layers.psb",
+      "old_sha256": "88cb3161d66cdcaf1b33d82e6b95dd764cea96d1d4a13cf8ba2f12d314e6a9c5",
+      "new_sha256": "5808fc75625b3cbd071def5912de62f8a1afb549c3b8d360bff15561e0e7a5b9",
+      "original_sha256": "a8bf3d8124b8a3b3e34f1f72fc5bdc41fae881a4ac5679bd3b2d844e5e990d47",
+      "meta_sha256": "ac8b90300642f65cf69ca5825bd541940da0624b3c4445ca0d974a3dfa4949e0",
+      "layers": [
+        "무기",
+        "머리",
+        "몸통",
+        "팔1",
+        "팔2",
+        "다리1",
+        "다리2"
+      ],
+      "layer_ids": [
+        1001,
+        1002,
+        1003,
+        1004,
+        1005,
+        1006,
+        1007
+      ],
+      "canvas": [
+        1155,
+        1362
+      ],
+      "rgba_pixel_difference": 0,
+      "source_reconstruction_difference": 0,
+      "independent_rle_decode": "PASS"
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/08_Immortal/Assassin/rigging_layers.psb",
+      "old_sha256": "30fb389e9c18fffeb89e9b2cefebb32965e3d0f6cf0503918c621734c2a1ffbf",
+      "new_sha256": "be9829eb2dde7e6f24365b2d84641dc239531be418da87035caeae8961ffcfdf",
+      "original_sha256": "66172154c1c8fe0debb7a8d26f4f876037f8eb5609b28165457b7331203110ce",
+      "meta_sha256": "e470c0d6e79ac037382696b09e0956f9bcc327ad93f0601d942267d2dc8804a1",
+      "layers": [
+        "무기",
+        "머리",
+        "몸통",
+        "팔1",
+        "팔2",
+        "다리1",
+        "다리2"
+      ],
+      "layer_ids": [
+        1001,
+        1002,
+        1003,
+        1004,
+        1005,
+        1006,
+        1007
+      ],
+      "canvas": [
+        1155,
+        1362
+      ],
+      "rgba_pixel_difference": 0,
+      "source_reconstruction_difference": 0,
+      "independent_rle_decode": "PASS"
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/08_Immortal/Thief/rigging_layers.psb",
+      "old_sha256": "374bc10b03a9b16110dbcf76dee2377e1413abd838fdf661768d9c6c51eb3d85",
+      "new_sha256": "b43eeb1a79a8b5470b857851beee525dee8b74a03e5c6e7ee066b9a4af2fbf2f",
+      "original_sha256": "af862c0773918f352346cc1e258114282881dc141e6794f51174f1c63bd4aab4",
+      "meta_sha256": "fe9f7bc3320e55680c4066d9b2fe77b4876b42fa356dd45b3d80c50dfe70e82b",
+      "layers": [
+        "무기",
+        "머리",
+        "몸통",
+        "팔1",
+        "팔2",
+        "다리1",
+        "다리2"
+      ],
+      "layer_ids": [
+        1001,
+        1002,
+        1003,
+        1004,
+        1005,
+        1006,
+        1007
+      ],
+      "canvas": [
+        1155,
+        1362
+      ],
+      "rgba_pixel_difference": 0,
+      "source_reconstruction_difference": 0,
+      "independent_rle_decode": "PASS"
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/08_Immortal/Warrior/rigging_layers.psb",
+      "old_sha256": "411659475d6a456af7c9b52d2c11421604b57e3ed7268028842c0d0c88c232d6",
+      "new_sha256": "1f50200604d389fd31dba2eb0cc12bd63745a261c7ea695ba35f4765af2e43a6",
+      "original_sha256": "08dcf00ccceff9cf503c875deeaa9ccd25aeb55fdb3037672707c466e439434f",
+      "meta_sha256": "e73d19cb8467b73c1152037efa2872e53a1a4f16e4edfdb648c8b0332f70cc48",
+      "layers": [
+        "무기",
+        "머리",
+        "몸통",
+        "팔1",
+        "팔2",
+        "다리1",
+        "다리2"
+      ],
+      "layer_ids": [
+        1001,
+        1002,
+        1003,
+        1004,
+        1005,
+        1006,
+        1007
+      ],
+      "canvas": [
+        1155,
+        1362
+      ],
+      "rgba_pixel_difference": 0,
+      "source_reconstruction_difference": 0,
+      "independent_rle_decode": "PASS"
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/09_Infinite/Assassin/rigging_layers.psb",
+      "old_sha256": "fe33e1fb2d36bc660c5aaaf17c9a285c3b8d78725df778e1645fbf88b11ff84e",
+      "new_sha256": "731000196b56421b5db534c3ef0ac84d0f678ab3a4875580ce5b1f08d064e9a7",
+      "original_sha256": "11b5427f944b47a8b9de50d1fca07bf28af2f0ccec2fae0e64706246b65ba5b4",
+      "meta_sha256": "979e43226bd3783c457fa65dfd699b90e4609aec3166bedc0ea443720910c790",
+      "layers": [
+        "무기",
+        "머리",
+        "몸통",
+        "팔1",
+        "팔2",
+        "다리1",
+        "다리2"
+      ],
+      "layer_ids": [
+        1001,
+        1002,
+        1003,
+        1004,
+        1005,
+        1006,
+        1007
+      ],
+      "canvas": [
+        1155,
+        1362
+      ],
+      "rgba_pixel_difference": 0,
+      "source_reconstruction_difference": 0,
+      "independent_rle_decode": "PASS"
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/09_Infinite/Thief/rigging_layers.psb",
+      "old_sha256": "26f77d8f9202618a9e1efc41cdb4cd365c250f6e1a62298377620d3fc328e1e6",
+      "new_sha256": "8fdd8005df441e3b332ecfbd566de660e21b5c01907e51c99c16ce91d37e8b39",
+      "original_sha256": "40360183a10aa40a924b30989cd24548d856370ad3fb50cb7a0d7a2cca750bb1",
+      "meta_sha256": "ef081eb2330d9f0f15cc6a4c9cc08b896e856882b9da15ded491874c5db50f2c",
+      "layers": [
+        "무기",
+        "머리",
+        "몸통",
+        "팔1",
+        "팔2",
+        "다리1",
+        "다리2"
+      ],
+      "layer_ids": [
+        1001,
+        1002,
+        1003,
+        1004,
+        1005,
+        1006,
+        1007
+      ],
+      "canvas": [
+        1155,
+        1362
+      ],
+      "rgba_pixel_difference": 0,
+      "source_reconstruction_difference": 0,
+      "independent_rle_decode": "PASS"
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/09_Infinite/Warrior/rigging_layers.psb",
+      "old_sha256": "41033905a45765b6699117fc0e8d8d55370f13494a3a43c7ce379d7fd3c4d3c5",
+      "new_sha256": "50961706bced5ba25cdb775864b7af07b28d152052e17a8034c22a278c4a0d9e",
+      "original_sha256": "9b47e1b0040ad90c65c0247521b70fa9f0257f279515ed49aaa9705376af00d0",
+      "meta_sha256": "5550876b99571c02bde04c4b2c8ceeb658141a5a93b8a5118ff326e96d0e7e80",
+      "layers": [
+        "무기",
+        "머리",
+        "몸통",
+        "팔1",
+        "팔2",
+        "다리1",
+        "다리2"
+      ],
+      "layer_ids": [
+        1001,
+        1002,
+        1003,
+        1004,
+        1005,
+        1006,
+        1007
+      ],
+      "canvas": [
+        1155,
+        1362
+      ],
+      "rgba_pixel_difference": 0,
+      "source_reconstruction_difference": 0,
+      "independent_rle_decode": "PASS"
+    }
+  ],
+  "unity_runtime_validation": "NOT RUN; local Unity execution prohibited; no cloud run dispatched",
+  "photoshop_application_validation": "NOT RUN",
+  "backup": "C:\\Users\\user\\Documents\\GitHub\\20260916\\Artifacts\\PSBRepair-20260918\\before.zip",
+  "applied": true
+}

@@ -1,0 +1,71 @@
+{
+  "reference_sha256": "3e3a5cf794336e5b352d39363747f0ef2d8e7872c17f8d96b9442602c290bc20",
+  "variants": [
+    {
+      "class_id": "Thief",
+      "source_generated_size": [
+        1155,
+        1362
+      ],
+      "output_size": [
+        1155,
+        1362
+      ],
+      "source_generated_sha256": "27f358e95dacaa17b6ddad95a7ac8d92a4d424cfab1d9207c6c9320be8468777",
+      "png_sha256": "ff8bcfd16ba9a1635774cf34058f3286aa71fa2689e21e86cf86ded226af98e0",
+      "psb_sha256": "7143738ad477f2fa7223130ced5eca44f55c8b3fc8a8307609fcf39ff5ed8558",
+      "layer_count": 7,
+      "independent_rle_decode": "PASS",
+      "psb_layer_composite_equals_png": true,
+      "max_registration_error_px": 1,
+      "visual_review": "No sleeves, shoulder extensions, back ornaments, wings, capes or additional props",
+      "unity_import_validation": "NOT RUN",
+      "photoshop_application_validation": "NOT RUN"
+    },
+    {
+      "class_id": "Warrior",
+      "source_generated_size": [
+        1154,
+        1363
+      ],
+      "output_size": [
+        1155,
+        1362
+      ],
+      "source_generated_sha256": "6ed15077f188107438ae74e12c55ffd6c4e43ed564b8817b98c3f57f295a5931",
+      "png_sha256": "9433ea13ab23eb6598b802b23309fe506506bdecfd10d6df0a60bf6e65b78021",
+      "psb_sha256": "72d147c20a95ecaf4faf2490122fb187b5b0cd5757f8a8cbc2635094215f2f1e",
+      "layer_count": 7,
+      "independent_rle_decode": "PASS",
+      "psb_layer_composite_equals_png": true,
+      "max_registration_error_px": 0,
+      "visual_review": "No sleeves, shoulder extensions, back ornaments, wings, capes or additional props",
+      "unity_import_validation": "NOT RUN",
+      "photoshop_application_validation": "NOT RUN"
+    },
+    {
+      "class_id": "Assassin",
+      "source_generated_size": [
+        1155,
+        1362
+      ],
+      "output_size": [
+        1155,
+        1362
+      ],
+      "source_generated_sha256": "d9fabd320c974f960e95b9461cbaa04fcc753a600726b967ed8293a20cb00e82",
+      "png_sha256": "52f5d6b0582bdce35e2ea05c8d9cc69cb244c32616406fe079511cf7b97c21f4",
+      "psb_sha256": "0134df5cc1faa4a3a3cde531c88a17bd6c07f6127d0fda1c3cf558cdeb8b7c01",
+      "layer_count": 7,
+      "independent_rle_decode": "PASS",
+      "psb_layer_composite_equals_png": true,
+      "max_registration_error_px": 1,
+      "visual_review": "No sleeves, shoulder extensions, back ornaments, wings, capes or additional props",
+      "unity_import_validation": "NOT RUN",
+      "photoshop_application_validation": "NOT RUN"
+    }
+  ],
+  "registration_note": "Head/torso/weapon bounds aligned; limb exposed-shaft bounds and distal ends registered to Reference. No bones/weights created.",
+  "generated_method": "built-in image_gen",
+  "anatomy_limit": "Silhouettes and connector landmarks registered within 2 pixels; generated artwork is not pixel-identical to the reference."
+}

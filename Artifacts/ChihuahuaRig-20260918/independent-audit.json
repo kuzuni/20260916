@@ -1,0 +1,1448 @@
+{
+  "files": [
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/01_Primitive/Assassin/rigging_layers.psb",
+      "sha256": "0a02faf492904d955e9e645f9229664950ab7bcdf0caf93c98ebd55b92681c46",
+      "layers": [
+        {
+          "name": "무기",
+          "vertices": 35,
+          "triangles": 33,
+          "bones": 1
+        },
+        {
+          "name": "머리",
+          "vertices": 45,
+          "triangles": 43,
+          "bones": 1
+        },
+        {
+          "name": "몸통",
+          "vertices": 37,
+          "triangles": 35,
+          "bones": 1
+        },
+        {
+          "name": "팔1",
+          "vertices": 35,
+          "triangles": 33,
+          "bones": 2
+        },
+        {
+          "name": "팔2",
+          "vertices": 35,
+          "triangles": 33,
+          "bones": 2
+        },
+        {
+          "name": "다리1",
+          "vertices": 36,
+          "triangles": 34,
+          "bones": 2
+        },
+        {
+          "name": "다리2",
+          "vertices": 36,
+          "triangles": 34,
+          "bones": 2
+        }
+      ]
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/01_Primitive/Thief/rigging_layers.psb",
+      "sha256": "ae89e18c1171d408582cf9fa6354cedec448fc8762c9e691866cfb70f73ef70f",
+      "layers": [
+        {
+          "name": "무기",
+          "vertices": 36,
+          "triangles": 34,
+          "bones": 1
+        },
+        {
+          "name": "머리",
+          "vertices": 49,
+          "triangles": 47,
+          "bones": 1
+        },
+        {
+          "name": "몸통",
+          "vertices": 35,
+          "triangles": 33,
+          "bones": 1
+        },
+        {
+          "name": "팔1",
+          "vertices": 33,
+          "triangles": 31,
+          "bones": 2
+        },
+        {
+          "name": "팔2",
+          "vertices": 33,
+          "triangles": 31,
+          "bones": 2
+        },
+        {
+          "name": "다리1",
+          "vertices": 33,
+          "triangles": 31,
+          "bones": 2
+        },
+        {
+          "name": "다리2",
+          "vertices": 33,
+          "triangles": 31,
+          "bones": 2
+        }
+      ]
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/01_Primitive/Warrior/rigging_layers.psb",
+      "sha256": "f573cccc39ba09ac854b37fcacf9ff892cf34c980ca8bc8898248afa92955b8c",
+      "layers": [
+        {
+          "name": "무기",
+          "vertices": 42,
+          "triangles": 40,
+          "bones": 1
+        },
+        {
+          "name": "머리",
+          "vertices": 49,
+          "triangles": 47,
+          "bones": 1
+        },
+        {
+          "name": "몸통",
+          "vertices": 45,
+          "triangles": 43,
+          "bones": 1
+        },
+        {
+          "name": "팔1",
+          "vertices": 36,
+          "triangles": 34,
+          "bones": 2
+        },
+        {
+          "name": "팔2",
+          "vertices": 32,
+          "triangles": 30,
+          "bones": 2
+        },
+        {
+          "name": "다리1",
+          "vertices": 34,
+          "triangles": 32,
+          "bones": 2
+        },
+        {
+          "name": "다리2",
+          "vertices": 34,
+          "triangles": 32,
+          "bones": 2
+        }
+      ]
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/02_Medieval/Assassin/rigging_layers.psb",
+      "sha256": "eba63c8c022c42b598028bc7c48e09335297fbe9c195e640622fbc46958f5ade",
+      "layers": [
+        {
+          "name": "무기",
+          "vertices": 35,
+          "triangles": 33,
+          "bones": 1
+        },
+        {
+          "name": "머리",
+          "vertices": 41,
+          "triangles": 39,
+          "bones": 1
+        },
+        {
+          "name": "몸통",
+          "vertices": 35,
+          "triangles": 33,
+          "bones": 1
+        },
+        {
+          "name": "팔1",
+          "vertices": 34,
+          "triangles": 32,
+          "bones": 2
+        },
+        {
+          "name": "팔2",
+          "vertices": 34,
+          "triangles": 32,
+          "bones": 2
+        },
+        {
+          "name": "다리1",
+          "vertices": 32,
+          "triangles": 30,
+          "bones": 2
+        },
+        {
+          "name": "다리2",
+          "vertices": 32,
+          "triangles": 30,
+          "bones": 2
+        }
+      ]
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/02_Medieval/Thief/rigging_layers.psb",
+      "sha256": "3460bac3d48c0568fee937b35dded169c45c6f6020d3fe27705b3130627f340f",
+      "layers": [
+        {
+          "name": "무기",
+          "vertices": 41,
+          "triangles": 39,
+          "bones": 1
+        },
+        {
+          "name": "머리",
+          "vertices": 42,
+          "triangles": 40,
+          "bones": 1
+        },
+        {
+          "name": "몸통",
+          "vertices": 37,
+          "triangles": 35,
+          "bones": 1
+        },
+        {
+          "name": "팔1",
+          "vertices": 32,
+          "triangles": 30,
+          "bones": 2
+        },
+        {
+          "name": "팔2",
+          "vertices": 33,
+          "triangles": 31,
+          "bones": 2
+        },
+        {
+          "name": "다리1",
+          "vertices": 33,
+          "triangles": 31,
+          "bones": 2
+        },
+        {
+          "name": "다리2",
+          "vertices": 33,
+          "triangles": 31,
+          "bones": 2
+        }
+      ]
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/02_Medieval/Warrior/rigging_layers.psb",
+      "sha256": "c0346dd89008f0c899d0ce161eb301601b5e463c78b8586fa7855c35511bdfb5",
+      "layers": [
+        {
+          "name": "무기",
+          "vertices": 45,
+          "triangles": 43,
+          "bones": 1
+        },
+        {
+          "name": "머리",
+          "vertices": 43,
+          "triangles": 41,
+          "bones": 1
+        },
+        {
+          "name": "몸통",
+          "vertices": 38,
+          "triangles": 36,
+          "bones": 1
+        },
+        {
+          "name": "팔1",
+          "vertices": 34,
+          "triangles": 32,
+          "bones": 2
+        },
+        {
+          "name": "팔2",
+          "vertices": 33,
+          "triangles": 31,
+          "bones": 2
+        },
+        {
+          "name": "다리1",
+          "vertices": 32,
+          "triangles": 30,
+          "bones": 2
+        },
+        {
+          "name": "다리2",
+          "vertices": 33,
+          "triangles": 31,
+          "bones": 2
+        }
+      ]
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/03_EarlyModern/Assassin/rigging_layers.psb",
+      "sha256": "b4b7d99bae99447bcd307a8a837e79450c160cefdf347d12665ea87fcf026614",
+      "layers": [
+        {
+          "name": "무기",
+          "vertices": 41,
+          "triangles": 39,
+          "bones": 1
+        },
+        {
+          "name": "머리",
+          "vertices": 44,
+          "triangles": 42,
+          "bones": 1
+        },
+        {
+          "name": "몸통",
+          "vertices": 33,
+          "triangles": 31,
+          "bones": 1
+        },
+        {
+          "name": "팔1",
+          "vertices": 33,
+          "triangles": 31,
+          "bones": 2
+        },
+        {
+          "name": "팔2",
+          "vertices": 33,
+          "triangles": 31,
+          "bones": 2
+        },
+        {
+          "name": "다리1",
+          "vertices": 35,
+          "triangles": 33,
+          "bones": 2
+        },
+        {
+          "name": "다리2",
+          "vertices": 32,
+          "triangles": 30,
+          "bones": 2
+        }
+      ]
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/03_EarlyModern/Thief/rigging_layers.psb",
+      "sha256": "dfcc90ad871679cbf27bca002059bcc8d0edcab88ee56db86416a5171cbbb130",
+      "layers": [
+        {
+          "name": "무기",
+          "vertices": 41,
+          "triangles": 39,
+          "bones": 1
+        },
+        {
+          "name": "머리",
+          "vertices": 47,
+          "triangles": 45,
+          "bones": 1
+        },
+        {
+          "name": "몸통",
+          "vertices": 32,
+          "triangles": 30,
+          "bones": 1
+        },
+        {
+          "name": "팔1",
+          "vertices": 32,
+          "triangles": 30,
+          "bones": 2
+        },
+        {
+          "name": "팔2",
+          "vertices": 33,
+          "triangles": 31,
+          "bones": 2
+        },
+        {
+          "name": "다리1",
+          "vertices": 34,
+          "triangles": 32,
+          "bones": 2
+        },
+        {
+          "name": "다리2",
+          "vertices": 34,
+          "triangles": 32,
+          "bones": 2
+        }
+      ]
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/03_EarlyModern/Warrior/rigging_layers.psb",
+      "sha256": "1395de45b96f204c9af5007880f51eada8f10afc2695d8c46d1ea7c95cd21e3b",
+      "layers": [
+        {
+          "name": "무기",
+          "vertices": 37,
+          "triangles": 35,
+          "bones": 1
+        },
+        {
+          "name": "머리",
+          "vertices": 43,
+          "triangles": 41,
+          "bones": 1
+        },
+        {
+          "name": "몸통",
+          "vertices": 31,
+          "triangles": 29,
+          "bones": 1
+        },
+        {
+          "name": "팔1",
+          "vertices": 35,
+          "triangles": 33,
+          "bones": 2
+        },
+        {
+          "name": "팔2",
+          "vertices": 33,
+          "triangles": 31,
+          "bones": 2
+        },
+        {
+          "name": "다리1",
+          "vertices": 33,
+          "triangles": 31,
+          "bones": 2
+        },
+        {
+          "name": "다리2",
+          "vertices": 33,
+          "triangles": 31,
+          "bones": 2
+        }
+      ]
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/04_Modern/Assassin/rigging_layers.psb",
+      "sha256": "39aeca7b6647a00900911dd341faa7d9caa2ea8c2b3164e12b41dfda10a54969",
+      "layers": [
+        {
+          "name": "무기",
+          "vertices": 36,
+          "triangles": 34,
+          "bones": 1
+        },
+        {
+          "name": "머리",
+          "vertices": 38,
+          "triangles": 36,
+          "bones": 1
+        },
+        {
+          "name": "몸통",
+          "vertices": 32,
+          "triangles": 30,
+          "bones": 1
+        },
+        {
+          "name": "팔1",
+          "vertices": 32,
+          "triangles": 30,
+          "bones": 2
+        },
+        {
+          "name": "팔2",
+          "vertices": 33,
+          "triangles": 31,
+          "bones": 2
+        },
+        {
+          "name": "다리1",
+          "vertices": 34,
+          "triangles": 32,
+          "bones": 2
+        },
+        {
+          "name": "다리2",
+          "vertices": 33,
+          "triangles": 31,
+          "bones": 2
+        }
+      ]
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/04_Modern/Thief/rigging_layers.psb",
+      "sha256": "9891ba8e79d173cf1439f3ceed49c95ae43cc3296e16b5e9f5cf4eaff4664312",
+      "layers": [
+        {
+          "name": "무기",
+          "vertices": 34,
+          "triangles": 32,
+          "bones": 1
+        },
+        {
+          "name": "머리",
+          "vertices": 39,
+          "triangles": 37,
+          "bones": 1
+        },
+        {
+          "name": "몸통",
+          "vertices": 35,
+          "triangles": 33,
+          "bones": 1
+        },
+        {
+          "name": "팔1",
+          "vertices": 33,
+          "triangles": 31,
+          "bones": 2
+        },
+        {
+          "name": "팔2",
+          "vertices": 32,
+          "triangles": 30,
+          "bones": 2
+        },
+        {
+          "name": "다리1",
+          "vertices": 32,
+          "triangles": 30,
+          "bones": 2
+        },
+        {
+          "name": "다리2",
+          "vertices": 33,
+          "triangles": 31,
+          "bones": 2
+        }
+      ]
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/04_Modern/Warrior/rigging_layers.psb",
+      "sha256": "c6881f027dfac7e383a0d363f131ce109a39e4922400d6c6bae8f1b904896124",
+      "layers": [
+        {
+          "name": "무기",
+          "vertices": 40,
+          "triangles": 38,
+          "bones": 1
+        },
+        {
+          "name": "머리",
+          "vertices": 40,
+          "triangles": 38,
+          "bones": 1
+        },
+        {
+          "name": "몸통",
+          "vertices": 33,
+          "triangles": 31,
+          "bones": 1
+        },
+        {
+          "name": "팔1",
+          "vertices": 33,
+          "triangles": 31,
+          "bones": 2
+        },
+        {
+          "name": "팔2",
+          "vertices": 32,
+          "triangles": 30,
+          "bones": 2
+        },
+        {
+          "name": "다리1",
+          "vertices": 31,
+          "triangles": 29,
+          "bones": 2
+        },
+        {
+          "name": "다리2",
+          "vertices": 31,
+          "triangles": 29,
+          "bones": 2
+        }
+      ]
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/05_Cyber/Assassin/rigging_layers.psb",
+      "sha256": "ef98731fe54a12b7835a5f0dd2abf247096b0feb3de38e703e232cb73eabb09b",
+      "layers": [
+        {
+          "name": "무기",
+          "vertices": 32,
+          "triangles": 30,
+          "bones": 1
+        },
+        {
+          "name": "머리",
+          "vertices": 41,
+          "triangles": 39,
+          "bones": 1
+        },
+        {
+          "name": "몸통",
+          "vertices": 33,
+          "triangles": 31,
+          "bones": 1
+        },
+        {
+          "name": "팔1",
+          "vertices": 32,
+          "triangles": 30,
+          "bones": 2
+        },
+        {
+          "name": "팔2",
+          "vertices": 31,
+          "triangles": 29,
+          "bones": 2
+        },
+        {
+          "name": "다리1",
+          "vertices": 33,
+          "triangles": 31,
+          "bones": 2
+        },
+        {
+          "name": "다리2",
+          "vertices": 34,
+          "triangles": 32,
+          "bones": 2
+        }
+      ]
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/05_Cyber/Thief/rigging_layers.psb",
+      "sha256": "c4044908544b880c917d4adfe3b5232f978c61e38a137dd845af47a62e485952",
+      "layers": [
+        {
+          "name": "무기",
+          "vertices": 34,
+          "triangles": 32,
+          "bones": 1
+        },
+        {
+          "name": "머리",
+          "vertices": 38,
+          "triangles": 36,
+          "bones": 1
+        },
+        {
+          "name": "몸통",
+          "vertices": 33,
+          "triangles": 31,
+          "bones": 1
+        },
+        {
+          "name": "팔1",
+          "vertices": 34,
+          "triangles": 32,
+          "bones": 2
+        },
+        {
+          "name": "팔2",
+          "vertices": 32,
+          "triangles": 30,
+          "bones": 2
+        },
+        {
+          "name": "다리1",
+          "vertices": 32,
+          "triangles": 30,
+          "bones": 2
+        },
+        {
+          "name": "다리2",
+          "vertices": 32,
+          "triangles": 30,
+          "bones": 2
+        }
+      ]
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/05_Cyber/Warrior/rigging_layers.psb",
+      "sha256": "94588dc4c69d181e6f4b4c002c835a43afe378596730cd7fe0d88ff97f67ce88",
+      "layers": [
+        {
+          "name": "무기",
+          "vertices": 40,
+          "triangles": 38,
+          "bones": 1
+        },
+        {
+          "name": "머리",
+          "vertices": 39,
+          "triangles": 37,
+          "bones": 1
+        },
+        {
+          "name": "몸통",
+          "vertices": 32,
+          "triangles": 30,
+          "bones": 1
+        },
+        {
+          "name": "팔1",
+          "vertices": 32,
+          "triangles": 30,
+          "bones": 2
+        },
+        {
+          "name": "팔2",
+          "vertices": 31,
+          "triangles": 29,
+          "bones": 2
+        },
+        {
+          "name": "다리1",
+          "vertices": 30,
+          "triangles": 28,
+          "bones": 2
+        },
+        {
+          "name": "다리2",
+          "vertices": 31,
+          "triangles": 29,
+          "bones": 2
+        }
+      ]
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/06_Future/Assassin/rigging_layers.psb",
+      "sha256": "ddd7fc6275d146266a11b137f6605d600119f266533ed5c8cfad82e366a3b24c",
+      "layers": [
+        {
+          "name": "무기",
+          "vertices": 32,
+          "triangles": 30,
+          "bones": 1
+        },
+        {
+          "name": "머리",
+          "vertices": 40,
+          "triangles": 38,
+          "bones": 1
+        },
+        {
+          "name": "몸통",
+          "vertices": 34,
+          "triangles": 32,
+          "bones": 1
+        },
+        {
+          "name": "팔1",
+          "vertices": 32,
+          "triangles": 30,
+          "bones": 2
+        },
+        {
+          "name": "팔2",
+          "vertices": 31,
+          "triangles": 29,
+          "bones": 2
+        },
+        {
+          "name": "다리1",
+          "vertices": 32,
+          "triangles": 30,
+          "bones": 2
+        },
+        {
+          "name": "다리2",
+          "vertices": 33,
+          "triangles": 31,
+          "bones": 2
+        }
+      ]
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/06_Future/Thief/rigging_layers.psb",
+      "sha256": "5b9c0e08ee0be30796961249637908c8946979c2bbce2b3310575d91a8c49ebb",
+      "layers": [
+        {
+          "name": "무기",
+          "vertices": 36,
+          "triangles": 34,
+          "bones": 1
+        },
+        {
+          "name": "머리",
+          "vertices": 39,
+          "triangles": 37,
+          "bones": 1
+        },
+        {
+          "name": "몸통",
+          "vertices": 32,
+          "triangles": 30,
+          "bones": 1
+        },
+        {
+          "name": "팔1",
+          "vertices": 34,
+          "triangles": 32,
+          "bones": 2
+        },
+        {
+          "name": "팔2",
+          "vertices": 30,
+          "triangles": 28,
+          "bones": 2
+        },
+        {
+          "name": "다리1",
+          "vertices": 33,
+          "triangles": 31,
+          "bones": 2
+        },
+        {
+          "name": "다리2",
+          "vertices": 31,
+          "triangles": 29,
+          "bones": 2
+        }
+      ]
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/06_Future/Warrior/rigging_layers.psb",
+      "sha256": "c831da2a7b3fd2e6ebe042ad90c2b0133b1b44eabf83a43d0a47c7e01bb6f5ea",
+      "layers": [
+        {
+          "name": "무기",
+          "vertices": 39,
+          "triangles": 37,
+          "bones": 1
+        },
+        {
+          "name": "머리",
+          "vertices": 38,
+          "triangles": 36,
+          "bones": 1
+        },
+        {
+          "name": "몸통",
+          "vertices": 31,
+          "triangles": 29,
+          "bones": 1
+        },
+        {
+          "name": "팔1",
+          "vertices": 33,
+          "triangles": 31,
+          "bones": 2
+        },
+        {
+          "name": "팔2",
+          "vertices": 30,
+          "triangles": 28,
+          "bones": 2
+        },
+        {
+          "name": "다리1",
+          "vertices": 33,
+          "triangles": 31,
+          "bones": 2
+        },
+        {
+          "name": "다리2",
+          "vertices": 32,
+          "triangles": 30,
+          "bones": 2
+        }
+      ]
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/07_Space/Assassin/rigging_layers.psb",
+      "sha256": "2f9a968a8cd35e555051ff83c3580d2ae5ec429b98b380da18d2d034675807ae",
+      "layers": [
+        {
+          "name": "무기",
+          "vertices": 45,
+          "triangles": 43,
+          "bones": 1
+        },
+        {
+          "name": "머리",
+          "vertices": 41,
+          "triangles": 39,
+          "bones": 1
+        },
+        {
+          "name": "몸통",
+          "vertices": 31,
+          "triangles": 29,
+          "bones": 1
+        },
+        {
+          "name": "팔1",
+          "vertices": 34,
+          "triangles": 32,
+          "bones": 2
+        },
+        {
+          "name": "팔2",
+          "vertices": 33,
+          "triangles": 31,
+          "bones": 2
+        },
+        {
+          "name": "다리1",
+          "vertices": 34,
+          "triangles": 32,
+          "bones": 2
+        },
+        {
+          "name": "다리2",
+          "vertices": 31,
+          "triangles": 29,
+          "bones": 2
+        }
+      ]
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/07_Space/Thief/rigging_layers.psb",
+      "sha256": "220a5c1895f0d764491a8320a72464d41ad6a264662af8cce1b2b1092e8f2010",
+      "layers": [
+        {
+          "name": "무기",
+          "vertices": 35,
+          "triangles": 33,
+          "bones": 1
+        },
+        {
+          "name": "머리",
+          "vertices": 38,
+          "triangles": 36,
+          "bones": 1
+        },
+        {
+          "name": "몸통",
+          "vertices": 33,
+          "triangles": 31,
+          "bones": 1
+        },
+        {
+          "name": "팔1",
+          "vertices": 34,
+          "triangles": 32,
+          "bones": 2
+        },
+        {
+          "name": "팔2",
+          "vertices": 32,
+          "triangles": 30,
+          "bones": 2
+        },
+        {
+          "name": "다리1",
+          "vertices": 31,
+          "triangles": 29,
+          "bones": 2
+        },
+        {
+          "name": "다리2",
+          "vertices": 32,
+          "triangles": 30,
+          "bones": 2
+        }
+      ]
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/07_Space/Warrior/rigging_layers.psb",
+      "sha256": "f2915ed1c39895fd87c52cc9e407cfc669c31a63e6ec26ad5dea860ccb094b03",
+      "layers": [
+        {
+          "name": "무기",
+          "vertices": 44,
+          "triangles": 42,
+          "bones": 1
+        },
+        {
+          "name": "머리",
+          "vertices": 38,
+          "triangles": 36,
+          "bones": 1
+        },
+        {
+          "name": "몸통",
+          "vertices": 35,
+          "triangles": 33,
+          "bones": 1
+        },
+        {
+          "name": "팔1",
+          "vertices": 33,
+          "triangles": 31,
+          "bones": 2
+        },
+        {
+          "name": "팔2",
+          "vertices": 34,
+          "triangles": 32,
+          "bones": 2
+        },
+        {
+          "name": "다리1",
+          "vertices": 32,
+          "triangles": 30,
+          "bones": 2
+        },
+        {
+          "name": "다리2",
+          "vertices": 33,
+          "triangles": 31,
+          "bones": 2
+        }
+      ]
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/08_Immortal/Assassin/rigging_layers.psb",
+      "sha256": "222624d299090c65627b8037d089f109c6e1fb03464901ebfc4b38e377bba618",
+      "layers": [
+        {
+          "name": "무기",
+          "vertices": 45,
+          "triangles": 43,
+          "bones": 1
+        },
+        {
+          "name": "머리",
+          "vertices": 40,
+          "triangles": 38,
+          "bones": 1
+        },
+        {
+          "name": "몸통",
+          "vertices": 33,
+          "triangles": 31,
+          "bones": 1
+        },
+        {
+          "name": "팔1",
+          "vertices": 32,
+          "triangles": 30,
+          "bones": 2
+        },
+        {
+          "name": "팔2",
+          "vertices": 32,
+          "triangles": 30,
+          "bones": 2
+        },
+        {
+          "name": "다리1",
+          "vertices": 32,
+          "triangles": 30,
+          "bones": 2
+        },
+        {
+          "name": "다리2",
+          "vertices": 32,
+          "triangles": 30,
+          "bones": 2
+        }
+      ]
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/08_Immortal/Thief/rigging_layers.psb",
+      "sha256": "417e1a56980872f0e59671b2cd8f49c250f7b781b1eb5e26d4d593c1b4b84239",
+      "layers": [
+        {
+          "name": "무기",
+          "vertices": 37,
+          "triangles": 35,
+          "bones": 1
+        },
+        {
+          "name": "머리",
+          "vertices": 47,
+          "triangles": 45,
+          "bones": 1
+        },
+        {
+          "name": "몸통",
+          "vertices": 36,
+          "triangles": 34,
+          "bones": 1
+        },
+        {
+          "name": "팔1",
+          "vertices": 33,
+          "triangles": 31,
+          "bones": 2
+        },
+        {
+          "name": "팔2",
+          "vertices": 33,
+          "triangles": 31,
+          "bones": 2
+        },
+        {
+          "name": "다리1",
+          "vertices": 34,
+          "triangles": 32,
+          "bones": 2
+        },
+        {
+          "name": "다리2",
+          "vertices": 33,
+          "triangles": 31,
+          "bones": 2
+        }
+      ]
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/08_Immortal/Warrior/rigging_layers.psb",
+      "sha256": "596329b858573e3c20ee45195f3851691f10bc52fbf158f420df949455cdaa23",
+      "layers": [
+        {
+          "name": "무기",
+          "vertices": 46,
+          "triangles": 44,
+          "bones": 1
+        },
+        {
+          "name": "머리",
+          "vertices": 43,
+          "triangles": 41,
+          "bones": 1
+        },
+        {
+          "name": "몸통",
+          "vertices": 37,
+          "triangles": 35,
+          "bones": 1
+        },
+        {
+          "name": "팔1",
+          "vertices": 33,
+          "triangles": 31,
+          "bones": 2
+        },
+        {
+          "name": "팔2",
+          "vertices": 31,
+          "triangles": 29,
+          "bones": 2
+        },
+        {
+          "name": "다리1",
+          "vertices": 31,
+          "triangles": 29,
+          "bones": 2
+        },
+        {
+          "name": "다리2",
+          "vertices": 32,
+          "triangles": 30,
+          "bones": 2
+        }
+      ]
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/09_Infinite/Assassin/rigging_layers.psb",
+      "sha256": "7ee985cc9bcc17b51568457ef13b02401862ac2dc6beb4efc3bd563c60f8ac17",
+      "layers": [
+        {
+          "name": "무기",
+          "vertices": 35,
+          "triangles": 33,
+          "bones": 1
+        },
+        {
+          "name": "머리",
+          "vertices": 43,
+          "triangles": 41,
+          "bones": 1
+        },
+        {
+          "name": "몸통",
+          "vertices": 33,
+          "triangles": 31,
+          "bones": 1
+        },
+        {
+          "name": "팔1",
+          "vertices": 34,
+          "triangles": 32,
+          "bones": 2
+        },
+        {
+          "name": "팔2",
+          "vertices": 33,
+          "triangles": 31,
+          "bones": 2
+        },
+        {
+          "name": "다리1",
+          "vertices": 31,
+          "triangles": 29,
+          "bones": 2
+        },
+        {
+          "name": "다리2",
+          "vertices": 32,
+          "triangles": 30,
+          "bones": 2
+        }
+      ]
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/09_Infinite/Thief/rigging_layers.psb",
+      "sha256": "e33cb81e92d03c1efb79adf9c4696f2fe976225f657c93a2f747b1b835122ff4",
+      "layers": [
+        {
+          "name": "무기",
+          "vertices": 48,
+          "triangles": 46,
+          "bones": 1
+        },
+        {
+          "name": "머리",
+          "vertices": 41,
+          "triangles": 39,
+          "bones": 1
+        },
+        {
+          "name": "몸통",
+          "vertices": 33,
+          "triangles": 31,
+          "bones": 1
+        },
+        {
+          "name": "팔1",
+          "vertices": 32,
+          "triangles": 30,
+          "bones": 2
+        },
+        {
+          "name": "팔2",
+          "vertices": 32,
+          "triangles": 30,
+          "bones": 2
+        },
+        {
+          "name": "다리1",
+          "vertices": 33,
+          "triangles": 31,
+          "bones": 2
+        },
+        {
+          "name": "다리2",
+          "vertices": 33,
+          "triangles": 31,
+          "bones": 2
+        }
+      ]
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/09_Infinite/Warrior/rigging_layers.psb",
+      "sha256": "667c710762d9fb38003bf678ccb4a91a8f5736640df1da11b595a3a3fd4e384f",
+      "layers": [
+        {
+          "name": "무기",
+          "vertices": 39,
+          "triangles": 37,
+          "bones": 1
+        },
+        {
+          "name": "머리",
+          "vertices": 43,
+          "triangles": 41,
+          "bones": 1
+        },
+        {
+          "name": "몸통",
+          "vertices": 33,
+          "triangles": 31,
+          "bones": 1
+        },
+        {
+          "name": "팔1",
+          "vertices": 33,
+          "triangles": 31,
+          "bones": 2
+        },
+        {
+          "name": "팔2",
+          "vertices": 31,
+          "triangles": 29,
+          "bones": 2
+        },
+        {
+          "name": "다리1",
+          "vertices": 32,
+          "triangles": 30,
+          "bones": 2
+        },
+        {
+          "name": "다리2",
+          "vertices": 33,
+          "triangles": 31,
+          "bones": 2
+        }
+      ]
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/10_Holy/Assassin/rigging_layers.psb",
+      "sha256": "5b03cac7c07dd6b219e4a34593d4b9a5d7efe20692a851c99a0b9974ee1c513c",
+      "layers": [
+        {
+          "name": "무기",
+          "vertices": 40,
+          "triangles": 38,
+          "bones": 1
+        },
+        {
+          "name": "머리",
+          "vertices": 40,
+          "triangles": 38,
+          "bones": 1
+        },
+        {
+          "name": "몸통",
+          "vertices": 32,
+          "triangles": 30,
+          "bones": 1
+        },
+        {
+          "name": "팔1",
+          "vertices": 31,
+          "triangles": 29,
+          "bones": 2
+        },
+        {
+          "name": "팔2",
+          "vertices": 30,
+          "triangles": 28,
+          "bones": 2
+        },
+        {
+          "name": "다리1",
+          "vertices": 32,
+          "triangles": 30,
+          "bones": 2
+        },
+        {
+          "name": "다리2",
+          "vertices": 34,
+          "triangles": 32,
+          "bones": 2
+        }
+      ]
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/10_Holy/Thief/rigging_layers.psb",
+      "sha256": "f973b449509078099866c6bcb411e9222089a441b96bbe8729537666cc3a12c8",
+      "layers": [
+        {
+          "name": "무기",
+          "vertices": 38,
+          "triangles": 36,
+          "bones": 1
+        },
+        {
+          "name": "머리",
+          "vertices": 39,
+          "triangles": 37,
+          "bones": 1
+        },
+        {
+          "name": "몸통",
+          "vertices": 32,
+          "triangles": 30,
+          "bones": 1
+        },
+        {
+          "name": "팔1",
+          "vertices": 33,
+          "triangles": 31,
+          "bones": 2
+        },
+        {
+          "name": "팔2",
+          "vertices": 31,
+          "triangles": 29,
+          "bones": 2
+        },
+        {
+          "name": "다리1",
+          "vertices": 32,
+          "triangles": 30,
+          "bones": 2
+        },
+        {
+          "name": "다리2",
+          "vertices": 35,
+          "triangles": 33,
+          "bones": 2
+        }
+      ]
+    },
+    {
+      "path": "Assets/Art/ChihuahuaEquipmentThemes/10_Holy/Warrior/rigging_layers.psb",
+      "sha256": "f36a2e69b2e8519a75da113f7a025cad588ac028c2335baaf8dc4cceba38c0dd",
+      "layers": [
+        {
+          "name": "무기",
+          "vertices": 42,
+          "triangles": 40,
+          "bones": 1
+        },
+        {
+          "name": "머리",
+          "vertices": 42,
+          "triangles": 40,
+          "bones": 1
+        },
+        {
+          "name": "몸통",
+          "vertices": 31,
+          "triangles": 29,
+          "bones": 1
+        },
+        {
+          "name": "팔1",
+          "vertices": 34,
+          "triangles": 32,
+          "bones": 2
+        },
+        {
+          "name": "팔2",
+          "vertices": 33,
+          "triangles": 31,
+          "bones": 2
+        },
+        {
+          "name": "다리1",
+          "vertices": 32,
+          "triangles": 30,
+          "bones": 2
+        },
+        {
+          "name": "다리2",
+          "vertices": 32,
+          "triangles": 30,
+          "bones": 2
+        }
+      ]
+    }
+  ],
+  "maxBoneNumericError": 0.0,
+  "vertices": 7358,
+  "triangles": 6938,
+  "meshes": 210
+}
