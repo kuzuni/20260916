@@ -506,8 +506,11 @@ namespace Moonlit.UI
             backing.type=Image.Type.Tiled;
             backing.pixelsPerUnitMultiplier=.45f;
             backing.raycastTarget=true;
-            var rim=PopupSkin.Panel("Pass stone frame",root,0,0,w,h);
-            rim.fillCenter=false;
+            // This dialog already owns its stone face. The generic Panel helper adds an
+            // opaque inset above earlier siblings, which would hide that artwork.
+            var rim=Ui.Image("Pass stone frame",root,0,0,w,h,PopupSkin.PanelArt);
+            rim.type=Image.Type.Sliced; rim.fillCenter=false; rim.pixelsPerUnitMultiplier=3;
+            rim.raycastTarget=true;
             Ui.ArtImage("Pass sword header",root,20,-162,900,381,PopupSkin.PassHeaderArt).preserveAspect=true;
             Ui.Text("Title",root,90,46,760,100,"진행 패스",52,Font(c));
             var b=Ui.Rect("Live content",root,30,155,880,h-215);

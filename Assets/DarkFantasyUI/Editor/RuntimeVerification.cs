@@ -124,6 +124,7 @@ namespace Moonlit.Editor
                     if (navigationPixels != null) AssertNavigationVisible(navigationPixels, ReadNavigationPixels(screen, camera), screen);
                     if (pageRoute) AssertPageJoinsNavigation(screen, camera, routeRoot);
                     if (route == "shop" || route == "pvp") AssertPageOccludesMain(canvas, camera, routeRoot);
+                    if (route == "progress-pass") AssertPassStoneVisible(camera, layer, report);
                     foreach (var button in screen.navigation)
                     {
                         AssertInsideSafe(button.GetComponent<RectTransform>(), camera, areas[aspect]);
@@ -173,6 +174,41 @@ namespace Moonlit.Editor
                 case "pvp-opponents":
                 case "pvp-rewards": return new[]{"pvp"};
                 default: return Array.Empty<string>();
+            }
+        }
+
+        // Prove the painted face contributes to the rendered image. A valid loaded sprite
+        // can still be completely hidden by an opaque sibling supplied by a frame helper.
+        static void AssertPassStoneVisible(Camera camera, GameObject layer, List<string> report)
+        {
+            var backing=layer.GetComponentsInChildren<Image>().First(i=>i.name=="Pass stone backing");
+            if(!backing.sprite) throw new Exception("Pass stone sprite missing");
+            var original=backing.color;
+            var previous=RenderTexture.active;
+            var sample=new Texture2D(16,16,TextureFormat.RGB24,false);
+            try {
+                // Empty strip between the prompt and premium purchase, clear of live text.
+                var center=RectTransformUtility.WorldToScreenPoint(camera,
+                    backing.rectTransform.TransformPoint(new Vector2(backing.rectTransform.rect.center.x,-229)));
+                var area=new Rect(Mathf.RoundToInt(center.x)-8,Mathf.RoundToInt(center.y)-8,16,16);
+                Color[] Read() {
+                    Canvas.ForceUpdateCanvases(); camera.Render();
+                    RenderTexture.active=camera.targetTexture;
+                    sample.ReadPixels(area,0,0); sample.Apply();
+                    return sample.GetPixels();
+                }
+                var normal=Read();
+                backing.color=Color.magenta;
+                var tinted=Read();
+                float difference=0;
+                for(int i=0;i<normal.Length;i++) difference+=Mathf.Abs(normal[i].g-tinted[i].g);
+                difference/=normal.Length;
+                if(difference<.01f) throw new Exception("Pass stone face is visually occluded; tint response="+difference);
+                report.Add("PASS pass stone face contributes rendered pixels; green-channel tint response="+difference);
+            }
+            finally {
+                backing.color=original; Canvas.ForceUpdateCanvases();
+                RenderTexture.active=previous; Object.DestroyImmediate(sample);
             }
         }
         // Raycast sorting can pass even while a lower-order page obscures the rendered icons.

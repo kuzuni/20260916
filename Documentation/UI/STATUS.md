@@ -1,6 +1,15 @@
 # Moonlit 30 UI — coordinator status
 
-Updated 2026-09-17, 12:40 KST. Implementation is unfinished; 15-minute heartbeat remains active.
+Updated 2026-09-17, 13:03 KST. Implementation is unfinished; 15-minute heartbeat remains active.
+
+## Pass painted backing occlusion fix
+
+- PR #56 source 441f3ed151674d1c6ec148b4e4eb7528ecef5eeb merged as 0bfaefa28561464ff53f3039dc13e6b4339e78c1; original checkout synchronized with 11 user metadata edits preserved by SHA256. Run 35179096270 artifact 10478734799 downloaded: actual XML 42 passed / 0 failed / 0 skipped. Knight portrait captures remain pending.
+- PR #55 graphics artifact 10478684544 downloaded: Verification.txt PASS, 68 PNGs. Viewed normal pass 9:16, claimed pass 9:19 and equipment catalog item details at both ratios. Item-detail footer now has a clear gap before close and separate tier icon/name/rate; the item artwork still does not match its boot label. Pass body remains flat, so the previous crop/tint change did not resolve visibility.
+- Re-inspected reference 05-progress-pass.png and traced the drawing order. PopupSkin.Panel creates an opaque inset sibling AFTER the custom stone backing. Setting only its returned frame's fillCenter=false leaves that opaque sibling covering the painting. This explains why earlier source-image/tint changes did not appear.
+- Branch codex/pass-backing-layer-order builds the pass rim directly as a sliced empty Image using the same panel art and border scale. Its existing independent stone backing now has no intervening opaque plate. Other dialogs keep the generic helper's opaque inset and existing protection against background text showing through. No art regeneration or source PNG changes.
+- Added a hosted render assertion at both aspect ratios: sample a clear strip between the prompt and purchase, recolor only the stone layer, and require the rendered green-channel pixels to respond. A loaded but fully occluded sprite fails this check. Original color/render target are restored in finally; regular saved screenshots remain unchanged. This is new validation and has not run yet. Static branch diff check passed; no local Unity execution.
+- Evidence: C:/Users/user/AppData/Local/Temp/moonlit-cloud-review/artifact-{10478734799,10478684544}/unpacked. Next heartbeat: inspect PR #56 chat portraits and new-source XML/captures. Require the new pass tint-response check plus visual stone texture review before declaring the visibility bug fixed. Continue item subject/frame and other 30-screen gaps; keep Dim 0.85 and all original user edits.
 
 ## Chat knight portrait fidelity
 
