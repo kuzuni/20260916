@@ -36,6 +36,7 @@ namespace Moonlit.UI
                 difficulty > NextDifficulty(index) || Data.keys[index] < 1) return false;
             Data.keys[index]--; activeIndex = index; activeDifficulty = difficulty; return true;
         }
+        public static void CancelEntry() { if (activeIndex < 0) return; Data.keys[activeIndex]++; activeIndex = -1; }
         public static bool CompleteEntry(bool won, out int index, out int amount)
         {
             index = activeIndex; amount = 0;

@@ -11,6 +11,8 @@ namespace Moonlit.UI
         public bool IsExternalBattle { get; private set; }
         public int Wave { get; private set; }
         public int Round { get; private set; }
+        public int PlayerResolvedBasicAttacks { get; private set; }
+        public int EnemyResolvedBasicAttacks { get; private set; }
         public CombatActorState PlayerState { get; private set; }
         public CombatActorState EnemyState { get; private set; }
         public string LastResult { get; private set; }
@@ -164,6 +166,7 @@ namespace Moonlit.UI
         {
             for (Wave = 1; Wave <= waves; Wave++)
             {
+                PlayerResolvedBasicAttacks = EnemyResolvedBasicAttacks = 0;
                 PlayerState = BuildPlayer();
                 var stats = CombatRules.StageEnemy(difficulty, Wave);
                 if (arenaRating >= 0 && IsExternalBattle && externalName == "아레나")
@@ -185,7 +188,7 @@ namespace Moonlit.UI
                     yield return ActorTurn(playerFirst);
                     if (PlayerState.Alive && EnemyState.Alive) yield return ActorTurn(!playerFirst);
                     if (failedAnimation) { complete(false); yield break; }
-                    if (!PlayerState.Alive || !EnemyState.Alive) break;
+                    if (!PlayerState.Alive || !EnemyState.Alive || CombatRules.RoundLimitLost(Round, EnemyState.Alive)) break;
                 }
                 bool wonWave = PlayerState.Alive && !EnemyState.Alive;
                 (wonWave ? enemyAnimator : playerAnimator).Play("Death", 0, 0);
@@ -220,7 +223,7 @@ namespace Moonlit.UI
                 else if (skill.variant == 0)
                     yield return AnimatedAction(isPlayer, 1, "Buff", () => {
                         actor.Heal(skill.heal); actor.SetAttackBoost(Math.Max(actor.AttackBoost, skill.attackBoost));
-                        ShowSkill(isPlayer, 0); actionText.text = "선조의 축복 · 회복 + 공격력 증가";
+                        ShowSkill(isPlayer, 0); actionText.text = "생명의 기원 · 회복 + 공격력 증가";
                     });
                 else
                     yield return Strike(isPlayer, skill.damage, true, skill.variant);
@@ -232,6 +235,7 @@ namespace Moonlit.UI
             var actor = isPlayer ? PlayerState : EnemyState;
             var target = isPlayer ? EnemyState : PlayerState;
             yield return AnimatedAction(isPlayer, skill ? variant + 1 : 0, skill ? (variant == 1 ? "Weak" : "Strong") : "Basic", () => {
+                if (!skill) { if (isPlayer) PlayerResolvedBasicAttacks++; else EnemyResolvedBasicAttacks++; }
                 var hit = CombatRules.Strike(actor, target, damage, skill, random.NextDouble);
                 if (skill) ShowSkill(isPlayer, variant);
                 if (!hit.evaded) (isPlayer ? enemyAnimator : playerAnimator).Play(target.Alive ? "Hit" : "Death", 0, 0);
@@ -265,7 +269,7 @@ namespace Moonlit.UI
         {
             if (!effects) { main.Toast("전투 에셋 준비가 필요합니다"); return; }
             ShowSkill(true, Mathf.Clamp(variant, 0, 2));
-            main.Toast(new[] { "선조의 축복", "돌날 가르기", "거석 강타" }[Mathf.Clamp(variant, 0, 2)] + " · 원시 스킬 미리보기");
+            main.Toast(new[] { "생명의 기원", "돌날 투척", "유성 강타" }[Mathf.Clamp(variant, 0, 2)] + " · 원시 스킬 미리보기");
         }
         public bool StartDungeon(int index, int difficulty, int waves, Action<bool> callback)
         {

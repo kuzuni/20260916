@@ -266,16 +266,19 @@ namespace Moonlit.UI
             Ui.Text("Player", frame, 220, 116, w - 270, 48, player + (payload == null ? (profileFemale ? "  여성" : "  남성") : ""), 34, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
             Ui.Image("Power icon", frame, 220, 169, 36, 36, Icon(c, 12)).preserveAspect = true;
             Ui.Text("Power", frame, 266, 166, w - 316, 44, power + "     서버 순위 " + rank, 29, Font(c), Ui.Gold, TextAnchor.MiddleLeft);
-            Ui.Text("Stats", frame, w - 310, 210, 260, 100, "Lv. 33 대장간\n1.46b 총 피해\n15.5b 총 체력", 22, Font(c), Ui.Ivory, TextAnchor.UpperRight);
+            bool local=payload==null || rank==RewardRules.ArenaRank(RewardState.Current.arenaPoints) || player=="moonzsanf" || player==profileName;
+            var stats=ForgeState.Current.TotalStats;
+            Ui.Text("Stats",frame,w-380,210,330,100,local ? "Lv."+ForgeState.Current.level+" 대장간\n공격력 "+MainScreen.Compact(stats.attack+CollectionProgression.OwnedAttack+CollectionProgression.EquippedAttack)+"\n체력 "+MainScreen.Compact(stats.health+CollectionProgression.OwnedHealth+CollectionProgression.EquippedHealth) : "더미 상대",22,Font(c),Ui.Ivory,TextAnchor.UpperRight);
             var scene = Ui.Panel("Companion scene", frame, 52, 288, w - 104, 210, new Color(.015f,.16f,.22f));
-            Ui.Text("Scene", scene.transform, 20, 20, w - 144, 170, "☾  전투 동료 편성  ⚔  ✦", 42, Font(c), new Color(.35f,.85f,1));
+            Ui.Text("Scene", scene.transform, 20, 20, w - 144, 170, "펫 3슬롯 · 탈것 1슬롯", 42, Font(c), new Color(.35f,.85f,1));
             for (int i = 0; i < 9; i++)
             {
                 float sw = (w - 136) / 5f;
                 int row = i / 5, col = i % 5;
                 var slot = Ui.Panel("Equipment slot " + i, frame, 52 + col * sw, 520 + row * 142, sw - 12, 126, new Color(.26f,.11f,.025f));
-                Ui.Image("Icon", slot.transform, 13, 9, sw - 38, 79, c.Assets.equipmentIcons != null && i < c.Assets.equipmentIcons.Length ? c.Assets.equipmentIcons[i] : null).preserveAspect = true;
-                Ui.Text("Level", slot.transform, 4, 88, sw - 20, 34, "Lv." + (108 - i), 20, Font(c));
+                var roll=local && i<6?ForgeState.Current.equipped[i]:null;
+                Ui.Image("Icon",slot.transform,13,9,sw-38,79,roll!=null?EquipmentArt.Icon(roll):null).preserveAspect=true;
+                Ui.Text("Level",slot.transform,4,88,sw-20,34,i<6?(roll==null?EquipmentRules.PartNames[i]:"Lv."+roll.level):new[]{"엠블렘","날개","정령"}[i-6],20,Font(c));
             }
             for (int i = 0; i < 6; i++)
             {
@@ -283,7 +286,9 @@ namespace Moonlit.UI
                 Ui.Text("Skill level " + i, frame, 78 + i * 126, 850, 88, 30, "Lv." + new[] { 20, 17, 19, 78, 3, 3 }[i], 18, Font(c), Ui.Gold);
             }
             Ui.Image("Stats rule", frame, 60, 872, w - 120, 2, null, Ui.Gold);
-            Ui.Text("Bonuses", frame, 92, 900, w - 184, 250, "+38.9% 치명타 확률  (상한 80%)\n+169% 치명타 피해\n+7.27% 블록 확률\n+1% 체력 재생\n+6% 생명력 흡수\n+39.6% 더블 찬스\n+45.2% 근접 피해", 25, Font(c), Ui.Ivory, TextAnchor.UpperLeft);
+            string bonuses="";
+            for(int i=0;i<EquipmentRules.AffixNames.Length;i++)bonuses+=EquipmentRules.AffixNames[i]+" +"+ForgeState.Current.AffixTotal((EquipmentAffixKind)i).ToString("0.##")+"%\n";
+            Ui.Text("Bonuses",frame,92,900,w-184,310,local?bonuses:"더미 상대의 상세 옵션은 준비 중입니다.",23,Font(c),Ui.Ivory,TextAnchor.UpperLeft);
             Close(c, frame, w, h);
         }
 
@@ -557,16 +562,16 @@ namespace Moonlit.UI
             Scroll(c, root, 90, 290, w - 180, listHeight, 100 * 130, out var content);
             for (int rank = 1; rank <= 100; rank++)
             {
-                int reference = rank - 8;
-                bool supplied = reference >= 0 && reference < names.Length;
-                PvpRow(c, content, "PvP rank " + rank, 0, (rank-1) * 130, w - 180,
-                    rank, supplied ? names[reference] : "도전자 " + rank.ToString("000"),
-                    supplied ? powers[reference] : (101-rank).ToString() + "m",
-                    supplied ? stars[reference] : Mathf.Max(0,23-rank- (rank>14 ? 9 : 0)),
-                    rank==11 ? profileAvatar : supplied ? reference : (rank-1)%9, rank==11);
+                int myRank=RewardRules.ArenaRank(RewardState.Current.arenaPoints);
+                bool own=rank==myRank;int dummyIndex=rank-1-(rank>myRank?1:0);
+                int points=own?RewardState.Current.arenaPoints:4900-dummyIndex*50;
+                PvpRow(c,content,"PvP rank "+rank,0,(rank-1)*130,w-180,rank,
+                    own?profileName:"도전자 "+(dummyIndex+1).ToString("000"),
+                    own?(c.Main.powerText?c.Main.powerText.text:"0"):(100-dummyIndex).ToString(),
+                    points,own?profileAvatar:dummyIndex%20,own);
             }
             PvpRow(c, root, "My sticky rank", 90, stickyY, w - 180,
-                RewardRules.ArenaRank(RewardState.Current.arenaPoints), names[3], c.Main.powerText.text, RewardState.Current.arenaPoints, profileAvatar, true);
+                RewardRules.ArenaRank(RewardState.Current.arenaPoints), names[3], (c.Main.powerText?c.Main.powerText.text:"0"), RewardState.Current.arenaPoints, profileAvatar, true);
             Action(c, root, 330, actionY, 420, 90, "도전", () => c.Open("pvp-opponents"));
             PopupSkin.Back("Return to main",root,40,actionY,88,Font(c),c.Close);
         }

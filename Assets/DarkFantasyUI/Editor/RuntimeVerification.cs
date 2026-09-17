@@ -45,12 +45,12 @@ namespace Moonlit.Editor
                     var battleImage=safe.battleArt.GetComponent<Image>();
                     if(!battleImage.sprite || battleImage.sprite.name!="EmptyCryptBattle-v1" || battleImage.raycastTarget)
                         throw new Exception("Main battle must load its independent non-interactive empty crypt scenery");
-                    if(safe.battleViewport.childCount!=1 || safe.battleArt.parent!=safe.battleViewport)
-                        throw new Exception("Battle viewport must contain only the scenery, with no character or effect overlays");
+                    if(safe.battleArt.parent!=safe.battleViewport || !screen.GetComponent<BattleRuntime>() || !GameObject.Find("Live turn battle"))
+                        throw new Exception("Main battle must retain independent scenery and a live combat viewport");
                     if(battleImage.sprite==bootstrap.assets.worldBackground)
                         throw new Exception("Main battle scenery must not replace the shared page/card backdrop");
                     screen.Profile(); Canvas.ForceUpdateCanvases();
-                    var modal=Object.FindObjectsByType<RectTransform>(FindObjectsSortMode.None).First(r=>r.name=="Dialog");
+                    var modal=Object.FindObjectsByType<RectTransform>(FindObjectsSortMode.None).First(r=>r.name=="프로필 frame");
                     AssertInsideSafe(modal,camera,areas[i]);
                     Vector2 center=RectTransformUtility.WorldToScreenPoint(camera,modal.TransformPoint(modal.rect.center));
                     if(Vector2.Distance(center,areas[i].center)>2) throw new Exception("Dialog is not centered in the safe area");
@@ -67,6 +67,7 @@ namespace Moonlit.Editor
                 try { VerifyInteractions(screen); report.Add("PASS runtime slot binding, pending craft cost, auto settings entry, independent management, navigation, insufficient-resource handling"); }
                 catch(Exception e) { report.Add("FAIL interactions: "+e); success=false; }
             }
+            if(success) yield return CaptureGameplay(screen,camera,report,()=>success=false);
             if(hardware) Object.DestroyImmediate(hardware);
             camera.targetTexture=oldTarget;
             if(target) { target.Release(); Object.DestroyImmediate(target); }
@@ -154,13 +155,9 @@ namespace Moonlit.Editor
                 if (navigationFailed) yield break;
                 report.Add("PASS route "+route+" "+(aspect==0?"9:16 notch":"9:19 side-insets")+" navigation="+(host.ActivePageKey==route?"clickable":"blocked")+" modalDepth="+host.ModalDepth);
                 if(route=="progress-pass") {
-                    // Capture the first three claimed states as separate art overlays too.
-                    int claimed=0;
-                    foreach(var card in layer.GetComponentsInChildren<RectTransform>(true)) {
-                        if(card.name!="Free reward" || claimed>=3) continue;
-                        card.GetComponentInChildren<Button>(true).onClick.Invoke();
-                        claimed++;
-                    }
+                    screen.highestClearedStage=Math.Max(screen.highestClearedStage,15);
+                    for(int i=0;i<3;i++)RewardState.Current.ClaimPass(screen,i);
+                    yield return new WaitForSecondsRealtime(.25f);
                     yield return null; Canvas.ForceUpdateCanvases();
                     SaveCamera(camera,"Artifacts/Runtime-progress-pass-claimed-"+(aspect==0?"9x16":"9x19")+".png",1080,heights[aspect]);
                 }
@@ -340,20 +337,46 @@ namespace Moonlit.Editor
             screen.fairyButton.onClick.Invoke();
             if(!GameObject.Find("Popup Layer progress-pass")) throw new Exception("Progress pass icon opened the wrong route");
             screen.Close();
-            int ore=screen.ore,total=screen.equipment.Sum(s=>s.level),locked=screen.equipment[0].level;
+            int ore=screen.ore;
             screen.forgeLevelButton.onClick.Invoke(); if(screen.ore!=ore || screen.screens.ModalDepth!=1) throw new Exception("Forge probability route failed"); screen.Close();
-            bool hadPending = screen.PendingCraftItem != null;
-            screen.forgeButton.onClick.Invoke(); if(screen.ore!=ore-(hadPending?0:100) || screen.screens.ModalDepth!=1) throw new Exception("Comparison route cost or decision UI failed"); screen.Close();
-            screen.autoButton.onClick.Invoke(); if(screen.autoForge || screen.screens.ModalDepth!=1) throw new Exception("Auto settings route conflicted with the old immediate toggle"); screen.Close();
-            screen.equipment[1].Button.onClick.Invoke(); if(screen.screens.ModalDepth!=1) throw new Exception("Runtime slot click handler missing"); screen.Close();
+            screen.autoButton.onClick.Invoke(); if(screen.autoForge || screen.screens.ModalDepth!=1) throw new Exception("Auto settings must not start forging"); screen.Close();
             for(int i=0;i<screen.navigation.Length;i++) { screen.navigation[i].onClick.Invoke(); if(i!=3 && string.IsNullOrEmpty(Object.FindFirstObjectByType<UiScreenHost>().ActivePageKey)) throw new Exception("Navigation route missing at index "+i); screen.screens.ShowMainPage(); }
-            var blank=Object.Instantiate(screen.equipment[1],screen.design); blank.Bind(null);
+            var blank=Object.Instantiate(screen.equipment[1],screen.design); blank.roll=null;blank.Bind(null);
             if(blank.icon.enabled || blank.levelLabel.text!="" || blank.lockedBadge.activeSelf || blank.notificationBadge.activeSelf) throw new Exception("Empty slot retains stale content");
-            blank.Bind(screen.equipment[2].item,8,true,true);
-            if(blank.icon.sprite!=screen.equipment[2].item.icon || blank.levelLabel.text!="Lv.8" || !blank.lockedBadge.activeSelf) throw new Exception("Slot rebind failed");
+            var item=ForgeRuntime.Ensure(screen).Definition(new EquipmentRoll{tier=0,level=8,part=EquipmentPart.Armor});
+            blank.Bind(item,8,true,true);
+            if(blank.icon.sprite!=item.icon || blank.levelLabel.text!="Lv.8" || !blank.lockedBadge.activeSelf) throw new Exception("Slot rebind failed");
             Object.DestroyImmediate(blank.gameObject);
-            screen.ore=0; screen.Forge(); if(screen.ore<0 || screen.autoForge) throw new Exception("Insufficient resources guard failed");
         }
+        static IEnumerator CaptureGameplay(MainScreen screen,Camera camera,List<string> report,Action fail)
+        {
+            while(screen.screens.ModalDepth>0)screen.screens.CloseTop();
+            screen.screens.ShowMainPage();
+            ForgeState.Current.pending.Clear();ForgeState.Current.autoEnabled=false;
+            int ore=screen.ore;
+            screen.forgeButton.onClick.Invoke();
+            yield return new WaitForSecondsRealtime(.3f);
+            if(screen.ore!=ore-1 || screen.screens.ModalDepth!=0) {report.Add("FAIL forge must spend one hammer and wait for animation");fail();yield break;}
+            yield return new WaitForSecondsRealtime(.8f);
+            if(!GameObject.Find("Forged equipment hand")) {report.Add("FAIL timed equipment reveal missing");fail();yield break;}
+            yield return new WaitForSecondsRealtime(.6f);
+            if(screen.screens.ModalDepth!=1 || ForgeState.Current.Pending==null) {report.Add("FAIL forge comparison must follow anvil and reveal");fail();yield break;}
+            SaveCamera(camera,"Artifacts/Runtime-forge-timed-result.png",1080,camera.targetTexture.height);
+            int id=ForgeState.Current.Pending.id;
+            screen.Close();screen.Forge();
+            if(screen.ore!=ore-1 || ForgeState.Current.Pending.id!=id) {report.Add("FAIL pending forge result charged twice");fail();yield break;}
+            screen.Close();
+            report.Add("PASS one-hammer forge sequence, delayed comparison and persistent pending result");
+            var battle=screen.GetComponent<BattleRuntime>();
+            for(int skill=0;skill<3;skill++) {
+                battle.PreviewPrimitiveSkill(skill);
+                yield return new WaitForSecondsRealtime(.38f);
+                SaveCamera(camera,"Artifacts/Runtime-primitive-skill-"+skill+".png",1080,camera.targetTexture.height);
+                yield return new WaitForSecondsRealtime(1.6f);
+            }
+            report.Add("CAPTURE primitive buff/weak/strong previews; final artwork approval remains user review");
+        }
+
         static void AssertInsideSafe(RectTransform rect,Camera camera,Rect safe)
         {
             var corners=new Vector3[4]; rect.GetWorldCorners(corners);

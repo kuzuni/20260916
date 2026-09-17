@@ -168,10 +168,12 @@ namespace Moonlit.UI
                 Ui.Text("Tier name",row.transform,144,0,500,60,EquipmentRules.TierNames[i],27,Font(c),Ui.Ivory,TextAnchor.MiddleLeft);
             }
             Ui.Text("Filter title",b,12,742,430,55,"추가 옵션 필터 (하나 이상 일치)",25,Font(c),Ui.Ivory,TextAnchor.MiddleLeft);
-            PopupSkin.Switch(b,580,746,"Enable affix filter",s.filterEnabled,value=>s.filterEnabled=value);
+            var filterChoices=new System.Collections.Generic.List<Toggle>();
+            PopupSkin.Switch(b,580,746,"Enable affix filter",s.filterEnabled,value=>{s.filterEnabled=value;foreach(var choice in filterChoices)choice.interactable=value;});
             for(int i=0;i<9;i++) {
                 int index=i;float x=i%2*356,y=824+i/2*74;
                 var check=Check(c,b,x+10,y,(s.affixMask&(1<<i))!=0);
+                check.name="Affix filter "+((EquipmentAffixKind)i);check.interactable=s.filterEnabled;filterChoices.Add(check);
                 check.onValueChanged.AddListener(value=>{if(value)s.affixMask|=1<<index;else s.affixMask&=~(1<<index);});
                 Ui.Text("Affix",b,x+70,y-2,272,52,EquipmentRules.AffixNames[i],23,Font(c),Ui.Ivory,TextAnchor.MiddleLeft);
             }

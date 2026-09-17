@@ -117,6 +117,55 @@ namespace Moonlit.UI.Tests
             Assert.AreEqual(2,hits);
             UnityEngine.Object.Destroy(actor);
         }
+        [UnityTest]
+        public IEnumerator ActualBattleKillingBlowSkipsDoubleAttackAndDeadEnemyTurn()
+        {
+            var catalog=Resources.Load<BattleAssetCatalog>("Moonlit/Combat/BattleAssets");
+            Assert.IsNotNull(catalog,"Cloud asset preparation is required.");
+            var previousForge=ForgeState.Current;
+            var previousCollections=CollectionProgression.Data;
+            var root=new GameObject("Isolated battle integration",typeof(RectTransform));
+            var mainAssets=ScriptableObject.CreateInstance<MainScreenAssets>();
+            try
+            {
+                ForgeState.Current=new ForgeState();
+                CollectionProgression.Data=CollectionProgression.Create();
+                ForgeState.Current.equipped[(int)EquipmentPart.Weapon]=new EquipmentRoll {
+                    id=1, tier=0, level=100, part=EquipmentPart.Weapon,
+                    affixes=new[] { new EquipmentAffix {kind=EquipmentAffixKind.DoubleChance,percent=100} }
+                };
+                ForgeState.Current.equipped[(int)EquipmentPart.Armor]=new EquipmentRoll {
+                    id=2, tier=0, level=100, part=EquipmentPart.Armor
+                };
+                var main=root.AddComponent<MainScreen>(); main.enabled=false;
+                main.design=root.transform;
+                ((RectTransform)root.transform).sizeDelta=new Vector2(1080,1920);
+                mainAssets.font=Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"); main.font=mainAssets.font;
+                var runtime=root.AddComponent<BattleRuntime>(); runtime.Initialize(main,mainAssets);
+                runtime.StopAllCoroutines();
+                var method=typeof(BattleRuntime).GetMethod("FightStage",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic);
+                int callbacks=0; bool victory=false;
+                Action<bool> result=won=>{callbacks++;victory=won;};
+                var encounter=(IEnumerator)method.Invoke(runtime,new object[]{1,1,result});
+                yield return runtime.StartCoroutine(encounter);
+                Assert.AreEqual(1,callbacks);
+                Assert.IsTrue(victory);
+                Assert.AreEqual(1,runtime.Round);
+                Assert.AreEqual(0,runtime.EnemyState.Health);
+                Assert.AreEqual(1,runtime.PlayerResolvedBasicAttacks,"100% double chance cannot add a hit after a lethal basic.");
+                Assert.AreEqual(0,runtime.EnemyResolvedBasicAttacks,"A dead target cannot take its scheduled turn.");
+                Assert.AreEqual(0,runtime.EnemyState.Turns);
+            }
+            finally
+            {
+                ForgeState.Current=previousForge;
+                CollectionProgression.Data=previousCollections;
+                UnityEngine.Object.DestroyImmediate(root);
+                UnityEngine.Object.DestroyImmediate(mainAssets);
+            }
+            yield return null;
+        }
+
         [Test]
         public void AssetsRetainOriginalPrefabSevenPartsAndOnlyThreePrimitiveVfx()
         {

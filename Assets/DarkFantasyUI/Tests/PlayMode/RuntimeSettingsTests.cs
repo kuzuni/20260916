@@ -39,58 +39,73 @@ namespace Moonlit.UI.Tests
         {
             var progression=typeof(ProgressionScreenModule);
             var social=typeof(SocialScreenModule);
-            var forge=typeof(ForgeScreenModule);
-            var skills=(Array)Field(progression,"Skills").GetValue(null);
-            var skill=skills.GetValue(0);
-            var skillType=skill.GetType();
-            var claims=(HashSet<int>)Field(forge,"passClaims").GetValue(null);
             try
             {
                 for(int session=0;session<2;session++)
                 {
-                    Field(progression,"summonCurrency").SetValue(null,17);
+                    var collections=CollectionProgression.Data;
+                    var forge=ForgeState.Current;
+                    var rewards=RewardState.Current;
+                    var dungeons=DungeonProgression.Data;
                     Field(progression,"selectedCollectionTab").SetValue(null,2);
-                    skillType.GetField("level").SetValue(skill,100);
-                    skillType.GetField("shards").SetValue(skill,99);
-                    skillType.GetField("owned").SetValue(skill,false);
-                    foreach(int index in new[]{13,14,15})
+                    foreach(var category in collections.categories)
                     {
-                        skillType.GetField("owned").SetValue(skills.GetValue(index),false);
-                        skillType.GetField("level").SetValue(skills.GetValue(index),100);
+                        category.summonLevel=53; category.experience=87;
+                        category.entries[0].level=100;
+                        category.entries[0].fragments=99;
+                        category.entries[0].unlocked=true;
+                        category.equipped[0]=0;
                     }
-                    foreach(int index in new[]{11,16,17})
-                        skillType.GetField("owned").SetValue(skills.GetValue(index),true);
-                    ((int[])Field(progression,"equippedSkills").GetValue(null))[0]=0;
-                    claims.Add(1);
+                    forge.level=35; forge.autoEnabled=true; forge.draws[0]=100;
+                    forge.filledSegments=5; forge.freeSkipsUsed=4;
+                    forge.upgradeEndsUtcTicks=DateTime.UtcNow.AddHours(1).Ticks;
+                    forge.keepTiers[0]=false; forge.affixMask=1;
+                    forge.pending.Add(new EquipmentRoll { id=22,level=90 });
+                    forge.equipped[0]=new EquipmentRoll { id=11,level=80 };
+                    rewards.passClaimed[0]=true; rewards.passClaimed[99]=true;
+                    rewards.accruedSeconds=300; rewards.goldClaimed=100; rewards.hammersClaimed=2;
+                    rewards.arenaPoints=3400; rewards.arenaChallenges=40; rewards.arenaWins=30;
+                    dungeons.keys[0]=0; dungeons.highestCleared[0]=12; dungeons.refillDay="2099-12-31";
                     Field(social,"profileName").SetValue(null,"changed profile");
                     Field(social,"profileFemale").SetValue(null,true);
-                    ((bool[])Field(forge,"autoFilters").GetValue(null))[1]=false;
                     MoonlitRuntimeSettings.ResetSession();
-                    Assert.AreSame(skills,Field(progression,"Skills").GetValue(null),"No domain reload or replacement model is needed");
-                    Assert.AreEqual(6830,Field(progression,"summonCurrency").GetValue(null));
+                    Assert.AreNotSame(collections,CollectionProgression.Data);
                     Assert.AreEqual(0,Field(progression,"selectedCollectionTab").GetValue(null));
-                    Assert.AreEqual(76,skillType.GetField("level").GetValue(skill));
-                    Assert.AreEqual(3,skillType.GetField("shards").GetValue(skill));
-                    Assert.AreEqual(true,skillType.GetField("owned").GetValue(skill));
-                    var equipped=(int[])Field(progression,"equippedSkills").GetValue(null);
-                    CollectionAssert.AreEqual(new[]{15,14,13},equipped);
-                    var expectedLevels=new[]{20,19,17};
-                    for(int i=0;i<equipped.Length;i++)
+                    foreach(var category in CollectionProgression.Data.categories)
                     {
-                        var equippedSkill=skills.GetValue(equipped[i]);
-                        Assert.AreEqual(expectedLevels[i],skillType.GetField("level").GetValue(equippedSkill));
-                        Assert.AreEqual(true,skillType.GetField("owned").GetValue(equippedSkill),"Low-level starting equipment must remain owned after reset");
+                        Assert.AreEqual(1,category.summonLevel); Assert.AreEqual(0,category.experience);
+                        CollectionAssert.AreEqual(new[]{-1,-1,-1},category.equipped);
+                        foreach(var entry in category.entries)
+                        {
+                            Assert.AreEqual(1,entry.level); Assert.AreEqual(0,entry.fragments);
+                            Assert.IsFalse(entry.unlocked,"A fresh model must not retain previous play-session ownership.");
+                        }
                     }
-                    foreach(int index in new[]{11,16,17})
-                        Assert.AreEqual(false,skillType.GetField("owned").GetValue(skills.GetValue(index)),"Summoned ownership must not survive a fresh session");
-                    int ownedCount=0;
-                    foreach(var entry in skills)
-                        if((bool)skillType.GetField("owned").GetValue(entry)) ownedCount++;
-                    Assert.AreEqual(15,ownedCount);
-                    Assert.IsEmpty(claims);
+                    Assert.AreEqual(0,CollectionProgression.EquippedSkills.Count);
+                    Assert.AreNotSame(forge,ForgeState.Current);
+                    Assert.AreEqual(1,ForgeState.Current.level);
+                    Assert.IsFalse(ForgeState.Current.autoEnabled);
+                    Assert.IsEmpty(ForgeState.Current.pending);
+                    Assert.AreEqual(0,ForgeState.Current.filledSegments);
+                    Assert.AreEqual(0,ForgeState.Current.upgradeEndsUtcTicks);
+                    Assert.AreEqual(0,ForgeState.Current.freeSkipsUsed);
+                    Assert.AreEqual(511,ForgeState.Current.affixMask);
+                    foreach(var equipped in ForgeState.Current.equipped) Assert.IsNull(equipped);
+                    foreach(int count in ForgeState.Current.draws) Assert.AreEqual(0,count);
+                    foreach(bool keep in ForgeState.Current.keepTiers) Assert.IsTrue(keep);
+                    Assert.AreNotSame(rewards,RewardState.Current);
+                    Assert.AreEqual(0,RewardState.Current.GoldAvailable);
+                    Assert.AreEqual(0,RewardState.Current.HammersAvailable);
+                    Assert.AreEqual(0,RewardState.Current.arenaPoints);
+                    Assert.AreEqual(0,RewardState.Current.arenaChallenges);
+                    Assert.AreEqual(0,RewardState.Current.arenaWins);
+                    foreach(bool claimed in RewardState.Current.passClaimed) Assert.IsFalse(claimed);
+                    Assert.AreNotSame(dungeons,DungeonProgression.Data);
+                    CollectionAssert.AreEqual(new[]{2,2,2,2},DungeonProgression.Data.keys);
+                    CollectionAssert.AreEqual(new[]{0,0,0,0},DungeonProgression.Data.highestCleared);
+                    Assert.AreEqual("",DungeonProgression.Data.refillDay);
                     Assert.AreEqual("moonzzanf",Field(social,"profileName").GetValue(null));
                     Assert.AreEqual(false,Field(social,"profileFemale").GetValue(null));
-                    CollectionAssert.AreEqual(new[]{true,true,false,false,false,true},(bool[])Field(forge,"autoFilters").GetValue(null));
                 }
             }
             finally { MoonlitRuntimeSettings.ResetSession(); }

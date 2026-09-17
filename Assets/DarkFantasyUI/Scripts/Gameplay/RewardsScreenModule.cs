@@ -12,6 +12,16 @@ namespace Moonlit.UI
             registry.Register("progress-pass",ScreenPresentation.Modal,Pass,false);
             registry.Register("wallet",ScreenPresentation.Modal,Wallet,false);
         }
+        static Sprite hammer;
+        static Sprite HammerArt {
+            get {
+                if(hammer)return hammer;
+                var t=Resources.Load<Texture2D>("Moonlit/Forge/RewardHammer-v1");
+                if(!t)return PopupSkin.RewardIcon(0);
+                hammer=Sprite.Create(t,new Rect(0,0,t.width,t.height),new Vector2(.5f,.5f),100);
+                hammer.name="RewardHammer-v1";return hammer;
+            }
+        }
         static RectTransform Panel(ScreenContext c,string title,float requested)
         {
             float h=Mathf.Min(requested,c.Height-80);
@@ -27,7 +37,7 @@ namespace Moonlit.UI
             var time=Ui.Text("Accumulation time",p,70,124,780,70,"",30,c.Assets.font,Ui.Cyan);
             var coin=c.Assets.interfaceIcons[0];
             Ui.ArtImage("Offline gold illustration",p,198,220,180,180,coin).preserveAspect=true;
-            Ui.ArtImage("Offline hammer illustration",p,542,220,180,180,PopupSkin.RewardIcon(0)).preserveAspect=true;
+            Ui.ArtImage("Offline hammer illustration",p,542,220,180,180,HammerArt).preserveAspect=true;
             Ui.Text("Gold rate",p,125,412,320,52,"골드 1 / 초",31,c.Assets.font,Ui.Gold);
             Ui.Text("Hammer rate",p,475,412,320,52,"망치 1 / 분",31,c.Assets.font,Ui.Gold);
             var totals=PopupSkin.Panel("Accrued rewards",p,96,502,728,160);
@@ -48,7 +58,14 @@ namespace Moonlit.UI
         }
         static void Pass(ScreenContext c)
         {
-            var p=Panel(c,"진행 패스",1540);
+            float height=Mathf.Min(1540,c.Height-180);
+            var p=Ui.Rect("진행 패스 frame",c.Root,80,(c.Height-height)/2,920,height);
+            var stone=c.Assets.panels!=null&&c.Assets.panels.Length>4?c.Assets.panels[4]:PopupSkin.PanelArt;
+            var backing=Ui.Image("Pass stone backing",p,6,6,908,height-12,stone);backing.type=Image.Type.Tiled;backing.raycastTarget=true;
+            var rim=Ui.Image("Pass stone frame",p,0,0,920,height,PopupSkin.PanelArt);rim.type=Image.Type.Sliced;rim.fillCenter=false;rim.pixelsPerUnitMultiplier=3;rim.raycastTarget=true;
+            Ui.ArtImage("Pass sword header",p,30,-125,860,330,PopupSkin.PassHeaderArt).preserveAspect=true;
+            Ui.Text("Title",p,70,22,780,76,"진행 패스",46,c.Assets.font);
+            PopupSkin.Close("Close",p,418,height-96,84,c.Assets.font,c.Close);
             Ui.Text("Pass description",p,65,112,790,90,"5스테이지마다 보상을 받으세요!\n최종 보상: 스테이지 500",29,c.Assets.font);
             var progress=Ui.Text("Best stage",p,65,205,790,54,"",28,c.Assets.font,Ui.Cyan);
             var viewport=Ui.Rect("Pass viewport",p,45,285,830,p.rect.height-405);
@@ -62,10 +79,10 @@ namespace Moonlit.UI
             {
                 int index=i;float y=i*178;
                 Ui.Text("Stage milestone "+i,content,295,y,240,40,"스테이지 "+((i+1)*5),25,c.Assets.font,Ui.Gold);
-                var left=PopupSkin.IllustratedCard("Hammer reward "+i,content,8,y+42,332,126,c.Assets.worldBackground,new Color(.5f,.65f,.8f));
+                var left=PopupSkin.IllustratedCard("Hammer reward "+i,content,8,y+42,332,126,Resources.Load<Sprite>("Moonlit/Social/ProfileRuins-v1"),new Color(.5f,.65f,.8f));
                 Ui.ArtImage("Hammer",left,18,14,86,86,PopupSkin.RewardIcon(0)).preserveAspect=true;
                 Ui.Text("Amount",left,112,24,200,65,"망치 100",29,c.Assets.font);
-                var right=PopupSkin.IllustratedCard("Ticket reward "+i,content,356,y+42,332,126,c.Assets.worldBackground,new Color(.5f,.65f,.8f));
+                var right=PopupSkin.IllustratedCard("Ticket reward "+i,content,356,y+42,332,126,Resources.Load<Sprite>("Moonlit/Social/ProfileRuins-v1"),new Color(.5f,.65f,.8f));
                 Ui.ArtImage("Ticket",right,10,23,70,70,Resources.Load<Sprite>("Moonlit/Skills/SummonTicket-v1")).preserveAspect=true;
                 Ui.Text("Amount",right,82,14,236,92,labels[i%3]+"\n10개",24,c.Assets.font);
                 claimButtons[i]=PopupSkin.Button("Claim milestone "+i,content,703,y+55,119,96,"받기",c.Assets.font,()=>{

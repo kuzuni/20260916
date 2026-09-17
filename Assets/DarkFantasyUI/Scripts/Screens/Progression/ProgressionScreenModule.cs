@@ -37,6 +37,7 @@ namespace Moonlit.UI
             public RectTransform root, equipped, grid, experience;
             public ScrollRect scroll;
             public Text title, summary, currency, level, cost, summonLabel, quantityLabel;
+            public Button summon;
             public Button[] tabs = new Button[3];
             public readonly List<Action> refreshCards = new List<Action>();
         }
@@ -74,6 +75,7 @@ namespace Moonlit.UI
             float summonY=ctx.Height-540;
             PopupSkin.Panel("Summon rail",ctx.Root,0,summonY-24,1080,206);
             var summon=PopupSkin.Button("Summon five",ctx.Root,330,summonY,390,154,"",font,()=>Summon(ctx,view),Blue,30);
+            view.summon=summon;
             view.summonLabel=Ui.Text("Summon label",summon.transform,8,4,374,65,"",40,font);
             Ui.ArtImage("Summon cost icon",summon.transform,20,82,46,46,Resources.Load<Sprite>("Moonlit/Skills/SummonTicket-v1"));
             view.cost=Ui.Text("Summon cost",summon.transform,68,74,305,68,"",24,font);
@@ -210,7 +212,7 @@ namespace Moonlit.UI
         }
         static void Summon(ScreenContext ctx,CollectionView view)
         {
-            if(!view.root || view.lastSummonFrame==Time.frameCount)return;
+            if(!view.root || !view.summon || !view.summon.IsInteractable() || view.lastSummonFrame==Time.frameCount)return;
             view.lastSummonFrame=Time.frameCount;
             int tickets=Tickets(ctx.Main,view.tab),diamonds=ctx.Main.gems;
             if(!CollectionProgression.PaySummon(view.quantity,ref tickets,ref diamonds)){ctx.Toast("소환권 또는 다이아가 부족합니다.");return;}
@@ -363,10 +365,11 @@ namespace Moonlit.UI
                 main.Refresh();ctx.Close();
                 // Close the surviving base page so the actual 1:1 battle is visible.
                 main.screens.ShowMainPage();
-                main.StartDungeon(index,target,DungeonProgression.Waves(index),won=>{
+                bool accepted=main.StartDungeon(index,target,DungeonProgression.Waves(index),won=>{
                     if(DungeonProgression.CompleteEntry(won,out int rewardIndex,out int amount))AwardDungeon(main,rewardIndex,amount);
                     else {main.Refresh();main.Toast("던전 도전에 실패했습니다.");}
                 });
+                if(!accepted){DungeonProgression.CancelEntry();main.Refresh();main.Toast("전투 준비 중입니다. 열쇠를 반환했습니다.");}
             },Blue,34);
             Close(panel,385,h-48,font,ctx.Close);refresh();
         }

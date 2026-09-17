@@ -18,6 +18,7 @@ namespace Moonlit.UI.Tests
         [SetUp]
         public void SetUp()
         {
+            MoonlitRuntimeSettings.ResetSession();
             root = new GameObject("test root", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler));
             var canvas = root.GetComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             var popup = Child("popups", root.transform); var pages = Child("pages", root.transform);
@@ -43,28 +44,29 @@ namespace Moonlit.UI.Tests
         }
 
         [UnityTest]
-        public IEnumerator ForgeCatalog_FootwrapSelectionPreservesIdentityAndParentScroll()
+        public IEnumerator ForgeCatalog_SixSlotSelectionPreservesIdentityAndParentScroll()
         {
+            ForgeState.Current=new ForgeState();
             ForgeScreenModule.Register(host.Registry);
-            var footwrap=Resources.Load<ItemDefinition>("Moonlit/Forge/PrimitiveFootwrap");
-            Assert.IsNotNull(footwrap);
-            Assert.IsNotNull(footwrap.icon);
+            var model=new EquipmentRoll{tier=0,variant=0,part=EquipmentPart.Armor};
+            var thumbnail=EquipmentArt.Icon(model);
+            Assert.IsNotNull(thumbnail,"Use the supplied primitive thief armor thumbnail");
             foreach(int height in new[]{1920,2280}) {
                 host.SetPreviewMetrics(new Vector2Int(1080,height),new Rect(36,84,1008,height-168));
                 host.Registry.Open("forge-probability-details"); yield return null;
                 var parent=GameObject.Find("Popup Layer forge-probability-details");
                 var scroll=parent.GetComponentInChildren<ScrollRect>();
                 var cells=scroll.content.GetComponentsInChildren<Button>();
-                Assert.AreEqual(83,cells.Length,"23 primitive entries plus four existing 15-entry demo tiers");
-                var selected=cells.Single(b=>b.name=="Equipment 19");
-                Assert.AreSame(footwrap.icon,selected.transform.Find("Item icon").GetComponent<Image>().sprite);
+                Assert.AreEqual(180,cells.Length,"10 tiers × 3 art variants × 6 equipment parts");
+                var selected=cells.Single(b=>b.name=="Equipment 0 0 Armor");
+                Assert.AreSame(thumbnail,selected.transform.Find("Thumbnail").GetComponent<Image>().sprite);
                 scroll.verticalNormalizedPosition=.65f; Canvas.ForceUpdateCanvases();
                 selected.onClick.Invoke(); yield return null;
                 var child=GameObject.Find("Popup Layer forge-item-details");
-                var icon=child.GetComponentsInChildren<Image>().Single(i=>i.name=="Separate item icon");
-                Assert.AreSame(footwrap.icon,icon.sprite);
-                Assert.AreEqual(footwrap.displayName,child.GetComponentsInChildren<Text>().Single(t=>t.name=="Name").text);
-                Assert.AreEqual("2k 체력",child.GetComponentsInChildren<Text>().Single(t=>t.name=="Health").text);
+                Assert.AreSame(thumbnail,child.GetComponentsInChildren<Image>().Single(i=>i.name=="Equipment icon").sprite);
+                Assert.AreEqual(model.Name,child.GetComponentsInChildren<Text>().Single(t=>t.name=="Name").text);
+                StringAssert.Contains("체력 80",child.GetComponentsInChildren<Text>().Single(t=>t.name=="Stats").text);
+                StringAssert.Contains("스피드 1",child.GetComponentsInChildren<Text>().Single(t=>t.name=="Stats").text);
                 Assert.AreEqual(2,host.ModalDepth);
                 host.CloseTop(); yield return null;
                 Assert.AreSame(parent,GameObject.Find("Popup Layer forge-probability-details"));
@@ -72,8 +74,7 @@ namespace Moonlit.UI.Tests
                 host.CloseTop(); yield return null;
                 host.Registry.Open("forge-item-details"); yield return null;
                 child=GameObject.Find("Popup Layer forge-item-details");
-                Assert.AreSame(footwrap.icon,child.GetComponentsInChildren<Image>().Single(i=>i.name=="Separate item icon").sprite,
-                    "Direct reference capture must use the same footwrap as the catalog entry");
+                Assert.AreSame(thumbnail,child.GetComponentsInChildren<Image>().Single(i=>i.name=="Equipment icon").sprite);
                 host.CloseTop(); yield return null;
             }
         }
@@ -289,29 +290,36 @@ namespace Moonlit.UI.Tests
         public void LocalRewardAndForgeDecisions_MutateExactlyOnce()
         {
             PrepareMainLabels();
-            var startGold = host.GetComponent<MainScreen>().gold;
-            var startOre = host.GetComponent<MainScreen>().ore;
-            Assert.IsTrue(host.GetComponent<MainScreen>().ClaimOfflineRewards(174, 2));
-            Assert.IsFalse(host.GetComponent<MainScreen>().ClaimOfflineRewards(174, 2));
-            Assert.AreEqual(startGold + 174, host.GetComponent<MainScreen>().gold);
-            Assert.AreEqual(startOre + 2, host.GetComponent<MainScreen>().ore);
-            var screen = host.GetComponent<MainScreen>();
-            var item = ScriptableObject.CreateInstance<ItemDefinition>();
-            try
-            {
-                Assert.IsFalse(screen.BeginCraft(item, -100));
-                Assert.IsTrue(screen.BeginCraft(item, 100));
-                int firstId = screen.PendingCraftId;
-                Assert.IsTrue(screen.BeginCraft(item, 100));
-                Assert.AreEqual(startOre - 98, screen.ore, "Reopening must not charge twice");
-                Assert.IsTrue(screen.ResolveCraftedEquipment(firstId, false, 120));
-                Assert.IsFalse(screen.ResolveCraftedEquipment(firstId, false, 120));
-                Assert.AreEqual(startOre + 22, screen.ore);
-                Assert.IsTrue(screen.BeginCraft(item, 100));
-                Assert.IsFalse(screen.ResolveCraftedEquipment(firstId, false, 120), "A stale callback must not sell a new item");
-                Assert.AreEqual(startOre - 78, screen.ore);
+            var screen=host.GetComponent<MainScreen>();
+            var oldRewards=RewardState.Current;var oldForge=ForgeState.Current;
+            try {
+                long start=System.DateTimeOffset.UtcNow.ToUnixTimeSeconds()+10000;
+                var rewards=RewardState.Current=new RewardState{lastTickUtc=start};
+                int goldBefore=screen.gold,oreBefore=screen.ore;
+                rewards.Advance(start+174);rewards.Advance(start+174);rewards.Advance(start+120);
+                Assert.AreEqual(174,rewards.GoldAvailable);Assert.AreEqual(2,rewards.HammersAvailable);
+                Assert.IsTrue(rewards.Claim(screen));Assert.IsFalse(rewards.Claim(screen));
+                Assert.AreEqual(goldBefore+174,screen.gold);Assert.AreEqual(oreBefore+2,screen.ore);
+                rewards.Advance(start+180);
+                Assert.AreEqual(6,rewards.GoldAvailable);Assert.AreEqual(1,rewards.HammersAvailable);
+                Assert.IsTrue(rewards.Claim(screen));Assert.IsFalse(rewards.Claim(screen));
+                Assert.AreEqual(goldBefore+180,screen.gold);Assert.AreEqual(oreBefore+3,screen.ore);
+                var state=ForgeState.Current=new ForgeState();
+                var original=new EquipmentRoll{id=41,part=EquipmentPart.Weapon};
+                var first=new EquipmentRoll{id=42,part=EquipmentPart.Weapon,level=2};
+                var second=new EquipmentRoll{id=43,part=EquipmentPart.Weapon,level=3};
+                state.equipped[5]=original;state.pending.Add(first);state.pending.Add(second);
+                Assert.IsFalse(state.ToggleEquip(999));Assert.IsFalse(state.SellPending(999,out _));
+                Assert.IsTrue(state.SellPending(first.id,out int sale));
+                Assert.AreEqual(EquipmentRules.SaleGold(first),sale);Assert.AreSame(second,state.Pending);
+                Assert.IsFalse(state.SellPending(first.id,out _),"A stale sale callback cannot dispose of the next pending item");
+                Assert.IsFalse(state.ToggleEquip(first.id),"A stale equip callback cannot equip the next pending item");
+                Assert.AreSame(original,state.equipped[5]);Assert.AreSame(second,state.Pending);
+                Assert.IsTrue(state.ToggleEquip(second.id));Assert.AreSame(second,state.equipped[5]);
+                Assert.IsTrue(state.SellPending(original.id,out _));Assert.IsNull(state.Pending);
+                Assert.IsFalse(state.SellPending(original.id,out _));
             }
-            finally { Object.DestroyImmediate(item); }
+            finally {RewardState.Current=oldRewards;ForgeState.Current=oldForge;}
         }
 
         [UnityTest]
@@ -320,7 +328,7 @@ namespace Moonlit.UI.Tests
             PrepareMainLabels();
             SocialScreenModule.Register(host.Registry);
             host.Registry.Open("shop"); yield return null;
-            var expected = new[] { 60, 220, 800, 1500, 3300 };
+            var expected = new[] { 600, 2200, 8000, 15000, 33000 };
             foreach (var amount in expected) Assert.IsNotNull(GameObject.Find("Gem offer " + amount));
             var scroll = Object.FindObjectsByType<ScrollRect>(FindObjectsSortMode.None).Single();
             Assert.AreEqual(expected.Length, scroll.content.Cast<Transform>().Count(t => t.name.StartsWith("Gem offer ")));
@@ -334,6 +342,7 @@ namespace Moonlit.UI.Tests
         public IEnumerator CollectionQuickEquip_DoesNotAccumulateSlots_AndChildKeepsScroll()
         {
             PrepareMainLabels();
+            foreach(var entry in CollectionProgression.Data.categories[0].entries.Take(3))entry.unlocked=true;
             ProgressionScreenModule.Register(host.Registry);
             host.Registry.Open("skills-pets-heroes"); yield return null;
             GameObject.Find("Tab 스킬").GetComponent<Button>().onClick.Invoke(); yield return null;

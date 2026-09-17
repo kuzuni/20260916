@@ -72,7 +72,7 @@ namespace Moonlit.UI
             if(goldText) goldText.text=Compact(gold);
             if(gemText) gemText.text=Compact(gems);
             var stats=ForgeState.Current.TotalStats;
-            if(powerText) powerText.text=Compact(stats.health+stats.attack*8+CollectionProgression.OwnedHealth+CollectionProgression.EquippedHealth);
+            if(powerText) powerText.text=Compact(stats.health+(stats.attack+CollectionProgression.OwnedAttack+CollectionProgression.EquippedAttack)*8+CollectionProgression.OwnedHealth+CollectionProgression.EquippedHealth);
             if(stageText) stageText.text="스테이지 "+stage;
             if(autoText){ autoText.text="자동";autoText.color=autoForge?Ui.Cyan:Ui.Ivory; }
             if(autoIcon)autoIcon.color=autoForge?Ui.Cyan:Color.white;
@@ -95,6 +95,10 @@ namespace Moonlit.UI
         {
             autoForgeBatchSize=Mathf.Max(1,hammerCount);autoForgeFilterMask=filterMask;
             autoForgeContinue=continueAfterMatch;autoForgeKeep=keep==null?new bool[4]:(bool[])keep.Clone();
+            var state=ForgeState.Current;state.batchSize=autoForgeBatchSize;state.affixMask=filterMask;
+            state.continueAfterMatch=continueAfterMatch;
+            state.keepTiers=new bool[10];
+            if(keep!=null)System.Array.Copy(keep,state.keepTiers,System.Math.Min(keep.Length,10));
             ForgeRuntime.Ensure(this).StartAuto();
         }
         public void StopAutoForge(string message="자동 제련을 멈췄습니다")

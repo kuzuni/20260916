@@ -103,6 +103,13 @@ namespace Moonlit.UI.Tests
             Assert.IsFalse(DungeonProgression.CompleteEntry(true,out _,out _));
             Assert.AreEqual(2,DungeonProgression.NextDifficulty(0));
         }
+        [Test] public void RejectedBattleRefundsReservedKeyExactlyOnce()
+        {
+            Assert.IsTrue(DungeonProgression.BeginEntry(2,1));
+            DungeonProgression.CancelEntry();DungeonProgression.CancelEntry();
+            Assert.AreEqual(2,DungeonProgression.Data.keys[2]);
+            Assert.IsFalse(DungeonProgression.CompleteEntry(true,out _,out _));
+        }
         [Test] public void SweepUsesPreviousToHighestClearedAndSpendsMatchingKey()
         {
             DungeonProgression.Data.highestCleared[0]=10;
