@@ -56,6 +56,52 @@ namespace Moonlit.UI.Tests
         }
 
         [UnityTest]
+        public IEnumerator Chat_TabsPreserveDraftsScrollAndLocalMessages()
+        {
+            foreach(int height in new[]{1920,2280}) {
+                host.SetPreviewMetrics(new Vector2Int(1080,height),new Rect(36,84,1008,height-168));
+                host.Registry.Open("chat"); yield return null;
+                var chat=GameObject.Find("Chat");
+                var world=chat.transform.Find("Chat channel 0");
+                var clan=chat.transform.Find("Chat channel 1");
+                var scroll=world.GetComponentInChildren<ScrollRect>();
+                var input=chat.GetComponentInChildren<InputField>();
+                var worldTab=chat.GetComponentsInChildren<Button>().Single(b=>b.name=="월드");
+                var clanTab=chat.GetComponentsInChildren<Button>().Single(b=>b.name=="클랜");
+                Assert.AreSame(PopupSkin.ActionArt,((Image)worldTab.targetGraphic).sprite);
+                Assert.AreSame(PopupSkin.PanelArt,((Image)clanTab.targetGraphic).sprite);
+                Assert.AreEqual("ProfileRuins-v1",GameObject.Find("Full viewport backdrop").transform.Find("Page scenery").GetComponent<Image>().sprite.name);
+                scroll.content.sizeDelta=new Vector2(0,3000); Canvas.ForceUpdateCanvases();
+                scroll.verticalNormalizedPosition=.37f;
+                input.text="월드 초안";
+                clanTab.onClick.Invoke(); yield return null;
+                Assert.IsFalse(world.gameObject.activeSelf);
+                Assert.IsTrue(clan.gameObject.activeSelf);
+                Assert.AreEqual("",input.text);
+                input.text="클랜 초안";
+                worldTab.onClick.Invoke(); yield return null;
+                Assert.AreEqual("월드 초안",input.text);
+                Assert.That(scroll.verticalNormalizedPosition,Is.EqualTo(.37f).Within(.02f));
+                input.text="<b>로컬 메시지</b>";
+                var send=chat.GetComponentsInChildren<Button>().Single(b=>b.name=="전송");
+                send.onClick.Invoke(); yield return null;
+                var messages=world.GetComponentsInChildren<Text>().Where(t=>t.name=="Message").ToArray();
+                Assert.AreEqual(13,messages.Length);
+                Assert.AreEqual("<b>로컬 메시지</b>",messages.Last().text);
+                Assert.IsFalse(messages.Last().supportRichText);
+                Assert.AreEqual("",input.text);
+                send.onClick.Invoke(); yield return null;
+                Assert.AreEqual(13,world.GetComponentsInChildren<Text>().Count(t=>t.name=="Message"));
+                clanTab.onClick.Invoke(); yield return null;
+                Assert.AreEqual("클랜 초안",input.text);
+                Assert.AreEqual(12,clan.GetComponentsInChildren<Text>().Count(t=>t.name=="Message"));
+                GameObject.Find("Chat back").GetComponent<Button>().onClick.Invoke(); yield return null;
+                Assert.AreEqual(0,host.ModalDepth);
+                Assert.IsNull(GameObject.Find("Chat"));
+            }
+        }
+
+        [UnityTest]
         public IEnumerator Shop_ReservesNavigation_AndHasOnlyRequiredOffersAtBothAspectRatios()
         {
             foreach (var height in new[] { 1920, 2280 })

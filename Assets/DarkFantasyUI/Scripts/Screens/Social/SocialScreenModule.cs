@@ -330,29 +330,69 @@ namespace Moonlit.UI
         static void BuildChat(ScreenContext c)
         {
             float w = c.Width, h = c.Height;
-            var root = Ui.Panel("Chat", c.Root, 0, 0, w, h, new Color(.015f,.04f,.055f,.96f)).rectTransform;
-            var messages = new[] { "원정 준비됐나요?", "오늘 보스는 화염 저항이 높아요.", "장비를 강화하고 갈게요!", "좋아요, 5분 뒤 출발합니다.", "새로운 길드원이 참가했습니다.", "전투 기록은 로컬 데모입니다." };
-            Scroll(c, root, 36, 120, w - 72, h - 310, messages.Length * 154 + 40, out var content);
-            for (int i = 0; i < messages.Length; i++) ChatMessage(c, content, i, i % 2 == 0 ? "[달빛] moonzzanf" : "[기사단] Raven", messages[i], w - 72);
+            PopupSkin.FullViewportBackdrop(c,Resources.Load<Sprite>("Moonlit/Social/ProfileRuins-v1"),new Color(.65f,.75f,.85f,1));
+            var root = Ui.Rect("Chat", c.Root, 0, 0, w, h);
             string[] tabs = { "월드", "클랜", "클랜 간부" };
+            var messages = new[] { "원정 준비됐나요?", "오늘 보스는 화염 저항이 높아요.", "장비를 강화하고 갈게요!", "좋아요, 5분 뒤 출발합니다.", "새로운 길드원이 참가했습니다.", "전투 기록을 확인했어요.", "회복 물약도 챙겨 주세요.", "다음은 유령 마을이에요.", "이 장비 조합은 어때요?", "방어력도 확인해 볼게요.", "준비가 끝나면 알려 주세요.", "곧 출발할 수 있어요!" };
+            var channels=new RectTransform[3];
+            var contents=new RectTransform[3];
+            var scrolls=new ScrollRect[3];
+            var buttons=new Button[3];
+            var counts=new int[3];
+            var drafts=new string[3];
+            int selected=0;
+            for(int i=0;i<3;i++) {
+                channels[i]=Ui.Rect("Chat channel "+i,root,0,0,w,h);
+                Scroll(c,channels[i],54,126,w-108,h-308,messages.Length*128+36,out contents[i]);
+                scrolls[i]=contents[i].GetComponentInParent<ScrollRect>();
+                for(int j=0;j<messages.Length;j++)
+                    ChatMessage(c,contents[i],j,"["+tabs[i]+"] "+(j%2==0?"moonzzanf":"Raven"),messages[j],w-108);
+                counts[i]=messages.Length;
+                channels[i].gameObject.SetActive(i==0);
+            }
+            PopupSkin.Panel("Chat composer",root,0,h-174,w,174);
+            var input = Input(c, root, 136, h - 146, w - 296, 82, "");
+            input.characterLimit=80;
+            input.placeholder = Ui.Text("Placeholder", input.transform, 18, 4, w - 336, 74, "메시지 보내기…", 25, Font(c), new Color(.55f,.58f,.62f), TextAnchor.MiddleLeft);
+            var inputFrame=Ui.Image("Input frame",input.transform,0,0,w-296,82,PopupSkin.PanelArt);
+            inputFrame.type=Image.Type.Sliced; inputFrame.fillCenter=false; inputFrame.pixelsPerUnitMultiplier=12;
+            void SelectChannel(int tab) {
+                drafts[selected]=input.text;
+                selected=tab;
+                input.SetTextWithoutNotify(drafts[tab]??"");
+                for(int j=0;j<3;j++) {
+                    channels[j].gameObject.SetActive(j==tab);
+                    ((Image)buttons[j].targetGraphic).sprite=j==tab?PopupSkin.ActionArt:PopupSkin.PanelArt;
+                }
+            }
             for (int i = 0; i < tabs.Length; i++)
             {
-                int tab = i; Action(c, root, i * w / 3f, 20, w / 3f, 80, tabs[i], () => c.Toast(tabs[tab] + " 채팅을 선택했습니다."));
+                int tab = i;
+                buttons[i]=Action(c,root,i*w/3f,20,w/3f,80,tabs[i],()=>SelectChannel(tab));
+                ((Image)buttons[i].targetGraphic).sprite=i==0?PopupSkin.ActionArt:PopupSkin.PanelArt;
             }
-            var input = Input(c, root, 120, h - 160, w - 280, 76, "");
-            input.placeholder = Ui.Text("Placeholder", input.transform, 14, 4, w - 320, 68, "메시지 보내기…", 25, Font(c), new Color(.55f,.58f,.62f), TextAnchor.MiddleLeft);
-            Action(c, root, w - 148, h - 160, 112, 76, "전송", () => { if (string.IsNullOrWhiteSpace(input.text)) c.Toast("메시지를 입력하세요."); else { c.Toast("로컬 미리보기에만 표시되었습니다."); input.text = ""; } });
-            Action(c, root, 24, h - 160, 76, 76, "‹", c.Close);
-            Ui.Text("Offline notice", root, 120, h - 78, w - 160, 40, "실시간 서버에 연결되지 않은 로컬 채팅 데모", 19, Font(c), new Color(.65f,.68f,.7f));
+            Action(c,root,w-140,h-146,112,82,"전송",()=> {
+                if(string.IsNullOrWhiteSpace(input.text)) { c.Toast("메시지를 입력하세요."); return; }
+                ChatMessage(c,contents[selected],counts[selected]++,"[나] moonzzanf",input.text.Trim(),w-108);
+                contents[selected].sizeDelta=new Vector2(0,counts[selected]*128+36);
+                drafts[selected]=""; input.text="";
+                Canvas.ForceUpdateCanvases(); scrolls[selected].verticalNormalizedPosition=0;
+            });
+            PopupSkin.Back("Chat back",root,24,h-154,96,Font(c),c.Close);
+            Ui.Text("Offline notice", root, 136, h - 55, w - 164, 40, "로컬 채팅 미리보기 · 다른 사용자에게 전송되지 않습니다", 19, Font(c), new Color(.65f,.68f,.7f));
         }
 
         static void ChatMessage(ScreenContext c, Transform parent, int index, string name, string message, float width)
         {
-            float y = 18 + index * 154;
-            Avatar(c, parent, 18, y, 92, index);
-            Ui.Text("Sender", parent, 130, y, width - 150, 45, name + "                       " + (14 + index) + ":4" + index, 24, Font(c), Ui.Gold, TextAnchor.MiddleLeft);
-            var bubble = Ui.Panel("Message bubble", parent, 126, y + 48, width - 154, 72, Stone);
-            Ui.Text("Message", bubble.transform, 18, 3, width - 190, 66, message, 25, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
+            float y = 18 + index * 128;
+            Avatar(c, parent, 18, y, 92, name.StartsWith("[나]")?0:index%2);
+            Ui.Text("Sender", parent, 130, y, width - 278, 45, name, 24, Font(c), Ui.Gold, TextAnchor.MiddleLeft);
+            Ui.Text("Message time",parent,width-138,y,110,45,"14:"+(40+index%20).ToString("00"),22,Font(c),Ui.Ivory,TextAnchor.MiddleRight);
+            var bubble = PopupSkin.Panel("Message bubble", parent, 126, y + 48, width - 154, 72);
+            bubble.pixelsPerUnitMultiplier=14;
+            var text=Ui.Text("Message", bubble.transform, 18, 3, width - 190, 66, message, 25, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
+            text.supportRichText=false;
+            text.resizeTextForBestFit=true; text.resizeTextMinSize=16; text.resizeTextMaxSize=25;
         }
 
         // Scenery fills the viewport; page controls remain clipped inside SafeArea above navigation.

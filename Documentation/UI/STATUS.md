@@ -1,6 +1,16 @@
 # Moonlit 30 UI — coordinator status
 
-Updated 2026-09-17, 11:28 KST. Implementation is unfinished; 15-minute heartbeat remains active.
+Updated 2026-09-17, 11:52 KST. Implementation is unfinished; 15-minute heartbeat remains active.
+
+## Chat reference layout and local channel behavior
+
+- PR #53 source 0e8e079c3da6e277d38f7130f83608118b7104cd merged as c1a8d34e24c4b40fdba3b8cac4302d0ccf5423f4; original checkout synchronized preserving 11 user metadata edits by SHA256. Run 35174449907, downloaded artifact 10477414250: actual XML 41 passed / 0 failed / 0 skipped. New nested capture-chain results remain pending.
+- PR #52 graphics artifact 10478012713 downloaded: Verification.txt PASS, 68 PNGs. Viewed normal pass 9:16 and claimed pass 9:19. Header is narrower, title/price are separate and reward state remains readable. The new center backing appears nearly flat dark teal instead of showing clear cracked-stone texture; investigate its actual rendering in a later bounded fix. Do not treat graphics PASS as reference-fidelity acceptance.
+- Inspected original 13-chat.png at full resolution and hosted Runtime-chat-9x16.png from artifact 10477591736. Existing chat exposed the main HUD behind a plain translucent panel, highlighted every tab, combined timestamps with sender via spaces, used unframed rectangles, and discarded typed text after send feedback.
+- Branch codex/chat-reference-layout reuses generated ProfileRuins-v1 as full-viewport chat scenery, ornate empty bubble/input/composer frames, crimson back control, dense 128-unit message rows and independent right-aligned timestamps. Selected channel alone uses blue art. Existing portrait artwork is reused; reference helmet subjects, badges, bubble-tail silhouette and illustrated battle-result attachment remain outstanding.
+- Three independent local channel views retain drafts, scroll and appended text while switching. Send appends only to the selected in-memory channel, clears its draft and scrolls to the new message; blank send does not append. Text is plain (rich-text markup disabled) with an 80-character cap. Twelve sample rows are local demo content, and a visible footer says messages are not sent to other users. No external messaging or account action occurs; closing chat discards this preview session.
+- Added a hosted two-aspect regression for selected artwork, scenery identity, tab/draft/scroll restoration, local append isolation, blank-send guard, plain-text rendering and close behavior. Static diff check passed; new-source Unity and chat screenshots pending. No local Unity execution or new bitmap generation.
+- Evidence: C:/Users/user/AppData/Local/Temp/moonlit-cloud-review/artifact-{10477414250,10478012713,10477591736}/unpacked. Next heartbeat: inspect PR #53 nested captures first, then this chat source XML and both chat screenshots. Address any text clipping and remaining reference details; continue 30-screen review and preserve Dim 0.85/user edits during incremental integration.
 
 ## Child-dialog capture context and dungeon detail banner
 
