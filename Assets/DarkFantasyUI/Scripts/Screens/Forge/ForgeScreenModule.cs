@@ -29,6 +29,7 @@ namespace Moonlit.UI
             "원시적", "중세의", "근대 초기", "현대의", "우주", "항성간", "다중 우주", "양자", "지하 세계", "신성한"
         };
         static Sprite[] tierIcons, tierBands, passChests;
+        static Sprite passStone;
         static readonly string[] Rates33 = { "0%", "0%", "0%", "0%", "0%", "0%", "28%", "58%", "13%", "1%" };
         static readonly string[] Rates34 = { "0%", "0%", "0%", "0%", "0%", "0%", "11%", "64%", "23%", "2%" };
         static readonly Color[] TierColors =
@@ -43,7 +44,7 @@ namespace Moonlit.UI
             passClaims.Clear(); autoHammerCount=22; autoContinue=true; autoFilterEnabled=true;
             for(int i=0;i<autoKeep.Length;i++) autoKeep[i]=i==3;
             for(int i=0;i<autoFilters.Length;i++) autoFilters[i]=i==0 || i==1 || i==5;
-            tierIcons=null; tierBands=null; passChests=null;
+            tierIcons=null; tierBands=null; passChests=null; passStone=null;
         }
 
         public static void Register(UiScreenRegistry registry)
@@ -226,7 +227,7 @@ namespace Moonlit.UI
 
         static void BuildItemDetails(ScreenContext c)
         {
-            Frame(c, "모든 장비의 목록", 660, 990, out var b);
+            Frame(c, "모든 장비의 목록", 660, 1050, out var b);
             var item = c.Payload as ItemDefinition;
             var name = item != null && !string.IsNullOrEmpty(item.displayName) ? item.displayName : "[원시적] 발 감싸기";
             Ui.Panel("Item slot", b, 22, 18, 132, 132, new Color(.25f,.12f,.02f));
@@ -239,8 +240,10 @@ namespace Moonlit.UI
             Ui.Image("Rule", b, 28, 272, b.rect.width - 56, 2, null, Ui.Gold);
             var stats = "+1% - 12% 치명타 확률\n+1% - 80% 치명타 피해\n+1% - 5% 블록 확률\n+1% - 4% 체력 재생\n+1% - 20% 생명력 흡수\n+1% - 20% 더블 찬스\n+1% - 15% 피해\n+1% - 50% 근접 피해\n+1% - 15% 원거리 피해\n+1% - 40% 공격 속도\n+1% - 30% 스킬 피해\n-1% - 7% 스킬 재사용 대기시간\n+1% - 15% 체력";
             Ui.Text("Possible stats", b, 32, 290, b.rect.width - 64, 455, stats, 23, Font(c), Ui.Ivory, TextAnchor.UpperLeft);
-            Ui.Panel("Next tier", b, 12, 800, b.rect.width - 24, 65, new Color(.02f,.16f,.25f));
-            Ui.Text("Next tier label", b, 30, 800, b.rect.width - 60, 65, "†  중세의 ★                                      0%", 25, Font(c), new Color(.2f,.65f,1f), TextAnchor.MiddleLeft);
+            var next=PopupSkin.Panel("Next tier", b, 12, 800, b.rect.width - 24, 65).rectTransform;
+            Ui.ArtImage("Next tier icon",next,12,9,46,46,TierIcon(1)).preserveAspect=true;
+            Ui.Text("Next tier label",next,70,0,240,65,"중세의 ★",25,Font(c),new Color(.2f,.65f,1f),TextAnchor.MiddleLeft);
+            Ui.Text("Next tier chance",next,next.rect.width-120,0,100,65,"0%",25,Font(c),new Color(.2f,.65f,1f),TextAnchor.MiddleRight);
         }
 
         // A read-only instance of the same slot prefab used by the main equipment grid.
@@ -499,10 +502,9 @@ namespace Moonlit.UI
         {
             float h=Mathf.Min(1360,c.Height-240),w=940;
             var root=Ui.Rect("진행 패스 Dialog",c.Root,(c.Width-w)/2,(c.Height-h)/2+25,w,h);
-            var stone = c.Assets.panels!=null && c.Assets.panels.Length>4
-                ? c.Assets.panels[4] : PopupSkin.PanelArt;
-            var backing=Ui.Image("Pass stone backing",root,6,6,w-12,h-12,stone,new Color(.65f,.7f,.75f,1));
+            var backing=Ui.Image("Pass stone backing",root,6,6,w-12,h-12,PassStone(c.Assets),Color.white);
             backing.type=Image.Type.Tiled;
+            backing.pixelsPerUnitMultiplier=.45f;
             backing.raycastTarget=true;
             var rim=PopupSkin.Panel("Pass stone frame",root,0,0,w,h);
             rim.fillCenter=false;
@@ -522,6 +524,20 @@ namespace Moonlit.UI
             var stages=new[]{"어려움 3-1","어려움 3-15","어려움 4-1","어려움 4-15","어려움 5-1","어려움 5-15"};
             for(var i=0;i<stages.Length;i++) PassRow(c,content,i,i*216,stages[i]);
             PopupSkin.Close("Close",root,w/2-50,h-50,100,Font(c),c.Close,64);
+        }
+
+        static Sprite PassStone(MainScreenAssets assets)
+        {
+            if(passStone) return passStone;
+            if(assets.panels==null || assets.panels.Length<3 || !assets.panels[2]) return PopupSkin.PanelArt;
+            var source=assets.panels[2];
+            var r=source.rect; var border=source.border;
+            // Use the entire cracked face, excluding the independently rendered gold frame.
+            passStone=Sprite.Create(source.texture,
+                new Rect(r.x+border.x,r.y+border.y,r.width-border.x-border.z,r.height-border.y-border.w),
+                new Vector2(.5f,.5f),source.pixelsPerUnit,0,SpriteMeshType.FullRect);
+            passStone.name="Pass cracked stone face";
+            return passStone;
         }
 
         static void PassRow(ScreenContext c, Transform p, int index, float y, string stage)
