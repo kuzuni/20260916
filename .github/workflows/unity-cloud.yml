@@ -64,6 +64,7 @@ jobs:
           buildMethod: Moonlit.Editor.CloudTests.Run
           manualExit: true
           enableGpu: true
+          allowDirtyBuild: true # Hosted checkout only: stale generated evidence was removed above.
           versioning: Custom
           version: 0.1.0
       - name: Upload test evidence
@@ -130,6 +131,7 @@ jobs:
           buildMethod: Moonlit.Editor.CloudVerification.Run
           manualExit: true
           enableGpu: true
+          allowDirtyBuild: true # Hosted checkout only: stale generated evidence was removed above.
           versioning: Custom
           version: 0.1.0
       - name: Upload reports and general captures
