@@ -1,0 +1,86 @@
+{
+  "date": "2026-09-18",
+  "tool": "built-in image_gen",
+  "styleReference": "Assets/Art/ChihuahuaEquipmentThemes/Reference/character_base.png",
+  "status": "Source art visually reviewed; rig assembly and cloud runtime captures pending. Requested2048x1024 sheets produced1774x887; import must use normalized cells or alpha component bounds.",
+  "assets": [
+    {
+      "id": "Mount0",
+      "full": {
+        "artifact": "Mount0.png",
+        "resource": "Assets/DarkFantasyUI/Resources/Moonlit/Companions/Mount0.png",
+        "prompt": "Use case: stylized-concept. Create a finished 2D mobile-game mount sprite, a SINGLE cute chibi green biped raptor facing RIGHT, assembled full body, no rider. Primitive Stone Age leather saddle with a simple cream fur pad on its back. Warm green body, cream underside, large friendly dark brown eyes, two short forearms, two robust birdlike hindlegs, long balancing tail leftwards. Match the inspected Chihuahua Player character_base.png aesthetic: very thick smooth nearly black outlines, rounded clean shapes, warm simple cel shading and small cream highlights; flat crisp hand drawn sprite, not 3D. Side/very slight three-quarter right view, neutral standing rig-friendly pose, feet aligned, no weapons. Exactly one whole raptor centered on a 1024x1024 canvas with generous transparent margin. Genuinely transparent alpha background, no white matte, no floor, no ground shadow, no labels, text, grid, frames or watermark. This full sprite will also become the reference for an eight-part skeletal cutout sheet, so all shapes must be clear and readable.",
+        "generatedSource": "C:\\Users\\user\\.codex\\generated_images\\01a0b1a7-fe28-7621-ba60-d4b6b62a3fc6\\exec-66d7c415-c646-4362-946b-8545b9c692f5.png"
+      },
+      "parts": {
+        "artifact": "Mount0-parts.png",
+        "resource": "Assets/DarkFantasyUI/Resources/Moonlit/CompanionParts/Mount0.png",
+        "initialEditPrompt": "Use case: precise-object-edit. EDIT the supplied assembled mount into a production 2D cutout skeletal sprite PARTS SHEET. Preserve this exact character design, colors, outline weight, cel shading and RIGHT-facing viewpoint. Change only its assembly/layout: separate its pieces; do not show an assembled animal/vehicle anywhere. OUTPUT MUST BE exactly 2048 pixels wide by 1024 pixels tall, landscape 2:1. Invisible grid of 4 equal columns by 2 equal rows, each cell exactly512x512. Exactly ONE disconnected complete part per cell, centered with at least35 pixels fully transparent padding on every cell edge; never cross cell boundaries. Top row positions left-to-right are BODY,HEAD,FRONT NEAR,FRONT FAR. Bottom row left-to-right HIND NEAR,HIND FAR,TAIL,EXTRA. green raptor. Cell1 BODY: full green pear-shaped torso plus lower curved neck, cream belly, NO head, NO arms, NO legs, NO tail, NO saddle; upper neck ends in smooth round overlap joint. Cell2 HEAD: complete same friendly raptor head facing right, short lower neck stub, no torso. Cell3 FRONT NEAR: one complete small near forearm with clawed hand and rounded shoulder overlap. Cell4 FRONT FAR: one complete far forearm slightly darker, same orientation. Cell5 HIND NEAR: complete large bent near thigh/shin/clawed foot, rounded hip overlap. Cell6 HIND FAR: complete far hindleg/foot slightly darker. Cell7 TAIL: complete long curved green tail pointing left, round thick base at right. Cell8 EXTRA: separate brown leather saddle with cream fur pad and hanging straps, no animal. Draw fully completed hidden joint areas, with smooth rounded overlapping ends suitable for pivot rotation; no chopped straight photographic edges. Keep detached parts at sensible scales for reassembly, not tiny icons. Genuinely transparent alpha background everywhere outside pieces, NO white, gray, checkerboard, grid lines, labels, words, shadows, frames or watermark. Eight independent isolated sprites, not a collage of complete creatures.",
+        "layoutCorrectionPrompt": "Use case: precise-object-edit. This is a technical LAYOUT CORRECTION ONLY for the provided eight-part sprite sheet. Preserve all eight illustrated parts exactly, their colors, design, rightward view, shading and transparency. Current parts are too large and cross the boundaries of equal grid cells. Relayout on a TRANSPARENT 2048x1024 canvas, exact2:1 ratio, 4 equally spaced columns and 2 rows. Every part must be scaled DOWN and centered precisely at these pixel centers: top row(256,256),(768,256),(1280,256),(1792,256); bottom row(256,768),(768,768),(1280,768),(1792,768). In normalized terms x centers12.5%,37.5%,62.5%,87.5%; y centers25%,75%. Each part's ENTIRE opaque bounding box must be at MOST300pixelswide and300pixelstall (=14.65% canvas width and29.3% canvasheight), fitting well inside its 512x512 cell with at least100px transparent margin. Large empty gaps are intentional and mandatory for rig sprite slicing. Exactly eight parts in the SAME original reading order; no duplication, removal, merged pieces or extra parts. Preserve completed rounded joints. Do NOT enlarge the body, head or tail to fill the whole row. No grids, labels, checkerboard, background color, drop shadows or text. Actual transparent alpha outside every separate part. This is a spritesheet with 8 small widely separated parts, NOT a character illustration.",
+        "generatedSource": "C:\\Users\\user\\.codex\\generated_images\\01a0b1a7-fe28-7621-ba60-d4b6b62a3fc6\\exec-cccab5f5-b19a-4229-a28b-1a2e91e06923.png",
+        "order": [
+          "Body",
+          "Head",
+          "FrontNear",
+          "FrontFar",
+          "HindNear",
+          "HindFar",
+          "Tail",
+          "Extra"
+        ]
+      }
+    },
+    {
+      "id": "Mount1",
+      "full": {
+        "artifact": "Mount1.png",
+        "resource": "Assets/DarkFantasyUI/Resources/Moonlit/Companions/Mount1.png",
+        "prompt": "Use case: stylized-concept. A SINGLE finished 2D game mount sprite: adorable chunky primitive wild boar facing RIGHT, full body assembled, no rider. Thick brown fur tufts, cream little tusks, large friendly dark eyes, four short sturdy legs, small curled tail, brown leather saddle over pale fur pad with primitive rope straps. Match a chibi Chihuahua mobile game hero aesthetic: thick near-black clean rounded outlines, warm flat cel shading, small cream highlight accents, clean crisp cartoon silhouette, not realistic or 3D. Right side slightly three-quarter view, neutral standing pose suitable for cutout rig. One boar centered with generous clear margins on square 1024x1024 canvas. Genuine transparent background and no floor, no cast shadow, no labels, no grid, no text, no frame. This must be usable both as collection icon and reference for separate body/head/fourlegs/tail/saddle parts.",
+        "generatedSource": "C:\\Users\\user\\.codex\\generated_images\\01a0b1a7-fe28-7621-ba60-d4b6b62a3fc6\\exec-aa836846-a481-4de3-a0ca-e836802eba93.png"
+      },
+      "parts": {
+        "artifact": "Mount1-parts.png",
+        "resource": "Assets/DarkFantasyUI/Resources/Moonlit/CompanionParts/Mount1.png",
+        "initialEditPrompt": "Use case: precise-object-edit. EDIT the supplied assembled mount into a production 2D cutout skeletal sprite PARTS SHEET. Preserve this exact character design, colors, outline weight, cel shading and RIGHT-facing viewpoint. Change only its assembly/layout: separate its pieces; do not show an assembled animal/vehicle anywhere. OUTPUT MUST BE exactly 2048 pixels wide by 1024 pixels tall, landscape 2:1. Invisible grid of 4 equal columns by 2 equal rows, each cell exactly512x512. Exactly ONE disconnected complete part per cell, centered with at least35 pixels fully transparent padding on every cell edge; never cross cell boundaries. Top row positions left-to-right are BODY,HEAD,FRONT NEAR,FRONT FAR. Bottom row left-to-right HIND NEAR,HIND FAR,TAIL,EXTRA. brown wild boar. Cell1 BODY: complete rounded brown furry torso, NO head, NO legs, NO tail, NO saddle; rounded neck overlap on the right. Cell2 HEAD: complete same cute right-facing boar head including ears, pink snout, cream tusks and mane fringe, round neck stub; no body. Cell3 FRONT NEAR: one full near front leg with hoof and rounded shoulder overlap. Cell4 FRONT FAR: one full far front leg with hoof, darker. Cell5 HIND NEAR: one full near hindleg including upper thigh and hoof, rounded hip overlap. Cell6 HIND FAR: one full far hindleg and hoof darker. Cell7 TAIL: complete small curled tail with rounded base. Cell8 EXTRA: separate leather saddle with cream fur pad and rope straps, no animal. Draw fully completed hidden joint areas, with smooth rounded overlapping ends suitable for pivot rotation; no chopped straight photographic edges. Keep detached parts at sensible scales for reassembly, not tiny icons. Genuinely transparent alpha background everywhere outside pieces, NO white, gray, checkerboard, grid lines, labels, words, shadows, frames or watermark. Eight independent isolated sprites, not a collage of complete creatures.",
+        "layoutCorrectionPrompt": "Use case: precise-object-edit. This is a technical LAYOUT CORRECTION ONLY for the provided eight-part sprite sheet. Preserve all eight illustrated parts exactly, their colors, design, rightward view, shading and transparency. Current parts are too large and cross the boundaries of equal grid cells. Relayout on a TRANSPARENT 2048x1024 canvas, exact2:1 ratio, 4 equally spaced columns and 2 rows. Every part must be scaled DOWN and centered precisely at these pixel centers: top row(256,256),(768,256),(1280,256),(1792,256); bottom row(256,768),(768,768),(1280,768),(1792,768). In normalized terms x centers12.5%,37.5%,62.5%,87.5%; y centers25%,75%. Each part's ENTIRE opaque bounding box must be at MOST300pixelswide and300pixelstall (=14.65% canvas width and29.3% canvasheight), fitting well inside its 512x512 cell with at least100px transparent margin. Large empty gaps are intentional and mandatory for rig sprite slicing. Exactly eight parts in the SAME original reading order; no duplication, removal, merged pieces or extra parts. Preserve completed rounded joints. Do NOT enlarge the body, head or tail to fill the whole row. No grids, labels, checkerboard, background color, drop shadows or text. Actual transparent alpha outside every separate part. This is a spritesheet with 8 small widely separated parts, NOT a character illustration.",
+        "generatedSource": "C:\\Users\\user\\.codex\\generated_images\\01a0b1a7-fe28-7621-ba60-d4b6b62a3fc6\\exec-cd61efa5-8951-45a9-b830-ab636ea8dad6.png",
+        "order": [
+          "Body",
+          "Head",
+          "FrontNear",
+          "FrontFar",
+          "HindNear",
+          "HindFar",
+          "Tail",
+          "Extra"
+        ]
+      }
+    },
+    {
+      "id": "Mount2",
+      "full": {
+        "artifact": "Mount2.png",
+        "resource": "Assets/DarkFantasyUI/Resources/Moonlit/Companions/Mount2.png",
+        "prompt": "Use case: stylized-concept. A SINGLE finished 2D mobile game primitive Stone Age mount VEHICLE sprite, facing RIGHT: a charming compact low wooden and stone cart with four round rough stone wheels, rope-bound wooden chassis, upright wooden seat backrest and cream-fur-cushioned seat. One simple wooden front handle extends right; no horse, no animal, no rider, no engine, no metal machinery. This is a rideable cartoon vehicle. Match cute chibi Chihuahua hero art: thick smooth near-black outlines, rounded shapes, warm honey-brown timber and neutral warm gray stone, simple warm cel shading and cream highlights, very clean cartoon game sprite, not photoreal or 3D. Right-facing slight three-quarter side view with all four wheels distinguishable, neutral grounded pose but NO rendered floor or shadow. Full assembled vehicle centered on square 1024x1024 canvas, generous transparent margins. Genuinely transparent alpha background. No text, labels, grid, frame, or watermark. Designed to later separate chassis, backrest, four wheels, handle and seat as 8 rig parts.",
+        "generatedSource": "C:\\Users\\user\\.codex\\generated_images\\01a0b1a7-fe28-7621-ba60-d4b6b62a3fc6\\exec-1f0b24cc-c15a-4b76-8bb8-238d9cc8f189.png"
+      },
+      "parts": {
+        "artifact": "Mount2-parts.png",
+        "resource": "Assets/DarkFantasyUI/Resources/Moonlit/CompanionParts/Mount2.png",
+        "initialEditPrompt": "Use case: precise-object-edit. EDIT the supplied assembled mount into a production 2D cutout skeletal sprite PARTS SHEET. Preserve this exact character design, colors, outline weight, cel shading and RIGHT-facing viewpoint. Change only its assembly/layout: separate its pieces; do not show an assembled animal/vehicle anywhere. OUTPUT MUST BE exactly 2048 pixels wide by 1024 pixels tall, landscape 2:1. Invisible grid of 4 equal columns by 2 equal rows, each cell exactly512x512. Exactly ONE disconnected complete part per cell, centered with at least35 pixels fully transparent padding on every cell edge; never cross cell boundaries. Top row positions left-to-right are BODY,HEAD,FRONT NEAR,FRONT FAR. Bottom row left-to-right HIND NEAR,HIND FAR,TAIL,EXTRA. primitive wood/stone cart. Cell1 BODY: complete wooden low chassis/base and rope-bound axle support, NO wheels, NO backrest, NO cushion, NO front handle. Cell2 HEAD slot: only complete wooden seat backrest with vertical posts and cream fur back pad, no chassis or seat. Cell3 FRONT NEAR slot: one complete near front round stone wheel with wooden hub. Cell4 FRONT FAR: one complete far front stone wheel with hub, darker. Cell5 HIND NEAR: one complete near rear round stone wheel with wooden hub. Cell6 HIND FAR: one complete far rear stone wheel with hub, darker. Cell7 TAIL slot: separate curved wooden front steering/pull handle and rounded attachment stub. Cell8 EXTRA: separate cream fur seat cushion on its wooden seating slab, no backrest or body. Draw fully completed hidden joint areas, with smooth rounded overlapping ends suitable for pivot rotation; no chopped straight photographic edges. Keep detached parts at sensible scales for reassembly, not tiny icons. Genuinely transparent alpha background everywhere outside pieces, NO white, gray, checkerboard, grid lines, labels, words, shadows, frames or watermark. Eight independent isolated sprites, not a collage of complete creatures.",
+        "layoutCorrectionPrompt": "Use case: precise-object-edit. This is a technical LAYOUT CORRECTION ONLY for the provided eight-part sprite sheet. Preserve all eight illustrated parts exactly, their colors, design, rightward view, shading and transparency. Current parts are too large and cross the boundaries of equal grid cells. Relayout on a TRANSPARENT 2048x1024 canvas, exact2:1 ratio, 4 equally spaced columns and 2 rows. Every part must be scaled DOWN and centered precisely at these pixel centers: top row(256,256),(768,256),(1280,256),(1792,256); bottom row(256,768),(768,768),(1280,768),(1792,768). In normalized terms x centers12.5%,37.5%,62.5%,87.5%; y centers25%,75%. Each part's ENTIRE opaque bounding box must be at MOST300pixelswide and300pixelstall (=14.65% canvas width and29.3% canvasheight), fitting well inside its 512x512 cell with at least100px transparent margin. Large empty gaps are intentional and mandatory for rig sprite slicing. Exactly eight parts in the SAME original reading order; no duplication, removal, merged pieces or extra parts. Preserve completed rounded joints. Do NOT enlarge the body, head or tail to fill the whole row. No grids, labels, checkerboard, background color, drop shadows or text. Actual transparent alpha outside every separate part. This is a spritesheet with 8 small widely separated parts, NOT a character illustration.",
+        "generatedSource": "C:\\Users\\user\\.codex\\generated_images\\01a0b1a7-fe28-7621-ba60-d4b6b62a3fc6\\exec-b81e5cf6-606b-431a-8a1a-ad4ddf716fb8.png",
+        "order": [
+          "Body",
+          "Head",
+          "FrontNear",
+          "FrontFar",
+          "HindNear",
+          "HindFar",
+          "Tail",
+          "Extra"
+        ]
+      }
+    }
+  ]
+}

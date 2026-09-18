@@ -24,6 +24,7 @@ namespace Moonlit.Editor
         public static void Run()
         {
             CombatAssetBuilder.Build();
+            CompanionAssetBuilder.Build();
             CelestialThumbnailBuilder.Build();
             Directory.CreateDirectory(Results);
             SessionState.SetBool(Active, true);
