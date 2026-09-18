@@ -4,6 +4,7 @@ using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
@@ -435,6 +436,7 @@ namespace Moonlit.Editor
                         safe.SetPreviewMetrics(new Vector2Int(1080,height),area);
                         host.SetPreviewMetrics(new Vector2Int(1080,height),area);
                         yield return null;yield return null;Canvas.ForceUpdateCanvases();
+                        yield return CaptureDungeonClaims(screen,camera,height,report,fail);
                         for(int tier=0;tier<10;tier++) for(int skill=0;skill<3;skill++) {
                             battle.PreviewSkill(tier,skill);
                             // Fixed simulation frames keep flight and impact visible even on slow hosted renderers.
@@ -450,6 +452,50 @@ namespace Moonlit.Editor
             }
             finally {Time.captureFramerate=previousCaptureRate;Time.timeScale=previousTimeScale;}
             report.Add("CAPTURE all 30 themed skills in flight and at impact at both aspect ratios");
+        }
+
+        static IEnumerator CaptureDungeonClaims(MainScreen screen,Camera camera,int height,List<string> report,Action fail)
+        {
+            var previous=DungeonProgression.Data;
+            int ore=screen.ore,skill=screen.skillTickets,pet=screen.petTickets,mount=screen.mountTickets;
+            try
+            {
+                for(int index=0;index<4;index++)
+                {
+                    DungeonProgression.Data=new DungeonSave { pendingClaim=true,pendingIndex=index,pendingDifficulty=2 };
+                    int before=index==0?screen.ore:index==1?screen.skillTickets:index==2?screen.petTickets:screen.mountTickets;
+                    screen.screens.Open("dungeon-reward");
+                    yield return null;Canvas.ForceUpdateCanvases();
+                    string aspect=height==1920?"9x16":"9x19";
+                    SaveCamera(camera,"Artifacts/Runtime-dungeon-"+index+"-claim-"+aspect+".png",1080,height);
+                    var claim=Object.FindObjectsByType<Button>(FindObjectsSortMode.None).FirstOrDefault(b=>b.name=="Claim dungeon reward");
+                    if(!claim) { report.Add("FAIL dungeon reward claim button missing");fail();yield break; }
+                    claim.onClick.Invoke();claim.onClick.Invoke();
+                    int after=index==0?screen.ore:index==1?screen.skillTickets:index==2?screen.petTickets:screen.mountTickets;
+                    if(DungeonProgression.Data.pendingClaim || DungeonProgression.Data.keys[index]!=1 ||
+                        after-before!=DungeonProgression.Reward(index,2))
+                    { report.Add("FAIL dungeon claim must charge one key and grant once for "+index);fail();yield break; }
+                    var effects=screen.toastRoot.GetComponentsInChildren<RewardVisualLifetime>();
+                    if(effects.Length==0) { report.Add("FAIL dungeon reward absorption missing");fail();yield break; }
+                    // The reward tween is unscaled. Seek its actual sequences so slow render frames cannot skip the capture.
+                    foreach(var effect in effects)
+                    {
+                        var tweens=DOTween.TweensByTarget(effect,false);
+                        if(tweens!=null)foreach(var tween in tweens)tween.Goto(.45f,false);
+                    }
+                    Canvas.ForceUpdateCanvases();
+                    SaveCamera(camera,"Artifacts/Runtime-dungeon-"+index+"-absorption-"+aspect+".png",1080,height);
+                    foreach(var effect in effects)if(effect)Object.DestroyImmediate(effect.gameObject);
+                }
+                report.Add("PASS dungeon reward modal, single key/claim and four currency absorption captures at "+height);
+            }
+            finally
+            {
+                while(screen.screens.ModalDepth>0)screen.screens.CloseTop();
+                DungeonProgression.Data=previous;
+                screen.ore=ore;screen.skillTickets=skill;screen.petTickets=pet;screen.mountTickets=mount;
+                screen.Refresh();
+            }
         }
 
         static void AssertInsideSafe(RectTransform rect,Camera camera,Rect safe)

@@ -138,6 +138,29 @@ namespace Moonlit.UI.Tests
         }
 
         [UnityTest]
+        public IEnumerator DoubledStrongMotionKeepsHeadHealthInsideViewAtEveryPortraitHeight()
+        {
+            foreach(float height in new[]{1600f,1920f,2280f})
+            using(var fixture=new Fixture(height))
+            {
+                var animator=(Animator)typeof(BattleRuntime).GetField("playerAnimator",PrivateInstance).GetValue(fixture.battle);
+                animator.Play("Strong",0,0);animator.Update(0);animator.Update(.36f);animator.speed=0;
+                yield return null;
+                typeof(BattleRuntime).GetMethod("LateUpdate",PrivateInstance).Invoke(fixture.battle,null);
+                typeof(CombatWorldHud).GetMethod("LateUpdate",PrivateInstance).Invoke(fixture.battle.PlayerHud,null);
+                var camera=(Camera)typeof(BattleRuntime).GetField("renderCamera",PrivateInstance).GetValue(fixture.battle);
+                var corners=new Vector3[4];
+                ((RectTransform)fixture.battle.PlayerHud.transform).GetWorldCorners(corners);
+                foreach(var corner in corners)
+                {
+                    Vector3 projected=camera.WorldToViewportPoint(corner);
+                    Assert.That(projected.x,Is.InRange(-.001f,1.001f),"World health horizontal bounds at "+height);
+                    Assert.That(projected.y,Is.InRange(-.001f,1.001f),"Strong motion must not clip the doubled actor's head HUD at "+height);
+                }
+            }
+        }
+
+        [UnityTest]
         public IEnumerator CompactSafeAreaKeepsEntireActorAndHudInsideBattleView()
         {
             using (var fixture = new Fixture(1600))
