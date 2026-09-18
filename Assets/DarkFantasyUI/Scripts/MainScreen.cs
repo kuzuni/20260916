@@ -211,7 +211,7 @@ namespace Moonlit.UI
                 var notification=button.transform.Find("Notification");
                 if (icon) icon.gameObject.SetActive(!active);
                 if (close) close.gameObject.SetActive(active);
-                if (notification) notification.gameObject.SetActive(!active);
+                if (notification) notification.gameObject.SetActive(!active && RewardNotificationDots.NavigationAvailable(this,i));
                 var visible=active ? close : icon;
                 if (visible)
                 {

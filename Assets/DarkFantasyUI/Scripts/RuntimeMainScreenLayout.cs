@@ -70,7 +70,7 @@ namespace Moonlit.UI
             main.autoText=Ui.Text("Auto label",main.autoButton.transform,4,8,122,41,"자동",27,font,Color.white);
             main.autoIcon=Ui.Image("Circular arrows",main.autoButton.transform,43,52,44,40,referenceIcons[11]); main.autoIcon.preserveAspect=true;
             main.autoIcon.rectTransform.pivot=new Vector2(.5f,.5f); main.autoIcon.rectTransform.anchoredPosition+=new Vector2(22,-20);
-            Ui.Text("Forge level timer",parent,675,1550,175,31,"레벨업 관리",21,font);
+            Ui.Text("Forge level timer",parent,675,1550,175,31,"",21,font);
             Ui.Image("Hammer currency",main.forgeButton.transform,105,193,41,40,RewardsScreenModule.HammerArt).preserveAspect=true;
             main.oreText=Ui.Text("Stone amount",main.forgeButton.transform,150,190,145,45,"1000",31,font,Ui.Ivory,TextAnchor.MiddleLeft);
             var info=Ui.ArtButton("Player details",parent,110,1347,45,45);

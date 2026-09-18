@@ -334,8 +334,10 @@ namespace Moonlit.UI.Tests
                 Assert.AreEqual(goldBefore+174,screen.gold);Assert.AreEqual(oreBefore+2,screen.ore);
                 rewards.Advance(start+180);
                 Assert.AreEqual(6,rewards.GoldAvailable);Assert.AreEqual(1,rewards.HammersAvailable);
+                Assert.IsFalse(rewards.Claim(screen),"A minute must accumulate after the previous claim.");
+                rewards.Advance(start+234);
                 Assert.IsTrue(rewards.Claim(screen));Assert.IsFalse(rewards.Claim(screen));
-                Assert.AreEqual(goldBefore+180,screen.gold);Assert.AreEqual(oreBefore+3,screen.ore);
+                Assert.AreEqual(goldBefore+234,screen.gold);Assert.AreEqual(oreBefore+3,screen.ore);
                 var state=ForgeState.Current=new ForgeState();
                 var original=new EquipmentRoll{id=41,part=EquipmentPart.Weapon};
                 var first=new EquipmentRoll{id=42,part=EquipmentPart.Weapon,level=2};

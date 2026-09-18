@@ -70,11 +70,11 @@ namespace Moonlit.UI
             claim.GetComponentInChildren<Text>().fontSize=Ui.ReadableFontSize(42);
             void Refresh() {
                 var state=RewardState.Current;state.Advance(DateTimeOffset.UtcNow.ToUnixTimeSeconds());
-                var span=TimeSpan.FromSeconds(state.accruedSeconds);
+                var span=TimeSpan.FromSeconds(state.CollectionSeconds);
                 string time=(span.Days>0?span.Days+"일 ":"")+(span.Hours>0?span.Hours+"시 ":"")+span.Minutes+"분 "+span.Seconds+"초";
                 elapsed.text="수집 시간: <color=#35FF35>"+time+"</color>";
                 gold.text=state.GoldAvailable.ToString("N0");ore.text=state.HammersAvailable.ToString("N0");
-                claim.interactable=state.GoldAvailable>0||state.HammersAvailable>0;
+                claim.interactable=state.CanClaim;
             }
             b.gameObject.AddComponent<LiveUiRefresh>().RefreshView=Refresh;Refresh();
         }
@@ -105,7 +105,8 @@ namespace Moonlit.UI
             void Refresh() {
                 for(int i=0;i<100;i++) {
                     bool claimed=RewardState.Current.passClaimed[i];
-                    claims[i].interactable=!claimed&&c.Main.highestClearedStage>=(i+1)*5;
+                    claims[i].interactable=RewardState.Current.CanClaimPass(c.Main.highestClearedStage,i);
+                    claims[i].transform.Find("Notification").gameObject.SetActive(claims[i].interactable);
                     claims[i].gameObject.SetActive(!claimed);checks[i].gameObject.SetActive(claimed);
                 }
             }
@@ -133,6 +134,7 @@ namespace Moonlit.UI
                 claims[index].gameObject.SetActive(false);checks[index].gameObject.SetActive(true);
             },Blue,18);
             claims[index].name="Claim milestone "+index;
+            RewardNotificationDots.Create(claims[index].transform,68,-8,22,RewardNotificationDots.Circle(c.Main));
             // Preserve the reference's locked premium demonstration; no new purchase/reward policy is introduced.
             int demo=index%6;
             var premium=PassCard("Premium reward "+index,p,462,y+52,new Color(.7f,.5f,.3f));
@@ -279,10 +281,17 @@ namespace Moonlit.UI
         static void Wallet(ScreenContext c)
         {
             var p=Panel(c,"재화",960);
-            var text=Ui.Text("Wallet balances",p,100,145,720,570,"",31,c.Assets.font,Ui.Ivory,TextAnchor.MiddleLeft);
+            var kinds=new[]{RewardVisuals.Kind.Diamond,RewardVisuals.Kind.Gold,RewardVisuals.Kind.SkillTicket,
+                RewardVisuals.Kind.PetTicket,RewardVisuals.Kind.MountTicket,RewardVisuals.Kind.Hammer};
+            var values=new Text[kinds.Length];
+            for(int i=0;i<kinds.Length;i++) {
+                float y=142+i*105;
+                var icon=Ui.Image("Wallet icon "+kinds[i],p,135,y,78,78,RewardVisuals.Icon(c.Main,kinds[i]));icon.preserveAspect=true;
+                values[i]=Ui.Text("Wallet amount "+kinds[i],p,255,y,510,78,"",39,c.Assets.font,Ui.Ivory,TextAnchor.MiddleRight);
+            }
             void Refresh() {
-                var m=c.Main;
-                text.text="다이아    "+m.gems.ToString("N0")+"\n\n골드    "+m.gold.ToString("N0")+"\n\n스킬소환권    "+m.skillTickets+"\n\n펫소환권    "+m.petTickets+"\n\n탈것소환권    "+m.mountTickets+"\n\n망치    "+m.ore.ToString("N0");
+                var m=c.Main;int[] balances={m.gems,m.gold,m.skillTickets,m.petTickets,m.mountTickets,m.ore};
+                for(int i=0;i<values.Length;i++)values[i].text=balances[i].ToString("N0");
             }
             p.gameObject.AddComponent<LiveUiRefresh>().RefreshView=Refresh;Refresh();
         }

@@ -570,6 +570,8 @@ namespace Moonlit.Editor
                         host.SetPreviewMetrics(new Vector2Int(1080,height),area);
                         yield return null;yield return null;Canvas.ForceUpdateCanvases();
                         yield return CaptureBattleOverlay(screen,camera,height,report,fail);
+                        yield return CaptureRewardAvailability(screen,camera,height,report,fail);
+                        yield return CaptureAscension(screen,camera,height,report,fail);
                         yield return CaptureDungeonClaims(screen,camera,height,report,fail);
                         for(int tier=0;tier<10;tier++) for(int skill=0;skill<3;skill++) {
                             battle.PreviewSkill(tier,skill);

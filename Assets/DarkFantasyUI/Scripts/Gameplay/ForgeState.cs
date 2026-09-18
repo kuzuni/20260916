@@ -5,7 +5,8 @@ namespace Moonlit.UI
     [Serializable] public sealed class ForgeState
     {
         public static ForgeState Current = new ForgeState();
-        public int level=1, filledSegments, nextId, freeSkipsUsed;
+        public int level=1, filledSegments, nextId, freeSkipsUsed, ascension;
+        public int comparisonNewId;
         public long upgradeEndsUtcTicks;
         public string freeSkipDay="";
         public int[] draws=new int[10];
@@ -19,7 +20,7 @@ namespace Moonlit.UI
         public int Segments => 3+(level-1)%4;
         public int SegmentCost => 20*level*level;
         public double UpgradeSeconds => 10*Math.Pow(1.3,level-1);
-        public int UpgradePhase(DateTime now) => level>=35 ? 4 : upgradeEndsUtcTicks>0 ? (now.Ticks>=upgradeEndsUtcTicks ? 3 : 2) : filledSegments>=Segments ? 1 : 0;
+        public int UpgradePhase(DateTime now) => level>=EquipmentRules.MaxForgeLevel && ascension>=EquipmentRules.MaxAscension ? 4 : upgradeEndsUtcTicks>0 ? (now.Ticks>=upgradeEndsUtcTicks ? 3 : 2) : filledSegments>=Segments ? 1 : 0;
         public double RemainingSeconds(DateTime now) => Math.Max(0,(upgradeEndsUtcTicks-now.Ticks)/(double)TimeSpan.TicksPerSecond);
         public int DiamondSkipCost(DateTime now) => (int)Math.Ceiling(RemainingSeconds(now)/6.0);
         public bool FillSegment(ref int gold)
@@ -35,7 +36,12 @@ namespace Moonlit.UI
         public bool ClaimUpgrade(DateTime now)
         {
             if(UpgradePhase(now)!=3) return false;
-            level++; filledSegments=0; upgradeEndsUtcTicks=0; return true;
+            if(level>=EquipmentRules.MaxForgeLevel) {
+                ascension=Math.Min(EquipmentRules.MaxAscension,ascension+1);
+                level=1;draws=new int[10];equipped=new EquipmentRoll[6];
+                pending.Clear();automaticSaleIds.Clear();comparisonNewId=0;autoEnabled=false;
+            } else level++;
+            filledSegments=0; upgradeEndsUtcTicks=0; return true;
         }
         public bool DiamondSkip(DateTime now,ref int diamonds)
         {
@@ -62,7 +68,7 @@ namespace Moonlit.UI
         public EquipmentRoll DrawTier(int tier,System.Random random)
         {
             draws[tier]=Math.Min(100,draws[tier]+1);
-            return new EquipmentRoll { id=++nextId,tier=tier,level=draws[tier],variant=random.Next(3),part=(EquipmentPart)random.Next(6),affixes=EquipmentRules.RollAffixes(tier,random) };
+            return new EquipmentRoll { id=++nextId,tier=tier,ascension=ascension,level=draws[tier],variant=random.Next(3),part=(EquipmentPart)random.Next(6),affixes=EquipmentRules.RollAffixes(tier,random) };
         }
         public bool Matches(EquipmentRoll item)
         {
@@ -99,9 +105,10 @@ namespace Moonlit.UI
         }
         public void NormalizeAfterLoad()
         {
-            level=Math.Max(1,Math.Min(35,level));
+            level=Math.Max(1,Math.Min(35,level));ascension=Math.Max(0,Math.Min(EquipmentRules.MaxAscension,ascension));
             filledSegments=Math.Max(0,Math.Min(Segments,filledSegments));
             upgradeEndsUtcTicks=Math.Max(0,upgradeEndsUtcTicks);
+            if(level>=EquipmentRules.MaxForgeLevel && ascension>=EquipmentRules.MaxAscension){filledSegments=0;upgradeEndsUtcTicks=0;}
             freeSkipsUsed=Math.Max(0,Math.Min(4,freeSkipsUsed));
             batchSize=Math.Max(1,Math.Min(99,batchSize));affixMask&=511;
             autoEnabled=false; // A restored queue is reviewed before new hammers are spent.
@@ -120,13 +127,17 @@ namespace Moonlit.UI
                 if(!ValidSavedItem(item) || !identities.Add(item.id))continue;
                 NormalizeItem(item);pending.Add(item);
             }
+            var current=Pending;
+            if(current==null || (comparisonNewId!=current.id && (equipped[(int)current.part]==null || equipped[(int)current.part].id!=comparisonNewId)))comparisonNewId=0;
         }
         static bool ValidSavedItem(EquipmentRoll item)
             => item!=null && item.id>0 && item.tier>=0 && item.tier<10 && (int)item.part>=0 && (int)item.part<6;
         void NormalizeItem(EquipmentRoll item)
         {
             item.level=Math.Max(1,Math.Min(100,item.level));item.variant=Math.Max(0,Math.Min(2,item.variant));
-            nextId=Math.Max(nextId,item.id);draws[item.tier]=Math.Max(draws[item.tier],item.level);
+            item.ascension=Math.Max(0,Math.Min(EquipmentRules.MaxAscension,item.ascension));
+            nextId=Math.Max(nextId,item.id);
+            if(item.ascension==ascension)draws[item.tier]=Math.Max(draws[item.tier],item.level);
             var affixes=new List<EquipmentAffix>();var kinds=new HashSet<EquipmentAffixKind>();
             if(item.affixes!=null)foreach(var a in item.affixes) {
                 if(a==null || (int)a.kind<0 || (int)a.kind>=9 || !kinds.Add(a.kind))continue;
@@ -137,19 +148,21 @@ namespace Moonlit.UI
         }
         public bool ShouldCompare => pending.Count>0 && (!continueAfterMatch || pending.Count>=Math.Max(1,batchSize));
         public EquipmentRoll Pending => pending.Count>0 ? pending[0] : null;
+        public int ComparisonNewId => Pending==null?0:comparisonNewId>0?comparisonNewId:Pending.id;
         // The two compared cards swap ownership each click; selling always resolves the lower unequipped card.
         public bool ToggleEquip(int id)
         {
             var item=Pending;if(item==null || item.id!=id)return false;
+            comparisonNewId=ComparisonNewId;
             int index=(int)item.part;var previous=equipped[index];equipped[index]=item;
-            if(previous==null)pending.RemoveAt(0);else pending[0]=previous;
+            if(previous==null){pending.RemoveAt(0);comparisonNewId=0;}else pending[0]=previous;
             return true;
         }
         public bool SellPending(int id,out int gold)
         {
             gold=0;var item=Pending;
             if(item==null || item.id!=id || equipped[(int)item.part]==null)return false;
-            gold=EquipmentRules.SaleGold(item);pending.RemoveAt(0);return true;
+            gold=EquipmentRules.SaleGold(item);pending.RemoveAt(0);comparisonNewId=0;return true;
         }
         public double AffixTotal(EquipmentAffixKind kind)
         {

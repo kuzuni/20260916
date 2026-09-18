@@ -100,8 +100,11 @@ namespace Moonlit.UI
         public bool StartArena(int opponentRating,Action<bool> completed)
         {
             if(!battle){Toast("전투 리소스를 준비 중입니다.");return false;}
+            var rewards=RewardState.Current;var now=DateTime.UtcNow;
+            if(rewards.ArenaRemaining(now)<=0){Toast("오늘의 아레나 도전을 모두 사용했습니다.");return false;}
             while(screens.ModalDepth>0)screens.CloseTop();screens.ShowMainPage();
-            return battle.StartArena(opponentRating,completed);
+            if(!battle.StartArena(opponentRating,completed))return false;
+            rewards.TryUseArenaAttempt(now);Refresh();SaveGame();return true;
         }
         public void PreviewPrimitiveSkill(int variant)
         {
