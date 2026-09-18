@@ -234,6 +234,10 @@ namespace Moonlit.UI.Tests
                 var main = root.AddComponent<MainScreen>(); main.enabled = false; main.design = root.transform;
                 assets.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"); main.font = assets.font;
                 var battle = root.AddComponent<BattleRuntime>(); battle.Initialize(main, assets); battle.StopAllCoroutines();
+                // This fixture directly drives the private action before NormalLoop's first yielded encounter.
+                // Seed the same live participants that FightStage supplies in production.
+                typeof(BattleRuntime).GetProperty("PlayerState").SetValue(battle, new CombatActorState(new CombatStats { health = 100 }));
+                typeof(BattleRuntime).GetProperty("EnemyState").SetValue(battle, new CombatActorState(new CombatStats { health = 100 }));
                 var animator = AuthoredAnimationTestSupport.ActorAnimator(battle.PlayerHud.Actor);
                 var basic = AuthoredAnimationTestSupport.Clip(animator, "Basic");
                 longer = Object.Instantiate(basic); longer.name = "Long authored test copy";
