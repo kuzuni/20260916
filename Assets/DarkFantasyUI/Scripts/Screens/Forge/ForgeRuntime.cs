@@ -58,6 +58,7 @@ namespace Moonlit.UI
             main.ore-=count;
             var items=new List<EquipmentRoll>();
             for(int i=0;i<count;i++) { var item=state.Draw(random);items.Add(item);state.pending.Add(item); }
+            if(automatic)state.TrackAutoBatch(items);
             main.successfulForges+=count;main.Refresh();
             var anvil=main.forgeButton.transform;
             var originalScale=anvil.localScale;
@@ -87,9 +88,10 @@ namespace Moonlit.UI
             Destroy(cards.gameObject);
             int sold=0;
             if(automatic) {
-                sold=state.CompleteAutoBatch(items);
+                sold=state.SettleAutoBatch(ref main.gold);
+                main.Refresh();
                 if(sold>0) {
-                    main.gold=(int)Math.Min(int.MaxValue,(long)main.gold+sold);main.Refresh();
+
                     var effect=Ui.Text("Gold sale effect",host,220,host.rect.height*.42f,640,80,"골드 +"+sold,44,main.font,Ui.Gold);
                     var effectGroup=effect.gameObject.AddComponent<CanvasGroup>();effectGroup.blocksRaycasts=false;
                     var coinRoot=Ui.Rect("Gold coin burst",host,220,host.rect.height*.42f,640,130);
