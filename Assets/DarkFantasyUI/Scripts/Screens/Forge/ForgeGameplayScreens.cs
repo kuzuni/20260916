@@ -151,7 +151,8 @@ namespace Moonlit.UI
                 b.Find("Tag").GetComponent<Text>().text=equipped!=null?"장착됨":"새로운 장비";
                 if(equipped!=null)RollCard(c,content,94,equipped,"Current equipment");
                 var candidate=RollCard(c,content,equipped!=null?359:225,item,"New equipment");
-                Ui.Text("New marker",candidate,24,204,166,36,"새로운!",25,Font(c),new Color(1,.25f,.18f));
+                candidate.sizeDelta=new Vector2(candidate.sizeDelta.x,270);
+                Ui.Text("New marker",candidate,24,228,166,34,"새로운!",25,Font(c),new Color(1,.25f,.18f));
                 int id=item.id;
                 if(equipped!=null)Action(c,content,32,676,360,100,"판매",()=>{
                     if(!s.SellPending(id,out int gold))return;

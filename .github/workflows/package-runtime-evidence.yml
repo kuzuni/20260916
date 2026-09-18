@@ -10,9 +10,6 @@ on:
   pull_request:
     paths:
       - ".github/workflows/package-runtime-evidence.yml"
-  workflow_run:
-    workflows: ["Unity cloud validation"]
-    types: [completed]
 
 permissions:
   contents: read
@@ -53,3 +50,4 @@ jobs:
             !evidence/**/*9x16*.png
             !evidence/**/*9x19*.png
           if-no-files-found: error
+

@@ -72,6 +72,60 @@ namespace Moonlit.UI.Tests
         }
 
         [UnityTest]
+        public IEnumerator EntranceHidesHeadBarsUntilHomeAndLungingBarsStaySeparate()
+        {
+            var root=new GameObject("Entrance HUD fixture",typeof(RectTransform));
+            var assets=ScriptableObject.CreateInstance<MainScreenAssets>();
+            try
+            {
+                var main=root.AddComponent<MainScreen>();main.enabled=false;main.design=root.transform;
+                ((RectTransform)root.transform).sizeDelta=new Vector2(1080,1920);
+                assets.font=Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");main.font=assets.font;
+                var battle=root.AddComponent<BattleRuntime>();battle.Initialize(main,assets);battle.StopAllCoroutines();
+                Assert.IsFalse(battle.PlayerHud.WorldCanvas.enabled);
+                Assert.IsFalse(battle.EnemyHud.WorldCanvas.enabled);
+                var entrance=(IEnumerator)typeof(BattleRuntime).GetMethod("Entrance",Private).Invoke(battle,null);
+                Assert.IsTrue(entrance.MoveNext());
+                Assert.IsFalse(battle.PlayerHud.WorldCanvas.enabled,"Moving past the reward buttons must not draw HP over them.");
+                yield return battle.StartCoroutine(entrance);
+                Assert.IsTrue(battle.PlayerHud.WorldCanvas.enabled);Assert.IsTrue(battle.EnemyHud.WorldCanvas.enabled);
+                Assert.AreEqual(-2.5f,battle.PlayerHud.Actor.localPosition.x,.001f);
+                Assert.AreEqual(2.5f,battle.EnemyHud.Actor.localPosition.x,.001f);
+                battle.PlayerHud.Bind(new CombatActorState(new CombatStats { health=64172007 }));
+                Assert.AreEqual("64.17m/64.17m",battle.PlayerHud.HealthText.text);
+                var animator=(Animator)typeof(BattleRuntime).GetField("playerAnimator",Private).GetValue(battle);
+                animator.Play("Basic",0,0);animator.Update(0);animator.Update(.36f);animator.speed=0;
+                yield return null;
+                typeof(CombatWorldHud).GetMethod("LateUpdate",Private).Invoke(battle.PlayerHud,null);
+                typeof(CombatWorldHud).GetMethod("LateUpdate",Private).Invoke(battle.EnemyHud,null);
+                var left=new Vector3[4];var right=new Vector3[4];
+                ((RectTransform)battle.PlayerHud.transform).GetWorldCorners(left);
+                ((RectTransform)battle.EnemyHud.transform).GetWorldCorners(right);
+                Assert.Less(left[2].x,right[0].x,"Melee contact must not join the two health bars.");
+            }
+            finally { UnityEngine.Object.DestroyImmediate(root);UnityEngine.Object.DestroyImmediate(assets); }
+        }
+
+        [UnityTest]
+        public IEnumerator BuffPreviewFollowsTheMovingSourceInsteadOfStayingAtEntranceSpawn()
+        {
+            var root=new GameObject("Moving buff preview fixture");
+            var actor=new GameObject("Preview actor");
+            try
+            {
+                var effects=root.AddComponent<PrimitiveSkillEffects>();
+                effects.Initialize(Resources.Load<BattleAssetCatalog>("Moonlit/Combat/BattleAssets"));
+                effects.Play(0,0,Vector3.zero,Vector3.right*5,actor.transform,null);
+                var sprite=root.GetComponentInChildren<SpriteRenderer>();
+                Assert.IsNotNull(sprite);Assert.Less(sprite.transform.position.x,1);
+                actor.transform.position=Vector3.right*3;
+                yield return null;
+                Assert.Greater(sprite.transform.position.x,3,"The eating buff must travel with the actor walking in.");
+            }
+            finally { UnityEngine.Object.DestroyImmediate(root);UnityEngine.Object.DestroyImmediate(actor); }
+        }
+
+        [UnityTest]
         public IEnumerator IllustratedStoneImpactUsesSpriteTextureInsteadOfWhiteSquareParticles()
         {
             var root = new GameObject("Illustrated VFX fixture");

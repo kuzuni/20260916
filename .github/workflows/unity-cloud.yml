@@ -100,13 +100,30 @@ jobs:
           enableGpu: true
           versioning: Custom
           version: 0.1.0
-      - name: Upload captures and logs
+      - name: Upload reports and general captures
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: moonlit-runtime-captures
+          name: moonlit-evidence-reports
           path: |
             Artifacts/Runtime-*.png
+            !Artifacts/Runtime-*9x16*.png
+            !Artifacts/Runtime-*9x19*.png
             Artifacts/Verification.txt
             Artifacts/CloudCapture.log
+          if-no-files-found: error
+
+      - name: Upload 9 by 16 original captures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: moonlit-evidence-9x16
+          path: Artifacts/Runtime-*9x16*.png
+          if-no-files-found: error
+      - name: Upload 9 by 19 original captures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: moonlit-evidence-9x19
+          path: Artifacts/Runtime-*9x19*.png
           if-no-files-found: error

@@ -33,6 +33,7 @@ namespace Moonlit.UI
             hud.WorldCanvas = go.AddComponent<Canvas>();
             hud.WorldCanvas.renderMode = RenderMode.WorldSpace; hud.WorldCanvas.worldCamera = camera;
             hud.WorldCanvas.sortingOrder = 220;
+            hud.WorldCanvas.enabled = false; // Entrance moves below the fixed reward buttons; reveal only at battle home.
             var rect = (RectTransform)go.transform; rect.sizeDelta = new Vector2(300, 66);
             rect.localScale = Vector3.one * .007f;
             hud.HealthText = Ui.Text(player ? "Player health" : "Enemy health", rect, 0, 0, 300, 34, "", 24, font);
@@ -45,6 +46,7 @@ namespace Moonlit.UI
             hud.LateUpdate();
             return hud;
         }
+        public void SetVisible(bool visible) { WorldCanvas.enabled = visible; }
         public void Bind(CombatActorState state)
         {
             HealthText.text = Number(state.Health) + "/" + Number(state.stats.health);
@@ -55,7 +57,7 @@ namespace Moonlit.UI
             if (!Actor) return;
             Vector3 position = head ? new Vector3(head.bounds.center.x, head.bounds.max.y, Actor.position.z) :
                 Actor.position + Vector3.up * 5.1f;
-            transform.position = position + new Vector3(0, .5f, -2);
+            transform.position = position + new Vector3(player ? -.35f : .35f, .5f, -2);
             transform.rotation = Quaternion.identity;
         }
         public void Float(string message, Color color)
@@ -84,6 +86,6 @@ namespace Moonlit.UI
             }
             Destroy(go);
         }
-        static string Number(double value) => value >= 1e9 ? value.ToString("0.##E+0") : Math.Ceiling(value).ToString("N0");
+        static string Number(double value) => MainScreen.Compact(value);
     }
 }
