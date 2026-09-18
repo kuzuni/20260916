@@ -16,7 +16,20 @@ namespace Moonlit.UI
         Font font;
         bool player;
         Rect[] protectedAreas;
-        public void SetProtectedAreas(Rect[] areas) { protectedAreas = areas; }
+        public void SetProtectedAreas(Rect[] areas)
+        {
+            protectedAreas = areas;
+            // A Safe Area/camera change can happen after the coroutine's Update but before rendering.
+            // Recheck numbers already on screen immediately, as well as during their next animation step.
+            foreach (var number in numbers)
+            {
+                if (!number) continue;
+                var label = number.GetComponentInChildren<Text>();
+                if (!label) continue;
+                float halfWidth = Mathf.Min(760, label.preferredWidth + 24) * .008f * 1.2f / 2;
+                number.transform.position = KeepOutsideHud(number.transform.position, halfWidth, .8f, 1.7f);
+            }
+        }
         readonly System.Collections.Generic.List<GameObject> numbers = new System.Collections.Generic.List<GameObject>();
         void OnDisable()
         {
@@ -110,6 +123,7 @@ namespace Moonlit.UI
                 float pop = t < .10f ? Mathf.Lerp(1, 1.2f, t / .10f) :
                     t < .22f ? Mathf.Lerp(1.2f, 1, (t - .10f) / .12f) : 1;
                 rect.localScale = Vector3.one * (.008f * pop);
+                start = KeepOutsideHud(start, halfWidth, .8f, 1.7f);
                 rect.position = start + Vector3.up * (t * .9f);
                 label.color = new Color(color.r, color.g, color.b, t < .35f ? 1 : 1 - (t - .35f) / .60f);
                 yield return null;
