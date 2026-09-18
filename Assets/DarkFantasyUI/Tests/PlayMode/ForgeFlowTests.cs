@@ -95,6 +95,13 @@ namespace Moonlit.UI.Tests
             var hand=GameObject.Find("Forged equipment hand");
             Assert.IsNotNull(hand);Assert.AreEqual(22,hand.GetComponentsInChildren<Image>().Count(i=>i.name.StartsWith("Forged card ")));
             var cards=hand.GetComponentsInChildren<Image>().Where(i=>i.name.StartsWith("Forged card ")).Select(i=>i.rectTransform).ToArray();
+            foreach(var card in cards) {
+                Assert.That(card.rect.width,Is.EqualTo(card.rect.height).Within(.01f),"Reveal frames must be square, including a 22-item hand.");
+                var thumbnail=card.Find("Equipment thumbnail").GetComponent<Image>();
+                Assert.IsNotNull(thumbnail.sprite);Assert.IsTrue(thumbnail.preserveAspect);
+                var level=(RectTransform)card.Find("Level");
+                Assert.GreaterOrEqual(level.anchoredPosition.y-level.rect.height,-card.rect.height-1);
+            }
             Assert.That(cards[1].anchoredPosition.x-cards[0].anchoredPosition.x,Is.EqualTo(cards[0].rect.width*.5f).Within(.01f));
             Assert.That(cards[0].anchoredPosition.y,Is.EqualTo(cards[10].anchoredPosition.y).Within(.01f));
             Assert.Less(cards[11].anchoredPosition.y,cards[0].anchoredPosition.y,"22 cards appear as two half-overlapped hands");
