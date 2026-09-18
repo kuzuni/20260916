@@ -1,3 +1,5 @@
+> Current status: [latest validation and remaining visual limitations](runtime-validation-20260919.md). The historical findings below describe their named revisions.
+
 # Run117 visual follow-up — 2026-09-19
 
 Source e77a04a6855be242decd150e8b501bb564d933a3 (PR97), merged as d7f5b1f046fc43a7a82a76ddbfb504c58434d596, tree 3db8a583ff3eec53f0bcbc18af1223dfdcbcfcda.

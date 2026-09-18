@@ -1,5 +1,5 @@
 
-> Latest companion direction: live pets/mounts use complete generated PNGs, all quadrupeds standing calmly and facing right, matching the Player's thick-outline cartoon style. No live companion rigging, part separation, Animator or bobbing. Previous rig assets remain archived unchanged; further rigging is stopped. New whole-image runtime validation is pending. See the current game rules and Flat-Primitive art provenance files.
+> Latest companion direction: live pets/mounts use complete generated PNGs, all quadrupeds standing calmly and facing right, matching the Player's thick-outline cartoon style. No live companion rigging, part separation, Animator or bobbing. Previous rig assets remain archived unchanged; further rigging is stopped. Hosted run125 passed285 tests; actual whole-image placement was reviewed at both ratios. Remaining visual limitations are recorded in Documentation/UI/Reports/runtime-validation-20260919.md. See the current game rules and Flat-Primitive art provenance files.
 
 # 30-screen reference catalog
 
@@ -51,7 +51,7 @@ The original filenames, Korean instructions and reference tables remain below as
 - The pass opens at its first claimable milestone, otherwise the next progress milestone. Its central cyan vertical rail fills to highest-cleared progress; intermediate diamond ornaments are removed. User scrolling is preserved during live updates.
 - The shop diamond offers form one3-column,2-row grid: free100 / 600 / 2200, then8000 / 15000 / 33000. The free item is claimable once per Korean day and uses the same illustrated card layout. Current prices and all economy values are defined in [the game rules](../Gameplay-20260918.md). Historical18-entry and shop demo quantities below remain provenance, not current runtime defaults.
 - Bottom navigation now has four evenly spaced entries: arena, dungeons, collections, shop. Reward/pass icons and equipped-skill HUD slots are1.5× their prior size, with equal enlarged reward/pass labels. Actual power changes use a separate nonblocking new-total popup with an UP/DOWN arrow; unchanged refreshes and initial loading remain silent.
-- Within a stage, the player and combat state continue across waves while the next enemy enters. Ten native companion rig templates support six primitive samples with eight separated SpriteSkin parts each. Higher-era companion art remains deferred. Input art and source are supplied; generated prefab/controller/sprite commits and final cloud rig captures remain pending at this documentation revision.
+- Within a stage, the player and combat state continue across waves while the next enemy enters. Live companions use six generated whole PNGs (three quadruped pets and three mounts), without SpriteSkin, companion Animator or procedural bobbing. Previous native rigs are archived with known seams and are not active. Higher-era companion art remains deferred; see [current validation and visual limitations](Reports/runtime-validation-20260919.md).
 
 ## Original explicit overrides and reference notes
 
