@@ -13,7 +13,7 @@ namespace Moonlit.UI
 
     public sealed class CombatSkill
     {
-        public int variant, cooldown;
+        public int tier, variant, cooldown;
         public double heal, attackBoost, damage;
     }
 

@@ -101,7 +101,7 @@ namespace Moonlit.UI.Tests
         }
 
         [UnityTest]
-        public IEnumerator DungeonCompletesOnceKeepsStageAndRestartsNormalLoop()
+        public IEnumerator DungeonWaitsForClaimExactlyOnceBeforeRestartingNormalLoop()
         {
             using (var fixture = new Fixture())
             {
@@ -120,8 +120,14 @@ namespace Moonlit.UI.Tests
                 float deadline = Time.realtimeSinceStartup + 15;
                 while (callbacks == 0 && Time.realtimeSinceStartup < deadline) yield return null;
                 Assert.AreEqual(1, callbacks); Assert.IsTrue(victory);
-                Assert.IsFalse(fixture.battle.IsExternalBattle);
+                Assert.IsTrue(fixture.battle.IsExternalBattle);
+                Assert.IsTrue(fixture.battle.AwaitingExternalClaim);
                 Assert.AreEqual(7, fixture.main.stage, "Dungeon outcome must not mutate normal stage.");
+                var finishedState = fixture.battle.EnemyState;
+                yield return new WaitForSeconds(2);
+                Assert.AreSame(finishedState, fixture.battle.EnemyState, "A won dungeon must remain visible until reward claim.");
+                Assert.IsTrue(fixture.battle.CompleteExternalClaim());
+                Assert.IsFalse(fixture.battle.CompleteExternalClaim(), "A duplicate claim cannot restart twice.");
                 yield return new WaitForSeconds(1.6f);
                 Assert.AreNotSame(externalRoutine, routineField.GetValue(fixture.battle), "Normal loop must restart.");
                 Assert.AreEqual(1, callbacks);
@@ -147,9 +153,16 @@ namespace Moonlit.UI.Tests
                     Assert.GreaterOrEqual(camera.WorldToViewportPoint(renderer.bounds.min).y, -.001f, renderer.name + " bottom clipped");
                 }
                 var view = fixture.root.transform.Find("Live turn battle") as RectTransform;
-                Assert.AreEqual(120, view.rect.height, .01f);
-                Assert.IsFalse(view.Find("Last combat action").gameObject.activeSelf);
-                Assert.LessOrEqual(62 + 35, view.rect.height);
+                Assert.Greater(view.rect.height, 120);
+                Assert.IsNull(view.Find("Last combat action"));
+                Assert.IsNull(view.Find("Battle round"));
+                Assert.AreEqual(2, Mathf.Abs(actor.transform.localScale.x), .001f);
+                Assert.AreEqual(2, actor.transform.localScale.y, .001f);
+                Assert.AreEqual(30, actor.layer);
+                Assert.AreEqual(RenderMode.WorldSpace, fixture.battle.PlayerHud.WorldCanvas.renderMode);
+                Assert.AreSame(camera, fixture.battle.PlayerHud.WorldCanvas.worldCamera);
+                Assert.AreEqual(120 / 4f, view.rect.height / (camera.orthographicSize * 2), .01f,
+                    "Expanding the viewport must preserve the old compact pixels/world-unit so doubling is not cancelled.");
             }
             yield return null;
         }

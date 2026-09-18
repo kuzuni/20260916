@@ -71,7 +71,7 @@ namespace Moonlit.UI.Tests
                 battle.EnemyState.Health < battle.EnemyState.stats.health);
             yield return null; // LateUpdate must populate the visible health labels.
             LogAssert.NoUnexpectedReceived();
-            var labels = main.GetComponentsInChildren<Text>(true);
+            var labels = new[] { battle.PlayerHud.HealthText, battle.EnemyHud.HealthText };
             foreach (string name in new[] { "Player health", "Enemy health" })
             {
                 var label = labels.Single(t => t.name == name);
