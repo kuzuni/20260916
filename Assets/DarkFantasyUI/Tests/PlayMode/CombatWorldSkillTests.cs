@@ -39,9 +39,14 @@ namespace Moonlit.UI.Tests
                 assets.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"); main.font = assets.font;
                 var battle = root.AddComponent<BattleRuntime>(); battle.Initialize(main,assets); battle.StopAllCoroutines();
                 var actor = battle.PlayerHud.Actor;
+                var animator = AuthoredAnimationTestSupport.ActorAnimator(actor);
+                float animationSpeed = animator.speed;
+                animator.Play("Idle",0,0); animator.Update(0); animator.speed=0;
+                // Creation has only queued Idle. Settle its SpriteSkin and head HUD before measuring translation.
+                yield return null; yield return null;
                 Vector3 before = battle.PlayerHud.transform.position;
                 actor.position += Vector3.right * .75f;
-                yield return null;
+                yield return null; yield return null;
                 Assert.AreEqual(.75f,battle.PlayerHud.transform.position.x-before.x,.02f);
                 Assert.AreEqual(RenderMode.WorldSpace,battle.PlayerHud.WorldCanvas.renderMode);
                 Assert.IsNull(root.transform.Find("Live turn battle/Battle round"));
@@ -50,10 +55,10 @@ namespace Moonlit.UI.Tests
                 typeof(BattleRuntime).GetProperty("PlayerState").SetValue(battle,new CombatActorState(new CombatStats { health=100,attack=20 }));
                 var victim = new CombatActorState(new CombatStats { health=100 });
                 typeof(BattleRuntime).GetProperty("EnemyState").SetValue(battle,victim);
+                animator.speed=animationSpeed; // The actual event-driven attack must no longer be frozen.
                 var attack = (IEnumerator)typeof(BattleRuntime).GetMethod("Strike",Private).Invoke(battle,new object[] {true,20d,false,0});
                 Assert.IsTrue(attack.MoveNext());
                 var motion = (IEnumerator)attack.Current; Assert.IsTrue(motion.MoveNext());
-                var animator = (Animator)typeof(BattleRuntime).GetField("playerAnimator",Private).GetValue(battle);
                 animator.Update(0); animator.Update(AuthoredAnimationTestSupport.ImpactTime(animator,"Basic",0)+.01f);
                 Assert.AreEqual(80,victim.Health);
                 var stage = battle.EnemyHud.transform.parent;
