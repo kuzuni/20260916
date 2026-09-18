@@ -17,7 +17,12 @@ namespace Moonlit.UI.Tests
                 Assert.That(next.attack/previous.attack,Is.EqualTo(2).Within(1e-10));
                 Assert.AreEqual(previous.speed*2,next.speed);
             }
-            Assert.That(EquipmentRules.BaseStats(0,2,EquipmentPart.Armor).health,Is.EqualTo(88).Within(.0001));
+            Assert.That(EquipmentRules.BaseStats(0,2,EquipmentPart.Armor).health,Is.EqualTo(80*(1+10.0/99)).Within(.0001));
+            Assert.AreEqual(880,EquipmentRules.BaseStats(0,100,EquipmentPart.Armor).health);
+            Assert.AreEqual(1760,EquipmentRules.BaseStats(1,1,EquipmentPart.Armor).health);
+            Assert.AreEqual(110,EquipmentRules.BaseStats(0,100,EquipmentPart.Weapon).attack);
+            double increment=EquipmentRules.BaseStats(0,2,EquipmentPart.Armor).health-80;
+            for(int level=2;level<=100;level++)Assert.That(EquipmentRules.BaseStats(0,level,EquipmentPart.Armor).health-EquipmentRules.BaseStats(0,level-1,EquipmentPart.Armor).health,Is.EqualTo(increment).Within(.000001));
         }
         [Test] public void EveryProbabilityLevelSumsToOneAndImpossibleGradesStayZero()
         {

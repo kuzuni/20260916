@@ -27,7 +27,7 @@ namespace Moonlit.UI
         public static readonly string[] AffixNames = { "치명타확률", "치명타피해", "회피확률", "생명력흡수", "체력재생", "더블찬스", "공격력증가", "체력증가", "스킬데미지증가" };
         public static readonly int[] AffixMaximums = { 10, 40, 3, 5, 3, 10, 10, 10, 15 };
         public static readonly Color[] TierColors = {
-            new Color(.64f,.58f,.48f), new Color(.22f,.61f,1), new Color(.27f,.82f,.23f),
+            new Color(.66f,.68f,.71f), new Color(.22f,.61f,1), new Color(.27f,.82f,.23f),
             new Color(1,.83f,.18f), new Color(1,.19f,.20f), new Color(.70f,.24f,1),
             new Color(.05f,.88f,.89f), new Color(.28f,.30f,1), new Color(.72f,.38f,.30f), new Color(1,.53f,.10f)
         };
@@ -36,8 +36,9 @@ namespace Moonlit.UI
         public static EquipmentStats BaseStats(int tier, int level, EquipmentPart part)
         {
             tier = Math.Max(0, Math.Min(9,tier)); level = Math.Max(1, Math.Min(100,level));
-            // "10% per level" is multiplicative; every tier shares this single tuning point.
-            double scale = Math.Pow(2 * Math.Pow(1.1,99), tier) * Math.Pow(1.1,level-1);
+            // Exact user anchors: primitive HP 80 at lv1, 880 at lv100; medieval lv1 1760.
+            // Linear interpolation spans 99 intervals, hence 10/99 of lv1 per level (not compound growth).
+            double scale = Math.Pow(22, tier) * (1 + 10.0 * (level-1) / 99);
             double speedBase = 1;
             for(int i=0;i<tier;i++) speedBase = (speedBase+99)*2;
             return IsHealthPart(part) ? new EquipmentStats { health=baseHealth*scale, speed=speedBase+level-1 }
