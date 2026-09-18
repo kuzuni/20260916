@@ -23,6 +23,18 @@ namespace Moonlit.Editor
         static readonly string[] Names={"원시 꼬마","검치호 새끼","새끼 익룡","원시 랩터","야생 멧돼지","돌바퀴 수레"};
         static readonly CompanionRigType[] Types={CompanionRigType.Humanoid,CompanionRigType.Quadruped,CompanionRigType.Bird,
             CompanionRigType.BipedMount,CompanionRigType.QuadrupedMount,CompanionRigType.Vehicle};
+        // Acceptance must exercise committed delivery, not silently repair it by rebuilding.
+        public static void ValidateCommitted()
+        {
+            var catalog=AssetDatabase.LoadAssetAtPath<CompanionRigCatalog>(Root+"/CompanionRigCatalog.asset");
+            if(!catalog || catalog.entries==null || catalog.entries.Length!=6)
+                throw new InvalidOperationException("Missing committed companion catalog or six runtime entries.");
+            foreach(var entry in catalog.entries)
+                if(!entry.icon || !entry.prefab || entry.prefab.GetComponentsInChildren<SpriteSkin>(true).Length!=8)
+                    throw new InvalidOperationException("Incomplete committed companion rig "+entry.displayName);
+            ValidateSavedMeshes(catalog);
+            Debug.Log("[Moonlit] Validating committed companion assets without rebuilding them.");
+        }
         public static void Build()
         {
             Directory.CreateDirectory(Root+"/Rigs");AssetDatabase.Refresh();
