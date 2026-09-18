@@ -1,6 +1,9 @@
+
+> Latest companion direction: live pets/mounts use complete generated PNGs, all quadrupeds standing calmly and facing right, matching the Player's thick-outline cartoon style. No live companion rigging, part separation, Animator or bobbing. Previous rig assets remain archived unchanged; further rigging is stopped. New whole-image runtime validation is pending. See the current game rules and Flat-Primitive art provenance files.
+
 # Moonlit — dark fantasy main screen
 
-> 2026-09-18 gameplay update: [current game rules](../../Documentation/Gameplay-20260918.md) supersede screenshot/demo economy, equipment, collection, combat and reward values. The 30 reference routes and safe-area contracts remain in effect. The latest revision expands skills to all 30 era-themed entries with generated sprites; six primitive pet/mount illustrations and separated-part rig sources are included; higher-era companion art remains deferred. Hosted-generated companion prefabs are committed in PR94; run109 passed210PlayMode tests. Final assembled visual review and latest-source revalidation remain pending. Follow the [Korean gameplay quickstart](../../Documentation/Gameplay-Quickstart-ko.md) for current interactions.
+> 2026-09-18 gameplay update: [current game rules](../../Documentation/Gameplay-20260918.md) supersede screenshot/demo economy, equipment, collection, combat and reward values. The 30 reference routes and safe-area contracts remain in effect. The latest revision expands skills to all 30 era-themed entries with generated sprites; six primitive pet/mount whole-PNG sprites matching the Player style are included; higher-era companion art remains deferred. Hosted-generated companion prefabs are committed in PR94; run109 passed210PlayMode tests. Final assembled visual review and latest-source revalidation remain pending. Follow the [Korean gameplay quickstart](../../Documentation/Gameplay-Quickstart-ko.md) for current interactions.
 
 Unity 6000.3 / uGUI. Open `Scenes/MoonlitMain.unity` and press Play.
 
