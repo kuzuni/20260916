@@ -9,6 +9,7 @@ namespace Moonlit.UI
     {
         public MainScreen main;
         public bool Busy { get; private set; }
+        public event Action HandRevealed;
         readonly System.Random random=new System.Random();
         readonly Dictionary<int,ItemDefinition> definitions=new Dictionary<int,ItemDefinition>();
         public static ForgeRuntime Ensure(MainScreen main)
@@ -60,9 +61,9 @@ namespace Moonlit.UI
             main.successfulForges+=count;main.Refresh();
             var anvil=main.forgeButton.transform;
             var originalScale=anvil.localScale;
-            float elapsed=0;
-            while(elapsed<1) {
-                elapsed+=Time.unscaledDeltaTime;
+            float anvilStarted=Time.unscaledTime;
+            while(Time.unscaledTime-anvilStarted<1) {
+                float elapsed=Time.unscaledTime-anvilStarted;
                 anvil.localScale=originalScale*(1+.07f*Mathf.Sin(elapsed*28)*Mathf.Sin(elapsed*Mathf.PI));
                 yield return null;
             }
@@ -81,6 +82,7 @@ namespace Moonlit.UI
                 Ui.Text("Level",card.transform,2,size,size-4,cardHeight-size,"Lv."+item.level,Mathf.RoundToInt(size*.19f),main.font);
             }
             Ui.Text("Batch count",cards,20,(rows-1)*pitch+cardHeight+8,940,44,count+"개 제작 · 보관 "+state.pending.Count+"개",28,main.font);
+            HandRevealed?.Invoke();
             yield return new WaitForSecondsRealtime(.5f);
             Destroy(cards.gameObject);
             int sold=0;

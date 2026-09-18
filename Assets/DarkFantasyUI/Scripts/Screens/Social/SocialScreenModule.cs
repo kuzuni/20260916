@@ -268,16 +268,18 @@ namespace Moonlit.UI
             Ui.Text("Power", frame, 266, 166, w - 316, 44, power + "     서버 순위 " + rank, 29, Font(c), Ui.Gold, TextAnchor.MiddleLeft);
             bool local=payload==null || player==profileName;
             var stats=ForgeState.Current.TotalStats;
-            Ui.Text("Stats",frame,w-380,210,330,100,local ? "Lv."+ForgeState.Current.level+" 대장간\n공격력 "+MainScreen.Compact(stats.attack+CollectionProgression.OwnedAttack+CollectionProgression.EquippedAttack)+"\n체력 "+MainScreen.Compact(stats.health+CollectionProgression.OwnedHealth+CollectionProgression.EquippedHealth) : "더미 상대",22,Font(c),Ui.Ivory,TextAnchor.UpperRight);
-            var scene = Ui.Panel("Companion scene", frame, 52, 288, w - 104, 210, new Color(.015f,.16f,.22f));
-            Ui.Text("Scene", scene.transform, 20, 20, w - 144, 170, "펫 3슬롯 · 탈것 1슬롯", 42, Font(c), new Color(.35f,.85f,1));
+            Ui.Text("Stats",frame,w-380,210,330,132,local ? "Lv."+ForgeState.Current.level+" 대장간\n공격력 "+MainScreen.Compact(System.Math.Max(10,stats.attack+CollectionProgression.OwnedAttack+CollectionProgression.EquippedAttack))+"\n체력 "+MainScreen.Compact(System.Math.Max(80,stats.health+CollectionProgression.OwnedHealth+CollectionProgression.EquippedHealth)) : "더미 상대",22,Font(c),Ui.Ivory,TextAnchor.UpperRight);
+            var scene = Ui.Panel("Companion scene", frame, 52, 350, w - 104, 148, new Color(.015f,.16f,.22f));
+            Ui.Text("Scene", scene.transform, 20, 12, w - 144, 124, "펫 "+CollectionProgression.Equipped(1).Count+"/3 · 탈것 "+CollectionProgression.Equipped(2).Count+"/1\n외형 준비 중", 27, Font(c), new Color(.35f,.85f,1));
             for (int i = 0; i < 9; i++)
             {
                 float sw = (w - 136) / 5f;
                 int row = i / 5, col = i % 5;
                 var slot = Ui.Panel("Equipment slot " + i, frame, 52 + col * sw, 520 + row * 142, sw - 12, 126, new Color(.26f,.11f,.025f));
                 var roll=local && i<6?ForgeState.Current.equipped[i]:null;
-                Ui.Image("Icon",slot.transform,13,9,sw-38,79,roll!=null?EquipmentArt.Icon(roll):null).preserveAspect=true;
+                var gearIcon=Ui.Image("Icon",slot.transform,13,9,sw-38,79,roll!=null?EquipmentArt.Icon(roll):null);
+                gearIcon.preserveAspect=true;gearIcon.enabled=roll!=null;
+                if(roll!=null)slot.color=EquipmentRules.TierColor(roll.tier);
                 Ui.Text("Level",slot.transform,4,88,sw-20,34,i<6?(roll==null?EquipmentRules.PartNames[i]:"Lv."+roll.level):new[]{"엠블렘","날개","정령"}[i-6],20,Font(c));
             }
             var equippedSkills = CollectionProgression.EquippedSkills;
