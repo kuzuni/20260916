@@ -237,13 +237,25 @@ namespace Moonlit.UI
             var refreshCard=EntryCard(panel,40,55,205,entry,font,null);
             Ui.Text("Name",panel,270,48,600,82,"["+EquipmentRules.TierNames[entry.grade]+"] "+entry.Name,29,font,EquipmentRules.TierColor(entry.grade),TextAnchor.MiddleLeft);
             var desc=Ui.Text("Description",panel,270,140,600,210,Description(entry),23,font,Ui.Ivory,TextAnchor.UpperLeft);
-            Ui.Text("Passive",panel,60,363,800,50,"보유 효과 · 해금 후 항상 적용",27,font,Ui.Gold);
-            var passivePanel=PopupSkin.Panel("Passive frame",panel,60,418,800,66).rectTransform;
+            float descriptionHeight=Mathf.Max(210,desc.preferredHeight);
+            desc.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical,descriptionHeight);
+            float flowOffset=Mathf.Max(0,140+descriptionHeight+22-363);
+            var passiveHeading=Ui.Text("Passive",panel,60,363+flowOffset,800,50,"보유 효과 · 해금 후 항상 적용",27,font,Ui.Gold);
+            var passivePanel=PopupSkin.Panel("Passive frame",panel,60,418+flowOffset,800,66).rectTransform;
             var passive=Ui.Text("Passive values",passivePanel,12,0,776,66,"",28,font);
-            var status=Ui.Text("Fragment status",panel,60,490,800,52,"",25,font);
-            Button upgrade=null;
+            var status=Ui.Text("Fragment status",panel,60,490+flowOffset,800,52,"",25,font);
+            Button upgrade=null,preview=null,unequip=null;
             Action refresh=()=>{
-                desc.text=Description(entry); passive.text="체력 +"+Number(entry.OwnedHealth)+"  공격력 +"+Number(entry.OwnedAttack);
+                desc.text=Description(entry);
+                descriptionHeight=Mathf.Max(210,desc.preferredHeight);
+                desc.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical,descriptionHeight);
+                flowOffset=Mathf.Max(0,140+descriptionHeight+22-363);
+                passiveHeading.rectTransform.anchoredPosition=new Vector2(60,-363-flowOffset);
+                passivePanel.anchoredPosition=new Vector2(60,-418-flowOffset);
+                status.rectTransform.anchoredPosition=new Vector2(60,-490-flowOffset);
+                if(preview)((RectTransform)preview.transform).anchoredPosition=new Vector2(280,-566-flowOffset);
+                if(unequip)((RectTransform)unequip.transform).anchoredPosition=new Vector2(675,-566-flowOffset);
+                passive.text="체력 +"+Number(entry.OwnedHealth)+"  공격력 +"+Number(entry.OwnedAttack);
                 status.text=entry.level>=100?"최대 레벨":"조각 "+entry.fragments+" / "+entry.Required+" · 업그레이드 후에도 해금 유지";
                 if(upgrade) upgrade.interactable=entry.unlocked&&entry.level<100&&entry.fragments>=entry.Required;
                 refreshCard(); payload?.refresh?.Invoke(); RefreshCollection(activeCollection);
@@ -255,10 +267,10 @@ namespace Moonlit.UI
                 if(!CollectionProgression.Equip(entry)){ctx.Toast("먼저 획득해야 장착할 수 있습니다.");return;}
                 refresh();ctx.Main.Refresh();ctx.Toast(entry.Name+" 장착");
             },Blue,28);
-            if(entry.category==0) PopupSkin.Button("Preview skill",panel,280,566,360,72,"스킬 연출 보기",font,()=>{
+            if(entry.category==0) preview=PopupSkin.Button("Preview skill",panel,280,566+flowOffset,360,72,"스킬 연출 보기",font,()=>{
                 ctx.Main.screens.ShowMainPage();ctx.Main.PreviewSkill(entry.grade,entry.variant);
             },Blue,25);
-            PopupSkin.Button("Unequip",panel,675,566,175,72,"해제",font,()=>{
+            unequip=PopupSkin.Button("Unequip",panel,675,566+flowOffset,175,72,"해제",font,()=>{
                 var slots=CollectionProgression.Data.categories[entry.category].equipped;int index=Array.IndexOf(slots,entry.Id);
                 if(index>=0)slots[index]=-1;refresh();ctx.Main.Refresh();
             },Stone,25);
