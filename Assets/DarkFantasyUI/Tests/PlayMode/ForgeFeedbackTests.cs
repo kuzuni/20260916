@@ -112,7 +112,8 @@ namespace Moonlit.UI.Tests
             using (var mesh = new VertexHelper())
             {
                 typeof(ForgeImpactSparks).GetMethod("OnPopulateMesh",
-                    System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+                    System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic,
+                    null, new[] { typeof(VertexHelper) }, null)
                     .Invoke(particles, new object[] { mesh });
                 Assert.Greater(mesh.currentVertCount, 4, "The live impact must produce burst geometry.");
                 Assert.Greater(mesh.currentIndexCount, 6);
