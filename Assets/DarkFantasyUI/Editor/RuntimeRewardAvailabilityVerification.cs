@@ -47,6 +47,8 @@ namespace Moonlit.Editor
                 }
                 dots.RefreshNow();Canvas.ForceUpdateCanvases();
                 SaveCamera(camera,"Artifacts/Runtime-shop-diamond-absorption-"+aspect+".png",1080,height);
+                foreach(var life in UnityEngine.Object.FindObjectsByType<RewardVisualLifetime>(FindObjectsSortMode.None))
+                    DOTween.Play(life);
                 if(screen.gems!=before+100 || state.CanClaimDailyDiamonds || RewardNotificationDots.NavigationAvailable(screen,3)) {
                     report.Add("FAIL daily diamond claim did not settle exactly once");fail();
                 } else report.Add("PASS reward availability markers, pass claim markers and daily shop absorption "+height);
