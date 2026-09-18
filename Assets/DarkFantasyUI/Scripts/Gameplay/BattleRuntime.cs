@@ -46,6 +46,7 @@ namespace Moonlit.UI
             image = view.gameObject.AddComponent<RawImage>(); image.raycastTarget = false;
             playerHealth = Ui.Text("Player health", view, 60, 0, 360, 36, "", 21, main.font);
             enemyHealth = Ui.Text("Enemy health", view, 660, 0, 360, 36, "", 21, main.font);
+            FitHealthLabel(playerHealth); FitHealthLabel(enemyHealth);
             Ui.Image("Player health track", view, 65, 38, 350, 13, null, new Color(.02f, .025f, .025f, .8f));
             Ui.Image("Enemy health track", view, 665, 38, 350, 13, null, new Color(.02f, .025f, .025f, .8f));
             playerFill = Ui.Image("Player health fill", view, 65, 38, 350, 13, null, new Color(.24f, .87f, .48f));
@@ -60,7 +61,30 @@ namespace Moonlit.UI
                 return;
             }
             BuildWorld();
-            battle = StartCoroutine(NormalLoop());
+            stageRoot.SetActive(isActiveAndEnabled);
+            StartBattleWhenReady();
+        }
+        static void FitHealthLabel(Text label)
+        {
+            label.resizeTextForBestFit = true;
+            label.resizeTextMinSize = 18; label.resizeTextMaxSize = label.fontSize;
+            label.verticalOverflow = VerticalWrapMode.Truncate;
+        }
+        void OnEnable() { StartBattleWhenReady(); }
+        void OnDisable()
+        {
+            StopAllCoroutines(); battle = null;
+            if (playerRelay) playerRelay.Cancel();
+            if (enemyRelay) enemyRelay.Cancel();
+            if (stageRoot) stageRoot.SetActive(false);
+        }
+        void StartBattleWhenReady()
+        {
+            // The real bootstrap builds the complete UI below an inactive parent.
+            // OnEnable starts only after Initialize has prepared the world, and clears no pending encounter.
+            if (!initialized || !isActiveAndEnabled || !assets || !renderCamera || battle != null || failedAnimation) return;
+            stageRoot.SetActive(true);
+            battle = StartCoroutine(IsExternalBattle ? ExternalLoop() : NormalLoop());
         }
         void BuildWorld()
         {
@@ -298,7 +322,7 @@ namespace Moonlit.UI
             => StartExternal("아레나", 1, 1, Math.Max(0, opponentRating), callback);
         bool StartExternal(string title, int difficulty, int waves, int rating, Action<bool> callback)
         {
-            if (!assets || !renderCamera || IsExternalBattle || failedAnimation) return false;
+            if (!isActiveAndEnabled || !assets || !renderCamera || IsExternalBattle || failedAnimation) return false;
             if (battle != null) StopCoroutine(battle);
             playerRelay.Cancel(); enemyRelay.Cancel();
             IsExternalBattle = true; externalCallback = callback; externalName = title; arenaRating = rating;
