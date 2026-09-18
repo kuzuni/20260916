@@ -11,6 +11,7 @@ namespace Moonlit.UI
         public bool Busy { get; private set; }
         public event Action HandRevealed;
         bool awaitingComparison, comparisonDeferred;
+        readonly List<GameObject> transientVisuals=new List<GameObject>();
         readonly System.Random random=new System.Random();
         readonly Dictionary<int,ItemDefinition> definitions=new Dictionary<int,ItemDefinition>();
         public static ForgeRuntime Ensure(MainScreen main)
@@ -74,13 +75,13 @@ namespace Moonlit.UI
             for(int i=0;i<count;i++) { var item=state.Draw(random);items.Add(item);state.pending.Add(item); }
             if(automatic)state.TrackAutoBatch(items);
             main.successfulForges+=count;main.Refresh();
-            var hammer=ForgeHammerMotion.Play(main.forgeButton.transform);
+            var hammer=ForgeHammerMotion.Play(main.forgeButton.transform);transientVisuals.Add(hammer.gameObject);
             double anvilStarted=Time.realtimeSinceStartupAsDouble;
             while(Time.realtimeSinceStartupAsDouble-anvilStarted<1) {
                 hammer.Sample(Time.realtimeSinceStartupAsDouble-anvilStarted);
                 yield return null;
             }
-            hammer.Sample(1);Destroy(hammer.gameObject);
+            hammer.Sample(1);DestroyVisual(hammer.gameObject);
             var host=(RectTransform)main.design;
             int columns=count<=12?count:count<=24?Mathf.CeilToInt(count/2f):22;
             int rows=Mathf.CeilToInt(count/(float)columns);
@@ -90,7 +91,7 @@ namespace Moonlit.UI
             var corners=new Vector3[4];anvilRect.GetWorldCorners(corners);
             float anvilTop=host.rect.yMax-host.InverseTransformPoint(corners[1]).y;
             float revealY=Mathf.Max(24,anvilTop-handHeight-18);
-            var cards=Ui.Rect("Forged equipment hand",host,40,revealY,1000,handHeight+60);
+            var cards=Ui.Rect("Forged equipment hand",host,40,revealY,1000,handHeight+60);transientVisuals.Add(cards.gameObject);
             for(int i=0;i<count;i++) {
                 var item=items[i];int row=i/columns,col=i%columns,n=Math.Min(columns,count-row*columns);
                 float step=size*.5f,left=(1000-(n-1)*step-size)*.5f;
@@ -99,12 +100,12 @@ namespace Moonlit.UI
                 EquipmentPictograms.TintFrame(card,EquipmentRules.TierColor(item.tier));
                 card.type=Image.Type.Sliced;card.pixelsPerUnitMultiplier=8;
                 Ui.Image("Equipment thumbnail",card.transform,8,8,size-16,size-16,EquipmentArt.Icon(item)).preserveAspect=true;
-                Ui.Text("Level",card.transform,2,size,size-4,cardHeight-size,"Lv."+item.level,Mathf.RoundToInt(size*.19f),main.font);
+                Ui.Text("Level",card.transform,2,size,size-4,cardHeight-size,"Lv."+item.level+(item.ascension>0?"\n"+EquipmentRules.AscensionStars(item.ascension):""),Mathf.RoundToInt(size*.19f),main.font);
             }
 
             HandRevealed?.Invoke();
             yield return new WaitForSecondsRealtime(.5f);
-            Destroy(cards.gameObject);
+            DestroyVisual(cards.gameObject);
             int sold=0;
             if(automatic) {
                 sold=state.SettleAutoBatch(ref main.gold);
@@ -113,8 +114,10 @@ namespace Moonlit.UI
                     RewardVisuals.Absorb(main,RewardVisuals.Kind.Gold,sold,main.forgeButton.transform.position);
 
                     var effect=Ui.Text("Gold sale effect",host,220,revealY,640,80,"골드 +"+sold,44,main.font,Ui.Gold);
+                    transientVisuals.Add(effect.gameObject);
                     var effectGroup=effect.gameObject.AddComponent<CanvasGroup>();effectGroup.blocksRaycasts=false;
                     var coinRoot=Ui.Rect("Gold coin burst",host,220,revealY,640,130);
+                    transientVisuals.Add(coinRoot.gameObject);
                     var coinGroup=coinRoot.gameObject.AddComponent<CanvasGroup>();coinGroup.blocksRaycasts=false;
                     var source=main.goldButton?main.goldButton.transform.Find("Crown coin"):null;
                     var coinSprite=source?source.GetComponent<Image>().sprite:null;
@@ -135,7 +138,7 @@ namespace Moonlit.UI
                         }
                         yield return null;
                     }
-                    Destroy(coinRoot.gameObject);Destroy(effect.gameObject);
+                    DestroyVisual(coinRoot.gameObject);DestroyVisual(effect.gameObject);
                 }
             }
             Busy=false;main.forgeButton.interactable=true;
@@ -144,6 +147,28 @@ namespace Moonlit.UI
             if(!automatic || state.ShouldCompare || !state.autoEnabled || main.ore==0) {
                 if(state.Pending!=null)PresentComparison();
             }
+        }
+        void DestroyVisual(GameObject visual)
+        {
+            transientVisuals.Remove(visual);
+            if(visual){visual.SetActive(false);Destroy(visual);}
+        }
+        void ClearTransientVisuals()
+        {
+            foreach(var visual in transientVisuals)if(visual){visual.SetActive(false);Destroy(visual);}
+            transientVisuals.Clear();
+        }
+        public void ResetAfterAscension()
+        {
+            StopAllCoroutines();ClearTransientVisuals();
+            Busy=false;awaitingComparison=false;comparisonDeferred=false;
+            ForgeState.Current.autoEnabled=false;
+            if(main) {
+                main.autoForge=false;
+                if(main.forgeButton)main.forgeButton.interactable=true;
+            }
+            foreach(var item in definitions.Values)if(item)Destroy(item);
+            definitions.Clear();SyncSlots();
         }
         public ItemDefinition Definition(EquipmentRoll item)
         {
@@ -163,6 +188,6 @@ namespace Moonlit.UI
                 if(item!=null)slot.frame.color=EquipmentRules.TierColor(item.tier);
             }
         }
-        void OnDestroy() {foreach(var item in definitions.Values)if(item)Destroy(item);}
+        void OnDestroy() {ClearTransientVisuals();foreach(var item in definitions.Values)if(item)Destroy(item);}
     }
 }

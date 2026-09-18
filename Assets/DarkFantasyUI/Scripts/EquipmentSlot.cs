@@ -55,7 +55,9 @@ namespace Moonlit.UI
             icon.color=occupied?Color.white:new Color(.58f,.59f,.62f,.7f);
             icon.enabled = occupied ? item.icon != null : emptyIcon != null;
             levelLabel.text = occupied ? "Lv." + level : "";
-            starLabel.gameObject.SetActive(occupied);
+            starLabel.text=roll!=null?EquipmentRules.AscensionStars(roll.ascension):"";
+            starLabel.resizeTextForBestFit=true;starLabel.resizeTextMinSize=12;starLabel.resizeTextMaxSize=starLabel.fontSize;
+            starLabel.gameObject.SetActive(occupied && roll!=null && roll.ascension>0);
             lockedBadge.SetActive(occupied && isLocked);
             notificationBadge.SetActive(occupied && hasNotification);
             if(categoryBadge) { categoryBadge.sprite=occupied ? item.categoryBadgeIcon : null; categoryBadge.transform.parent.gameObject.SetActive(occupied && !isLocked && item.categoryBadgeIcon!=null); }

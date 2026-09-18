@@ -28,7 +28,10 @@ namespace Moonlit.UI
             var icon=EquipmentArt.Icon(item);
             if(icon)Ui.Image("Equipment icon",slot.transform,12,10,142,138,icon).preserveAspect=true;
             Ui.Text("Level",slot.transform,-6,136,178,40,item!=null?"Lv."+item.level:"",27,Font(c));
-            if(item!=null)Ui.Text("Star",slot.transform,0,170,166,30,"★",25,Font(c),Ui.Gold);
+            if(item!=null && item.ascension>0) {
+                var star=Ui.Text("Star",slot.transform,0,170,166,30,EquipmentRules.AscensionStars(item.ascension),25,Font(c),Ui.Gold);
+                star.resizeTextForBestFit=true;star.resizeTextMinSize=14;star.resizeTextMaxSize=star.fontSize;
+            }
             Ui.Text("Name",panel.transform,212,20,520,55,item!=null?item.Name:"빈 슬롯",28,Font(c),item!=null?EquipmentRules.TierColor(item.tier):Ui.Ivory,TextAnchor.MiddleLeft);
             Ui.Text("Stats",panel.transform,212,82,520,148,StatText(item),26,Font(c),Ui.Ivory,TextAnchor.UpperLeft);
             return panel.rectTransform;
@@ -38,55 +41,67 @@ namespace Moonlit.UI
             ForgeRuntime.Ensure(c.Main);
             Frame(c,"확률 정보",820,1450,out var body);
             Scroll(c,body,0,0,body.rect.width,body.rect.height-20,1260,out var b);
+            Ui.Text("Subtitle",b,0,0,b.rect.width,48,"제련 확률",30,Font(c),Ui.Gold);
             Action(c,b,650,0,58,58,"i",()=>c.Open("forge-probability-details"),Slate);
-            var levels=Ui.Text("Levels",b,16,0,620,54,"",28,Font(c));
-            var wallet=Ui.Text("Wallet",b,18,60,680,48,"",27,Font(c),Ui.Gold);
-            var current=new Text[10];var next=new Text[10];
+            ProbabilityWallet(c,b,126,0,"0");
+            ProbabilityWallet(c,b,402,1,"0");
+            var goldValue=b.Find("Wallet value 0").GetComponent<Text>();
+            var diamondValue=b.Find("Wallet value 1").GetComponent<Text>();
+            var levels=Ui.Text("Levels",b,264,116,446,48,"",27,Font(c),Ui.Ivory,TextAnchor.MiddleRight);
+            var current=new Text[10];var next=new Text[10];var stars=new Text[10];
             for(int i=0;i<10;i++) {
-                var row=Ui.Image("Rarity "+EquipmentRules.TierNames[i],b,8,124+i*68,704,60,TierBand(i));row.type=Image.Type.Sliced;row.pixelsPerUnitMultiplier=1.4f;
+                var row=Ui.Image("Rarity "+EquipmentRules.TierNames[i],b,8,174+i*68,704,60,TierBand(i));row.type=Image.Type.Sliced;row.pixelsPerUnitMultiplier=1.4f;
+                Ui.Image("Next level shade",row.transform,546,5,148,50,null,new Color(0,0,0,.38f));
                 Ui.Image("Tier icon",row.transform,7,2,56,56,TierIcon(i)).preserveAspect=true;
-                Ui.Text("Name",row.transform,73,2,300,54,EquipmentRules.TierNames[i],27,Font(c),Ui.Ivory,TextAnchor.MiddleLeft);
+                Ui.Text("Name",row.transform,73,2,230,54,EquipmentRules.TierNames[i],27,Font(c),Ui.Ivory,TextAnchor.MiddleLeft);
+                stars[i]=Ui.Text("Rarity star",row.transform,303,2,106,54,"",24,Font(c),Ui.Gold);
+                stars[i].resizeTextForBestFit=true;stars[i].resizeTextMinSize=13;stars[i].resizeTextMaxSize=stars[i].fontSize;
                 current[i]=Ui.Text("Current",row.transform,420,2,112,54,"",26,Font(c));
                 next[i]=Ui.Text("Next",row.transform,558,2,126,54,"",26,Font(c),Ui.Cyan);
             }
-            var status=Ui.Text("Upgrade status",b,12,817,704,58,"",27,Font(c));
+            var status=Ui.Text("Upgrade status",b,12,867,704,58,"",27,Font(c));
             var segments=new Image[6];
-            for(int i=0;i<6;i++)segments[i]=Ui.Image("Gold segment "+i,b,26+i*112,886,100,40,PopupSkin.ActionArt);
+            for(int i=0;i<6;i++)segments[i]=Ui.Image("Gold segment "+i,b,26+i*112,936,100,40,PopupSkin.ActionArt);
             Button primary=null,diamond=null,free=null;
-            primary=Action(c,b,40,954,642,90,"업그레이드",()=>{
+            primary=Action(c,b,40,1004,642,90,"업그레이드",()=>{
                 var s=ForgeState.Current;var now=DateTime.UtcNow;bool changed=false;
+                bool ascending=s.level>=EquipmentRules.MaxForgeLevel && s.UpgradePhase(now)==3;
                 switch(s.UpgradePhase(now)) {
                     case 0: changed=s.FillSegment(ref c.Main.gold);break;
                     case 1: changed=s.StartUpgrade(now);break;
                     case 3: changed=s.ClaimUpgrade(now);break;
                 }
                 if(!changed)c.Toast("골드가 부족하거나 아직 완료되지 않았습니다.");
+                if(changed && ascending)ForgeRuntime.Ensure(c.Main).ResetAfterAscension();
                 c.Main.forgeLevel=s.level;c.Main.Refresh();
             });
-            diamond=Action(c,b,26,1070,326,94,"건너뛰기",()=>{
+            diamond=Action(c,b,26,1120,326,94,"건너뛰기",()=>{
                 if(!ForgeState.Current.DiamondSkip(DateTime.UtcNow,ref c.Main.gems))c.Toast("다이아가 부족합니다.");
                 c.Main.Refresh();
             });
-            free=Action(c,b,368,1070,326,94,"30분 스킵",()=>{
+            free=Action(c,b,368,1120,326,94,"30분 스킵",()=>{
                 if(!ForgeState.Current.FreeSkip(DateTime.UtcNow))c.Toast("오늘의 무료 스킵을 모두 사용했습니다.");
                 c.Main.Refresh();
             });
-            Ui.Text("Skip rate",b,22,1190,686,54,"다이아 10개 / 1분 · 무료 30분 하루 4회",22,Font(c));
             Watch(b,()=>{
                 var s=ForgeState.Current;var now=DateTime.UtcNow;s.ResetDaily(now);int phase=s.UpgradePhase(now);
-                levels.text="대장간 레벨 "+s.level+(s.level<35?"  ▶  레벨 "+(s.level+1):" · 최고 레벨");
-                wallet.text="골드 "+c.Main.gold.ToString("N0")+"    다이아 "+c.Main.gems;
-                var rates=EquipmentRules.TierProbabilities(s.level);var future=EquipmentRules.TierProbabilities(s.level+1);
-                for(int i=0;i<10;i++){current[i].text=(rates[i]*100).ToString("0.##")+"%";next[i].text=(future[i]*100).ToString("0.##")+"%";}
+                bool ascending=s.level>=EquipmentRules.MaxForgeLevel;
+                levels.text="레벨 "+s.level+"  ▶  "+(ascending?"승천 "+((long)s.ascension+1):"레벨 "+(s.level+1));
+                goldValue.text=MainScreen.Compact(c.Main.gold);diamondValue.text=MainScreen.Compact(c.Main.gems);
+                var rates=EquipmentRules.TierProbabilities(s.level);var future=EquipmentRules.TierProbabilities(ascending?1:s.level+1);
+                for(int i=0;i<10;i++){
+                    current[i].text=(rates[i]*100).ToString("0.##")+"%";next[i].text=(future[i]*100).ToString("0.##")+"%";
+                    stars[i].text=EquipmentRules.AscensionStars(s.ascension);stars[i].gameObject.SetActive(s.ascension>0);
+                }
                 for(int i=0;i<6;i++){
-                    segments[i].gameObject.SetActive(i<s.Segments && phase!=4);
+                    segments[i].gameObject.SetActive(i<s.Segments);
                     float width=(668f-(s.Segments-1)*12f)/s.Segments;
                     segments[i].rectTransform.sizeDelta=new Vector2(width,40);
-                    segments[i].rectTransform.anchoredPosition=new Vector2(26+i*(width+12),-886);
+                    segments[i].rectTransform.anchoredPosition=new Vector2(26+i*(width+12),-936);
                     segments[i].color=i<s.filledSegments?Ui.Cyan:new Color(.18f,.22f,.28f);
                 }
-                status.text=phase==0?"골드 업그레이드 "+s.filledSegments+" / "+s.Segments:phase==1?"게이지 완료 · 시간 업그레이드를 시작하세요":phase==2?"업그레이드 중 "+TimeSpan.FromSeconds(s.RemainingSeconds(now)).ToString(@"hh\:mm\:ss"):phase==3?"시간 업그레이드 완료":"대장간 최고 레벨 35";
-                primary.GetComponentInChildren<Text>().text=phase==0?"골드 업그레이드 · "+s.SegmentCost:phase==1?"시간 업그레이드 시작":phase==2?"업그레이드 중":phase==3?"업그레이드 완료":"최고 레벨";
+                status.text=phase==0?"골드 업그레이드 "+s.filledSegments+" / "+s.Segments:phase==1?"게이지 완료 · 시간 업그레이드를 시작하세요":phase==2?"업그레이드 중 "+TimeSpan.FromSeconds(s.RemainingSeconds(now)).ToString(@"hh\:mm\:ss"):"시간 업그레이드 완료";
+                primary.GetComponentInChildren<Text>().text=phase==0?"골드 업그레이드 · "+s.SegmentCost:phase==1?"시간 업그레이드 시작":phase==2?"업그레이드 중":ascending?"승천하기":"업그레이드 완료";
                 primary.interactable=phase==0 || phase==1 || phase==3;
                 diamond.gameObject.SetActive(phase==2);free.gameObject.SetActive(phase==2);
                 diamond.GetComponentInChildren<Text>().text="건너뛰기\n다이아 "+s.DiamondSkipCost(now);
@@ -96,30 +111,38 @@ namespace Moonlit.UI
         static void BuildProbabilityDetailsLive(ScreenContext c)
         {
             Frame(c,"모든 장비의 목록",820,1380,out var b);
-            Scroll(c,b,0,0,b.rect.width,b.rect.height-12,10*860,out var content);
+            Scroll(c,b,0,0,b.rect.width,b.rect.height-12,10*1130,out var content);
             var rates=EquipmentRules.TierProbabilities(ForgeState.Current.level);
             for(int tier=0;tier<10;tier++) {
-                int top=tier*860;
+                int top=tier*1130;
                 var head=Ui.Image("Tier "+tier,content,6,top,724,66,TierBand(tier));head.type=Image.Type.Sliced;head.pixelsPerUnitMultiplier=1.4f;
                 Ui.Image("Tier emblem",head.transform,10,3,60,60,TierIcon(tier)).preserveAspect=true;
-                Ui.Text("Tier name",head.transform,86,0,450,66,EquipmentRules.TierNames[tier],29,Font(c),Ui.Ivory,TextAnchor.MiddleLeft);
+                Ui.Text("Tier name",head.transform,86,0,330,66,EquipmentRules.TierNames[tier],29,Font(c),Ui.Ivory,TextAnchor.MiddleLeft);
+                if(ForgeState.Current.ascension>0) {
+                    var star=Ui.Text("Tier star",head.transform,408,0,140,66,EquipmentRules.AscensionStars(ForgeState.Current.ascension),24,Font(c),Ui.Gold);
+                    star.resizeTextForBestFit=true;star.resizeTextMinSize=12;star.resizeTextMaxSize=star.fontSize;
+                }
                 Ui.Text("Tier chance",head.transform,560,0,152,66,(rates[tier]*100).ToString("0.##")+"%",27,Font(c));
                 for(int n=0;n<18;n++) {
-                    var item=new EquipmentRoll {tier=tier,level=Math.Max(1,ForgeState.Current.draws[tier]),variant=n/6,part=(EquipmentPart)(n%6)};
-                    float x=15+n%4*180,y=top+82+n/4*151;
-                    var slot=Action(c,content,x,y,155,112,"",()=>c.Open("forge-item-details",item),EquipmentRules.TierColor(tier));
+                    var item=new EquipmentRoll {ascension=ForgeState.Current.ascension,tier=tier,level=Math.Max(1,ForgeState.Current.draws[tier]),variant=n/6,part=(EquipmentPart)(n%6)};
+                    float x=15+n%4*180,y=top+82+n/4*206;
+                    var slot=Action(c,content,x,y,155,155,"",()=>c.Open("forge-item-details",item),EquipmentRules.TierColor(tier));
                     slot.name="Equipment "+item.tier+" "+item.variant+" "+item.part;
                     var frame=(Image)slot.targetGraphic;frame.sprite=SlotFrame(c);EquipmentPictograms.TintFrame(frame,EquipmentRules.TierColor(tier));
                     var icon=EquipmentArt.Icon(item);
-                    if(icon)Ui.Image("Thumbnail",slot.transform,14,7,126,92,icon).preserveAspect=true;
-                    else Ui.Text("Pending art",slot.transform,6,20,143,74,"썸네일\n준비 중",21,Font(c));
-                    Ui.Text("Drop chance",content,x,y+111,155,37,(rates[tier]*100/18).ToString("0.0000")+"%",20,Font(c));
+                    if(icon)Ui.Image("Thumbnail",slot.transform,14,9,126,130,icon).preserveAspect=true;
+                    else Ui.Text("Pending art",slot.transform,6,30,143,90,"썸네일\n준비 중",21,Font(c));
+                    if(item.ascension>0) {
+                        var star=Ui.Text("Star",slot.transform,0,131,155,28,EquipmentRules.AscensionStars(item.ascension),21,Font(c),Ui.Gold);
+                        star.resizeTextForBestFit=true;star.resizeTextMinSize=12;star.resizeTextMaxSize=star.fontSize;
+                    }
+                    Ui.Text("Drop chance",content,x,y+159,155,37,(rates[tier]*100/18).ToString("0.0000")+"%",20,Font(c));
                 }
             }
         }
         static void BuildItemDetailsLive(ScreenContext c)
         {
-            var item=c.Payload as EquipmentRoll ?? new EquipmentRoll();
+            var item=c.Payload as EquipmentRoll ?? new EquipmentRoll{ascension=ForgeState.Current.ascension};
             Frame(c,"장비 정보",820,1120,out var b);
             var card=RollCard(c,b,0,item,"장비 도감");card.anchoredPosition=new Vector2(0,0);card.sizeDelta=new Vector2(740,248);
             Ui.Text("Affix count",b,28,270,682,62,"추가 옵션 "+EquipmentRules.AffixCount(item.tier)+"개 · 중복 없음",28,Font(c),Ui.Gold);
@@ -149,10 +172,15 @@ namespace Moonlit.UI
                 if(item==null) {b.Find("Tag").GetComponent<Text>().text="";Ui.Text("No pending",content,30,240,760,90,"보관 중인 장비가 없습니다.",28,Font(c));return;}
                 var equipped=s.equipped[(int)item.part];
                 b.Find("Tag").GetComponent<Text>().text=equipped!=null?"장착됨":"새로운 장비";
-                if(equipped!=null)RollCard(c,content,94,equipped,"Current equipment");
-                var candidate=RollCard(c,content,equipped!=null?359:225,item,"New equipment");
+                RectTransform current=null;
+                if(equipped!=null) {
+                    current=RollCard(c,content,94,equipped,"Current equipment");
+                    current.sizeDelta=new Vector2(current.sizeDelta.x,270);
+                }
+                var candidate=RollCard(c,content,equipped!=null?377:225,item,"New equipment");
                 candidate.sizeDelta=new Vector2(candidate.sizeDelta.x,270);
-                Ui.Text("New marker",candidate,24,228,166,34,"새로운!",25,Font(c),new Color(1,.25f,.18f));
+                var newlyRolled=equipped!=null && equipped.id==s.ComparisonNewId?current:candidate;
+                Ui.Text("New marker",newlyRolled,24,228,166,34,"새로운!",25,Font(c),new Color(1,.25f,.18f));
                 int id=item.id;
                 if(equipped!=null)Action(c,content,32,676,360,100,"판매",()=>{
                     if(!s.SellPending(id,out int gold))return;
