@@ -14,6 +14,7 @@ namespace Moonlit.UI
         CanvasGroup group;
         Text direction, total;
         Sequence animation;
+        double started;
         public int PresentationCount { get; private set; }
         public double LastPower => previousPower;
         public bool Visible => visual && visual.gameObject.activeSelf;
@@ -53,7 +54,8 @@ namespace Moonlit.UI
             total.text = "전투력 " + MainScreen.Compact(power);
             total.color = Ui.Ivory;
             PresentationCount++;
-            animation = DOTween.Sequence().SetUpdate(true).SetTarget(this);
+            started = Time.realtimeSinceStartupAsDouble;
+            animation = DOTween.Sequence().SetUpdate(UpdateType.Manual, true).SetTarget(this);
             animation.Append(group.DOFade(1, .12f));
             animation.Join(visual.DOScale(1.08f, .18f).SetEase(Ease.OutBack));
             animation.Append(visual.DOScale(1, .12f).SetEase(Ease.OutQuad));
@@ -61,6 +63,12 @@ namespace Moonlit.UI
             animation.Append(group.DOFade(0, .32f));
             animation.Join(visual.DOAnchorPosY(40, .32f).SetEase(Ease.OutQuad));
             animation.OnComplete(() => { if (visual) visual.gameObject.SetActive(false); });
+        }
+
+        void Update()
+        {
+            if (animation != null && animation.IsActive() && animation.IsPlaying())
+                animation.Goto((float)(Time.realtimeSinceStartupAsDouble - started), true);
         }
 
         void Build()
