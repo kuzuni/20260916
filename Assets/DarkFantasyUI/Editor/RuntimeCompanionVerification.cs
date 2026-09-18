@@ -114,7 +114,7 @@ namespace Moonlit.Editor
             foreach(var actor in actors)
             {
                 if(Mathf.Abs(Mathf.Abs(actor.localScale.x)-2)>.001f || Mathf.Abs(actor.localScale.y-2)>.001f ||
-                    Mathf.Abs(actor.localPosition.y)>.001f)throw new InvalidOperationException("Actor size/ground changed: "+context);
+                    Mathf.Abs(actor.localPosition.y-battle.FormationGroundOffset)>.01f || actor.localPosition.y>0.01f || actor.localPosition.y< -3.01f)throw new InvalidOperationException("Actor size/ground changed: "+context);
                 foreach(var sprite in actor.GetComponentsInChildren<SpriteRenderer>().Where(x=>x.enabled && x.sprite))
                 foreach(var area in areas)
                 {
@@ -124,18 +124,25 @@ namespace Moonlit.Editor
                         throw new InvalidOperationException("Actual actor part covers stage/wave/round/pass/rewards: "+context+" "+sprite.name);
                 }
             }
+            float centre=actors[0].parent.position.x;
+            float HeadX(Transform actor)=>actor.GetComponentsInChildren<SpriteRenderer>().First(x=>x.enabled&&x.sprite&&x.sprite.name=="머리").bounds.center.x;
+            if(HeadX(actors[0])>centre-1.34f||HeadX(actors[1])<centre+1.34f)
+                throw new InvalidOperationException("Actor crossed into the opposing head/HP lane: "+context);
+            battle.PlayerHud.SendMessage("LateUpdate");battle.EnemyHud.SendMessage("LateUpdate");
+            if(battle.EnemyHud.transform.position.x-battle.PlayerHud.transform.position.x<=2.1f)
+                throw new InvalidOperationException("Mounted actor world HP bars overlap: "+context);
             if(Vector2.Distance(companions.Mount.saddle.position,companions.RiderHip.position)>.03f)
                 throw new InvalidOperationException("World layout detached rider from unchanged saddle: "+context);
             var camera=battle.PlayerHud.WorldCanvas.worldCamera;
             foreach(var actor in actors)
             foreach(var sprite in actor.GetComponentsInChildren<SpriteRenderer>().Where(x=>x.enabled && x.sprite))
-                if(camera.WorldToViewportPoint(sprite.bounds.min).x<-.005f ||
+                if(camera.WorldToViewportPoint(sprite.bounds.min).x<-.005f || camera.WorldToViewportPoint(sprite.bounds.min).y<-.005f ||
                     camera.WorldToViewportPoint(sprite.bounds.max).x>1.005f)
                     throw new InvalidOperationException("World layout clipped an actor: "+context+" "+sprite.name);
             foreach(var flat in companions.Pets.Concat(new[]{companions.Mount}))
             {
                 var bounds=flat.VisibleBounds;
-                if(camera.WorldToViewportPoint(bounds.min).x<-.005f || camera.WorldToViewportPoint(bounds.max).x>1.005f)
+                if(camera.WorldToViewportPoint(bounds.min).x<-.005f || camera.WorldToViewportPoint(bounds.min).y<-.005f || camera.WorldToViewportPoint(bounds.max).x>1.005f)
                     throw new InvalidOperationException("World layout clipped whole companion artwork: "+context+" "+flat.name);
                 if(flat.GetComponentsInChildren<SpriteRenderer>().Length!=1 || flat.GetComponentsInChildren<Animator>().Length!=0 ||
                     flat.GetComponentsInChildren<UnityEngine.U2D.Animation.SpriteSkin>().Length!=0 ||

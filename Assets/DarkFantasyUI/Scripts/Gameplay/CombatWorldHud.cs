@@ -70,7 +70,8 @@ namespace Moonlit.UI
             HealthText.text = Number(state.Health) + "/" + Number(state.stats.health);
             fill.rectTransform.sizeDelta = new Vector2(290 * (float)(state.Health / state.stats.health), 48);
         }
-        void LateUpdate()
+        void LateUpdate() { RefreshPosition(); }
+        public void RefreshPosition()
         {
             if (!Actor) return;
             Vector3 position = head ? new Vector3(head.bounds.center.x, head.bounds.max.y, Actor.position.z) :
