@@ -5,11 +5,13 @@ namespace Moonlit.UI
 {
     public static class RewardVisuals
     {
-        public enum Kind { Gold,Diamond,SkillTicket,PetTicket,MountTicket,Hammer }
+        public enum Kind { Gold,Diamond,SkillTicket,PetTicket,MountTicket,Hammer,HammerKey,GhostKey,InvasionKey,ZombieKey }
+        public const float ParticleSize=144f;
         public static Sprite Ticket(int category) => Resources.Load<Sprite>(category==1?"Moonlit/Popup/PetTicketEgg-v2":category==2?"Moonlit/Popup/MountTicketHoof-v2":"Moonlit/Skills/SummonTicket-v1");
         public static Sprite Icon(MainScreen main,Kind kind)
         {
             if(kind==Kind.Hammer)return RewardsScreenModule.HammerArt;
+            if((int)kind>=(int)Kind.HammerKey)return PopupSkin.RewardIcon(new[]{5,2,4,3}[(int)kind-(int)Kind.HammerKey]);
             if((int)kind>=(int)Kind.SkillTicket && (int)kind<=(int)Kind.MountTicket)return Ticket((int)kind-2);
             var target=kind==Kind.Gold?main.goldButton:main.gemButton;
             if(!target)return null;
@@ -29,6 +31,7 @@ namespace Moonlit.UI
             if(kind==Kind.Gold && main.goldButton)target=main.goldButton.transform;
             else if(kind==Kind.Diamond && main.gemButton)target=main.gemButton.transform;
             else if(kind==Kind.Hammer && main.forgeButton)target=main.forgeButton.transform;
+            else if((int)kind>=(int)Kind.HammerKey && main.navigation!=null && main.navigation.Length>1 && main.navigation[1])target=main.navigation[1].transform;
             else if(main.navigation!=null && main.navigation.Length>2 && main.navigation[2])target=main.navigation[2].transform;
             if(!target){Object.Destroy(layer.gameObject);return;}
             var targetRect=(RectTransform)target;
@@ -37,7 +40,7 @@ namespace Moonlit.UI
             int count=Mathf.Clamp(amount,5,12);
             for(int i=0;i<count;i++)
             {
-                var bit=Ui.Image("Reward particle "+i,layer,0,0,48,48,icon);bit.preserveAspect=true;
+                var bit=Ui.Image("Reward particle "+i,layer,0,0,ParticleSize,ParticleSize,icon);bit.preserveAspect=true;
                 var rect=bit.rectTransform;rect.pivot=Vector2.one*.5f;rect.anchoredPosition=source;
                 Vector2 spread=source+new Vector2(Mathf.Cos(i*2.4f)*85,Mathf.Sin(i*2.4f)*60);
                 var seq=DOTween.Sequence().SetUpdate(true).SetTarget(life);

@@ -14,6 +14,22 @@ namespace Moonlit.UI
         public int arenaPoints;
         public int arenaChallenges;
         public int arenaWins;
+        public string dailyDiamondClaimDay;
+        public bool CanClaimDailyDiamonds => CanClaimDailyDiamondsOn(DateTime.UtcNow);
+        public bool CanClaimDailyDiamondsOn(DateTime utc)
+        {
+            string day=utc.ToUniversalTime().AddHours(9).ToString("yyyy-MM-dd",System.Globalization.CultureInfo.InvariantCulture);
+            return String.CompareOrdinal(day,dailyDiamondClaimDay)>0;
+        }
+        public bool ClaimDailyDiamonds(MainScreen main,Vector3? origin=null) => ClaimDailyDiamondsOn(main,DateTime.UtcNow,origin);
+        public bool ClaimDailyDiamondsOn(MainScreen main,DateTime utc,Vector3? origin=null)
+        {
+            if(!main || !CanClaimDailyDiamondsOn(utc) || main.gems>int.MaxValue-100)return false;
+            dailyDiamondClaimDay=utc.ToUniversalTime().AddHours(9).ToString("yyyy-MM-dd",System.Globalization.CultureInfo.InvariantCulture);
+            main.gems+=100;main.Refresh();main.SaveGame();
+            RewardVisuals.Absorb(main,RewardVisuals.Kind.Diamond,100,origin);
+            return true;
+        }
         public static RewardState Current = new RewardState();
         public long GoldAvailable => Math.Max(0, accruedSeconds - goldClaimed);
         public long HammersAvailable => Math.Max(0, accruedSeconds / 60 - hammersClaimed);

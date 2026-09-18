@@ -224,6 +224,93 @@ namespace Moonlit.UI.Tests
         }
 
         [UnityTest]
+        public IEnumerator ShopPurchases_AbsorbEachGrantedCurrencyOnceFromProductAndSkipRejectedCredits()
+        {
+            var main=PrepareRewardHud();
+            host.Registry.Open("shop");yield return null;Canvas.ForceUpdateCanvases();
+            string[] offers={"자원 거래","펫 거래","던전 거래","Gem offer 600","Gem offer 2200","Gem offer 8000","Gem offer 15000","Gem offer 33000"};
+            int[][] amounts={new[]{1000,50,200,50,50,62},new[]{660,200,20},new[]{2,2,2,2},
+                new[]{600},new[]{2200},new[]{8000},new[]{15000},new[]{33000}};
+            RewardVisuals.Kind[][] kinds={
+                new[]{RewardVisuals.Kind.Gold,RewardVisuals.Kind.Hammer,RewardVisuals.Kind.SkillTicket,RewardVisuals.Kind.PetTicket,RewardVisuals.Kind.MountTicket,RewardVisuals.Kind.Diamond},
+                new[]{RewardVisuals.Kind.PetTicket,RewardVisuals.Kind.Hammer,RewardVisuals.Kind.Diamond},
+                new[]{RewardVisuals.Kind.HammerKey,RewardVisuals.Kind.GhostKey,RewardVisuals.Kind.InvasionKey,RewardVisuals.Kind.ZombieKey},
+                new[]{RewardVisuals.Kind.Diamond},new[]{RewardVisuals.Kind.Diamond},new[]{RewardVisuals.Kind.Diamond},new[]{RewardVisuals.Kind.Diamond},new[]{RewardVisuals.Kind.Diamond}};
+            for(int offer=0;offer<offers.Length;offer++){
+                var card=GameObject.Find(offers[offer]).GetComponent<RectTransform>();
+                var purchase=card.GetComponentInChildren<Button>();
+                int[] before={main.gold,main.ore,main.skillTickets,main.petTickets,main.mountTickets,main.gems};
+                int[] keys=(int[])DungeonProgression.Data.keys.Clone();
+                purchase.onClick.Invoke();purchase.onClick.Invoke();
+                var effects=root.GetComponentsInChildren<RewardVisualLifetime>();
+                Assert.AreEqual(amounts[offer].Length,effects.Length,"Each granted currency produces exactly one absorption, even after a duplicate click.");
+                for(int reward=0;reward<effects.Length;reward++){
+                    var image=effects[reward].transform.Find("Reward particle 0").GetComponent<Image>();
+                    Assert.AreEqual(new Vector2(144,144),image.rectTransform.sizeDelta);
+                    Assert.AreSame(RewardVisuals.Icon(main,kinds[offer][reward]),image.sprite);
+                    Assert.IsFalse(image.raycastTarget);
+                    Assert.AreEqual("+"+amounts[offer][reward].ToString("N0"),effects[reward].GetComponentInChildren<Text>().text);
+                    var source=offer<3?(RectTransform)card.Find("Reward cell "+reward):(RectTransform)card.Find("Ruby artwork");
+                    Assert.Less(Vector3.Distance(source.TransformPoint(source.rect.center),image.rectTransform.TransformPoint(image.rectTransform.rect.center)),.1f);
+                }
+                if(offer==0)CollectionAssert.AreEqual(new[]{1000,50,200,50,50,62},
+                    new[]{main.gold-before[0],main.ore-before[1],main.skillTickets-before[2],main.petTickets-before[3],main.mountTickets-before[4],main.gems-before[5]});
+                else if(offer==1)CollectionAssert.AreEqual(new[]{660,200,20},new[]{main.petTickets-before[3],main.ore-before[1],main.gems-before[5]});
+                else if(offer==2)for(int i=0;i<4;i++)Assert.AreEqual(keys[i]+2,DungeonProgression.Data.keys[i]);
+                else Assert.AreEqual(before[5]+amounts[offer][0],main.gems);
+                foreach(var effect in effects)Object.DestroyImmediate(effect.gameObject);
+                yield return null;
+            }
+            main.gems=int.MaxValue;
+            var gemPurchase=GameObject.Find("Gem offer 600").GetComponentInChildren<Button>();
+            gemPurchase.onClick.Invoke();
+            Assert.AreEqual(int.MaxValue,main.gems);
+            Assert.IsEmpty(root.GetComponentsInChildren<RewardVisualLifetime>(),"No credited amount means no success effect.");
+            host.CloseTop();yield return null;
+            gemPurchase.onClick.Invoke();
+            Assert.IsEmpty(root.GetComponentsInChildren<RewardVisualLifetime>(),"A closed shop's stale callback cannot grant a reward.");
+        }
+
+        [UnityTest]
+        public IEnumerator ShopDailyDiamonds_RemainSeparateFromPaidOfferAndRestoreClaimAcrossReopening()
+        {
+            var main=PrepareRewardHud();main.gems=0;
+            host.Registry.Open("shop");yield return null;
+            var claim=GameObject.Find("Claim daily diamonds").GetComponent<Button>();
+            Assert.IsTrue(claim.interactable);Assert.IsNotNull(GameObject.Find("Gem offer 600"));
+            claim.onClick.Invoke();claim.onClick.Invoke();
+            Assert.AreEqual(100,main.gems);Assert.IsFalse(RewardState.Current.CanClaimDailyDiamonds);
+            Assert.IsFalse(claim.interactable);Assert.AreEqual("수령 완료",claim.GetComponentInChildren<Text>().text);
+            Assert.AreEqual(1,root.GetComponentsInChildren<RewardVisualLifetime>().Length);
+            string saved=JsonUtility.ToJson(RewardState.Current);
+            foreach(var effect in root.GetComponentsInChildren<RewardVisualLifetime>())Object.DestroyImmediate(effect.gameObject);
+            host.CloseTop();yield return null;
+            RewardState.Current=JsonUtility.FromJson<RewardState>(saved);
+            host.Registry.Open("shop");yield return null;
+            claim=GameObject.Find("Claim daily diamonds").GetComponent<Button>();
+            Assert.IsFalse(claim.interactable);claim.onClick.Invoke();
+            Assert.AreEqual(100,main.gems);Assert.IsEmpty(root.GetComponentsInChildren<RewardVisualLifetime>());
+            RewardState.Current.dailyDiamondClaimDay=System.DateTime.UtcNow.AddHours(9).AddDays(-1).ToString("yyyy-MM-dd");
+            yield return new WaitForSecondsRealtime(.25f);
+            Assert.IsTrue(claim.interactable,"An open shop refreshes the daily claim without reopening.");
+            claim.onClick.Invoke();Assert.AreEqual(200,main.gems);
+            Assert.AreEqual(1,root.GetComponentsInChildren<RewardVisualLifetime>().Length);
+        }
+
+        MainScreen PrepareRewardHud()
+        {
+            var main=root.GetComponent<MainScreen>();
+            main.goldButton=Ui.ArtButton("Test gold HUD",root.transform,50,10,100,60);
+            main.gemButton=Ui.ArtButton("Test diamond HUD",root.transform,850,10,100,60);
+            main.forgeButton=Ui.ArtButton("Test hammer HUD",root.transform,480,1600,100,60);
+            Ui.Image("Crown coin",main.goldButton.transform,0,0,48,48,assets.interfaceIcons[0]);
+            Ui.Image("Diamond ruby",main.gemButton.transform,0,0,48,48,assets.interfaceIcons[1]);
+            main.navigation=new Button[3];
+            for(int i=0;i<3;i++)main.navigation[i]=Ui.ArtButton("Test navigation "+i,root.transform,100+i*220,1800,100,60);
+            return main;
+        }
+
+        [UnityTest]
         public IEnumerator Pvp_AllOneHundredRanksScrollAndRestoreAfterDetails()
         {
             foreach (int height in new[] { 1920,2280 })

@@ -15,6 +15,30 @@ namespace Moonlit.UI.Tests
             s.Advance(1000);Assert.AreEqual(1060,s.lastTickUtc);
             s.Advance(1061);Assert.AreEqual(2,s.GoldAvailable);
         }
+        [Test] public void DailyDiamondsPersistAcrossSaveAndResetAtKoreanMidnightWithoutRollback()
+        {
+            var root=new GameObject("daily diamond test");
+            try{
+                var main=root.AddComponent<MainScreen>();main.enabled=false;main.gems=0;
+                var state=RewardState.Current;
+                var beforeMidnight=new DateTime(2026,9,18,14,59,59,DateTimeKind.Utc);
+                Assert.IsTrue(state.CanClaimDailyDiamondsOn(beforeMidnight));
+                Assert.IsTrue(state.ClaimDailyDiamondsOn(main,beforeMidnight));Assert.AreEqual(100,main.gems);
+                Assert.AreEqual("2026-09-18",state.dailyDiamondClaimDay);
+                var save=JsonUtility.FromJson<GameplaySave>(JsonUtility.ToJson(new GameplaySave{rewards=state}));
+                state=save.rewards;RewardState.Current=state;
+                Assert.IsFalse(state.ClaimDailyDiamondsOn(main,beforeMidnight));Assert.AreEqual(100,main.gems);
+                Assert.IsFalse(state.ClaimDailyDiamondsOn(main,beforeMidnight.AddDays(-1)));
+                Assert.IsFalse(state.ClaimDailyDiamondsOn(null,beforeMidnight.AddSeconds(1)));
+                Assert.IsTrue(state.ClaimDailyDiamondsOn(main,beforeMidnight.AddSeconds(1)));
+                Assert.AreEqual("2026-09-19",state.dailyDiamondClaimDay);Assert.AreEqual(200,main.gems);
+                main.gems=int.MaxValue;
+                Assert.IsFalse(state.ClaimDailyDiamondsOn(main,beforeMidnight.AddDays(2)));
+                Assert.AreEqual("2026-09-19",state.dailyDiamondClaimDay,"An unsuccessful credit must not consume the day.");
+                Assert.IsTrue(state.CanClaimDailyDiamondsOn(beforeMidnight.AddDays(2)));
+            }finally{UnityEngine.Object.DestroyImmediate(root);}
+        }
+
         [Test] public void ArenaBoundariesAndPodiumAlwaysBeatChallengerFive()
         {
             Assert.AreEqual("아이언 1",RewardRules.TierName(0));
