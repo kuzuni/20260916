@@ -1,5 +1,5 @@
 
-> Latest companion direction: live pets/mounts use complete generated PNGs, all quadrupeds standing calmly and facing right, matching the Player's thick-outline cartoon style. No live companion rigging, part separation, Animator or bobbing. Previous rig assets remain archived unchanged; further rigging is stopped. Hosted run121 passed285 tests; actual whole-image placement was reviewed at both ratios. Remaining visual limitations are recorded in Documentation/UI/Reports/runtime-validation-20260919.md. See the current game rules and Flat-Primitive art provenance files.
+> Latest companion direction: live pets/mounts use complete generated PNGs, all quadrupeds standing calmly and facing right, matching the Player's thick-outline cartoon style. No live companion rigging, part separation, Animator or bobbing. Previous rig assets remain archived unchanged; further rigging is stopped. Hosted run125 passed285 tests; actual whole-image placement was reviewed at both ratios. Remaining visual limitations are recorded in Documentation/UI/Reports/runtime-validation-20260919.md. See the current game rules and Flat-Primitive art provenance files.
 
 # 30-screen reference catalog
 

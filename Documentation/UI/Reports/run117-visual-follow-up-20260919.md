@@ -1,4 +1,4 @@
-> Current status: [run121 validation and remaining visual limitations](runtime-validation-20260919.md). The historical findings below describe their named revisions.
+> Current status: [latest validation and remaining visual limitations](runtime-validation-20260919.md). The historical findings below describe their named revisions.
 
 # Run117 visual follow-up — 2026-09-19
 
