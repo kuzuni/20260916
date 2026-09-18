@@ -137,6 +137,11 @@ namespace Moonlit.UI.Tests
                             battle.PlayerHud.SendMessage("LateUpdate");battle.EnemyHud.SendMessage("LateUpdate");
                             Assert.Greater(battle.EnemyHud.transform.position.x-battle.PlayerHud.transform.position.x,2.1f,
                                 "The two 2.1-world-unit HP bars must not overlap.");
+                            var mountBounds=companions.Mount.VisibleBounds;
+                            foreach(var area in areas)
+                                Assert.IsFalse(area.width>0&&area.height>0&&mountBounds.min.x<area.xMax-.01f&&
+                                    mountBounds.max.x>area.xMin+.01f&&mountBounds.min.y<area.yMax-.01f&&mountBounds.max.y>area.yMin+.01f,
+                                    height+" "+mount+" "+state+" mounted artwork covers fixed HUD");
                             Assert.Less(Vector2.Distance(companions.Mount.saddle.position,companions.RiderHip.position),.03f);
                             Vector3 stablePlayer=player.position,stableEnemy=enemy.position;
                             for(int repeat=0;repeat<6;repeat++)battle.ApplyActorHudClearance();

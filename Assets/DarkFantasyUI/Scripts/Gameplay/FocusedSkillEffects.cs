@@ -6,6 +6,19 @@ namespace Moonlit.UI
     public sealed partial class PrimitiveSkillEffects
     {
         public float EarlyPlaybackTimeOverride { get; set; } = -1;
+        // BattleRuntime supplies the real profile rectangle through the same UI-to-world projection as its actor clearance.
+        public Rect FocusedFoodHeaderBounds { get; set; }
+        public const float FocusedFoodBaseSize=1.65f,FocusedFoodPeak=1.28f,FocusedFoodHeadGap=.3f,FocusedFoodHeaderGap=.08f;
+        public float FocusedFoodSize(Sprite art,Bounds head)
+        {
+            if(!art || FocusedFoodHeaderBounds.width<=0 || FocusedFoodHeaderBounds.height<=0)return FocusedFoodBaseSize;
+            float dimension=Mathf.Max(.01f,Mathf.Max(art.bounds.size.x,art.bounds.size.y));
+            float halfWidth=FocusedFoodBaseSize*FocusedFoodPeak*art.bounds.size.x/dimension/2;
+            if(head.center.x+halfWidth<=FocusedFoodHeaderBounds.xMin || head.center.x-halfWidth>=FocusedFoodHeaderBounds.xMax)
+                return FocusedFoodBaseSize;
+            float availableHeight=Mathf.Max(0,FocusedFoodHeaderBounds.yMin-head.max.y-FocusedFoodHeadGap-FocusedFoodHeaderGap);
+            return Mathf.Min(FocusedFoodBaseSize,availableHeight*dimension/Mathf.Max(.01f,art.bounds.size.y*FocusedFoodPeak));
+        }
         readonly System.Collections.Generic.List<Object> focusedAssets=new System.Collections.Generic.List<Object>();
         static bool FocusedHeadBounds(Transform motion,out Bounds bounds)
         {
@@ -52,12 +65,14 @@ namespace Moonlit.UI
                 PlaybackElapsed=time;
                 if(variant==0) {
                     var pose=SixSkillChoreography.Food(source,time);
+                    float foodSize=FocusedFoodBaseSize;
                     if(FocusedHeadBounds(sourceAnchor,out var head)) {
-                        float halfHeight=1.65f*1.28f*art.bounds.size.y/Mathf.Max(art.bounds.size.x,art.bounds.size.y)/2;
-                        var overhead=new Vector3(head.center.x,head.max.y+.3f+halfHeight,source.z-1);
+                        foodSize=FocusedFoodSize(art,head);
+                        float halfHeight=foodSize*FocusedFoodPeak*art.bounds.size.y/Mathf.Max(art.bounds.size.x,art.bounds.size.y)/2;
+                        var overhead=new Vector3(head.center.x,head.max.y+FocusedFoodHeadGap+halfHeight,source.z-1);
                         pose=new SkillVisualPose(overhead,pose.rotation,pose.scale.x,pose.scale.y,pose.alpha);
                     }
-                    Pose(objects[0],pose,1.65f);
+                    Pose(objects[0],pose,foodSize);
                     objects[0].enabled=time<SixSkillChoreography.FoodVanishTime;
                     if(!aura&&time>=SixSkillChoreography.FoodVanishTime) {
                         aura=true;StartCoroutine(GreenHealingAura(source,sourceAnchor,sourceOffset));

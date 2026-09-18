@@ -212,8 +212,10 @@ namespace Moonlit.UI
             float playerHead=LayoutHeadX(player,true),enemyHead=LayoutHeadX(enemy,false),centre=stageRoot.transform.position.x;
             // Separate the actual heads/HP bars, while allowing authored arms and weapons to reach inward.
             float playerMaximum=centre-1.35f-playerHead,enemyMinimum=centre+1.35f-enemyHead;
-            float previousDrop=0;
-            for(float drop=Mathf.Min(formationGroundDrop,Mathf.Max(0,maximumDrop));drop<=maximumDrop+.001f;drop+=.04f) {
+            float previousDrop=0,firstDrop=Mathf.Min(formationGroundDrop,Mathf.Max(0,maximumDrop));
+            int steps=Mathf.CeilToInt((maximumDrop-firstDrop)/.04f);
+            for(int step=0;step<=steps;step++) {
+                float drop=Mathf.Min(maximumDrop,firstDrop+step*.04f);
                 float change=previousDrop-drop;previousDrop=drop;
                 TranslateBounds(playerLayoutParts,Vector3.up*change);TranslateBounds(playerLayoutFormation,Vector3.up*change);
                 TranslateBounds(enemyLayoutParts,Vector3.up*change);TranslateBounds(enemyLayoutFormation,Vector3.up*change);
@@ -231,8 +233,9 @@ namespace Moonlit.UI
         }
         void PrepareLayoutBounds(GameObject actor,CompanionBattleRuntime companions,bool isPlayer,List<Bounds> parts,List<Bounds> formation)
         {
-            parts.Clear();AddRenderedBounds(actor,parts);formation.Clear();formation.AddRange(parts);
-            if(companions&&companions.Mount)AddRenderedBounds(companions.Mount.gameObject,formation);
+            parts.Clear();AddRenderedBounds(actor,parts);
+            if(companions&&companions.Mount)AddRenderedBounds(companions.Mount.gameObject,parts);
+            formation.Clear();formation.AddRange(parts);
             var home=stageRoot.transform.position+new Vector3(isPlayer?-2.5f:2.5f,0,0);
             var offset=home-actor.transform.position;offset.z=0;
             TranslateBounds(parts,offset);TranslateBounds(formation,offset);
@@ -318,6 +321,8 @@ namespace Moonlit.UI
                 actorProtectedHudAreas[5+slot]=item&&item.gameObject.activeInHierarchy?
                     HudWorldRect(item,null,design,density,bottom):default;
             }
+            if(effects)effects.FocusedFoodHeaderBounds=HudWorldRect(main.profileButton?main.profileButton.transform as RectTransform:null,
+                null,design,density,bottom);
             if (PlayerHud) PlayerHud.SetProtectedAreas(protectedHudAreas);
             if (EnemyHud) EnemyHud.SetProtectedAreas(protectedHudAreas);
         }

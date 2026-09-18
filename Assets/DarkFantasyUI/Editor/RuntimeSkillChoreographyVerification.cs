@@ -234,7 +234,10 @@ namespace Moonlit.Editor
                     return !food.enabled&&objects.Any(r=>r.name=="Healing body glow"&&r.enabled&&r.color.a>.02f);
                 var head=sourceMotion.GetComponentsInChildren<SpriteRenderer>().FirstOrDefault(r=>r.sprite&&r.sprite.name=="머리");
                 if(!head||!food.enabled||food.bounds.min.y<head.bounds.max.y+.15f)return false;
-                float size=1.65f/Mathf.Max(food.sprite.bounds.size.x,food.sprite.bounds.size.y);
+                var header=effects.FocusedFoodHeaderBounds;
+                if(header.width>0&&header.height>0&&food.bounds.min.x<header.xMax&&food.bounds.max.x>header.xMin&&
+                    food.bounds.max.y>header.yMin-.06f)return false;
+                float size=effects.FocusedFoodSize(food.sprite,head.bounds)/Mathf.Max(food.sprite.bounds.size.x,food.sprite.bounds.size.y);
                 return Mathf.Abs(food.transform.localScale.x-SixSkillChoreography.FoodScale(sample)*size)<.005f;
             }
             int count=variant==1?SkillChoreography.HitCount(tier,variant):1;

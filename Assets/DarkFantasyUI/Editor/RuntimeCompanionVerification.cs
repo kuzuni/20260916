@@ -131,6 +131,11 @@ namespace Moonlit.Editor
             battle.PlayerHud.SendMessage("LateUpdate");battle.EnemyHud.SendMessage("LateUpdate");
             if(battle.EnemyHud.transform.position.x-battle.PlayerHud.transform.position.x<=2.1f)
                 throw new InvalidOperationException("Mounted actor world HP bars overlap: "+context);
+            var mountBounds=companions.Mount.VisibleBounds;
+            foreach(var area in areas)
+                if(area.width>0&&area.height>0&&mountBounds.min.x<area.xMax-.01f&&mountBounds.max.x>area.xMin+.01f&&
+                    mountBounds.min.y<area.yMax-.01f&&mountBounds.max.y>area.yMin+.01f)
+                    throw new InvalidOperationException("Mounted artwork covers fixed HUD: "+context);
             if(Vector2.Distance(companions.Mount.saddle.position,companions.RiderHip.position)>.03f)
                 throw new InvalidOperationException("World layout detached rider from unchanged saddle: "+context);
             var camera=battle.PlayerHud.WorldCanvas.worldCamera;
