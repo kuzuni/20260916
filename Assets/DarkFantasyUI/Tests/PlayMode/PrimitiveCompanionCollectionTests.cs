@@ -54,11 +54,9 @@ namespace Moonlit.UI.Tests
         [UnityTest]
         public IEnumerator PrimitiveCompanionArtAndNamesAppearAcrossCollectionDetailsProbabilityAndResultsWithoutFreeUnlocks()
         {
-            var catalog=CompanionRigCatalog.Load();
-            Assert.IsNotNull(catalog,"Cloud preparation must build the six authored companion entries before runtime tests.");
             Assert.IsTrue(CollectionProgression.Data.categories.All(category=>category.entries.All(entry=>!entry.unlocked)));
             var main=root.GetComponent<MainScreen>();
-            string[][] expected={new[]{"원시 꼬마","검치호 새끼","새끼 익룡"},new[]{"원시 랩터","야생 멧돼지","돌바퀴 수레"}};
+            string[][] expected={new[]{"검치호 새끼","늑대 새끼","멧돼지 새끼"},new[]{"멧돼지","매머드","코뿔소"}};
             for(int category=1;category<=2;category++) {
                 host.Registry.Open("skills-pets-heroes");yield return null;
                 GameObject.Find("Tab "+CollectionProgression.CategoryNames[category]).GetComponent<Button>().onClick.Invoke();
@@ -68,7 +66,9 @@ namespace Moonlit.UI.Tests
                 for(int variant=0;variant<3;variant++) {
                     var entry=entries[variant];
                     Assert.AreEqual(expected[category-1][variant],entry.Name);
-                    Assert.IsNotNull(CompanionRigCatalog.Icon(category,0,variant));
+                    Assert.IsNotNull(FlatCompanionCatalog.Icon(category,0,variant));
+                    Assert.AreSame(Resources.Load<Sprite>("Moonlit/Companions/Flat/"+(category==1?"Pet":"Mount")+variant+"-v1"),
+                        FlatCompanionCatalog.Icon(category,0,variant),"All collection surfaces must use the new whole quadruped PNG.");
                     entry.unlocked=true;
                 }
                 GameObject.Find("Tab "+CollectionProgression.CategoryNames[category]).GetComponent<Button>().onClick.Invoke();
@@ -77,12 +77,12 @@ namespace Moonlit.UI.Tests
                 Assert.AreEqual(3,cards.Length);
                 for(int variant=0;variant<3;variant++) {
                     var entry=entries[variant];var card=cards[variant];
-                    Assert.AreSame(CompanionRigCatalog.Icon(category,0,variant),card.transform.Find("Icon").GetComponent<Image>().sprite);
+                    Assert.AreSame(FlatCompanionCatalog.Icon(category,0,variant),card.transform.Find("Icon").GetComponent<Image>().sprite);
                     Assert.IsNull(card.transform.Find("Art pending"));
                     Assert.AreEqual(entry.Name,card.transform.Find("Grade").GetComponent<Text>().text);
                     card.onClick.Invoke();yield return null;
                     var detail=GameObject.Find("Popup Layer skill-details");
-                    Assert.AreSame(CompanionRigCatalog.Icon(category,0,variant),
+                    Assert.AreSame(FlatCompanionCatalog.Icon(category,0,variant),
                         detail.GetComponentsInChildren<Image>().Single(image=>image.name=="Icon").sprite);
                     Assert.IsTrue(detail.GetComponentsInChildren<Text>().Single(label=>label.name=="Name").text.Contains(entry.Name));
                     Assert.IsFalse(detail.GetComponentsInChildren<Text>().Single(label=>label.name=="Description").text.Contains("보류"));
@@ -94,7 +94,7 @@ namespace Moonlit.UI.Tests
                 Assert.AreEqual(3,primitive.GetComponentsInChildren<Image>().Count(image=>image.name=="Icon"));
                 var medieval=probability.GetComponentsInChildren<RectTransform>().Single(rect=>rect.name=="Grade 1");
                 Assert.AreEqual(3,medieval.GetComponentsInChildren<Text>().Count(label=>label.name=="Art pending"));
-                Assert.IsNull(CompanionRigCatalog.Icon(category,1,0));
+                Assert.IsNull(FlatCompanionCatalog.Icon(category,1,0));
                 Assert.IsFalse(entries[3].unlocked);
                 host.CloseTop();yield return null;
                 main.petTickets=main.mountTickets=5;
@@ -105,7 +105,7 @@ namespace Moonlit.UI.Tests
                 Assert.AreEqual(5,resultCards.Length);
                 foreach(var card in resultCards) {
                     var icon=card.transform.Find("Icon").GetComponent<Image>();
-                    Assert.IsTrue(Enumerable.Range(0,3).Any(variant=>icon.sprite==CompanionRigCatalog.Icon(category,0,variant)));
+                    Assert.IsTrue(Enumerable.Range(0,3).Any(variant=>icon.sprite==FlatCompanionCatalog.Icon(category,0,variant)));
                     Assert.Contains(card.transform.Find("Grade").GetComponent<Text>().text,expected[category-1]);
                     Assert.IsNull(card.transform.Find("Art pending"));
                 }

@@ -79,6 +79,36 @@ namespace Moonlit.UI.Tests
             Assert.Greater(lateFall,earlyFall*3);
             Assert.AreEqual(Target.y,p(1).y,.001f);
         }
+        [Test]
+        public void PhysicalContactsAndSupplyAccentsDoNotCloneWholeProjectiles()
+        {
+            var root=new GameObject("Physical skill contact textures");
+            try {
+                var effects=root.AddComponent<PrimitiveSkillEffects>();
+                effects.Initialize(Resources.Load<BattleAssetCatalog>("Moonlit/Combat/BattleAssets"));
+                var slash=Resources.Load<Sprite>(PrimitiveSkillEffects.BasicSlashKey);
+                var dust=Resources.Load<Sprite>(PrimitiveSkillEffects.HitDustKey);
+                Assert.IsNotNull(slash);Assert.IsNotNull(dust);
+                for(int tier=0;tier<=3;tier++)for(int variant=1;variant<=2;variant++) {
+                    effects.PlaySkillHit(tier,variant,0,Source,Target,true);
+                    var contact=root.transform.Find("Skill contact "+tier+" "+variant+" hit 0");
+                    Assert.IsNotNull(contact);
+                    var expected=tier>0&&variant==1?slash:dust;
+                    foreach(var piece in contact.GetComponentsInChildren<SpriteRenderer>()) {
+                        Assert.AreSame(expected,piece.sprite);
+                        Assert.AreNotSame(PrimitiveSkillEffects.SkillSprite(tier,variant),piece.sprite);
+                    }
+                }
+                effects.Play(3,0,Source,Target);
+                var buff=root.transform.Find("Era 3 skill 0");
+                Assert.IsNotNull(buff);
+                Assert.AreSame(PrimitiveSkillEffects.SkillSprite(3,0),buff.GetChild(0).GetComponent<SpriteRenderer>().sprite,
+                    "The main supply crate remains the original authored sprite.");
+                for(int i=0;i<4;i++)
+                    Assert.AreSame(dust,buff.Find("Buff accent "+i).GetComponent<SpriteRenderer>().sprite,
+                        "A supply pickup radiates dust/glow, never four miniature crates.");
+            } finally {UnityEngine.Object.DestroyImmediate(root);}
+        }
         [UnityTest]
         public IEnumerator LethalCancellationRemovesFutureFlightsButPreservesTheResolvedHit()
         {

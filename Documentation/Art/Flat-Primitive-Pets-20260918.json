@@ -1,0 +1,91 @@
+{
+  "generator": "built-in image_gen",
+  "date": "2026-09-18",
+  "pixelProcessing": "None. Generated complete PNG bytes retained unchanged.",
+  "assets": [
+    {
+      "category": 1,
+      "variant": 0,
+      "path": "C:/Users/user/.codex/generated_images/01a0b1a5-dba9-7ea0-9853-ffb90a4b9f17/exec-272f1063-57e0-4f0b-91ca-54f6fb54e0ba.png",
+      "size": [
+        1536,
+        1024
+      ],
+      "alpha": [
+        0,
+        254
+      ],
+      "x": 213,
+      "y": 68,
+      "width": 1104,
+      "height": 883,
+      "backX": 0.5,
+      "backY": 0.72,
+      "bytes": 1242790,
+      "sha256": "99a0b97c5053dadb253bfb285a9f41e715fe2d5aeb150bbbd28bcc4ac89df0a8",
+      "guid": "ed5df17a77f55238969c12c5f5cb57dc",
+      "prompt": "Use case: stylized-concept. Production Unity 2D game companion sprite, one COMPLETE unsegmented creature on a genuinely transparent alpha background. Image 1 is ONLY the art-style reference: match this player's very thick clean black outer contour, simple rounded shapes, large glossy dark round eyes, bright flat color fills with only tiny clean cel shading. DO NOT copy its separated parts, humanoid body or weapons. Create a cute primitive SABER-TOOTH TIGER CUB pet, warm orange body with a few bold dark stripes, cream muzzle and belly, two small ivory saber fangs. It is a natural QUADRUPED with four short legs, all paws calmly planted on one ground line. Body is in right-facing side view; head and gaze also face RIGHT, slight face three-quarter only enough to see friendly eye. Neutral quiet standing idle pose, mouth relaxed, no running or jumping. Entire body, tail, ears, and four paws visible, centered with modest transparent padding. No clothing, rider, props, scenery, text, border, cast shadow, rigging lines, separated limbs or extra views. Keep the drawing as simple and graphic as the yellow Chihuahua style reference, not painterly, not textured fur, not realistic, not 3D. One usable complete PNG sprite.",
+      "resource": "Moonlit/Companions/Flat/Pet0-v1",
+      "tool": "built-in image_gen",
+      "reference": "Assets/Art/ChihuahuaEquipmentThemes/Reference/character_base.png",
+      "alphaBoundsThreshold": 32,
+      "blob": "def0cc443604b7de994634cf13aa242005383bfc"
+    },
+    {
+      "category": 1,
+      "variant": 1,
+      "path": "C:/Users/user/.codex/generated_images/01a0b1a5-dba9-7ea0-9853-ffb90a4b9f17/exec-6dfe2ac2-2dcb-4688-9d01-b5728bfaebf8.png",
+      "size": [
+        1370,
+        1148
+      ],
+      "alpha": [
+        0,
+        255
+      ],
+      "x": 142,
+      "y": 126,
+      "width": 1092,
+      "height": 897,
+      "backX": 0.5,
+      "backY": 0.72,
+      "bytes": 706129,
+      "sha256": "a5149acf56bc53e07d65e684078563891245c73c9e91d72b81b407301f619a46",
+      "guid": "c3e9ca82074d5718b1d649482b12aeac",
+      "prompt": "Use case: stylized-concept. Production Unity 2D game companion sprite, one COMPLETE unsegmented creature on a genuinely transparent alpha background. Image 1 is ONLY the art-style reference: match the player's very thick clean black outer contour, simple rounded shapes, large glossy dark round eyes, bright flat color fills with tiny clean cel shading. DO NOT copy its separated parts, humanoid body or weapons. Create a cute primitive WOLF CUB pet, blue-gray fur with light cream muzzle/chest and a big simple bushy tail, triangular ears. Natural QUADRUPED with four short legs, all paws calmly planted on one ground line. Body faces RIGHT in side view, face and eyes look RIGHT, friendly alert but motionless neutral standing idle pose. Whole body including tail, ears and four paws inside canvas with modest transparent padding. No clothes, rider, props, scenery, text, shadow, rigging lines, separated parts, extra creatures or multiple views. Simple bold cartoon matching the yellow Chihuahua reference, not painterly or detailed fur, not realistic or 3D. Single complete PNG sprite.",
+      "resource": "Moonlit/Companions/Flat/Pet1-v1",
+      "tool": "built-in image_gen",
+      "reference": "Assets/Art/ChihuahuaEquipmentThemes/Reference/character_base.png",
+      "alphaBoundsThreshold": 32,
+      "blob": "aac09f83d531ab9b8f818b8940aca4bbb9556a63"
+    },
+    {
+      "category": 1,
+      "variant": 2,
+      "path": "C:/Users/user/.codex/generated_images/01a0b1a5-dba9-7ea0-9853-ffb90a4b9f17/exec-109c1ab7-46fc-41ed-b289-387b8dd509cc.png",
+      "size": [
+        1402,
+        1122
+      ],
+      "alpha": [
+        0,
+        255
+      ],
+      "x": 193,
+      "y": 131,
+      "width": 1038,
+      "height": 847,
+      "backX": 0.5,
+      "backY": 0.72,
+      "bytes": 688542,
+      "sha256": "d0e8077f228860cc029c18ed7bc79e97766349c4d84763519a5e7d22734262f1",
+      "guid": "a370501fded45993b9d016feae2a8139",
+      "prompt": "Use case: stylized-concept. Production Unity 2D game companion sprite, one COMPLETE unsegmented creature on a genuinely transparent alpha background. Image 1 is ONLY the art-style reference: match this player's very thick clean black contour, simple rounded shapes, oversized glossy dark round eyes, bright flat colors and tiny clean cel shading. DO NOT copy its separated parts, humanoid form or weapon. Create a cute primitive WILD BOAR PIGLET pet, warm chestnut-brown round body, tan muzzle, short dark bristle tuft, tiny ivory tusks, curly small tail. Natural QUADRUPED with four short sturdy legs and small hooves, all calmly planted on a common ground line. Entire body faces RIGHT in side view and gaze points RIGHT, motionless gentle standing idle pose. Full body, tail, ears, all feet visible with modest transparent padding. No saddle, clothing, rider, props, scenery, text, shadows, separated parts or rigging diagram. Same simple graphic cartoon treatment as the yellow Chihuahua reference, no painterly textures, no realism, no3D. Single complete PNG sprite.",
+      "resource": "Moonlit/Companions/Flat/Pet2-v1",
+      "tool": "built-in image_gen",
+      "reference": "Assets/Art/ChihuahuaEquipmentThemes/Reference/character_base.png",
+      "alphaBoundsThreshold": 32,
+      "blob": "a7d86299f78ac39d024177d4cfd6e106623ec513"
+    }
+  ]
+}

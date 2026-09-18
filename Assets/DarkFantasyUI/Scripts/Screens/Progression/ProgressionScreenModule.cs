@@ -177,7 +177,7 @@ namespace Moonlit.UI
             float textScale=largeCollection?size/158f:1f;
             var button=Ui.ArtButton("Skill "+entry.Name,parent,x,y,size,compact?size+12:size+68*textScale);
             if(click!=null) button.onClick.AddListener(()=>click());
-            var illustratedIcon=entry.category==0?SkillIcon(entry.grade,entry.variant):CompanionRigCatalog.Icon(entry.category,entry.grade,entry.variant);
+            var illustratedIcon=entry.category==0?SkillIcon(entry.grade,entry.variant):FlatCompanionCatalog.Icon(entry.category,entry.grade,entry.variant);
             if(illustratedIcon){
                 var icon=Ui.ArtImage("Icon",button.transform,size*.17f,size*.17f,size*.66f,size*.66f,illustratedIcon);
                 Ui.CenterAspect(icon);
@@ -222,7 +222,7 @@ namespace Moonlit.UI
         static string Description(CollectionEntry entry)
         {
             if(entry.category!=0) return "장착 효과\n체력 +"+Number(entry.EquippedHealth)+"\n공격력 +"+Number(entry.EquippedAttack)+
-                (CompanionRigCatalog.Icon(entry.category,entry.grade,entry.variant)?"":"\n외형 아트 제작 보류");
+                (FlatCompanionCatalog.Icon(entry.category,entry.grade,entry.variant)?"":"\n외형 아트 제작 보류");
             string theme=SkillCatalog.Description(entry.grade,entry.variant)+"\n";
             if(entry.variant==0) return theme+"매 3턴 · 평타 전에 발동\n체력 "+Number(entry.FixedHeal)+" 회복\n공격력 +"+Number(entry.FixedAttackBoost);
             return theme+"매 "+entry.Cooldown+"턴 · "+(entry.variant==1?"3타":"5타")+" 연속공격\n총 고정 피해 "+Number(entry.FixedDamage);

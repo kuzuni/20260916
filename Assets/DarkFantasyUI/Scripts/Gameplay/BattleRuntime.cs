@@ -54,6 +54,9 @@ namespace Moonlit.UI
         Camera renderCamera;
         RenderTexture texture;
         readonly Rect[] protectedHudAreas = new Rect[3];
+        readonly List<Bounds> clearanceParts = new List<Bounds>();
+        readonly List<Bounds> clearanceFormation = new List<Bounds>();
+        readonly List<SpriteRenderer> clearanceSprites = new List<SpriteRenderer>();
         Animator playerAnimator, enemyAnimator;
         CombatAnimationRelay playerRelay, enemyRelay;
         CombatAppearance appearance;
@@ -126,6 +129,7 @@ namespace Moonlit.UI
             PlayerHud = CombatWorldHud.Create(stageRoot.transform, player, renderCamera, main.font, true);
             EnemyHud = CombatWorldHud.Create(stageRoot.transform, enemy, renderCamera, main.font, false);
             stageRoot.AddComponent<CompanionBattleRuntime>().Initialize(player.transform, renderCamera);
+            stageRoot.AddComponent<CombatActorHudClearance>().Initialize(this);
         }
         GameObject CreateActor(string name, float x, bool mirror, out Animator animator, out CombatAnimationRelay relay)
         {
@@ -180,6 +184,57 @@ namespace Moonlit.UI
             UpdateProtectedHudAreas(design, density, bottom);
             if (appearance) appearance.Refresh(ForgeState.Current.equipped);
             RefreshHealth();
+        }
+        public void ApplyActorHudClearance()
+        {
+            if(!renderCamera || !player || !enemy)return;
+            float left=renderCamera.ViewportToWorldPoint(new Vector3(.025f,0,12)).x;
+            float right=renderCamera.ViewportToWorldPoint(new Vector3(.975f,0,12)).x;
+            var companions=stageRoot.GetComponent<CompanionBattleRuntime>();
+            MoveFormationOutsideHud(player,true,PlayerHud,companions,left,right);
+            MoveFormationOutsideHud(enemy,false,EnemyHud,null,left,right);
+        }
+        void MoveFormationOutsideHud(GameObject actor,bool isPlayer,CombatWorldHud hud,
+            CompanionBattleRuntime companions,float left,float right)
+        {
+            var actorParts=clearanceParts;actorParts.Clear();AddRenderedBounds(actor,actorParts);
+            var formation=clearanceFormation;formation.Clear();formation.AddRange(actorParts);
+            if(companions)
+            {
+                if(companions.Mount)AddRenderedBounds(companions.Mount.gameObject,formation);
+                // Trailing pets may reflow inside the left edge; they must not pin a tall rider under the HUD.
+            }
+            float shift=CombatActorHudClearance.OutwardShift(actorParts,formation,protectedHudAreas,isPlayer,left,right);
+            if(shift==0)return;
+            Vector3 offset=Vector3.right*shift;
+            actor.transform.position+=offset;
+            // Companion placement has already run this frame. Translate the whole formation rigidly so
+            // the rider remains attached to the unchanged saddle while the UI-safe world position changes.
+            if(companions)
+            {
+                if(companions.Mount)MoveCompanionWorld(companions.Mount,offset);
+                foreach(var pet in companions.Pets)if(pet)
+                {
+                    MoveCompanionWorld(pet,offset);
+                    var bounds=pet.VisibleBounds;
+                    float correction=bounds.min.x<left?left-bounds.min.x:bounds.max.x>right?right-bounds.max.x:0;
+                    if(correction!=0){pet.transform.position+=Vector3.right*correction;pet.RefreshShadow();}
+                }
+            }
+            if(hud)hud.transform.position+=offset;
+        }
+        void MoveCompanionWorld(FlatCompanionActor companion,Vector3 offset)
+        {
+            companion.transform.position+=offset;
+            companion.RefreshShadow();
+        }
+        void AddRenderedBounds(GameObject actor,List<Bounds> result)
+        {
+            var flat=actor.GetComponent<FlatCompanionActor>();
+            if(flat && flat.Illustration) { result.Add(flat.VisibleBounds);return; }
+            clearanceSprites.Clear();actor.GetComponentsInChildren<SpriteRenderer>(false,clearanceSprites);
+            foreach(var part in clearanceSprites)
+                if(part.enabled && part.sprite && part.gameObject.activeInHierarchy)result.Add(part.bounds);
         }
         void UpdateProtectedHudAreas(RectTransform design, float density, float bottom)
         {
