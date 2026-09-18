@@ -36,14 +36,16 @@ namespace Moonlit.UI
         public int summonLevel = 1, experience;
         public int[] equipped = { -1, -1, -1 };
         public CollectionEntry[] entries;
-        public int ExperienceRequired => Math.Min(10 + (summonLevel - 1) * 3, 100);
+        public int ExperienceRequired => summonLevel >= 31 ? 100 : 10 + (Math.Max(1, summonLevel) - 1) * 3;
         public void AddExperience()
         {
-            if (summonLevel >= 100) return;
             experience++;
-            while (summonLevel < 100 && experience >= ExperienceRequired)
-            { experience -= ExperienceRequired; summonLevel++; }
-            if (summonLevel >= 100) experience = 0;
+            // Only the required XP is capped. Summons still advance levels above 100.
+            while (experience >= ExperienceRequired)
+            {
+                experience -= ExperienceRequired;
+                if (summonLevel < int.MaxValue) summonLevel++;
+            }
         }
     }
     [Serializable]
