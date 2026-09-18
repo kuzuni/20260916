@@ -16,6 +16,48 @@ namespace Moonlit.Editor
         public const string ControllerPath = Root + "/PlayerReference.controller";
         static readonly string[] Names = { "Idle", "Basic", "Hit", "Buff", "Weak", "Strong", "Death" };
 
+        // Acceptance must inspect delivered assets without repairing them first.
+        // Build() remains an explicit cloud generation tool, never a validation fallback.
+        public static void ValidateCommitted()
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath);
+            if (!prefab || PrefabUtility.GetPrefabAssetType(prefab) != PrefabAssetType.Variant)
+                throw new InvalidOperationException("Committed reference Player variant is missing.");
+            var animator = prefab.GetComponent<Animator>();
+            var controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(ControllerPath);
+            if (!animator || !animator.enabled || animator.applyRootMotion ||
+                !prefab.GetComponent<CombatAnimationRelay>() || !controller ||
+                animator.runtimeAnimatorController != controller)
+                throw new InvalidOperationException("Committed reference Player must own its enabled native Animator and impact relay. Generate and commit the hosted assets explicitly.");
+            if (controller.layers.Length != 1)
+                throw new InvalidOperationException("Reference Player controller must have one native animation layer.");
+            var machine = controller.layers[0].stateMachine;
+            var names = machine.states.Select(child => child.state.name).OrderBy(name => name).ToArray();
+            if (!names.SequenceEqual(Names.OrderBy(name => name)) ||
+                !machine.defaultState || machine.defaultState.name != "Idle")
+                throw new InvalidOperationException("Committed reference Player controller must contain the seven states with Idle as default.");
+            foreach (var child in machine.states)
+            {
+                var clip = child.state.motion as AnimationClip;
+                if (!clip || AssetDatabase.GetAssetPath(clip) != Root + "/" + child.state.name + ".anim")
+                    throw new InvalidOperationException("Reference Player state is missing its committed native clip: " + child.state.name);
+                var bindings = AnimationUtility.GetCurveBindings(clip);
+                if (bindings.Length == 0 || bindings.Any(binding =>
+                    string.IsNullOrEmpty(binding.path) ||
+                    binding.path.StartsWith("Motion/", StringComparison.Ordinal) ||
+                    !prefab.transform.Find(binding.path) || binding.type != typeof(Transform) ||
+                    binding.propertyName != "localEulerAnglesRaw.z"))
+                    throw new InvalidOperationException("Reference Player clip contains unresolved or wrapper animation paths: " + clip.name);
+                int kind = clip.name == "Basic" ? 0 : clip.name == "Buff" ? 1 : clip.name == "Weak" ? 2 : clip.name == "Strong" ? 3 : -1;
+                var events = AnimationUtility.GetAnimationEvents(clip);
+                if (events.Length != (kind < 0 ? 0 : 1) || (kind >= 0 &&
+                    (events[0].functionName != "OnCombatImpact" || events[0].intParameter != kind ||
+                     events[0].time <= 0 || events[0].time >= clip.length)))
+                    throw new InvalidOperationException("Reference Player clip has invalid impact events: " + clip.name);
+            }
+            Debug.Log("[Moonlit] Validated committed reference Player Animator and seven native clips without regeneration.");
+        }
+
         public static void Build()
         {
             Directory.CreateDirectory(Root);
