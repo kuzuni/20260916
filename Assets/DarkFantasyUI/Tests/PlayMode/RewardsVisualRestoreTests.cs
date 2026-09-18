@@ -48,7 +48,32 @@ namespace Moonlit.UI.Tests
             var scroll=root.GetComponentInChildren<ScrollRect>();
             var images=scroll.content.GetComponentsInChildren<Image>(true);
             Assert.AreEqual(100,images.Count(x=>x.name=="Claimed reward check"));
-            Assert.AreEqual(100,images.Count(x=>x.name=="Timeline glow"));
+            // The user's continuous progress rail replaced the hundred decorative segments.
+            var rail=images.Single(x=>x.name=="Timeline track").rectTransform;
+            var fill=images.Single(x=>x.name=="Timeline glow").rectTransform;
+            var core=images.Single(x=>x.name=="Timeline").rectTransform;
+            var labels=scroll.content.GetComponentsInChildren<Text>(true);
+            var milestones=labels.Where(x=>x.name.StartsWith("Stage milestone ")).ToArray();
+            var claims=scroll.content.GetComponentsInChildren<Button>(true)
+                .Where(x=>x.name.StartsWith("Claim milestone ")).ToArray();
+            Assert.AreEqual(100,milestones.Length);
+            Assert.AreEqual(100,claims.Length);
+            Assert.IsTrue(claims.All(x=>x.interactable),"Every milestone is claimable at stage500.");
+            for(int i=0;i<100;i++)
+            {
+                Assert.AreEqual("스테이지 "+((i+1)*5),milestones.Single(x=>x.name=="Stage milestone "+i).text);
+                var rewards=claims.Single(x=>x.name=="Claim milestone "+i).transform.parent
+                    .GetComponentsInChildren<Text>(true).Where(x=>x.name=="Reward amount").Select(x=>x.text);
+                CollectionAssert.AreEquivalent(new[]{"10","100"},rewards.ToArray());
+            }
+            Assert.AreEqual(0,images.Count(x=>x.name=="Timeline node" || x.name=="Node"),
+                "Intermediate diamond ornaments were removed.");
+            float markerSpan=Mathf.Abs(milestones.Single(x=>x.name=="Stage milestone 99").rectTransform.anchoredPosition.y
+                -milestones.Single(x=>x.name=="Stage milestone 0").rectTransform.anchoredPosition.y);
+            Assert.That(rail.rect.height,Is.EqualTo(markerSpan).Within(.01f));
+            Assert.That(fill.rect.height,Is.EqualTo(rail.rect.height).Within(.01f),
+                "Stage500 fills the complete continuous rail.");
+            Assert.That(core.rect.height,Is.EqualTo(fill.rect.height).Within(.01f));
             Assert.AreEqual(100,images.Count(x=>x.name=="Premium lock"));
             Assert.IsNotNull(root.GetComponentsInChildren<Transform>(true).Single(t=>t.name=="Free tab"));
             Assert.IsNotNull(root.GetComponentsInChildren<Transform>(true).Single(t=>t.name=="Premium tab"));
