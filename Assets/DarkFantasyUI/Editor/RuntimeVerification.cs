@@ -118,7 +118,7 @@ namespace Moonlit.Editor
                 if(route=="forge-comparison" || route=="equipment-details") {
                     var worn=new EquipmentRoll{id=8001,tier=4,level=25,part=EquipmentPart.Armor,variant=0,
                         affixes=new[]{new EquipmentAffix{kind=EquipmentAffixKind.CriticalChance,percent=10},new EquipmentAffix{kind=EquipmentAffixKind.SkillDamage,percent=15}}};
-                    ForgeState.Current.equipped[0]=worn;ForgeRuntime.Ensure(screen).SyncSlots();
+                    ForgeState.Current.equipped[0]=worn;ForgeRuntime.Ensure(screen).SyncSlots();screen.Refresh();
                     if(route=="forge-comparison") {
                         ForgeState.Current.pending.Clear();
                         ForgeState.Current.pending.Add(new EquipmentRoll{id=8002,tier=4,level=26,part=EquipmentPart.Armor,variant=1,
