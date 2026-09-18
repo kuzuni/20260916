@@ -80,7 +80,7 @@ namespace Moonlit.UI
                 for(int i=0;i<10;i++){current[i].text=(rates[i]*100).ToString("0.##")+"%";next[i].text=(future[i]*100).ToString("0.##")+"%";}
                 for(int i=0;i<6;i++){
                     segments[i].gameObject.SetActive(i<s.Segments && phase!=4);
-                    float width=(668-(s.Segments-1)*12)/s.Segments;
+                    float width=(668f-(s.Segments-1)*12f)/s.Segments;
                     segments[i].rectTransform.sizeDelta=new Vector2(width,40);
                     segments[i].rectTransform.anchoredPosition=new Vector2(26+i*(width+12),-886);
                     segments[i].color=i<s.filledSegments?Ui.Cyan:new Color(.18f,.22f,.28f);

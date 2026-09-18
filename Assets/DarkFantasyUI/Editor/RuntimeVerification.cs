@@ -427,7 +427,7 @@ namespace Moonlit.Editor
             var host=Object.FindFirstObjectByType<UiScreenHost>();
             int previousCaptureRate=Time.captureFramerate;
             float previousTimeScale=Time.timeScale;
-            Time.captureFramerate=60;Time.timeScale=1;
+            Time.captureFramerate=30;Time.timeScale=1;
             try {
                 foreach(int height in new[]{1920,2280}) {
                     var previewTarget=new RenderTexture(1080,height,24);camera.targetTexture=previewTarget;
@@ -440,11 +440,11 @@ namespace Moonlit.Editor
                         for(int tier=0;tier<10;tier++) for(int skill=0;skill<3;skill++) {
                             battle.PreviewSkill(tier,skill);
                             // Fixed simulation frames keep flight and impact visible even on slow hosted renderers.
-                            for(int frame=0;frame<23;frame++)yield return null;
+                            for(int frame=0;frame<12;frame++)yield return null;
                             SaveCamera(camera,"Artifacts/Runtime-skill-"+tier+"-"+skill+"-flight-"+(height==1920?"9x16":"9x19")+".png",1080,height);
-                            for(int frame=0;frame<21;frame++)yield return null;
+                            for(int frame=0;frame<10;frame++)yield return null;
                             SaveCamera(camera,"Artifacts/Runtime-skill-"+tier+"-"+skill+"-impact-"+(height==1920?"9x16":"9x19")+".png",1080,height);
-                            for(int frame=0;frame<78;frame++)yield return null;
+                            for(int frame=0;frame<39;frame++)yield return null;
                         }
                     }
                     finally {camera.targetTexture=previousTarget;previewTarget.Release();Object.DestroyImmediate(previewTarget);}

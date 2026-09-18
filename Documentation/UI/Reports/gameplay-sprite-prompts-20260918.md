@@ -193,4 +193,3 @@ Use case: stylized-concept. Production 2D mobile fantasy RPG currency icon: ONE 
 ```text
 Use case: stylized-concept. Production 2D mobile fantasy RPG currency icon: ONE solid silver iron horseshoe, upright U shape, seven visible nail holes, subtle blue steel bevel and weathered texture. The silhouette MUST be a horseshoe itself. Absolutely NO ticket, paper, voucher, rectangle, badge, frame, pedestal, ribbon, horse or surrounding container. Single isolated object centered with padding, hand-painted stylized game art, crisp legible silhouette for 64px UI. Genuine transparent alpha background. No text, no floor or scene, no checkerboard. Square image.
 ```
-

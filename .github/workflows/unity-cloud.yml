@@ -71,7 +71,7 @@ jobs:
 
   screenshots:
     name: Graphics runtime captures
-    needs: tests
+    # Both jobs are required evidence; render independently so visual regressions are available with test failures.
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
