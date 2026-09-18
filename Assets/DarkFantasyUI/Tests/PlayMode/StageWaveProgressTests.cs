@@ -39,11 +39,14 @@ namespace Moonlit.UI.Tests
             float midpoint=lines[0].rectTransform.rect.width;
             Assert.That(midpoint,Is.GreaterThan(0).And.LessThan(76));
             Assert.AreEqual(Vector3.one,pulses[1].localScale,"Node pulse follows the line fill.");
+            Assert.AreEqual(new Color(0,.24f,.34f),nodes[1].color,
+                "The next node stays dark until the connecting line reaches it.");
             for(int i=0;i<60;i++)progress.SetProgress(1,2);
             Assert.AreSame(tween,DOTween.TweensByTarget(progress,false)[0]);
             Assert.That(lines[0].rectTransform.rect.width,Is.EqualTo(midpoint).Within(.001f));
             tween.Goto(.5f,false);
             Assert.That(lines[0].rectTransform.rect.width,Is.EqualTo(76).Within(.01f));
+            Assert.AreEqual(Ui.Cyan,nodes[1].color,"The filled connection lights the node before its pulse.");
             Assert.Greater(pulses[1].localScale.x,1);
             Assert.AreEqual(0,lines[1].rectTransform.rect.width);
             tween.Goto(.699f,false);

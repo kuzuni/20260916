@@ -51,13 +51,17 @@ namespace Moonlit.UI
             int lineIndex=wave-2;
             if(lineIndex<0 || lineIndex>=lines.Length || !lines[lineIndex])return;
             SetWidth(lineIndex,0);
+            int nodeIndex=wave-1;
+            if(nodes[nodeIndex])nodes[nodeIndex].color=new Color(0,.24f,.34f);
             var line=lines[lineIndex].rectTransform;
             float targetWidth=widths[lineIndex];
             transition=DOTween.Sequence().SetUpdate(true).SetTarget(this);
             transition.Append(DOTween.To(()=>line.rect.width,
                 value=>line.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal,value),
                 targetWidth,.4f).SetEase(Ease.OutQuad));
-            int nodeIndex=wave-1;
+            transition.AppendCallback(()=> {
+                if(nodes[nodeIndex])nodes[nodeIndex].color=Ui.Cyan;
+            });
             if(nodeIndex<pulses.Length && pulses[nodeIndex]) {
                 var pulse=pulses[nodeIndex];var original=scales[nodeIndex];
                 transition.Append(DOTween.To(()=>pulse.localScale,value=>pulse.localScale=value,
