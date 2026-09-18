@@ -269,7 +269,7 @@ namespace Moonlit.UI
                 else if(rewardIndex==2)c.Main.petTickets=RewardRules.Add(c.Main.petTickets,value);
                 else c.Main.mountTickets=RewardRules.Add(c.Main.mountTickets,value);
                 c.Main.Refresh();c.Main.SaveGame();
-                var origin=frame.transform.position;
+                var origin=frame.rectTransform.TransformPoint(frame.rectTransform.rect.center);
                 c.Close();c.Main.screens.ShowMainPage();
                 RewardVisuals.Absorb(c.Main,kind,value,origin);
                 c.Main.CompleteDungeonClaim();
@@ -288,3 +288,4 @@ namespace Moonlit.UI
         }
     }
 }
+

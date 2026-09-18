@@ -23,7 +23,8 @@ namespace Moonlit.UI
             var layer=Ui.Rect("Reward absorption",root,0,0,root.rect.width,root.rect.height);
             var canvas=layer.gameObject.AddComponent<CanvasGroup>();canvas.blocksRaycasts=false;canvas.interactable=false;
             var life=layer.gameObject.AddComponent<RewardVisualLifetime>();
-            var source=origin.HasValue?(Vector2)root.InverseTransformPoint(origin.Value):new Vector2(root.rect.width*.5f,-root.rect.height*.45f);
+            // Particle anchors use the layer's top-left origin, while the safe-area root is centered.
+            var source=origin.HasValue?(Vector2)layer.InverseTransformPoint(origin.Value):new Vector2(root.rect.width*.5f,-root.rect.height*.45f);
             Transform target=null;
             if(kind==Kind.Gold && main.goldButton)target=main.goldButton.transform;
             else if(kind==Kind.Diamond && main.gemButton)target=main.gemButton.transform;
@@ -31,7 +32,7 @@ namespace Moonlit.UI
             else if(main.navigation!=null && main.navigation.Length>2 && main.navigation[2])target=main.navigation[2].transform;
             if(!target){Object.Destroy(layer.gameObject);return;}
             var targetRect=(RectTransform)target;
-            Vector2 destination=root.InverseTransformPoint(targetRect.TransformPoint(targetRect.rect.center));
+            Vector2 destination=layer.InverseTransformPoint(targetRect.TransformPoint(targetRect.rect.center));
             var icon=Icon(main,kind);if(!icon){Object.Destroy(layer.gameObject);return;}
             int count=Mathf.Clamp(amount,5,12);
             for(int i=0;i<count;i++)

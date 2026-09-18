@@ -362,7 +362,6 @@ namespace Moonlit.UI
                 Canvas.ForceUpdateCanvases();scroll.verticalNormalizedPosition=0;
             });
             PopupSkin.Back("Chat back",root,24,h-154,96,Font(c),c.Close);
-            Ui.Text("Offline notice",root,136,h-55,w-164,40,"로컬 채팅 미리보기",19,Font(c),new Color(.65f,.68f,.7f));
         }
 
         static float ChatMessage(ScreenContext c, Transform parent, int index, float y, string name, string message, float width)
