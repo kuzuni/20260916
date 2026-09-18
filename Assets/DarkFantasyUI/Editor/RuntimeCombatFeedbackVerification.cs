@@ -116,6 +116,38 @@ namespace Moonlit.Editor
                 yield return null;
                 RefreshCombatCapture(battle);
                 SaveCamera(camera, "Artifacts/Runtime-shadow-feet-idle-" + aspect + ".png", 1080, height);
+                // Same victims and pose, different amount widths/colors: none may change the spawn lane.
+                var amountHuds=new[]{battle.PlayerHud,battle.EnemyHud};
+                var amountValues=new[]{"5","16k","+16k"};
+                var amountNames=new[]{"short","critical","heal"};
+                var amountColors=new[]{Color.white,Color.red,Color.green};
+                var amountStarts=new Vector3[2];
+                for(int sample=0;sample<amountValues.Length;sample++)
+                {
+                    for(int side=0;side<amountHuds.Length;side++)
+                    {
+                        var hud=amountHuds[side];
+                        hud.Float(amountValues[sample],amountColors[sample]);
+                        var number=hud.transform.parent.Find(side==0?"Player damage number":"Enemy damage number");
+                        var head=hud.Actor.GetComponentsInChildren<SpriteRenderer>().First(part=>part.sprite && part.sprite.name=="머리");
+                        var expected=new Vector3(head.bounds.center.x,head.bounds.max.y+1.15f,hud.Actor.position.z-2.1f);
+                        if(!number || Vector3.Distance(number.position,expected)>.012f)
+                            throw new InvalidOperationException("Damage must start at the victim head without a text-width offset.");
+                        if(sample==0)amountStarts[side]=number.position;
+                        else if(Vector3.Distance(number.position,amountStarts[side])>.012f)
+                            throw new InvalidOperationException("Amount length or color changed its spawn position.");
+                        hud.SetProtectedAreas(new[]{new Rect(expected.x-100,expected.y-100,200,200)});
+                        if(Vector3.Distance(number.position,expected)>.012f)
+                            throw new InvalidOperationException("Layout change teleported an existing amount.");
+                    }
+                    yield return null;
+                    RefreshCombatCapture(battle);
+                    SaveCamera(camera,"Artifacts/Runtime-damage-anchor-"+amountNames[sample]+"-"+aspect+".png",1080,height);
+                    foreach(var hud in amountHuds)hud.enabled=false;
+                    yield return null;
+                    foreach(var hud in amountHuds)hud.enabled=true;
+                }
+                report.Add("PASS equal head origins for short/critical/heal amounts on both victims, without protected-UI displacement "+height);
                 for (int side = 0; side < 2; side++)
                 {
                     bool isPlayer = side == 0;

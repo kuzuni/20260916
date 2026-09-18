@@ -17,21 +17,9 @@ namespace Moonlit.UI
         SpriteRenderer head;
         Font font;
         bool player;
-        Rect[] protectedAreas;
-        public void SetProtectedAreas(Rect[] areas)
-        {
-            protectedAreas = areas;
-            // A Safe Area/camera change can happen after the coroutine's Update but before rendering.
-            // Recheck numbers already on screen immediately, as well as during their next animation step.
-            foreach (var number in numbers)
-            {
-                if (!number) continue;
-                var label = number.GetComponentInChildren<Text>();
-                if (!label) continue;
-                float halfWidth = Mathf.Min(760, label.preferredWidth + 24) * .008f * 1.2f / 2;
-                number.transform.position = KeepOutsideHud(number.transform.position, halfWidth, .8f, 1.7f);
-            }
-        }
+        // Retained for callers supplying layout diagnostics. Head feedback must not be pushed
+        // sideways by text width, stage nodes or a Safe Area change.
+        public void SetProtectedAreas(Rect[] areas) { }
         readonly System.Collections.Generic.List<GameObject> numbers = new System.Collections.Generic.List<GameObject>();
         void OnDisable()
         {
@@ -79,21 +67,9 @@ namespace Moonlit.UI
             Vector3 position = head ? new Vector3(head.bounds.center.x, head.bounds.max.y, Actor.position.z) :
                 Actor.position + Vector3.up * 5.1f;
             position += new Vector3(0, .5f, -2);
-            // Health belongs directly above its head. HUD avoidance is reserved for floating numbers.
+            // Health belongs directly above its head, independently of overlapping interface elements.
             transform.position = position;
             transform.rotation = Quaternion.identity;
-        }
-        Vector3 KeepOutsideHud(Vector3 position, float halfWidth, float below, float above)
-        {
-            if (protectedAreas == null) return position;
-            foreach (var area in protectedAreas)
-            {
-                if (area.width <= 0 || area.height <= 0 || position.y + above < area.yMin ||
-                    position.y - below > area.yMax) continue;
-                if (position.x + halfWidth <= area.xMin || position.x - halfWidth >= area.xMax) continue;
-                position.x = player ? area.xMin - halfWidth - .06f : area.xMax + halfWidth + .06f;
-            }
-            return position;
         }
         public void Float(string message, Color color)
         {
@@ -117,17 +93,17 @@ namespace Moonlit.UI
             outline.effectDistance = new Vector2(6, -6); outline.effectColor = new Color(.02f, .01f, .03f, 1);
             var shadow = label.gameObject.AddComponent<Shadow>();
             shadow.effectDistance = new Vector2(3, -9); shadow.effectColor = new Color(0, 0, 0, .85f);
-            Vector3 start = transform.position + new Vector3(0, .65f, -.1f);
-            // Reserve the full pop/drift path before the number starts; it never crosses the wave nodes.
-            float halfWidth = Mathf.Min(760, label.preferredWidth + 24) * .008f * 1.2f / 2;
-            start = KeepOutsideHud(start, halfWidth, .8f, 1.7f);
+            // Snapshot the victim's head, not the HUD's previous LateUpdate position.
+            // Every amount uses this same anchor regardless of digits, color or protected UI.
+            Vector3 start = head ? new Vector3(head.bounds.center.x, head.bounds.max.y, Actor.position.z) :
+                Actor.position + Vector3.up * 5.1f;
+            start += new Vector3(0, 1.15f, -2.1f);
             for (float t = 0; t < .95f; t += Time.deltaTime)
             {
                 // A sharp pop, a short readable hold, then upward drift and fade.
                 float pop = t < .10f ? Mathf.Lerp(1, 1.2f, t / .10f) :
                     t < .22f ? Mathf.Lerp(1.2f, 1, (t - .10f) / .12f) : 1;
                 rect.localScale = Vector3.one * (.008f * pop);
-                start = KeepOutsideHud(start, halfWidth, .8f, 1.7f);
                 rect.position = start + Vector3.up * (t * .9f);
                 label.color = new Color(color.r, color.g, color.b, t < .35f ? 1 : 1 - (t - .35f) / .60f);
                 yield return null;
