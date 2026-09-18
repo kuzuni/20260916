@@ -146,5 +146,59 @@ namespace Moonlit.UI.Tests
             yield return null;
         }
 
+        [UnityTest] public IEnumerator AutoResumesAfterLastDecisionAndStopsAtZeroHammers()
+        {
+            var state=ForgeState.Current;state.batchSize=1;state.continueAfterMatch=false;main.ore=3;
+            var runtime=ForgeRuntime.Ensure(main);runtime.StartAuto();
+            for(int batch=0;batch<3;batch++){
+                double until=Time.realtimeSinceStartupAsDouble+5;
+                while(host.ModalDepth==0 && Time.realtimeSinceStartupAsDouble<until)yield return null;
+                Assert.AreEqual(1,host.ModalDepth);Assert.AreEqual(2-batch,main.ore);
+                Assert.AreEqual(batch<2,state.autoEnabled,"Comparison pauses automatic forging without switching it off");
+                var layer=GameObject.Find("Popup Layer forge-comparison");
+                var sale=layer.GetComponentsInChildren<Button>().FirstOrDefault(b=>b.name=="판매");
+                if(sale)sale.onClick.Invoke();else layer.GetComponentsInChildren<Button>().Single(b=>b.name=="장착").onClick.Invoke();
+                yield return null;
+            }
+            Assert.IsFalse(state.autoEnabled);Assert.IsNull(state.Pending);Assert.AreEqual(0,main.ore);
+            yield return new WaitForSecondsRealtime(.1f);Assert.IsFalse(runtime.Busy);
+        }
+        [UnityTest] public IEnumerator EmptyComparisonHasOnlyNewCardAndNoEquippedHeader()
+        {
+            ForgeState.Current.pending.Add(new EquipmentRoll{id=1,part=EquipmentPart.Hat});
+            host.Registry.Open("forge-comparison");yield return null;
+            var layer=GameObject.Find("Popup Layer forge-comparison");
+            Assert.AreEqual(1,layer.GetComponentsInChildren<Text>().Count(t=>t.name=="Name"));
+            Assert.IsFalse(layer.GetComponentsInChildren<Text>().Any(t=>t.text=="장착됨" || t.text=="장착 중"));
+            Assert.IsFalse(layer.GetComponentsInChildren<Button>().Any(b=>b.name=="판매"));
+            Assert.IsNotNull(layer.GetComponentsInChildren<Image>().Single(i=>i.name=="Equipment frame").sprite);
+        }
+        [UnityTest] public IEnumerator HammerAnimatorSamplesThreeDistinctStrikesBeforeReveal()
+        {
+            var motion=ForgeHammerMotion.Play(main.forgeButton.transform);
+            Assert.IsNotNull(motion.GetComponent<Animator>());
+            var hammer=motion.transform.Find("Hammer");
+            float[] strikes={.16f,.49f,.82f};
+            foreach(float strike in strikes){
+                motion.Sample(strike);float down=hammer.localEulerAngles.z;
+                motion.Sample(strike-.12f);float raised=hammer.localEulerAngles.z;
+                Assert.Greater(Mathf.Abs(Mathf.DeltaAngle(down,raised)),20,"Authored clip must move the hammer at each strike");
+            }
+            Object.Destroy(motion.gameObject);yield return null;
+        }
+        [UnityTest] public IEnumerator GoldSegmentsSpanSameFullWidthAtThreeAndSixSegments()
+        {
+            foreach(int level in new[]{1,4}){
+                ForgeState.Current.level=level;
+                host.Registry.Open("forge-probability");yield return null;
+                var segments=GameObject.Find("Popup Layer forge-probability").GetComponentsInChildren<Image>().Where(i=>i.name.StartsWith("Gold segment ")).OrderBy(i=>i.name).ToArray();
+                Assert.AreEqual(ForgeState.Current.Segments,segments.Length);
+                float left=segments[0].rectTransform.anchoredPosition.x;
+                float right=segments.Last().rectTransform.anchoredPosition.x+segments.Last().rectTransform.rect.width;
+                Assert.That(right-left,Is.EqualTo(668).Within(.01));
+                host.CloseTop();yield return null;
+            }
+        }
+
     }
 }

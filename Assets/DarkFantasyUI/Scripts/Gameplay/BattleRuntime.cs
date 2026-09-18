@@ -11,6 +11,10 @@ namespace Moonlit.UI
         public bool IsExternalBattle { get; private set; }
         public int Wave { get; private set; }
         public int Round { get; private set; }
+        public int WaveCount { get; private set; } = 3;
+        public bool AwaitingExternalClaim { get; private set; }
+        public CombatWorldHud PlayerHud { get; private set; }
+        public CombatWorldHud EnemyHud { get; private set; }
         public int PlayerResolvedBasicAttacks { get; private set; }
         public int EnemyResolvedBasicAttacks { get; private set; }
         public CombatActorState PlayerState { get; private set; }
@@ -20,8 +24,7 @@ namespace Moonlit.UI
         BattleAssetCatalog assets;
         RectTransform view;
         RawImage image;
-        Text status, playerHealth, enemyHealth, actionText;
-        Image playerFill, enemyFill;
+        
         GameObject stageRoot, player, enemy;
         Camera renderCamera;
         RenderTexture texture;
@@ -44,31 +47,14 @@ namespace Moonlit.UI
             view = Ui.Rect("Live turn battle", main.design, 0, 495, 1080, 440);
             view.SetAsFirstSibling();
             image = view.gameObject.AddComponent<RawImage>(); image.raycastTarget = false;
-            playerHealth = Ui.Text("Player health", view, 60, 0, 360, 36, "", 21, main.font);
-            enemyHealth = Ui.Text("Enemy health", view, 660, 0, 360, 36, "", 21, main.font);
-            FitHealthLabel(playerHealth); FitHealthLabel(enemyHealth);
-            Ui.Image("Player health track", view, 65, 38, 350, 13, null, new Color(.02f, .025f, .025f, .8f));
-            Ui.Image("Enemy health track", view, 665, 38, 350, 13, null, new Color(.02f, .025f, .025f, .8f));
-            playerFill = Ui.Image("Player health fill", view, 65, 38, 350, 13, null, new Color(.24f, .87f, .48f));
-            enemyFill = Ui.Image("Enemy health fill", view, 665, 38, 350, 13, null, new Color(.9f, .28f, .23f));
-            status = Ui.Text("Battle round", view, 280, 62, 520, 35, "전투 준비", 22, main.font, Ui.Gold);
-            actionText = Ui.Text("Last combat action", view, 165, 102, 750, 34, "", 20, main.font);
             if (!assets || !assets.playerPrefab || !assets.controller)
             {
-                status.text = "전투 에셋 준비 필요";
-                actionText.text = "클라우드 CombatAssetBuilder 실행 후 전투가 시작됩니다.";
                 Debug.LogWarning("[Moonlit] Combat asset catalog unavailable; combat has not been simulated.");
                 return;
             }
             BuildWorld();
             stageRoot.SetActive(isActiveAndEnabled);
             StartBattleWhenReady();
-        }
-        static void FitHealthLabel(Text label)
-        {
-            label.resizeTextForBestFit = true;
-            label.resizeTextMinSize = 18; label.resizeTextMaxSize = label.fontSize;
-            label.verticalOverflow = VerticalWrapMode.Truncate;
         }
         void OnEnable() { StartBattleWhenReady(); }
         void OnDisable()
@@ -83,6 +69,7 @@ namespace Moonlit.UI
             // The real bootstrap builds the complete UI below an inactive parent.
             // OnEnable starts only after Initialize has prepared the world, and clears no pending encounter.
             if (!initialized || !isActiveAndEnabled || !assets || !renderCamera || battle != null || failedAnimation) return;
+            if (AwaitingExternalClaim) { stageRoot.SetActive(true); return; }
             stageRoot.SetActive(true);
             battle = StartCoroutine(IsExternalBattle ? ExternalLoop() : NormalLoop());
         }
@@ -102,6 +89,8 @@ namespace Moonlit.UI
             enemy = CreateActor("Enemy (temporary Player prefab)", 2.5f, true, out enemyAnimator, out enemyRelay);
             appearance = player.AddComponent<CombatAppearance>(); appearance.Initialize(assets);
             effects = stageRoot.AddComponent<PrimitiveSkillEffects>(); effects.Initialize(assets);
+            PlayerHud = CombatWorldHud.Create(stageRoot.transform, player, renderCamera, main.font, true);
+            EnemyHud = CombatWorldHud.Create(stageRoot.transform, enemy, renderCamera, main.font, false);
         }
         GameObject CreateActor(string name, float x, bool mirror, out Animator animator, out CombatAnimationRelay relay)
         {
@@ -125,6 +114,7 @@ namespace Moonlit.UI
                     -(bounds.center.x - actor.transform.position.x) * scale * (mirror ? -1 : 1),
                     -(bounds.min.y - actor.transform.position.y) * scale, 0);
             }
+            actor.transform.localScale *= 2; // Explicit user request: twice the authored runtime size.
             foreach (var item in actor.GetComponentsInChildren<Transform>(true)) item.gameObject.layer = 30;
             foreach (var existingAnimator in rig.GetComponentsInChildren<Animator>(true)) existingAnimator.enabled = false;
             animator = actor.AddComponent<Animator>(); animator.runtimeAnimatorController = assets.controller;
@@ -137,17 +127,19 @@ namespace Moonlit.UI
         {
             if (!view || !main) return;
             var design = main.design as RectTransform;
-            float height = Mathf.Max(110, design.rect.height - PortraitSafeArea.BottomHeight - 495);
+            // Preserve the old pixels-per-world-unit exactly; expanding the viewport must not undo the 2x actor scale.
+            float oldHeight = Mathf.Max(110, design.rect.height - PortraitSafeArea.BottomHeight - 495);
+            float density = oldHeight / (2 * Mathf.Max(2, oldHeight / 200f));
+            float bottom = design.rect.height - PortraitSafeArea.BottomHeight;
+            float height = Mathf.Max(bottom - 405, 6.2f * density);
+            view.anchoredPosition = new Vector2(0, -(bottom - height));
             view.sizeDelta = new Vector2(1080, height);
-            // The last-action label extends to y=136; hide only this secondary line in the compact fallback.
-            actionText.gameObject.SetActive(height >= 150);
             if (renderCamera)
             {
                 ResizeRenderTexture(height);
-                renderCamera.orthographicSize = Mathf.Max(2, height / 200f);
+                renderCamera.orthographicSize = height / (2 * density);
                 renderCamera.aspect = 1080 / height;
-                // Compact Safe Areas must keep the complete 2.55-unit actor (plus skill lift) in frame.
-                renderCamera.transform.localPosition = new Vector3(0, Mathf.Clamp(height / 400f, 1.35f, 1.7f), -12);
+                renderCamera.transform.localPosition = new Vector3(0, renderCamera.orthographicSize - .28f, -12);
             }
             if (appearance) appearance.Refresh(ForgeState.Current.equipped);
             RefreshHealth();
@@ -182,7 +174,7 @@ namespace Moonlit.UI
             };
             var skills = new List<CombatSkill>();
             foreach (var entry in CollectionProgression.EquippedSkills)
-                skills.Add(new CombatSkill { variant = entry.variant, cooldown = entry.Cooldown,
+                skills.Add(new CombatSkill { tier = entry.grade, variant = entry.variant, cooldown = entry.Cooldown,
                     heal = entry.FixedHeal, attackBoost = entry.FixedAttackBoost, damage = entry.FixedDamage });
             return new CombatActorState(s, skills);
         }
@@ -191,6 +183,7 @@ namespace Moonlit.UI
             yield return null;
             while (isActiveAndEnabled)
             {
+                while(DungeonProgression.Data.pendingClaim)yield return null;
                 bool won = false;
                 yield return FightStage(Math.Max(1, main.stage), CombatRules.WavesPerStage, result => won = result);
                 if (failedAnimation) yield break;
@@ -198,12 +191,12 @@ namespace Moonlit.UI
                 main.stage = CombatRules.StageAfter(main.stage, won);
                 main.Refresh(); main.SaveGame();
                 LastResult = won ? "스테이지 " + previous + " 클리어" : "패배 · 스테이지 " + main.stage + " 재도전";
-                status.text = LastResult;
                 yield return new WaitForSeconds(1.5f);
             }
         }
         IEnumerator FightStage(int difficulty, int waves, Action<bool> complete)
         {
+            WaveCount = waves;
             for (Wave = 1; Wave <= waves; Wave++)
             {
                 PlayerResolvedBasicAttacks = EnemyResolvedBasicAttacks = 0;
@@ -217,13 +210,10 @@ namespace Moonlit.UI
                 }
                 EnemyState = new CombatActorState(stats);
                 playerAnimator.Play("Idle", 0, 0); enemyAnimator.Play("Idle", 0, 0);
-                actionText.text = "";
                 yield return Entrance();
                 bool playerFirst = CombatRules.PlayerFirst(PlayerState.stats.speed, EnemyState.stats.speed, random.NextDouble());
                 for (Round = 1; Round <= CombatRules.RoundsPerWave; Round++)
                 {
-                    status.text = (IsExternalBattle ? externalName : "스테이지 " + main.stage) +
-                        " · 웨이브 " + Wave + "/" + waves + " · 라운드 " + Round + "/15";
                     PlayerState.Regenerate(); EnemyState.Regenerate();
                     yield return ActorTurn(playerFirst);
                     if (PlayerState.Alive && EnemyState.Alive) yield return ActorTurn(!playerFirst);
@@ -263,25 +253,29 @@ namespace Moonlit.UI
                 else if (skill.variant == 0)
                     yield return AnimatedAction(isPlayer, 1, "Buff", () => {
                         actor.Heal(skill.heal); actor.SetAttackBoost(Math.Max(actor.AttackBoost, skill.attackBoost));
-                        ShowSkill(isPlayer, 0); actionText.text = "생명의 기원 · 회복 + 공격력 증가";
+                        ShowSkill(isPlayer, 0, skill.tier);
+                        (isPlayer ? PlayerHud : EnemyHud).Float("+" + Format(skill.heal), new Color(.4f, 1, .55f));
                     });
                 else
-                    yield return Strike(isPlayer, skill.damage, true, skill.variant);
+                    yield return StrikeTier(isPlayer, skill.damage, true, skill.variant, skill.tier);
             }
         }
 
         IEnumerator Strike(bool isPlayer, double damage, bool skill, int variant)
+            => StrikeTier(isPlayer, damage, skill, variant, 0);
+        IEnumerator StrikeTier(bool isPlayer, double damage, bool skill, int variant, int tier)
         {
             var actor = isPlayer ? PlayerState : EnemyState;
             var target = isPlayer ? EnemyState : PlayerState;
             // Launch with the motion; the clip's arrival event remains the only damage authority.
-            if (skill) ShowSkill(isPlayer, variant);
+            if (skill) ShowSkill(isPlayer, variant, tier);
             yield return AnimatedAction(isPlayer, skill ? variant + 1 : 0, skill ? (variant == 1 ? "Weak" : "Strong") : "Basic", () => {
                 if (!skill) { if (isPlayer) PlayerResolvedBasicAttacks++; else EnemyResolvedBasicAttacks++; }
                 var hit = CombatRules.Strike(actor, target, damage, skill, random.NextDouble);
                 if (!hit.evaded) (isPlayer ? enemyAnimator : playerAnimator).Play(target.Alive ? "Hit" : "Death", 0, 0);
-                actionText.text = (isPlayer ? "플레이어" : "적") + " · " +
-                    (hit.evaded ? "회피" : (hit.critical ? "치명타 " : "") + Format(hit.damage) + (skill ? " 스킬 피해" : " 피해"));
+                (isPlayer ? EnemyHud : PlayerHud).Float(hit.evaded ? "회피" :
+                    (hit.critical ? "치명타 " : "") + Format(hit.damage),
+                    hit.evaded ? Color.white : hit.critical ? new Color(1, .8f, .15f) : new Color(1, .4f, .3f));
             });
         }
         IEnumerator AnimatedAction(bool isPlayer, int kind, string state, Action impact)
@@ -295,22 +289,22 @@ namespace Moonlit.UI
             {
                 // A missing animation event must never silently apply guessed damage.
                 relay.Cancel(); failedAnimation = true;
-                status.text = "전투 일시 정지 · 애니메이션 이벤트 확인 필요";
+                main.Toast("전투 일시 정지 · 애니메이션 이벤트 확인 필요");
                 Debug.LogError("[Moonlit] Missing OnCombatImpact event in Animator state " + state);
             }
             else if ((isPlayer ? PlayerState : EnemyState).Alive) animator.Play("Idle", 0, 0);
         }
-        void ShowSkill(bool isPlayer, int variant)
+        void ShowSkill(bool isPlayer, int variant, int tier = 0)
         {
-            Vector3 source = (isPlayer ? player : enemy).transform.position + Vector3.up * 1.2f;
-            Vector3 target = (isPlayer ? enemy : player).transform.position + Vector3.up * 1.2f;
-            effects.Play(variant, source, target);
+            Vector3 source = (isPlayer ? player : enemy).transform.position + Vector3.up * 2.4f;
+            Vector3 target = (isPlayer ? enemy : player).transform.position + Vector3.up * 2.4f;
+            effects.Play(tier, variant, source, target);
         }
-        public void PreviewPrimitiveSkill(int variant)
+        public void PreviewPrimitiveSkill(int variant) => PreviewSkill(0, variant);
+        public void PreviewSkill(int tier, int variant)
         {
             if (!effects) { main.Toast("전투 에셋 준비가 필요합니다"); return; }
-            ShowSkill(true, Mathf.Clamp(variant, 0, 2));
-            main.Toast(new[] { "생명의 기원", "돌날 투척", "유성 강타" }[Mathf.Clamp(variant, 0, 2)] + " · 원시 스킬 미리보기");
+            ShowSkill(true, Mathf.Clamp(variant, 0, 2), Mathf.Clamp(tier, 0, 9));
         }
         public bool StartDungeon(int index, int difficulty, int waves, Action<bool> callback)
         {
@@ -325,6 +319,7 @@ namespace Moonlit.UI
             if (!isActiveAndEnabled || !assets || !renderCamera || IsExternalBattle || failedAnimation) return false;
             if (battle != null) StopCoroutine(battle);
             playerRelay.Cancel(); enemyRelay.Cancel();
+            AwaitingExternalClaim = false;
             IsExternalBattle = true; externalCallback = callback; externalName = title; arenaRating = rating;
             externalDifficulty = difficulty; externalWaves = waves;
             battle = StartCoroutine(ExternalLoop());
@@ -334,20 +329,31 @@ namespace Moonlit.UI
         {
             bool won = false;
             yield return FightStage(externalDifficulty, externalWaves, result => won = result);
-            var callback = externalCallback; externalCallback = null; IsExternalBattle = false;
-            LastResult = externalName + (won ? " 클리어" : " 패배"); status.text = LastResult;
+            var callback = externalCallback; externalCallback = null;
+            LastResult = externalName + (won ? " 클리어" : " 패배");
+            AwaitingExternalClaim = won && externalName != "아레나";
+            IsExternalBattle = AwaitingExternalClaim;
+            // Set the wait state before invoking UI: an immediate claim is safe and exactly once.
+            bool waitForClaim = AwaitingExternalClaim;
+            if (waitForClaim) battle = null;
             callback?.Invoke(won);
-            if (failedAnimation) yield break;
+            if (failedAnimation || waitForClaim) yield break;
             yield return new WaitForSeconds(1.5f);
             battle = StartCoroutine(NormalLoop());
+        }
+        public bool CompleteExternalClaim()
+        {
+            if (!AwaitingExternalClaim) return false;
+            AwaitingExternalClaim = false; IsExternalBattle = false;
+            if (battle != null) StopCoroutine(battle);
+            battle = null;
+            StartBattleWhenReady();
+            return true;
         }
         void RefreshHealth()
         {
             if (PlayerState == null || EnemyState == null) return;
-            playerHealth.text = "플레이어 " + Format(PlayerState.Health) + "/" + Format(PlayerState.stats.health);
-            enemyHealth.text = "적 " + Format(EnemyState.Health) + "/" + Format(EnemyState.stats.health);
-            playerFill.rectTransform.sizeDelta = new Vector2(350 * (float)(PlayerState.Health / PlayerState.stats.health), 13);
-            enemyFill.rectTransform.sizeDelta = new Vector2(350 * (float)(EnemyState.Health / EnemyState.stats.health), 13);
+            PlayerHud.Bind(PlayerState); EnemyHud.Bind(EnemyState);
         }
         static string Format(double value) => value >= 1e9 ? value.ToString("0.##E+0") : Math.Ceiling(value).ToString("N0");
         void OnDestroy()

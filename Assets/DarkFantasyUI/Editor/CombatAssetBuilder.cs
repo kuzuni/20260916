@@ -54,6 +54,7 @@ namespace Moonlit.Editor
                         arm1 = part("팔1"), arm2 = part("팔2"), leg1 = part("다리1"), leg2 = part("다리2")
                     };
                 }
+            ImportEraSkillArt();
             catalog.buffSprite = SpriteAsset("AncestralBlessing", 0);
             catalog.weakSprite = SpriteAsset("StoneCrescent", 1);
             catalog.strongSprite = SpriteAsset("FallingBoulder", 2);
@@ -71,6 +72,28 @@ namespace Moonlit.Editor
             EditorUtility.SetDirty(catalog);
             AssetDatabase.SaveAssets();
             Debug.Log("[Moonlit] Combat assets built from the actual Player prefab, 210 PSD sprites, seven Animator states and three primitive VFX.");
+        }
+
+        static void ImportEraSkillArt()
+        {
+            for (int tier = 0; tier < 10; tier++)
+                foreach (string variant in new[] { "Buff", "Weak", "Strong" })
+                {
+                    string path = Root + "/Skills/Tier" + tier.ToString("00") + "/" + variant + ".png";
+                    if (!File.Exists(path)) continue; // The art acceptance test reports incomplete production bundles.
+                    var importer = AssetImporter.GetAtPath(path) as TextureImporter;
+                    if (!importer) { AssetDatabase.ImportAsset(path); importer = AssetImporter.GetAtPath(path) as TextureImporter; }
+                    if (!importer) throw new InvalidOperationException("Cannot import skill sprite " + path);
+                    importer.textureType = TextureImporterType.Sprite;
+                    importer.spriteImportMode = SpriteImportMode.Single;
+                    importer.spritePixelsPerUnit = 128;
+                    importer.alphaIsTransparency = true;
+                    importer.mipmapEnabled = false;
+                    importer.textureCompression = TextureImporterCompression.Uncompressed;
+                    var settings = new TextureImporterSettings(); importer.ReadTextureSettings(settings);
+                    settings.spriteMeshType = SpriteMeshType.FullRect;
+                    importer.SetTextureSettings(settings); importer.SaveAndReimport();
+                }
         }
 
         static RuntimeAnimatorController BuildController(GameObject prefab)

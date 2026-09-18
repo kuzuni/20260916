@@ -20,6 +20,7 @@ namespace Moonlit.UI
         const string SaveKey="Moonlit.Gameplay.v1";
         bool gameplayInitialized;
         float nextSave;
+        bool pendingDungeonPopup;
         BattleRuntime battle;
 
         public void InitializeGameplay(MainScreenAssets assets)
@@ -51,12 +52,30 @@ namespace Moonlit.UI
             ForgeRuntime.Ensure(this).SyncSlots();
             battle=gameObject.AddComponent<BattleRuntime>(); battle.Initialize(this,assets);
             SaveGame();
+            if(DungeonProgression.Data.pendingClaim) pendingDungeonPopup=true;
         }
         void TickGameplay()
         {
             if(!gameplayInitialized)return;
+            if((pendingDungeonPopup || (DungeonProgression.Data.pendingClaim && screens.ModalDepth==0)) && isActiveAndEnabled) { pendingDungeonPopup=false; screens.Open("dungeon-reward"); }
+            RefreshBattleHud();
             RewardState.Current.Advance(DateTimeOffset.UtcNow.ToUnixTimeSeconds());
             if(Time.unscaledTime>=nextSave){nextSave=Time.unscaledTime+10;SaveGame();}
+        }
+        void RefreshBattleHud()
+        {
+            if(!battle)return;
+            if(roundText)roundText.text="라운드 "+Mathf.Clamp(battle.Round,1,15)+"/15";
+            if(waveNodes==null)return;
+            for(int i=0;i<waveNodes.Length;i++)if(waveNodes[i])
+                waveNodes[i].color=i+1==battle.Wave?new Color(.48f,1,1):i+1<battle.Wave?Ui.Cyan:new Color(0,.24f,.34f);
+        }
+        public void CompleteDungeonClaim() { if(battle)battle.CompleteExternalClaim(); }
+        public void PreviewSkill(int tier,int variant)
+        {
+            if(!battle)return;
+            while(screens.ModalDepth>0)screens.CloseTop();screens.ShowMainPage();
+            battle.PreviewSkill(tier,variant);
         }
         public void SaveGame()
         {

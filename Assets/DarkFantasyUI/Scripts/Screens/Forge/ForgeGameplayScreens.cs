@@ -17,17 +17,20 @@ namespace Moonlit.UI
             foreach(var a in item.affixes) result+="\n"+EquipmentRules.AffixNames[(int)a.kind]+" +"+a.percent+"%";
             return result;
         }
+        static Sprite SlotFrame(ScreenContext c) => c.Assets!=null && c.Assets.equipmentSlotPrefab ? c.Assets.equipmentSlotPrefab.equipmentFrame : PopupSkin.PanelArt;
         static RectTransform RollCard(ScreenContext c,Transform parent,float y,EquipmentRoll item,string label)
         {
-            var panel=Ui.Image(label,parent,12,y,728,244,PopupSkin.PanelArt,item!=null?EquipmentRules.TierColor(item.tier):Color.gray);
-            panel.type=Image.Type.Sliced;panel.pixelsPerUnitMultiplier=9;
+            var panel=Ui.Image(label,parent,32,y,756,248,PopupSkin.PanelArt);
+            panel.type=Image.Type.Sliced;panel.pixelsPerUnitMultiplier=7;
+            var slot=Ui.Image("Equipment frame",panel.transform,24,24,166,166,SlotFrame(c));
+            slot.type=Image.Type.Sliced;slot.pixelsPerUnitMultiplier=7;
+            EquipmentPictograms.TintFrame(slot,item!=null?EquipmentRules.TierColor(item.tier):Color.gray);
             var icon=EquipmentArt.Icon(item);
-            if(icon)Ui.Image("Equipment icon",panel.transform,14,34,155,155,icon).preserveAspect=true;
-            else Ui.Text("Artwork status",panel.transform,15,64,150,100,item==null?"빈 슬롯":"썸네일\n준비 중",23,Font(c));
-            Ui.Text("Label",panel.transform,182,8,525,35,label,22,Font(c),Ui.Gold,TextAnchor.MiddleLeft);
-            Ui.Text("Name",panel.transform,182,45,525,42,item!=null?item.Name:"장착된 장비 없음",26,Font(c),Ui.Ivory,TextAnchor.MiddleLeft);
-            Ui.Text("Level",panel.transform,16,195,152,40,item!=null?"Lv."+item.level:"",27,Font(c));
-            Ui.Text("Stats",panel.transform,182,96,526,141,StatText(item),25,Font(c),Ui.Ivory,TextAnchor.UpperLeft);
+            if(icon)Ui.Image("Equipment icon",slot.transform,12,10,142,138,icon).preserveAspect=true;
+            Ui.Text("Level",slot.transform,-6,136,178,40,item!=null?"Lv."+item.level:"",27,Font(c));
+            if(item!=null)Ui.Text("Star",slot.transform,0,170,166,30,"★",25,Font(c),Ui.Gold);
+            Ui.Text("Name",panel.transform,212,20,520,55,item!=null?item.Name:"빈 슬롯",28,Font(c),item!=null?EquipmentRules.TierColor(item.tier):Ui.Ivory,TextAnchor.MiddleLeft);
+            Ui.Text("Stats",panel.transform,212,82,520,148,StatText(item),26,Font(c),Ui.Ivory,TextAnchor.UpperLeft);
             return panel.rectTransform;
         }
         static void BuildProbabilityLive(ScreenContext c)
@@ -75,7 +78,13 @@ namespace Moonlit.UI
                 wallet.text="골드 "+c.Main.gold.ToString("N0")+"    다이아 "+c.Main.gems;
                 var rates=EquipmentRules.TierProbabilities(s.level);var future=EquipmentRules.TierProbabilities(s.level+1);
                 for(int i=0;i<10;i++){current[i].text=(rates[i]*100).ToString("0.##")+"%";next[i].text=(future[i]*100).ToString("0.##")+"%";}
-                for(int i=0;i<6;i++){segments[i].gameObject.SetActive(i<s.Segments && phase!=4);segments[i].color=i<s.filledSegments?Ui.Cyan:new Color(.18f,.22f,.28f);}
+                for(int i=0;i<6;i++){
+                    segments[i].gameObject.SetActive(i<s.Segments && phase!=4);
+                    float width=(668-(s.Segments-1)*12)/s.Segments;
+                    segments[i].rectTransform.sizeDelta=new Vector2(width,40);
+                    segments[i].rectTransform.anchoredPosition=new Vector2(26+i*(width+12),-886);
+                    segments[i].color=i<s.filledSegments?Ui.Cyan:new Color(.18f,.22f,.28f);
+                }
                 status.text=phase==0?"골드 업그레이드 "+s.filledSegments+" / "+s.Segments:phase==1?"게이지 완료 · 시간 업그레이드를 시작하세요":phase==2?"업그레이드 중 "+TimeSpan.FromSeconds(s.RemainingSeconds(now)).ToString(@"hh\:mm\:ss"):phase==3?"시간 업그레이드 완료":"대장간 최고 레벨 35";
                 primary.GetComponentInChildren<Text>().text=phase==0?"골드 업그레이드 · "+s.SegmentCost:phase==1?"시간 업그레이드 시작":phase==2?"업그레이드 중":phase==3?"업그레이드 완료":"최고 레벨";
                 primary.interactable=phase==0 || phase==1 || phase==3;
@@ -100,11 +109,11 @@ namespace Moonlit.UI
                     float x=15+n%4*180,y=top+82+n/4*151;
                     var slot=Action(c,content,x,y,155,112,"",()=>c.Open("forge-item-details",item),EquipmentRules.TierColor(tier));
                     slot.name="Equipment "+item.tier+" "+item.variant+" "+item.part;
-                    var frame=(Image)slot.targetGraphic;frame.sprite=PopupSkin.PanelArt;frame.color=EquipmentRules.TierColor(tier);
+                    var frame=(Image)slot.targetGraphic;frame.sprite=SlotFrame(c);EquipmentPictograms.TintFrame(frame,EquipmentRules.TierColor(tier));
                     var icon=EquipmentArt.Icon(item);
                     if(icon)Ui.Image("Thumbnail",slot.transform,14,7,126,92,icon).preserveAspect=true;
                     else Ui.Text("Pending art",slot.transform,6,20,143,74,"썸네일\n준비 중",21,Font(c));
-                    Ui.Text("Part",content,x,y+111,155,37,EquipmentRules.VariantNames[item.variant]+" "+EquipmentRules.PartNames[(int)item.part],20,Font(c));
+                    Ui.Text("Drop chance",content,x,y+111,155,37,(rates[tier]*100/18).ToString("0.0000")+"%",20,Font(c));
                 }
             }
         }
@@ -112,7 +121,7 @@ namespace Moonlit.UI
         {
             var item=c.Payload as EquipmentRoll ?? new EquipmentRoll();
             Frame(c,"장비 정보",820,1120,out var b);
-            RollCard(c,b,0,item,"장비 도감");
+            var card=RollCard(c,b,0,item,"장비 도감");card.anchoredPosition=new Vector2(0,0);card.sizeDelta=new Vector2(740,248);
             Ui.Text("Affix count",b,28,270,682,62,"추가 옵션 "+EquipmentRules.AffixCount(item.tier)+"개 · 중복 없음",28,Font(c),Ui.Gold);
             string ranges="";
             for(int i=0;i<9;i++)ranges+=EquipmentRules.AffixNames[i]+"  +1 ~ "+EquipmentRules.AffixMaximums[i]+"%\n";
@@ -122,78 +131,89 @@ namespace Moonlit.UI
         {
             var slot=c.Payload as EquipmentSlot;
             var item=c.Payload as EquipmentRoll ?? (slot!=null ? slot.roll : null);
-            Frame(c,"장비 세부정보",820,590,out var b);
-            RollCard(c,b,12,item,"장착됨");
-            Action(c,b,170,284,410,82,"장비 목록",()=>c.Open("forge-probability-details"));
+            var b=EquipmentDialog(c,"Equipment details Dialog",390,c.Height*.21f);
+            b.Find("Tag").GetComponent<Text>().text=item!=null?"장착됨":"빈 슬롯";
+            RollCard(c,b,94,item,"Equipment details card");
+            PopupSkin.Close("Close",b,b.rect.width-68,12,56,Font(c),c.Close);
         }
         static void BuildComparisonLive(ScreenContext c)
         {
             ForgeRuntime.Ensure(c.Main);
-            Frame(c,"장비 비교",820,1040,out var b);
-            var content=Ui.Rect("Comparison cards",b,0,0,752,810);
+            var b=EquipmentDialog(c,"Equipment comparison Dialog",810,170);
+            var content=Ui.Rect("Comparison cards",b,0,0,820,810);
+            PopupSkin.Close("Close",b,b.rect.width-68,12,56,Font(c),c.Close);
             Action redraw=null;
             redraw=()=>{
                 for(int i=content.childCount-1;i>=0;i--) {var child=content.GetChild(i).gameObject;child.SetActive(false);UnityEngine.Object.Destroy(child);}
                 var s=ForgeState.Current;var item=s.Pending;
-                if(item==null) {Ui.Text("No pending",content,20,50,710,120,"보관 중인 장비가 없습니다.",30,Font(c));return;}
+                if(item==null) {b.Find("Tag").GetComponent<Text>().text="";Ui.Text("No pending",content,30,240,760,90,"보관 중인 장비가 없습니다.",28,Font(c));return;}
                 var equipped=s.equipped[(int)item.part];
-                RollCard(c,content,10,equipped,"장착 중");
-                RollCard(c,content,276,item,"비교할 장비");
-                Ui.Text("Queue",content,20,536,710,58,"보관 "+s.pending.Count+"개 · "+EquipmentRules.PartNames[(int)item.part]+" 비교",27,Font(c),Ui.Gold);
+                b.Find("Tag").GetComponent<Text>().text=equipped!=null?"장착됨":"새로운 장비";
+                if(equipped!=null)RollCard(c,content,94,equipped,"Current equipment");
+                var candidate=RollCard(c,content,equipped!=null?359:225,item,"New equipment");
+                Ui.Text("New marker",candidate,24,204,166,36,"새로운!",25,Font(c),new Color(1,.25f,.18f));
                 int id=item.id;
-                if(equipped!=null)Action(c,content,22,660,332,100,"판매 · 골드 "+EquipmentRules.SaleGold(item),()=>{
+                if(equipped!=null)Action(c,content,32,676,360,100,"판매",()=>{
                     if(!s.SellPending(id,out int gold))return;
                     c.Main.gold=(int)Math.Min(int.MaxValue,(long)c.Main.gold+gold);c.Main.Refresh();
-                    c.Toast("골드 +"+gold);
+                    RewardVisuals.Absorb(c.Main,RewardVisuals.Kind.Gold,gold,c.Main.forgeButton ? c.Main.forgeButton.transform.position : candidate.position);
                     if(s.Pending==null)c.Close();else redraw();
-                },Red,26);
-                Action(c,content,equipped!=null?386:190,660,332,100,"장착",()=>{
+                },Red);
+                Action(c,content,equipped!=null?428:230,676,360,100,"장착",()=>{
                     if(!s.ToggleEquip(id))return;
                     ForgeRuntime.Ensure(c.Main).SyncSlots();c.Main.Refresh();
-                    if(equipped==null){c.Close();if(s.Pending!=null)c.Open("forge-comparison");}
-                    else redraw();
+                    if(s.Pending==null)c.Close();else redraw();
                 });
-                Ui.Text("Decision help",content,24,598,704,54,equipped==null?"빈 슬롯 · 장착하면 완료됩니다":"장착을 다시 누르면 원래 장비로 돌아갑니다.",23,Font(c));
             };
             redraw();
         }
         static void BuildAutoForgeLive(ScreenContext c)
         {
-            Frame(c,"자동 제련",820,1420,out var body);
-            Scroll(c,body,0,0,body.rect.width,body.rect.height-24,1730,out var b);
-            var s=ForgeState.Current;
+            Frame(c,"자동 제련",820,1180,out var body);
+            var scroll=Scroll(c,body,0,0,body.rect.width,body.rect.height-24,1050,out var b);
+            var s=ForgeState.Current;var rates=EquipmentRules.TierProbabilities(s.level);
             Ui.Text("Keep title",b,8,0,710,54,"유지할 등급",30,Font(c),Ui.Gold,TextAnchor.MiddleLeft);
+            int visible=0;
             for(int i=0;i<10;i++) {
-                int index=i;var row=Ui.Image("Keep grade "+i,b,8,62+i*66,706,60,TierBand(i));row.type=Image.Type.Sliced;row.pixelsPerUnitMultiplier=1.4f;
+                if(rates[i]<=0)continue;
+                int index=i;var row=Ui.Image("Keep grade "+i,b,8,62+visible++*66,706,60,TierBand(i));row.type=Image.Type.Sliced;row.pixelsPerUnitMultiplier=1.4f;
                 var toggle=Check(c,row.transform,9,6,s.keepTiers[i]);toggle.onValueChanged.AddListener(value=>s.keepTiers[index]=value);
                 Ui.Image("Tier icon",row.transform,72,2,55,55,TierIcon(i)).preserveAspect=true;
                 Ui.Text("Tier name",row.transform,144,0,500,60,EquipmentRules.TierNames[i],27,Font(c),Ui.Ivory,TextAnchor.MiddleLeft);
             }
-            Ui.Text("Filter title",b,12,742,430,55,"추가 옵션 필터 (하나 이상 일치)",25,Font(c),Ui.Ivory,TextAnchor.MiddleLeft);
-            var filterChoices=new System.Collections.Generic.List<Toggle>();
-            PopupSkin.Switch(b,580,746,"Enable affix filter",s.filterEnabled,value=>{s.filterEnabled=value;foreach(var choice in filterChoices)choice.interactable=value;});
+            float filterY=80+visible*66;
+            Ui.Text("Filter title",b,12,filterY,430,55,"추가 옵션 필터",27,Font(c),Ui.Ivory,TextAnchor.MiddleLeft);
+            var choices=Ui.Rect("Affix choices",b,0,filterY+74,714,370);
+            var controls=Ui.Rect("Auto controls",b,0,0,714,288);
+            Action layout=()=>{
+                choices.gameObject.SetActive(s.filterEnabled);
+                controls.anchoredPosition=new Vector2(0,-(filterY+80+(s.filterEnabled?370:0)));
+                b.sizeDelta=new Vector2(b.sizeDelta.x,filterY+80+(s.filterEnabled?370:0)+288);
+            };
+            PopupSkin.Switch(b,580,filterY+4,"Enable affix filter",s.filterEnabled,value=>{s.filterEnabled=value;layout();});
             for(int i=0;i<9;i++) {
-                int index=i;float x=i%2*356,y=824+i/2*74;
-                var check=Check(c,b,x+10,y,(s.affixMask&(1<<i))!=0);
-                check.name="Affix filter "+((EquipmentAffixKind)i);check.interactable=s.filterEnabled;filterChoices.Add(check);
+                int index=i;float x=i%2*356,y=i/2*74;
+                var check=Check(c,choices,x+10,y,(s.affixMask&(1<<i))!=0);check.name="Affix filter "+((EquipmentAffixKind)i);
                 check.onValueChanged.AddListener(value=>{if(value)s.affixMask|=1<<index;else s.affixMask&=~(1<<index);});
-                Ui.Text("Affix",b,x+70,y-2,272,52,EquipmentRules.AffixNames[i],23,Font(c),Ui.Ivory,TextAnchor.MiddleLeft);
+                Ui.Text("Affix",choices,x+70,y-2,272,52,EquipmentRules.AffixNames[i],23,Font(c),Ui.Ivory,TextAnchor.MiddleLeft);
             }
-            Ui.Text("Batch label",b,12,1220,424,65,"한 번에 사용할 망치 수",26,Font(c),Ui.Ivory,TextAnchor.MiddleLeft);
-            var amount=Ui.Text("Batch size",b,498,1220,112,65,s.batchSize.ToString(),34,Font(c));
-            Action(c,b,436,1220,60,65,"−",()=>{s.batchSize=Math.Max(1,s.batchSize-1);amount.text=s.batchSize.ToString();});
-            Action(c,b,612,1220,60,65,"+",()=>{s.batchSize=Math.Min(99,s.batchSize+1);amount.text=s.batchSize.ToString();});
-            var continuing=Check(c,b,650,1325,s.continueAfterMatch);
+            Ui.Text("Batch label",controls,12,0,424,65,"한 번에 사용할 망치 수",26,Font(c),Ui.Ivory,TextAnchor.MiddleLeft);
+            var amount=Ui.Text("Batch size",controls,498,0,112,65,s.batchSize.ToString(),34,Font(c));
+            Action(c,controls,436,0,60,65,"−",()=>{s.batchSize=Math.Max(1,s.batchSize-1);amount.text=s.batchSize.ToString();});
+            Action(c,controls,612,0,60,65,"+",()=>{s.batchSize=Math.Min(99,s.batchSize+1);amount.text=s.batchSize.ToString();});
+            var continuing=Check(c,controls,650,92,s.continueAfterMatch);
             continuing.onValueChanged.AddListener(value=>s.continueAfterMatch=value);
-            Ui.Text("Continue label",b,10,1310,624,88,"목표 장비를 찾아도 제련 계속하기\n설정한 망치 수만큼 보관한 배치가 끝나면 비교",24,Font(c),Ui.Ivory,TextAnchor.MiddleLeft);
-            Ui.Text("Filter help",b,12,1410,690,120,"체크한 등급과 옵션이 일치하는 장비만 보관합니다.\n그 외 장비는 골드로 자동 판매합니다.\n원시 / 중세 장비는 추가 옵션이 없습니다.",23,Font(c),Ui.Ivory,TextAnchor.UpperLeft);
-            Action(c,b,174,1570,370,100,s.autoEnabled?"정지":"시작",()=>{
-                if(s.autoEnabled){var runtime=ForgeRuntime.Ensure(c.Main);runtime.StopAuto();c.Close();if(!runtime.Busy && s.Pending!=null)c.Open("forge-comparison");return;}
-                if(!Array.Exists(s.keepTiers,value=>value)){c.Toast("유지할 등급을 선택하세요.");return;}
+            Ui.Text("Continue label",controls,10,80,624,70,"목표 장비를 찾아도 제련 계속하기",24,Font(c),Ui.Ivory,TextAnchor.MiddleLeft);
+            Action(c,controls,174,182,370,100,s.autoEnabled?"정지":"시작",()=>{
+                if(s.autoEnabled){ForgeRuntime.Ensure(c.Main).StopAuto();c.Close();return;}
+                bool keep=false;for(int i=0;i<10;i++)keep|=rates[i]>0 && s.keepTiers[i];
+                if(!keep){c.Toast("유지할 등급을 선택하세요.");return;}
                 if(s.filterEnabled && s.affixMask==0){c.Toast("추가 옵션 필터를 선택하세요.");return;}
                 c.Close();ForgeRuntime.Ensure(c.Main).StartAuto();
             });
+            layout();
         }
+
     }
     public sealed class ForgeLiveView : MonoBehaviour
     {

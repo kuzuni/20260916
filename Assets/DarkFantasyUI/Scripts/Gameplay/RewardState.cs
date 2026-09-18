@@ -72,6 +72,9 @@ namespace Moonlit.UI
             int factor=RewardFactor(state.arenaPoints,ArenaRank(state.arenaPoints));
             main.ore=Add(main.ore,factor*10); main.gems=Add(main.gems,factor*5); main.gold=Add(main.gold,factor*100);
             main.Refresh(); main.SaveGame();
+            RewardVisuals.Absorb(main,RewardVisuals.Kind.Hammer,factor*10);
+            RewardVisuals.Absorb(main,RewardVisuals.Kind.Diamond,factor*5);
+            RewardVisuals.Absorb(main,RewardVisuals.Kind.Gold,factor*100);
             main.Toast((won?"승리":"패배")+" · 도전 보상 "+ArenaRewardText(state.arenaPoints,ArenaRank(state.arenaPoints)));
         }
     }

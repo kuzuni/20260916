@@ -34,11 +34,13 @@ namespace Moonlit.UI
             main.stageText=Ui.Text("Stage title",parent,290,146,500,58,"스테이지 1",45,font,Color.white);
             Ui.Image("Progress shadow",parent,409,222,256,17,null,new Color(0,.015f,.025f));
             Ui.Image("Progress cyan",parent,409,227,256,7,null,Ui.Cyan);
+            main.waveNodes=new Image[3];
             for(int i=0;i<3;i++) {
                 Ui.Image("Stage node rim",parent,394+i*127,211,38,38,circle,Color.black);
                 Ui.Image("Stage node edge",parent,398+i*127,215,30,30,circle,new Color(0,.76f,.98f));
-                Ui.Image("Stage node",parent,402+i*127,219,22,22,circle,i==2 ? new Color(.48f,1,1) : new Color(0,.52f,.83f));
+                main.waveNodes[i]=Ui.Image("Stage node",parent,402+i*127,219,22,22,circle,new Color(0,.24f,.34f));
             }
+            main.roundText=Ui.Text("Battle round",parent,290,258,500,48,"라운드 1/15",26,font,Ui.Ivory);
             main.eventButton=Ui.ArtButton("Offline rewards — frameless",parent,29,335,111,142);
             var eventIcon=Ui.ArtImage("Offline reward clock and chest",main.eventButton.transform,5,0,101,100,
                 Resources.Load<Sprite>("Moonlit/Main/OfflineRewardIcon-v1"));

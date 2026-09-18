@@ -339,70 +339,30 @@ namespace Moonlit.UI
 
         static void BuildChat(ScreenContext c)
         {
-            float w = c.Width, h = c.Height;
+            float w=c.Width,h=c.Height;
             PopupSkin.FullViewportBackdrop(c,Resources.Load<Sprite>("Moonlit/Social/ProfileRuins-v1"),new Color(.65f,.75f,.85f,1));
-            var root = Ui.Rect("Chat", c.Root, 0, 0, w, h);
-            string[] tabs = { "월드", "클랜", "클랜 간부" };
-            var messages = new[] { "원정 준비됐나요?", "오늘 보스는 화염 저항이 높아요.", "장비를 강화하고 갈게요!", "좋아요, 5분 뒤 출발합니다.", "새로운 길드원이 참가했습니다.", "전투 기록을 확인했어요.", "회복 물약도 챙겨 주세요.", "다음은 유령 마을이에요.", "이 장비 조합은 어때요?", "방어력도 확인해 볼게요.", "준비가 끝나면 알려 주세요.", "곧 출발할 수 있어요!" };
-            var channels=new RectTransform[3];
-            var contents=new RectTransform[3];
-            var scrolls=new ScrollRect[3];
-            var buttons=new Button[3];
-            var unreadBadges=new GameObject[3];
-            // Reference counts seed this local preview, just like the sample message history.
-            int[] unread={0,70,3};
-            var counts=new int[3];
-            var nextMessageY=new float[3];
-            var drafts=new string[3];
-            int selected=0;
-            for(int i=0;i<3;i++) {
-                channels[i]=Ui.Rect("Chat channel "+i,root,0,0,w,h);
-                Scroll(c,channels[i],54,126,w-108,h-308,1,out contents[i]);
-                scrolls[i]=contents[i].GetComponentInParent<ScrollRect>();
-                nextMessageY[i]=18;
-                for(int j=0;j<messages.Length;j++)
-                    nextMessageY[i]=ChatMessage(c,contents[i],j,nextMessageY[i],"["+tabs[i]+"] "+(j%2==0?"moonzzanf":"Raven"),messages[j],w-108);
-                contents[i].sizeDelta=new Vector2(0,nextMessageY[i]+18);
-                counts[i]=messages.Length;
-                channels[i].gameObject.SetActive(i==0);
-            }
+            var root=Ui.Rect("Chat",c.Root,0,0,w,h);
+            Ui.Text("Chat title",root,100,20,w-200,70,"채팅",38,Font(c));
+            var channel=Ui.Rect("Chat channel 0",root,0,0,w,h);
+            Scroll(c,channel,54,108,w-108,h-290,1,out var content);
+            var scroll=content.GetComponentInParent<ScrollRect>();
+            string[] messages={"원정 준비됐나요?","장비를 강화하고 갈게요!","다음은 유령 마을이에요.","이 장비 조합은 어때요?","준비가 끝나면 알려 주세요."};
+            float next=18;int count=0;
+            foreach(var message in messages)next=ChatMessage(c,content,count++,next,count%2==0?"moonzzanf":"Raven",message,w-108);
+            content.sizeDelta=new Vector2(0,next+18);
             PopupSkin.Panel("Chat composer",root,0,h-174,w,174);
-            var input = Input(c, root, 136, h - 146, w - 296, 82, "");
-            input.characterLimit=80;
-            input.placeholder = Ui.Text("Placeholder", input.transform, 18, 4, w - 336, 74, "메시지 보내기…", 25, Font(c), new Color(.55f,.58f,.62f), TextAnchor.MiddleLeft);
-            var inputFrame=Ui.Image("Input frame",input.transform,0,0,w-296,82,PopupSkin.PanelArt);
-            inputFrame.type=Image.Type.Sliced; inputFrame.fillCenter=false; inputFrame.pixelsPerUnitMultiplier=12;
-            void SelectChannel(int tab) {
-                drafts[selected]=input.text;
-                selected=tab;
-                unread[tab]=0;
-                unreadBadges[tab].SetActive(false);
-                input.SetTextWithoutNotify(drafts[tab]??"");
-                for(int j=0;j<3;j++) {
-                    channels[j].gameObject.SetActive(j==tab);
-                    ((Image)buttons[j].targetGraphic).sprite=j==tab?PopupSkin.ActionArt:PopupSkin.PanelArt;
-                }
-            }
-            for (int i = 0; i < tabs.Length; i++)
-            {
-                int tab = i;
-                buttons[i]=Action(c,root,i*w/3f,20,w/3f,80,tabs[i],()=>SelectChannel(tab));
-                ((Image)buttons[i].targetGraphic).sprite=i==0?PopupSkin.ActionArt:PopupSkin.PanelArt;
-                var badge=Ui.ArtImage("Unread badge",buttons[i].transform,w/3f-62,-12,48,48,PopupSkin.CloseArt);
-                badge.preserveAspect=true;
-                Ui.Text("Unread count",badge.transform,3,2,42,42,unread[i].ToString(),24,Font(c),Ui.Ivory);
-                unreadBadges[i]=badge.gameObject;
-                unreadBadges[i].SetActive(unread[i]>0);
-            }
-            Action(c,root,w-140,h-146,112,82,"전송",()=> {
-                if(string.IsNullOrWhiteSpace(input.text)) { c.Toast("메시지를 입력하세요."); return; }
-                nextMessageY[selected]=ChatMessage(c,contents[selected],counts[selected]++,nextMessageY[selected],"[나] moonzzanf",input.text.Trim(),w-108);
-                contents[selected].sizeDelta=new Vector2(0,nextMessageY[selected]+18);
-                drafts[selected]=""; input.text="";
-                Canvas.ForceUpdateCanvases(); scrolls[selected].verticalNormalizedPosition=0;
+            var input=Input(c,root,136,h-146,w-296,82,"");input.characterLimit=80;
+            input.placeholder=Ui.Text("Placeholder",input.transform,18,4,w-336,74,"메시지 보내기…",25,Font(c),new Color(.55f,.58f,.62f),TextAnchor.MiddleLeft);
+            var frame=Ui.Image("Input frame",input.transform,0,0,w-296,82,PopupSkin.PanelArt);
+            frame.type=Image.Type.Sliced;frame.fillCenter=false;frame.pixelsPerUnitMultiplier=12;
+            Action(c,root,w-140,h-146,112,82,"전송",()=>{
+                if(string.IsNullOrWhiteSpace(input.text))return;
+                next=ChatMessage(c,content,count++,next,"[나] moonzzanf",input.text.Trim(),w-108);
+                content.sizeDelta=new Vector2(0,next+18);input.text="";
+                Canvas.ForceUpdateCanvases();scroll.verticalNormalizedPosition=0;
             });
             PopupSkin.Back("Chat back",root,24,h-154,96,Font(c),c.Close);
-            Ui.Text("Offline notice", root, 136, h - 55, w - 164, 40, "로컬 채팅 미리보기 · 다른 사용자에게 전송되지 않습니다", 19, Font(c), new Color(.65f,.68f,.7f));
+            Ui.Text("Offline notice",root,136,h-55,w-164,40,"로컬 채팅 미리보기",19,Font(c),new Color(.65f,.68f,.7f));
         }
 
         static float ChatMessage(ScreenContext c, Transform parent, int index, float y, string name, string message, float width)
@@ -467,7 +427,7 @@ namespace Moonlit.UI
                 Action(c, card.transform, 12, 222, cardW - 24, 66, price, () => {
                     if(lastPurchaseFrame==Time.frameCount || !c.Main)return;
                     lastPurchaseFrame=Time.frameCount;c.Main.gems=RewardRules.Add(c.Main.gems,amount);
-                    c.Main.Refresh();c.Main.SaveGame();c.Toast("구매 완료 · 다이아 "+amount+" (로컬)");
+                    c.Main.Refresh();c.Main.SaveGame();RewardVisuals.Absorb(c.Main,RewardVisuals.Kind.Diamond,amount);
                 });
             }
         }
@@ -495,8 +455,8 @@ namespace Moonlit.UI
             Ui.Image("Ribbon",card.transform,0,10,430,52,PopupSkin.RibbonArt,new Color(1,.22f,.16f));
             Ui.Text("Title", card.transform, 20, 2, 390, 56, title, 31, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
             var ticket=Resources.Load<Sprite>("Moonlit/Skills/SummonTicket-v1");
-            Sprite[] icons = artIndex==0 ? new[]{Icon(c,0),RewardsScreenModule.HammerArt,ticket,ticket,ticket,Icon(c,1)}
-                : artIndex==1 ? new[]{ticket,RewardsScreenModule.HammerArt,Icon(c,1)}
+            Sprite[] icons = artIndex==0 ? new[]{Icon(c,0),RewardsScreenModule.HammerArt,ticket,RewardVisuals.Ticket(1),RewardVisuals.Ticket(2),Icon(c,1)}
+                : artIndex==1 ? new[]{RewardVisuals.Ticket(1),RewardsScreenModule.HammerArt,Icon(c,1)}
                 : new[]{PopupSkin.RewardIcon(5),PopupSkin.RewardIcon(2),PopupSkin.RewardIcon(4),PopupSkin.RewardIcon(3)};
             string[] values=artIndex==0 ? new[]{"골드 1,000","망치 50","스킬권 200","펫권 50","탈것권 50","다이아 62"}
                 : artIndex==1 ? new[]{"펫권 660","망치 200","다이아 20"} : new[]{"망치 키 2","유령 키 2","침략 키 2","좀비 키 2"};
@@ -517,7 +477,10 @@ namespace Moonlit.UI
                 } else if(artIndex==1) {
                     c.Main.petTickets=RewardRules.Add(c.Main.petTickets,660);c.Main.ore=RewardRules.Add(c.Main.ore,200);c.Main.gems=RewardRules.Add(c.Main.gems,20);
                 } else c.Main.AddDungeonKeys(2);
-                c.Main.Refresh();c.Main.SaveGame();c.Toast(title+" 구매 완료 (로컬)");
+                c.Main.Refresh();c.Main.SaveGame();
+                if(artIndex==0) { RewardVisuals.Absorb(c.Main,RewardVisuals.Kind.Gold,1000);RewardVisuals.Absorb(c.Main,RewardVisuals.Kind.Hammer,50);RewardVisuals.Absorb(c.Main,RewardVisuals.Kind.SkillTicket,200);RewardVisuals.Absorb(c.Main,RewardVisuals.Kind.PetTicket,50);RewardVisuals.Absorb(c.Main,RewardVisuals.Kind.MountTicket,50);RewardVisuals.Absorb(c.Main,RewardVisuals.Kind.Diamond,62); }
+                else if(artIndex==1) { RewardVisuals.Absorb(c.Main,RewardVisuals.Kind.PetTicket,660);RewardVisuals.Absorb(c.Main,RewardVisuals.Kind.Hammer,200);RewardVisuals.Absorb(c.Main,RewardVisuals.Kind.Diamond,20); }
+                else c.Toast("던전 열쇠 +2");
             });
         }
 
