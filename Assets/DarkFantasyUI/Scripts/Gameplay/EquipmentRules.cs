@@ -8,10 +8,10 @@ namespace Moonlit.UI
     [Serializable] public sealed class EquipmentAffix { public EquipmentAffixKind kind; public int percent; }
     [Serializable] public sealed class EquipmentRoll
     {
-        public int id, tier, level = 1, variant;
+        public int id, tier, level = 1, variant, ascension;
         public EquipmentPart part;
         public EquipmentAffix[] affixes = Array.Empty<EquipmentAffix>();
-        public EquipmentStats Stats => EquipmentRules.BaseStats(tier, level, part);
+        public EquipmentStats Stats => EquipmentRules.BaseStats(tier, level, part, ascension);
         public string Name => "[" + EquipmentRules.TierNames[tier] + "] " + EquipmentRules.VariantNames[variant] + " " + EquipmentRules.PartNames[(int)part];
     }
     public static class EquipmentRules
@@ -33,22 +33,26 @@ namespace Moonlit.UI
         };
         public static Color TierColor(int tier) => TierColors[Mathf.Clamp(tier,0,9)];
         public static bool IsHealthPart(EquipmentPart part) => part == EquipmentPart.Armor || part == EquipmentPart.Hat || part == EquipmentPart.Necklace;
-        public static EquipmentStats BaseStats(int tier, int level, EquipmentPart part)
+        public static EquipmentStats BaseStats(int tier, int level, EquipmentPart part, int ascension=0)
         {
             tier = Math.Max(0, Math.Min(9,tier)); level = Math.Max(1, Math.Min(100,level));
             // Exact user anchors: primitive HP 80 at lv1, 880 at lv100; medieval lv1 1760.
             // Linear interpolation spans 99 intervals, hence 10/99 of lv1 per level (not compound growth).
-            double scale = Math.Pow(22, tier) * (1 + 10.0 * (level-1) / 99);
-            double speedBase = 1;
-            for(int i=0;i<tier;i++) speedBase = (speedBase+99)*2;
-            return IsHealthPart(part) ? new EquipmentStats { health=baseHealth*scale, speed=speedBase+level-1 }
-                : new EquipmentStats { attack=baseAttack*scale };
+            // Each ascension continues after celestial lv100: the next primitive lv1 is twice as strong.
+            double era=tier+Math.Max(0,ascension)*10.0;
+            double scale = Math.Pow(22, era) * (1 + 10.0 * (level-1) / 99);
+            double speedBase = 199*Math.Pow(2,era)-198;
+            return IsHealthPart(part) ? new EquipmentStats { health=FiniteStat(baseHealth*scale), speed=FiniteStat(speedBase+level-1) }
+                : new EquipmentStats { attack=FiniteStat(baseAttack*scale) };
         }
-        public static EquipmentStats FullSetStats(int tier, int level)
+        public static EquipmentStats FullSetStats(int tier, int level, int ascension=0)
         {
-            var hp=BaseStats(tier,level,EquipmentPart.Armor); var atk=BaseStats(tier,level,EquipmentPart.Weapon);
+            var hp=BaseStats(tier,level,EquipmentPart.Armor,ascension); var atk=BaseStats(tier,level,EquipmentPart.Weapon,ascension);
             return new EquipmentStats { health=hp.health*3, attack=atk.attack*3, speed=hp.speed*3 };
         }
+        // Leave ample headroom for six-piece totals, percentage bonuses and combat power arithmetic.
+        static double FiniteStat(double value) => double.IsNaN(value)?0:Math.Min(double.MaxValue/1024,Math.Max(0,value));
+        public static string AscensionStars(int ascension) => ascension>0?"★ "+ascension:"";
         public static int AffixCount(int tier) => tier < 2 ? 0 : tier < 4 ? 1 : 2;
         public static EquipmentAffix[] RollAffixes(int tier, System.Random random)
         {

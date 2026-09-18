@@ -216,5 +216,68 @@ namespace Moonlit.UI.Tests
             Assert.AreEqual(0,second.automaticSaleIds.Count);
         }
 
+        [Test] public void AscensionRequiresGoldTimerAndClaimThenResetsOnlyForgeEquipment()
+        {
+            var state=new ForgeState {level=35,nextId=70,autoEnabled=true,freeSkipsUsed=2,freeSkipDay="2026-09-18"};
+            var random=new System.Random(13);
+            state.equipped[0]=state.DrawTier(9,random);state.equipped[0].part=EquipmentPart.Armor;
+            var pending=state.DrawTier(9,random);state.pending.Add(pending);state.automaticSaleIds.Add(pending.id);
+            int previousId=state.nextId, gold=1000000;
+            Assert.AreEqual(0,state.UpgradePhase(DateTime.UtcNow));
+            Assert.IsFalse(state.ClaimUpgrade(DateTime.UtcNow));
+            int cost=state.SegmentCost, segments=state.Segments;
+            for(int i=0;i<segments;i++)Assert.IsTrue(state.FillSegment(ref gold));
+            Assert.AreEqual(1000000-cost*segments,gold);
+            var now=DateTime.UtcNow;Assert.IsTrue(state.StartUpgrade(now));
+            Assert.IsFalse(state.ClaimUpgrade(now));
+            var ready=new DateTime(state.upgradeEndsUtcTicks,DateTimeKind.Utc);
+            Assert.IsTrue(state.ClaimUpgrade(ready));Assert.IsFalse(state.ClaimUpgrade(ready));
+            Assert.AreEqual(1,state.level);Assert.AreEqual(1,state.ascension);
+            Assert.AreEqual(0,state.filledSegments);Assert.AreEqual(0,state.upgradeEndsUtcTicks);
+            Assert.IsTrue(state.equipped.All(item=>item==null));Assert.IsEmpty(state.pending);Assert.IsEmpty(state.automaticSaleIds);
+            Assert.IsTrue(state.draws.All(count=>count==0));Assert.IsFalse(state.autoEnabled);
+            Assert.AreEqual(2,state.freeSkipsUsed,"Ascension cannot refill the four daily skips");
+            Assert.AreEqual(previousId,state.nextId,"Do not reuse IDs referenced by stale comparison callbacks");
+            var fresh=state.DrawTier(0,random);Assert.AreEqual(1,fresh.level);Assert.AreEqual(1,fresh.ascension);
+            Assert.Greater(fresh.id,previousId);
+        }
+
+        [Test] public void EveryAscensionContinuesAfterCelestialAndEquipmentRetainsItsOwnEra()
+        {
+            for(int ascension=1;ascension<=4;ascension++) {
+                var previous=EquipmentRules.FullSetStats(9,100,ascension-1);
+                var next=EquipmentRules.FullSetStats(0,1,ascension);
+                Assert.That(next.health/previous.health,Is.EqualTo(2).Within(1e-10));
+                Assert.That(next.attack/previous.attack,Is.EqualTo(2).Within(1e-10));
+                Assert.That(next.speed/previous.speed,Is.EqualTo(2).Within(1e-10));
+            }
+            var legacy=new EquipmentRoll {id=1,part=EquipmentPart.Armor};
+            var advanced=new EquipmentRoll {id=2,part=EquipmentPart.Armor,ascension=1};
+            var saved=new ForgeState {ascension=2};saved.equipped[0]=advanced;saved.pending.Add(legacy);
+            var restored=JsonUtility.FromJson<ForgeState>(JsonUtility.ToJson(saved));restored.NormalizeAfterLoad();
+            Assert.AreEqual(2,restored.ascension);Assert.AreEqual(1,restored.equipped[0].ascension);
+            Assert.AreEqual(advanced.Stats.health,restored.equipped[0].Stats.health);
+            Assert.AreEqual(80,restored.Pending.Stats.health);
+            Assert.AreEqual(240,EquipmentRules.FullSetStats(0,1).health,"Collections retain the ascension-zero baseline.");
+            var extreme=EquipmentRules.FullSetStats(9,100,int.MaxValue);
+            Assert.IsFalse(double.IsInfinity(extreme.health));Assert.IsFalse(double.IsNaN(extreme.health));
+            Assert.IsFalse(double.IsInfinity(extreme.attack));Assert.IsFalse(double.IsInfinity(extreme.speed));
+        }
+
+        [Test] public void NewEquipmentIdentitySurvivesSwapsAndSaveThenAdvancesToNextDrop()
+        {
+            var state=new ForgeState();
+            state.equipped[5]=new EquipmentRoll {id=1,part=EquipmentPart.Weapon};
+            state.pending.Add(new EquipmentRoll {id=2,part=EquipmentPart.Weapon});
+            state.pending.Add(new EquipmentRoll {id=3,part=EquipmentPart.Hat});
+            Assert.AreEqual(2,state.ComparisonNewId);
+            Assert.IsTrue(state.ToggleEquip(2));Assert.AreEqual(2,state.ComparisonNewId);
+            var restored=JsonUtility.FromJson<ForgeState>(JsonUtility.ToJson(state));restored.NormalizeAfterLoad();
+            Assert.AreEqual(2,restored.ComparisonNewId);Assert.AreEqual(1,restored.Pending.id);
+            Assert.IsTrue(restored.ToggleEquip(1));Assert.AreEqual(2,restored.ComparisonNewId);
+            Assert.IsTrue(restored.SellPending(2,out _));Assert.AreEqual(3,restored.ComparisonNewId);
+            Assert.IsTrue(restored.ToggleEquip(3));Assert.AreEqual(0,restored.ComparisonNewId);
+        }
+
     }
 }
