@@ -180,24 +180,30 @@ namespace Moonlit.UI.Tests
             DungeonProgression.RefreshDay(new DateTime(2026,9,19,15,0,0,DateTimeKind.Utc));
             Assert.AreEqual(2,DungeonProgression.Data.keys[1]);
         }
-        [Test] public void DungeonEntrySpendsEvenOnLossAndCompletionCannotPayTwice()
+        [Test] public void DungeonEntryDefersSpendUntilClaimAndCompletionCannotPayTwice()
         {
-            Assert.IsTrue(DungeonProgression.BeginEntry(0,1));Assert.AreEqual(1,DungeonProgression.Data.keys[0]);
+            Assert.IsTrue(DungeonProgression.BeginEntry(0,1));Assert.AreEqual(2,DungeonProgression.Data.keys[0]);
             Assert.IsFalse(DungeonProgression.BeginEntry(1,1));
             Assert.IsFalse(DungeonProgression.CompleteEntry(false,out _,out _));
+            Assert.AreEqual(2,DungeonProgression.Data.keys[0]);
             Assert.AreEqual(0,DungeonProgression.Data.highestCleared[0]);
             Assert.IsTrue(DungeonProgression.BeginEntry(0,1));
             Assert.IsTrue(DungeonProgression.CompleteEntry(true,out int index,out int amount));
             Assert.AreEqual(0,index);Assert.AreEqual(100,amount);
+            Assert.AreEqual(2,DungeonProgression.Data.keys[0]);Assert.AreEqual(1,DungeonProgression.NextDifficulty(0));
             Assert.IsFalse(DungeonProgression.CompleteEntry(true,out _,out _));
-            Assert.AreEqual(2,DungeonProgression.NextDifficulty(0));
+            Assert.IsTrue(DungeonProgression.ClaimEntry(out index,out amount));
+            Assert.AreEqual(0,index);Assert.AreEqual(100,amount);
+            Assert.AreEqual(1,DungeonProgression.Data.keys[0]);Assert.AreEqual(2,DungeonProgression.NextDifficulty(0));
+            Assert.IsFalse(DungeonProgression.ClaimEntry(out _,out _));
         }
-        [Test] public void RejectedBattleRefundsReservedKeyExactlyOnce()
+        [Test] public void RejectedBattleReleasesReservationWithoutChangingKeys()
         {
-            Assert.IsTrue(DungeonProgression.BeginEntry(2,1));
+            Assert.IsTrue(DungeonProgression.BeginEntry(2,1));Assert.AreEqual(2,DungeonProgression.Data.keys[2]);
             DungeonProgression.CancelEntry();DungeonProgression.CancelEntry();
             Assert.AreEqual(2,DungeonProgression.Data.keys[2]);
             Assert.IsFalse(DungeonProgression.CompleteEntry(true,out _,out _));
+            Assert.IsFalse(DungeonProgression.ClaimEntry(out _,out _));
         }
         [Test] public void SweepUsesPreviousToHighestClearedAndSpendsMatchingKey()
         {

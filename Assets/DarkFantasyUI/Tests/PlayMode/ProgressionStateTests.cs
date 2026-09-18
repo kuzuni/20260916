@@ -191,12 +191,12 @@ namespace Moonlit.UI.Tests
             var enter=panel.transform.Find("Enter").GetComponent<Button>();
             var sweep=panel.transform.Find("Previous").GetComponent<Button>();
             var keys=panel.transform.Find("Keys").GetComponent<Text>();
-            Assert.AreEqual("열쇠 0",keys.text);Assert.IsFalse(enter.interactable);Assert.IsFalse(sweep.interactable);
+            Assert.AreEqual("0/2",keys.text);Assert.IsFalse(enter.interactable);Assert.IsFalse(sweep.interactable);
             // Move only the recorded day back: the next tick represents crossing the KST reset boundary.
             DungeonProgression.Data.refillDay=System.DateTime.UtcNow.AddHours(9).AddDays(-1).ToString("yyyy-MM-dd");
             yield return new WaitForSecondsRealtime(1.1f);
             Assert.AreSame(panel,GameObject.Find("Dungeon detail frame"));
-            Assert.AreEqual("열쇠 2",keys.text);Assert.IsTrue(enter.interactable);Assert.IsTrue(sweep.interactable);
+            Assert.AreEqual("2/2",keys.text);Assert.IsTrue(enter.interactable);Assert.IsTrue(sweep.interactable);
             Assert.AreSame(pageScroll,GameObject.Find("Page — dungeons").GetComponentInChildren<ScrollRect>());
             Assert.AreEqual(1,host.ModalDepth);
         }
@@ -213,6 +213,36 @@ namespace Moonlit.UI.Tests
             Assert.IsFalse(DungeonProgression.CompleteEntry(true,out _,out _),"A rejected battle cannot later grant rewards.");
             Assert.IsTrue(DungeonProgression.BeginEntry(0,1),"Rejection must release the active reservation.");
             DungeonProgression.CancelEntry();
+        }
+
+        [UnityTest]
+        public IEnumerator DungeonRewardClaim_PaysOnlyOnButtonAndCannotRepeat()
+        {
+            var main=root.GetComponent<MainScreen>();
+            for(int dungeon=0;dungeon<4;dungeon++){
+                DungeonProgression.Reset();
+                DungeonProgression.Data.refillDay=System.DateTime.UtcNow.AddHours(9).ToString("yyyy-MM-dd");
+                DungeonProgression.Data.highestCleared[dungeon]=5;
+                int ore=main.ore,skill=main.skillTickets,pet=main.petTickets,mount=main.mountTickets;
+                Assert.IsTrue(DungeonProgression.BeginEntry(dungeon,6));
+                Assert.IsTrue(DungeonProgression.CompleteEntry(true,out _,out _));
+                host.Registry.Open("dungeon-reward");yield return null;
+                Assert.AreEqual(2,DungeonProgression.Data.keys[dungeon]);
+                Assert.AreEqual(5,DungeonProgression.Data.highestCleared[dungeon]);
+                Assert.AreEqual(ore,main.ore);Assert.AreEqual(skill,main.skillTickets);
+                Assert.AreEqual(pet,main.petTickets);Assert.AreEqual(mount,main.mountTickets);
+                var claim=GameObject.Find("Claim dungeon reward").GetComponent<Button>();
+                claim.onClick.Invoke();claim.onClick.Invoke();yield return null;
+                int reward=DungeonProgression.Reward(dungeon,6);
+                Assert.AreEqual(ore+(dungeon==0?reward:0),main.ore);
+                Assert.AreEqual(skill+(dungeon==1?reward:0),main.skillTickets);
+                Assert.AreEqual(pet+(dungeon==2?reward:0),main.petTickets);
+                Assert.AreEqual(mount+(dungeon==3?reward:0),main.mountTickets);
+                Assert.AreEqual(1,DungeonProgression.Data.keys[dungeon]);
+                Assert.AreEqual(6,DungeonProgression.Data.highestCleared[dungeon]);
+                Assert.IsFalse(DungeonProgression.Data.pendingClaim);
+                Assert.IsFalse(DungeonProgression.ClaimEntry(out _,out _));
+            }
         }
 
         [UnityTest]
