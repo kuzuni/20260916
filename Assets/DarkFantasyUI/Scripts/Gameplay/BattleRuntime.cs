@@ -73,8 +73,7 @@ namespace Moonlit.UI
             renderCamera.clearFlags = CameraClearFlags.SolidColor; renderCamera.backgroundColor = Color.clear;
             renderCamera.cullingMask = 1 << 30; renderCamera.nearClipPlane = .1f; renderCamera.farClipPlane = 30;
             renderCamera.allowHDR = false; renderCamera.allowMSAA = false;
-            texture = new RenderTexture(1080, 440, 16, RenderTextureFormat.ARGB32) { name = "Moonlit combat transparent viewport" };
-            texture.Create(); renderCamera.targetTexture = texture; image.texture = texture;
+            ResizeRenderTexture(view.rect.height);
             player = CreateActor("Player", -2.5f, false, out playerAnimator, out playerRelay);
             enemy = CreateActor("Enemy (temporary Player prefab)", 2.5f, true, out enemyAnimator, out enemyRelay);
             appearance = player.AddComponent<CombatAppearance>(); appearance.Initialize(assets);
@@ -120,6 +119,7 @@ namespace Moonlit.UI
             actionText.gameObject.SetActive(height >= 150);
             if (renderCamera)
             {
+                ResizeRenderTexture(height);
                 renderCamera.orthographicSize = Mathf.Max(2, height / 200f);
                 renderCamera.aspect = 1080 / height;
                 // Compact Safe Areas must keep the complete 2.55-unit actor (plus skill lift) in frame.
@@ -127,6 +127,19 @@ namespace Moonlit.UI
             }
             if (appearance) appearance.Refresh(ForgeState.Current.equipped);
             RefreshHealth();
+        }
+        void ResizeRenderTexture(float height)
+        {
+            // Tall screens expose more battlefield; rasterize its actual height instead of enlarging 440 rows.
+            int pixelsHigh = Mathf.Clamp(Mathf.CeilToInt(height), 64, 2048);
+            if (texture && texture.height == pixelsHigh) return;
+            var previous = texture;
+            texture = new RenderTexture(1080, pixelsHigh, 16, RenderTextureFormat.ARGB32) {
+                name = "Moonlit combat transparent viewport", filterMode = FilterMode.Bilinear
+            };
+            texture.Create();
+            renderCamera.targetTexture = texture; image.texture = texture;
+            if (previous) { previous.Release(); Destroy(previous); }
         }
         CombatActorState BuildPlayer()
         {
