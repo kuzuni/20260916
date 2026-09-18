@@ -102,7 +102,7 @@ namespace Moonlit.UI.Tests
         }
 
         [UnityTest]
-        public IEnumerator ThreeEquippedPetsAndEachMountFollowPlayerAndRestoreOnUnequip()
+        public IEnumerator ThreeWholePngPetsAndEachStaticMountFollowPlayerAndRestoreOnUnequip()
         {
             var previous=CollectionProgression.Data;
             var root=new GameObject("Companion equipped fixture",typeof(RectTransform));
@@ -126,6 +126,10 @@ namespace Moonlit.UI.Tests
                 foreach(var pet in system.Pets)
                 {
                     Assert.Less(pet.transform.position.x,actor.position.x);
+                    Assert.AreEqual(1,pet.GetComponentsInChildren<SpriteRenderer>().Length);
+                    Assert.IsEmpty(pet.GetComponentsInChildren<SpriteSkin>());
+                    Assert.IsEmpty(pet.GetComponentsInChildren<Animator>());
+                    Assert.IsFalse(pet.Illustration.flipX);
                     Assert.IsNotNull(pet.transform.parent.Find(pet.name+" ground shadow"));
                 }
                 for(int variant=0;variant<3;variant++)
@@ -134,6 +138,10 @@ namespace Moonlit.UI.Tests
                     system.RefreshEquipped();
                     yield return null;yield return null;
                     Assert.IsNotNull(system.Mount);
+                    Assert.AreEqual(1,system.Mount.GetComponentsInChildren<SpriteRenderer>().Length);
+                    Assert.IsEmpty(system.Mount.GetComponentsInChildren<SpriteSkin>());
+                    Assert.IsEmpty(system.Mount.GetComponentsInChildren<Animator>());
+                    Assert.AreSame(FlatCompanionCatalog.Icon(2,0,variant),system.Mount.Illustration.sprite);
                     Vector3 saddle=system.Mount.saddle.position,hip=system.RiderHip.position;
                     Assert.AreEqual(saddle.x,hip.x,.02f);Assert.AreEqual(saddle.y,hip.y,.02f);
                     Assert.IsFalse(actor.parent.Find(actor.name+" ground shadow").gameObject.activeSelf);
