@@ -325,6 +325,8 @@ namespace Moonlit.UI.Tests
                 Assert.That(title.anchoredPosition.x+title.rect.width/2,Is.EqualTo(540).Within(.1f));
                 var wallet=GameObject.Find("Summon wallet").GetComponent<RectTransform>();
                 Assert.Less(wallet.anchoredPosition.x+wallet.rect.width,title.anchoredPosition.x);
+                var diamonds=GameObject.Find("Summon diamond wallet").GetComponent<RectTransform>();
+                Assert.Greater(diamonds.anchoredPosition.x,title.anchoredPosition.x+title.rect.width);
                 Assert.Less(-wallet.anchoredPosition.y,120);
                 Assert.IsNotNull(GameObject.Find("Summon currency icon").GetComponent<Image>().sprite);
                 var equipped=GameObject.Find("Equipped panel").GetComponent<RectTransform>();
@@ -516,6 +518,121 @@ namespace Moonlit.UI.Tests
             layer.GetComponentsInChildren<Button>().Single(b=>b.name=="Next level").onClick.Invoke();
             Assert.AreEqual("7/43",ChildText(layer.transform,"Value").text);
             Assert.IsTrue(ChildText(layer.transform,"Probability title").text.Contains("13"));
+        }
+
+        [UnityTest]
+        public IEnumerator SummonBatchCapRequiresConfirmationAndChargesOnlyTheRemainingThirty()
+        {
+            foreach(int height in new[]{1920,2280}){
+                CollectionProgression.Reset();
+                var category=CollectionProgression.Data.categories[0];category.summonLevel=99;category.experience=70;
+                var main=root.GetComponent<MainScreen>();main.skillTickets=2;main.gems=2800;
+                host.SetPreviewMetrics(new Vector2Int(1080,height),new Rect(36,84,1008,height-168));
+                host.Registry.Open("skills-pets-heroes");yield return null;
+                var quantity=GameObject.Find("Summon quantity").GetComponent<Button>();
+                foreach(int expected in new[]{10,20,50,100,500}){
+                    quantity.onClick.Invoke();Assert.AreEqual("x"+expected,quantity.GetComponentInChildren<Text>().text);
+                }
+                Assert.LessOrEqual(quantity.GetComponentInChildren<Text>().preferredWidth,((RectTransform)quantity.transform).rect.width);
+                Assert.AreEqual("2,800",GameObject.Find("Summon diamond balance").GetComponent<Text>().text);
+                var summon=GameObject.Find("Summon five").GetComponent<Button>();
+                summon.onClick.Invoke();yield return null;
+                Assert.AreEqual(1,host.ModalDepth);Assert.AreEqual(2,main.skillTickets);Assert.AreEqual(2800,main.gems);
+                StringAssert.Contains("30개",GameObject.Find("Limited summon quantity").GetComponent<Text>().text);
+                StringAssert.Contains("스킬 소환권 2 + 다이아 2800",GameObject.Find("Limited summon cost").GetComponent<Text>().text);
+                Assert.IsNull(GameObject.Find("Summon result cards"));
+                GameObject.Find("Cancel limited summon").GetComponent<Button>().onClick.Invoke();yield return null;
+                Assert.AreEqual(70,category.experience);Assert.AreEqual(2,main.skillTickets);
+                summon.onClick.Invoke();yield return null;
+                var confirm=GameObject.Find("Confirm limited summon").GetComponent<Button>();
+                confirm.onClick.Invoke();confirm.onClick.Invoke();yield return null;
+                Assert.AreEqual(1,host.ModalDepth);Assert.AreEqual(30,ResultNames().Length);
+                Assert.AreEqual(0,main.skillTickets);Assert.AreEqual(0,main.gems);Assert.AreEqual(100,category.summonLevel);
+                host.CloseTop();yield return null;
+                Assert.IsFalse(summon.interactable);Assert.IsNull(GameObject.Find("Summon experience"));
+                var ascend=GameObject.Find("Ascend collection").GetComponent<Button>();Assert.IsTrue(ascend.interactable);
+                host.Registry.ShowMainPage();yield return null;
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator FiveHundredResultsScrollToLastCardAndFinishTheirRevealWithinOneAndHalfSeconds()
+        {
+            var main=root.GetComponent<MainScreen>();main.skillTickets=500;
+            host.Registry.Open("skills-pets-heroes");yield return null;
+            var quantity=GameObject.Find("Summon quantity").GetComponent<Button>();
+            for(int i=0;i<5;i++)quantity.onClick.Invoke();
+            Assert.AreEqual("x500",quantity.GetComponentInChildren<Text>().text);
+            GameObject.Find("Summon five").GetComponent<Button>().onClick.Invoke();
+            var results=GameObject.Find("Summon result cards");
+            var reveal=results.GetComponent<SummonRevealAnimation>();
+            var sequence=(DG.Tweening.Sequence)typeof(SummonRevealAnimation).GetField("sequence",
+                System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Instance).GetValue(reveal);
+            DG.Tweening.TweenExtensions.Pause(sequence);
+            Assert.LessOrEqual(DG.Tweening.TweenExtensions.Duration(sequence,false),1.5f);
+            Assert.AreEqual(500,ResultNames().Length);Assert.AreEqual(0,main.skillTickets);
+            DG.Tweening.TweenExtensions.GotoWithCallbacks(sequence,2f);
+            Assert.IsTrue(results.GetComponentsInChildren<CanvasGroup>().All(card=>card.alpha>=.999f&&card.interactable));
+            var scroll=GameObject.Find("Summon results scroll").GetComponent<ScrollRect>();
+            Assert.IsTrue(scroll.vertical);Assert.IsFalse(scroll.horizontal);
+            Canvas.ForceUpdateCanvases();scroll.verticalNormalizedPosition=0;Canvas.ForceUpdateCanvases();yield return null;
+            var last=results.transform.Find("Result card 499").GetComponent<RectTransform>();
+            Assert.IsTrue(scroll.viewport.rect.Contains(scroll.viewport.InverseTransformPoint(last.TransformPoint(last.rect.center))));
+        }
+
+        [UnityTest]
+        public IEnumerator AscensionHidesCapExperienceResetsOnlySelectedCategoryAndShowsStarsInCollectionsAndResults()
+        {
+            var main=root.GetComponent<MainScreen>();main.petTickets=5;
+            var skill=CollectionProgression.Data.categories[0];skill.entries[0].unlocked=true;
+            var pet=CollectionProgression.Data.categories[1];pet.summonLevel=100;pet.entries[0].unlocked=true;
+            CollectionProgression.Equip(pet.entries[0],0);
+            host.Registry.Open("skills-pets-heroes");yield return null;
+            GameObject.Find("Tab 펫").GetComponent<Button>().onClick.Invoke();
+            GameObject.Find("Probability").GetComponent<Button>().onClick.Invoke();yield return null;
+            var popup=GameObject.Find("Popup Layer summon-probability");
+            Assert.IsFalse(popup.GetComponentsInChildren<Text>().Any(text=>text.name=="Value"));
+            var ascend=GameObject.Find("Ascend summon category").GetComponent<Button>();Assert.IsTrue(ascend.interactable);
+            ascend.onClick.Invoke();ascend.onClick.Invoke();yield return null;
+            pet=CollectionProgression.Data.categories[1];
+            Assert.AreEqual(1,pet.ascension);Assert.AreEqual(1,pet.summonLevel);
+            Assert.IsTrue(pet.entries.All(entry=>!entry.unlocked));Assert.IsTrue(pet.equipped.All(id=>id==-1));
+            Assert.AreSame(skill,CollectionProgression.Data.categories[0]);Assert.IsTrue(skill.entries[0].unlocked);
+            Assert.IsNotNull(GameObject.Find("Empty collection"));
+            GameObject.Find("Summon five").GetComponent<Button>().onClick.Invoke();yield return null;
+            var stars=GameObject.Find("Summon result cards").GetComponentsInChildren<Text>().Where(text=>text.name=="Collection stars").ToArray();
+            Assert.AreEqual(5,stars.Length);Assert.IsTrue(stars.All(text=>text.text=="★"));
+            host.CloseTop();yield return null;
+            stars=GameObject.Find("Tab content").GetComponentsInChildren<Text>().Where(text=>text.name=="Collection stars").ToArray();
+            Assert.Greater(stars.Length,0);Assert.IsTrue(stars.All(text=>text.text=="★"));
+            pet.ascension=3;pet.summonLevel=100;
+            GameObject.Find("Tab 펫").GetComponent<Button>().onClick.Invoke();
+            Assert.AreEqual("만렙",GameObject.Find("Ascend collection").GetComponentInChildren<Text>().text);
+            Assert.IsFalse(GameObject.Find("Ascend collection").GetComponent<Button>().interactable);
+            GameObject.Find("Tab 스킬").GetComponent<Button>().onClick.Invoke();
+            Assert.IsFalse(GameObject.Find("Tab content").GetComponentsInChildren<Text>().Any(text=>text.name=="Collection stars"));
+        }
+
+        [UnityTest]
+        public IEnumerator CollectionAndDungeonActionDotsTrackAvailableActions()
+        {
+            var main=root.GetComponent<MainScreen>();main.skillTickets=5;
+            var entry=CollectionProgression.Data.categories[0].entries[0];entry.unlocked=true;entry.fragments=2;
+            host.Registry.Open("skills-pets-heroes");yield return null;
+            foreach(string name in new[]{"Upgrade all","Quick equip","Summon five"})
+                Assert.IsTrue(GameObject.Find(name).transform.Find("Notification").gameObject.activeSelf);
+            GameObject.Find("Upgrade all").GetComponent<Button>().onClick.Invoke();
+            GameObject.Find("Quick equip").GetComponent<Button>().onClick.Invoke();
+            Assert.IsFalse(GameObject.Find("Upgrade all").transform.Find("Notification").gameObject.activeSelf);
+            Assert.IsFalse(GameObject.Find("Quick equip").transform.Find("Notification").gameObject.activeSelf);
+            main.skillTickets=0;GameObject.Find("Tab 스킬").GetComponent<Button>().onClick.Invoke();
+            Assert.IsFalse(GameObject.Find("Summon five").transform.Find("Notification").gameObject.activeSelf);
+            host.Registry.ShowMainPage();yield return null;
+            DungeonProgression.Data.refillDay=System.DateTime.UtcNow.AddHours(9).ToString("yyyy-MM-dd");
+            DungeonProgression.Data.keys=new[]{0,1,0,2};
+            host.Registry.Open("dungeons");yield return null;
+            var opens=GameObject.Find("Page — dungeons").GetComponentsInChildren<Button>().Where(button=>button.name=="Open").ToArray();
+            for(int i=0;i<4;i++)Assert.AreEqual(DungeonProgression.Data.keys[i]>0,opens[i].transform.Find("Notification").gameObject.activeSelf);
         }
 
         [UnityTest]

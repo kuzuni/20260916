@@ -47,29 +47,89 @@ namespace Moonlit.UI.Tests
             Assert.AreEqual(100,category.ExperienceRequired);category.experience=99;category.AddExperience();
             Assert.AreEqual(61,category.summonLevel);Assert.AreEqual(0,category.experience);
         }
-        [TestCase(99)]
-        [TestCase(100)]
-        [TestCase(101)]
-        [TestCase(1000)]
-        public void SummonsKeepEarningAndSpendingExperiencePastLevelHundred(int startingLevel)
+        [Test] public void SummonsStopAtHundredAndRequireExactConfirmedQuantityBeforeCharging()
         {
-            var category=CollectionProgression.Data.categories[2];
-            category.summonLevel=startingLevel;category.experience=98;
-            var random=new Random(12);
-            Assert.AreEqual(100,category.ExperienceRequired);
-            CollectionProgression.Summon(2,1,random);
-            Assert.AreEqual(startingLevel,category.summonLevel);
-            Assert.AreEqual(99,category.experience);
-            CollectionProgression.Summon(2,1,random);
-            Assert.AreEqual(startingLevel+1,category.summonLevel);
-            Assert.AreEqual(0,category.experience,"Level-up must spend precisely 100 XP.");
-            CollectionProgression.Summon(2,1,random);
-            Assert.AreEqual(1,category.experience,"The next summon must earn XP at every new level.");
-            Assert.AreEqual(3,category.entries.Sum(entry=>entry.fragments));
+            var category=CollectionProgression.Data.categories[2];category.summonLevel=99;category.experience=70;
+            int tickets=2,diamonds=2800;var random=new Random(12);
+            Assert.AreEqual(30,category.RemainingSummons);Assert.AreEqual(30,CollectionProgression.SummonQuantity(2,500));
+            Assert.IsFalse(CollectionProgression.TrySummon(2,500,ref tickets,ref diamonds,random,out var rejected));
+            Assert.IsEmpty(rejected);Assert.AreEqual(2,tickets);Assert.AreEqual(2800,diamonds);
+            Assert.AreEqual(70,category.experience);Assert.IsTrue(category.entries.All(e=>!e.unlocked));
+            Assert.IsTrue(CollectionProgression.TrySummon(2,30,ref tickets,ref diamonds,random,out var result));
+            Assert.AreEqual(30,result.Length);Assert.AreEqual(30,category.entries.Sum(e=>e.fragments));
+            Assert.AreEqual(0,tickets);Assert.AreEqual(0,diamonds);Assert.AreEqual(100,category.summonLevel);
+            Assert.AreEqual(0,category.experience);Assert.IsFalse(category.CanSummon);Assert.IsTrue(category.CanAscend);
+            tickets=500;diamonds=10000;
+            Assert.IsFalse(CollectionProgression.TrySummon(2,1,ref tickets,ref diamonds,random,out _));
+            Assert.AreEqual(500,tickets);Assert.AreEqual(10000,diamonds);
+            category.AddExperience();Assert.AreEqual(0,category.experience);
             Assert.AreEqual(1,CollectionProgression.Data.categories[0].summonLevel);
-            CollectionAssert.AreEqual(CollectionProgression.Probabilities(100),
-                CollectionProgression.Probabilities(category.summonLevel),
-                "Levels beyond 100 retain the highest configured probability distribution.");
+        }
+        [Test] public void FiveHundredSummonsGrantFiveHundredCopiesWithoutChargingExtra()
+        {
+            int tickets=30,diamonds=47000;
+            Assert.IsTrue(CollectionProgression.TrySummon(0,500,ref tickets,ref diamonds,new Random(7),out var result));
+            Assert.AreEqual(500,result.Length);Assert.AreEqual(500,CollectionProgression.Data.categories[0].entries.Sum(e=>e.fragments));
+            Assert.AreEqual(0,tickets);Assert.AreEqual(0,diamonds);
+        }
+        [TestCase(0)]
+        [TestCase(1)]
+        [TestCase(2)]
+        public void AscensionResetsOnlyItsCategoryAndEachPrimitiveBenefitDoublesPriorCelestialHundred(int category)
+        {
+            var other=CollectionProgression.Data.categories[(category+1)%3];other.entries[0].unlocked=true;other.experience=7;
+            Assert.IsFalse(CollectionProgression.Ascend(category));
+            for(int star=1;star<=3;star++){
+                var before=CollectionProgression.Data.categories[category];before.summonLevel=100;
+                var old=before.entries.Skip(27).ToArray();
+                foreach(var entry in old){entry.unlocked=true;entry.level=100;entry.fragments=20;}
+                CollectionProgression.Equip(old[0],0);
+                double[] hp=old.Select(e=>e.OwnedHealth).ToArray(),attack=old.Select(e=>e.OwnedAttack).ToArray();
+                double heal=old[0].FixedHeal,buff=old[0].FixedAttackBoost,weak=old[1].FixedDamage,strong=old[2].FixedDamage;
+                double equippedHp=old[0].EquippedHealth,equippedAttack=old[0].EquippedAttack;
+                Assert.IsTrue(CollectionProgression.Ascend(category));
+                var after=CollectionProgression.Data.categories[category];
+                Assert.AreEqual(star,after.ascension);Assert.AreEqual(1,after.summonLevel);Assert.AreEqual(0,after.experience);
+                Assert.IsTrue(after.entries.All(e=>e.ascension==star&&e.level==1&&!e.unlocked&&e.fragments==0));
+                Assert.IsTrue(after.equipped.All(id=>id==-1));Assert.IsFalse(CollectionProgression.Equip(old[0],0));
+                Assert.AreSame(other,CollectionProgression.Data.categories[(category+1)%3]);Assert.AreEqual(7,other.experience);
+                for(int i=0;i<3;i++){
+                    Assert.That(after.entries[i].OwnedHealth,Is.EqualTo(hp[i]*2).Within(Math.Abs(hp[i])*1e-10));
+                    Assert.That(after.entries[i].OwnedAttack,Is.EqualTo(attack[i]*2).Within(Math.Abs(attack[i])*1e-10));
+                }
+                Assert.That(after.entries[0].EquippedHealth,Is.EqualTo(equippedHp*2).Within(Math.Max(1,Math.Abs(equippedHp))*1e-10));
+                Assert.That(after.entries[0].EquippedAttack,Is.EqualTo(equippedAttack*2).Within(Math.Max(1,Math.Abs(equippedAttack))*1e-10));
+                Assert.That(after.entries[0].FixedHeal,Is.EqualTo(heal*2).Within(Math.Max(1,Math.Abs(heal))*1e-10));
+                Assert.That(after.entries[0].FixedAttackBoost,Is.EqualTo(buff*2).Within(Math.Max(1,Math.Abs(buff))*1e-10));
+                Assert.That(after.entries[1].FixedDamage,Is.EqualTo(weak*2).Within(Math.Max(1,Math.Abs(weak))*1e-10));
+                Assert.That(after.entries[2].FixedDamage,Is.EqualTo(strong*2).Within(Math.Max(1,Math.Abs(strong))*1e-10));
+            }
+            CollectionProgression.Data.categories[category].summonLevel=100;
+            Assert.IsFalse(CollectionProgression.Data.categories[category].CanAscend);Assert.IsFalse(CollectionProgression.Ascend(category));
+        }
+        [Test] public void AscensionSaveRestoresStarsAndNormalizesFormerUnboundedLevels()
+        {
+            var category=CollectionProgression.Data.categories[1];category.summonLevel=100;
+            Assert.IsTrue(CollectionProgression.Ascend(1));category=CollectionProgression.Data.categories[1];
+            category.entries[2].unlocked=true;category.entries[2].level=7;category.entries[2].fragments=3;
+            CollectionProgression.Equip(category.entries[2],0);category.summonLevel=101;category.experience=12;
+            string json=UnityEngine.JsonUtility.ToJson(CollectionProgression.Data);CollectionProgression.Reset();
+            UnityEngine.JsonUtility.FromJsonOverwrite(json,CollectionProgression.Data);CollectionProgression.NormalizeAfterLoad();
+            category=CollectionProgression.Data.categories[1];
+            Assert.AreEqual(1,category.ascension);Assert.AreEqual(1,category.entries[2].ascension);
+            Assert.AreEqual(7,category.entries[2].level);Assert.AreEqual(3,category.entries[2].fragments);
+            Assert.AreEqual(2,category.equipped[0]);Assert.AreEqual(100,category.summonLevel);Assert.AreEqual(0,category.experience);
+        }
+        [Test] public void UpgradeAndQuickEquipAlertsReportAnActualAvailableImprovement()
+        {
+            Assert.IsFalse(CollectionProgression.HasUpgrade(1));Assert.IsFalse(CollectionProgression.HasBetterEquip(1));
+            var pet=CollectionProgression.Data.categories[1].entries[0];pet.unlocked=true;
+            Assert.IsTrue(CollectionProgression.HasBetterEquip(1));CollectionProgression.QuickEquip(1);
+            Assert.IsFalse(CollectionProgression.HasBetterEquip(1));
+            pet.fragments=2;Assert.IsTrue(CollectionProgression.HasUpgrade(1));Assert.IsTrue(pet.Upgrade());
+            Assert.IsFalse(CollectionProgression.HasUpgrade(1));Assert.IsFalse(CollectionProgression.HasBetterEquip(1));
+            CollectionProgression.Data.categories[1].entries[29].unlocked=true;
+            Assert.IsTrue(CollectionProgression.HasBetterEquip(1));
         }
         [Test] public void StatRatiosUseSharedEquipmentBalanceAndScaleAtLevelHundred()
         {

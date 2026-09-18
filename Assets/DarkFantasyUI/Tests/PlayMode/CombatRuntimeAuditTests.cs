@@ -262,6 +262,59 @@ namespace Moonlit.UI.Tests
             yield return null;
         }
 
+        static Rect WorldRect(RectTransform rect)
+        {
+            var corners=new Vector3[4];rect.GetWorldCorners(corners);
+            return Rect.MinMaxRect(corners[0].x,corners[0].y,corners[2].x,corners[2].y);
+        }
+
+        [UnityTest]
+        public IEnumerator CompactHeadBarsAndLargeAmountsAvoidStageRoundAndWaveNodes()
+        {
+            bool reproducedOldOverlap=false;
+            foreach(float height in new[]{1720f,1920f,2280f})
+            using(var fixture=new Fixture(height))
+            {
+                fixture.main.stageText=Ui.Text("Stage title",fixture.root.transform,290,146,500,58,"스테이지 2",45,fixture.main.font);
+                fixture.main.roundText=Ui.Text("Battle round",fixture.root.transform,290,258,500,48,"라운드 15/15",26,fixture.main.font);
+                fixture.main.waveNodes=new UnityEngine.UI.Image[3];
+                for(int n=0;n<3;n++) fixture.main.waveNodes[n]=Ui.Image("Wave "+n,fixture.root.transform,402+n*127,219,22,22,null,Color.cyan);
+                var animator=(Animator)typeof(BattleRuntime).GetField("playerAnimator",PrivateInstance).GetValue(fixture.battle);
+                animator.Play("Basic",0,0);animator.Update(0);animator.Update(.36f);animator.speed=0;
+                yield return null;
+                typeof(BattleRuntime).GetMethod("LateUpdate",PrivateInstance).Invoke(fixture.battle,null);
+                var areas=(Rect[])typeof(BattleRuntime).GetField("protectedHudAreas",PrivateInstance).GetValue(fixture.battle);
+                foreach(var hud in new[]{fixture.battle.PlayerHud,fixture.battle.EnemyHud})
+                {
+                    hud.SetProtectedAreas(null);
+                    typeof(CombatWorldHud).GetMethod("LateUpdate",PrivateInstance).Invoke(hud,null);
+                    reproducedOldOverlap |= areas.Any(area=>area.Overlaps(WorldRect((RectTransform)hud.transform)));
+                    hud.SetProtectedAreas(areas);
+                    typeof(CombatWorldHud).GetMethod("LateUpdate",PrivateInstance).Invoke(hud,null);
+                    foreach(var area in areas)
+                        Assert.IsFalse(area.Overlaps(WorldRect((RectTransform)hud.transform)),"Head HP must avoid stage text at "+height);
+                    Assert.AreEqual(48,((RectTransform)hud.transform.Find("Health fill")).rect.height);
+                    // Step each phase of the real number coroutine so slow cloud frames cannot hide overlap.
+                    var amount=(IEnumerator)typeof(CombatWorldHud).GetMethod("FloatNumber",PrivateInstance)
+                        .Invoke(hud,new object[]{"+16k",Color.green});
+                    Assert.IsTrue(amount.MoveNext());
+                    var number=hud.transform.parent.Find(hud==fixture.battle.PlayerHud?"Player damage number":"Enemy damage number");
+                    var label=number.GetComponentInChildren<UnityEngine.UI.Text>();
+                    for(int frame=0;frame<4;frame++)
+                    {
+                        float halfWidth=(label.preferredWidth+24)*number.localScale.x/2;
+                        var rendered=new Rect(number.position.x-halfWidth,number.position.y-.8f,halfWidth*2,1.6f);
+                        foreach(var area in areas)
+                            Assert.IsFalse(area.Overlaps(rendered),"Large amount must avoid wave nodes at "+height);
+                        yield return null;
+                        if(!amount.MoveNext())break;
+                    }
+                    Assert.AreEqual(117,label.fontSize,"Readability fix must not shrink the requested amount size.");
+                }
+            }
+            Assert.IsTrue(reproducedOldOverlap,"This fixture must reproduce the actual compact HUD regression before avoidance.");
+        }
+
         [UnityTest]
         public IEnumerator CompactSafeAreaKeepsEntireActorAndHudInsideBattleView()
         {

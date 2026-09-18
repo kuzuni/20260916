@@ -27,6 +27,7 @@ namespace Moonlit.UI
             registry.Register("summon-probability", ScreenPresentation.Modal, BuildProbability, false);
             registry.Register("summon-probability-details", ScreenPresentation.Modal, BuildProbabilityDetails, false);
             registry.Register("summon-result", ScreenPresentation.Fullscreen, BuildSummonResult, false);
+            registry.Register("summon-limit-confirm", ScreenPresentation.Modal, BuildSummonLimit, false);
             registry.Register("dungeons", ScreenPresentation.Page, BuildDungeons, false);
             registry.Register("dungeon-details", ScreenPresentation.Modal, BuildDungeonDetails, false);
         }
@@ -37,13 +38,16 @@ namespace Moonlit.UI
             public RectTransform root, equipped, grid, experience, costRoot;
             public Image currencyIcon;
             public ScrollRect scroll;
-            public Text title, summary, currency, level, summonLabel, quantityLabel;
-            public Button summon;
+            public Text title, summary, currency, diamonds, level, summonLabel, quantityLabel;
+            public Button summon, ascend;
+            public GameObject upgradeDot,equipDot,summonDot;
             public Button[] tabs = new Button[3];
             public readonly List<Action> refreshCards = new List<Action>();
         }
         sealed class ProbabilityPayload { public int category, level; }
         sealed class DetailPayload { public CollectionEntry entry; public Action refresh; }
+        sealed class SummonLimit { public CollectionView view; public int quantity; }
+        static readonly int[] SummonBatches={1,5,10,20,50,100,500};
         sealed class SummonSession { public int category; public CollectionEntry[] results; public bool[] fresh; public CollectionView parent; }
         static int Tickets(MainScreen main, int category) => category == 0 ? main.skillTickets : category == 1 ? main.petTickets : main.mountTickets;
         static void SetTickets(MainScreen main, int category, int amount)
@@ -58,6 +62,10 @@ namespace Moonlit.UI
             view.currencyIcon=Ui.ArtImage("Summon currency icon",wallet,0,-4,64,64,TicketIcon(view.tab));
             view.currencyIcon.preserveAspect=true;
             view.currency=Ui.Text("Currency",wallet,65,0,170,60,"",27,font);
+            var diamondWallet=PopupSkin.Panel("Summon diamond wallet",ctx.Root,812,46,240,60).rectTransform;
+            var diamond=ctx.Assets.interfaceIcons!=null&&ctx.Assets.interfaceIcons.Length>1?ctx.Assets.interfaceIcons[1]:PopupSkin.RewardIcon(1);
+            Ui.ArtImage("Summon diamond balance icon",diamondWallet,0,-4,64,64,diamond).preserveAspect=true;
+            view.diamonds=Ui.Text("Summon diamond balance",diamondWallet,65,0,170,60,"",27,font);
             var summary=PopupSkin.Panel("Collection summary frame",ctx.Root,110,120,860,64).rectTransform;
             view.summary=Ui.Text("Summary",summary,16,0,828,64,"",24,font);
             float equippedY = ctx.Height - 840;
@@ -68,21 +76,24 @@ namespace Moonlit.UI
             var equippedLabel=Ui.Text("Equipped label",equipped,8,30,204,49,"장착됨",30,font,new Color(.06f,.045f,.025f));
             equippedLabel.GetComponent<Outline>().effectColor=new Color(1,1,1,.2f);
             view.equipped=Ui.Rect("Equipped skills",equipped,350,8,540,126);
-            PopupSkin.Button("Upgrade all",ctx.Root,240,equippedY+162,285,86,"모두 업그레이드",font,()=>{
+            var upgradeAll=PopupSkin.Button("Upgrade all",ctx.Root,240,equippedY+162,285,86,"모두 업그레이드",font,()=>{
                 int count=0; foreach(var entry in CollectionProgression.Data.categories[view.tab].entries) if(entry.Upgrade()) count++;
                 RefreshCollection(view); ctx.Main.Refresh(); ctx.Toast(count>0?count+"개 업그레이드":"조각이 부족하거나 최대 레벨입니다.");
             },Blue,25);
-            PopupSkin.Button("Quick equip",ctx.Root,550,equippedY+162,285,86,"빠른 장착",font,()=>{
+            var quickEquip=PopupSkin.Button("Quick equip",ctx.Root,550,equippedY+162,285,86,"빠른 장착",font,()=>{
                 CollectionProgression.QuickEquip(view.tab); RefreshCollection(view); ctx.Main.Refresh(); ctx.Toast("보유한 "+CollectionProgression.CategoryNames[view.tab]+" 편성을 갱신했습니다.");
             },Blue,28);
+            view.upgradeDot=RewardNotificationDots.Create(upgradeAll.transform,265,-7,27,RewardNotificationDots.Circle(ctx.Main));
+            view.equipDot=RewardNotificationDots.Create(quickEquip.transform,265,-7,27,RewardNotificationDots.Circle(ctx.Main));
             float summonY=ctx.Height-540;
             PopupSkin.Panel("Summon rail",ctx.Root,0,summonY-24,1080,206);
             var summon=PopupSkin.Button("Summon five",ctx.Root,330,summonY,390,154,"",font,()=>Summon(ctx,view),Blue,30);
             view.summon=summon;
+            view.summonDot=RewardNotificationDots.Create(summon.transform,366,-7,27,RewardNotificationDots.Circle(ctx.Main));
             view.summonLabel=Ui.Text("Summon label",summon.transform,8,4,374,65,"",40,font);
             view.costRoot=Ui.Rect("Summon cost row",summon.transform,18,76,354,64);
-            var quantity=PopupSkin.Button("Summon quantity",ctx.Root,216,summonY+90,96,64,"x5",font,()=>{
-                view.quantity=view.quantity==1?5:view.quantity==5?10:1; RefreshCollection(view);
+            var quantity=PopupSkin.Button("Summon quantity",ctx.Root,180,summonY+90,132,64,"x5",font,()=>{
+                view.quantity=SummonBatches[(Array.IndexOf(SummonBatches,view.quantity)+1)%SummonBatches.Length]; RefreshCollection(view);
             },Blue,27); view.quantityLabel=quantity.GetComponentInChildren<Text>();
             PopupSkin.Back("Return to main",ctx.Root,28,summonY+68,82,font,ctx.Close,true);
             PopupSkin.Button("Probability",ctx.Root,802,summonY,62,62,"i",font,()=>{
@@ -90,6 +101,9 @@ namespace Moonlit.UI
             },Stone,30);
             view.level=Ui.Text("Summon level",ctx.Root,744,summonY+64,200,42,"",26,font);
             view.experience=Ui.Rect("Summon experience",ctx.Root,744,summonY+115,200,36);
+            view.ascend=PopupSkin.Button("Ascend collection",ctx.Root,744,summonY+111,200,48,"승천하기",font,()=>{
+                AscendCollection(ctx,view.tab);RefreshCollection(view);
+            },Blue,24);
             for(int i=0;i<3;i++){
                 int tab=i; string title=CollectionProgression.CategoryNames[i];
                 view.tabs[i]=PopupSkin.Button("Tab "+title,ctx.Root,48+i*328,ctx.Height-320,328,74,title,font,()=>{
@@ -97,6 +111,7 @@ namespace Moonlit.UI
                 },Blue,29);
             }
             RenderCollection(view);
+            var ticker=ctx.Root.gameObject.AddComponent<ProgressionTick>();ticker.tick=()=>RefreshCollection(view);
         }
         static void RenderCollection(CollectionView view,bool resetScroll=true)
         {
@@ -126,10 +141,20 @@ namespace Moonlit.UI
             view.summary.text="보유 효과  체력 +"+Number(health)+"  공격력 +"+Number(attack);
             int tickets=Tickets(view.context.Main,view.tab),use=Math.Min(tickets,view.quantity),diamonds=(view.quantity-use)*100;
             view.currency.text=tickets.ToString(); view.currencyIcon.sprite=TicketIcon(view.tab);
-            RenderSummonCost(view,use,diamonds);
-            view.summonLabel.text="소환 x"+view.quantity; view.quantityLabel.text="x"+view.quantity;
+            view.diamonds.text=view.context.Main.gems.ToString("N0");
+            RenderSummonCost(view,category.CanSummon?use:0,category.CanSummon?diamonds:0);
+            view.summon.interactable=category.CanSummon;
+            view.upgradeDot.SetActive(CollectionProgression.HasUpgrade(view.tab));
+            view.equipDot.SetActive(CollectionProgression.HasBetterEquip(view.tab));
+            int availableTickets=tickets,availableDiamonds=view.context.Main.gems;
+            bool affordable=CollectionProgression.PaySummon(CollectionProgression.SummonQuantity(view.tab,view.quantity),ref availableTickets,ref availableDiamonds);
+            view.summonDot.SetActive(CollectionProgression.CanSummonWithTickets(view.context.Main,view.tab)&&affordable);
+            view.summonLabel.text=category.CanSummon?"소환 x"+view.quantity:"소환 레벨 최대"; view.quantityLabel.text="x"+view.quantity;
             view.level.text="소환 Lv."+category.summonLevel; ClearChildren(view.experience);
-            Progress(view.experience,0,0,200,36,category.experience/(float)category.ExperienceRequired,
+            view.experience.gameObject.SetActive(category.CanSummon);
+            view.ascend.gameObject.SetActive(!category.CanSummon);view.ascend.interactable=category.CanAscend;
+            view.ascend.GetComponentInChildren<Text>().text=category.CanAscend?"승천하기":"만렙";
+            if(category.CanSummon)Progress(view.experience,0,0,200,36,category.experience/(float)category.ExperienceRequired,
                 category.experience+"/"+category.ExperienceRequired,view.context.Assets.font);
             for(int i=0;i<3;i++) PopupSkin.Select(view.tabs[i],i==view.tab);
             foreach(var refresh in view.refreshCards) refresh();
@@ -154,6 +179,11 @@ namespace Moonlit.UI
                 "아트 보류",Mathf.RoundToInt(size*.11f),font);
             var frame=Ui.ArtImage("Slot frame",button.transform,0,0,size,size,SkillRing);
             frame.color=EquipmentRules.TierColor(entry.grade); frame.preserveAspect=true; button.targetGraphic=frame;
+            if(!compact){
+                var stars=Ui.Text("Collection stars",button.transform,0,0,size,size*.16f,
+                    entry.ascension>0?new string('★',entry.ascension):"",Mathf.RoundToInt(size*.12f),font,Ui.Gold);
+                stars.gameObject.SetActive(entry.ascension>0);
+            }
             Text level=null,owned=null,fragments=null,badge=null;
             Image ownershipLock=null,badgeRibbon=null;
             if(!probability){
@@ -230,19 +260,53 @@ namespace Moonlit.UI
             },Stone,25);
             Close(panel,410,h-48,font,ctx.Close);refresh();
         }
+        static void AscendCollection(ScreenContext ctx,int category)
+        {
+            if(!CollectionProgression.Ascend(category))return;
+            if(activeCollection!=null && activeCollection.root && activeCollection.tab==category)RenderCollection(activeCollection);
+            ctx.Main.Refresh();ctx.Main.SaveGame();ctx.Toast(CollectionProgression.CategoryNames[category]+" "+CollectionProgression.Data.categories[category].ascension+"성 승천");
+        }
         static void Summon(ScreenContext ctx,CollectionView view)
         {
             if(!view.root || !view.summon || !view.summon.IsInteractable() || view.lastSummonFrame==Time.frameCount)return;
             view.lastSummonFrame=Time.frameCount;
-            int tickets=Tickets(ctx.Main,view.tab),diamonds=ctx.Main.gems;
-            if(!CollectionProgression.PaySummon(view.quantity,ref tickets,ref diamonds)){ctx.Toast("소환권 또는 다이아가 부족합니다.");return;}
-            SetTickets(ctx.Main,view.tab,tickets);ctx.Main.gems=diamonds;
-            var category=CollectionProgression.Data.categories[view.tab]; var known=new HashSet<int>();
+            int quantity=CollectionProgression.SummonQuantity(view.tab,view.quantity);
+            if(quantity<1)return;
+            if(quantity<view.quantity){ctx.Open("summon-limit-confirm",new SummonLimit{view=view,quantity=quantity});return;}
+            ExecuteSummon(ctx,view,quantity);
+        }
+        static void ExecuteSummon(ScreenContext ctx,CollectionView view,int quantity)
+        {
+            if(!view.root)return;
+            var category=CollectionProgression.Data.categories[view.tab];var known=new HashSet<int>();
             foreach(var entry in category.entries)if(entry.unlocked)known.Add(entry.Id);
-            var result=CollectionProgression.Summon(view.tab,view.quantity,random);var fresh=new bool[result.Length];
-            for(int i=0;i<result.Length;i++)fresh[i]=known.Add(result[i].Id);
+            int tickets=Tickets(ctx.Main,view.tab),diamonds=ctx.Main.gems;
+            if(!CollectionProgression.TrySummon(view.tab,quantity,ref tickets,ref diamonds,random,out var result)){
+                ctx.Toast(category.CanSummon?"소환권 또는 다이아가 부족합니다.":"소환 레벨이 최대입니다.");return;
+            }
+            SetTickets(ctx.Main,view.tab,tickets);ctx.Main.gems=diamonds;
+            var fresh=new bool[result.Length];for(int i=0;i<result.Length;i++)fresh[i]=known.Add(result[i].Id);
             ctx.Main.Refresh();RefreshCollection(view);
             ctx.Open("summon-result",new SummonSession{category=view.tab,results=result,fresh=fresh,parent=view});
+        }
+        static void BuildSummonLimit(ScreenContext ctx)
+        {
+            var payload=ctx.Payload as SummonLimit;
+            if(payload==null || payload.view==null || !payload.view.root){ctx.Close();return;}
+            var view=payload.view;var font=ctx.Assets.font;
+            var panel=Panel(ctx.Root,110,(ctx.Height-570)/2,860,570,"소환 수량 확인",font,37);
+            Ui.Text("Limited summon quantity",panel,50,130,760,128,
+                "소환 레벨 100까지 남은 수량은 "+payload.quantity+"개입니다.\n"+payload.quantity+"개만 소환합니다.",29,font);
+            int tickets=Math.Min(Tickets(ctx.Main,view.tab),payload.quantity),diamonds=(payload.quantity-tickets)*100;
+            string cost=(tickets>0?CollectionProgression.CategoryNames[view.tab]+" 소환권 "+tickets:"")+
+                (tickets>0&&diamonds>0?" + ":"")+(diamonds>0?"다이아 "+diamonds:"");
+            Ui.Text("Limited summon cost",panel,40,275,780,64,cost,29,font,Ui.Gold);
+            bool resolved=false;
+            PopupSkin.Button("Cancel limited summon",panel,60,385,330,88,"취소",font,()=>{if(resolved)return;resolved=true;ctx.Close();},Stone,30);
+            PopupSkin.Button("Confirm limited summon",panel,470,385,330,88,"알겠다 / 소환",font,()=>{
+                if(resolved)return;resolved=true;ctx.Close();ExecuteSummon(view.context,view,payload.quantity);
+            },Blue,30);
+            Close(panel,380,520,font,()=>{resolved=true;ctx.Close();});
         }
         static void BuildSummonResult(ScreenContext ctx)
         {
@@ -253,7 +317,13 @@ namespace Moonlit.UI
             else {
                 Ui.Text("Result category",ctx.Root,90,195,900,60,CollectionProgression.CategoryNames[session.category]+" · "+session.results.Length+"개",30,font);
                 float resultY=session.results.Length<=5?ctx.Height*.43f:ctx.Height*.34f;
-                var root=Ui.Rect("Summon result cards",ctx.Root,36,resultY,1008,650);
+                RectTransform root;
+                if(session.results.Length<=10)root=Ui.Rect("Summon result cards",ctx.Root,36,resultY,1008,650);
+                else{
+                    var scroll=Scroll(ctx.Root,36,300,1008,ctx.Height-650);
+                    scroll.name="Summon results scroll";root=scroll.content;root.name="Summon result cards";
+                    root.sizeDelta=new Vector2(0,Mathf.CeilToInt(session.results.Length/5f)*255+24);
+                }
                 var reveals=new CanvasGroup[session.results.Length];
                 for(int i=0;i<session.results.Length;i++){
                     var entry=session.results[i];int col=i%5,row=i/5;
@@ -289,13 +359,20 @@ namespace Moonlit.UI
                 scroll.content.sizeDelta=new Vector2(0,rates.Length*72);
             };
             PopupSkin.Button("Previous level",panel,50,60,86,70,"◀",font,()=>{info.level=Math.Max(1,info.level-1);render();},Blue,30);
-            PopupSkin.Button("Next level",panel,765,60,86,70,"▶",font,()=>{if(info.level<int.MaxValue)info.level++;render();},Blue,30);
+            PopupSkin.Button("Next level",panel,765,60,86,70,"▶",font,()=>{info.level=Math.Min(100,info.level+1);render();},Blue,30);
             PopupSkin.Button("Details",panel,800,145,62,62,"i",font,()=>ctx.Open("summon-probability-details",new ProbabilityPayload{category=info.category,level=info.level}),Stone,30);
             var current=CollectionProgression.Data.categories[info.category];
             Ui.Text("Current summon level",panel,60,h-202,780,42,
                 CollectionProgression.CategoryNames[info.category]+" 소환 Lv."+current.summonLevel,26,font);
-            Progress(panel,75,h-148,750,48,current.experience/(float)current.ExperienceRequired,
+            if(current.CanSummon)Progress(panel,75,h-148,750,48,current.experience/(float)current.ExperienceRequired,
                 current.experience+"/"+current.ExperienceRequired,font);
+            else{
+                var ascend=PopupSkin.Button("Ascend summon category",panel,225,h-157,450,66,current.CanAscend?"승천하기":"만렙",font,()=>{
+                    if(!CollectionProgression.Data.categories[info.category].CanAscend)return;
+                    AscendCollection(ctx,info.category);ctx.Close();
+                },Blue,29);
+                ascend.interactable=current.CanAscend;
+            }
             Close(panel,400,h-48,font,ctx.Close);render();
         }
         static void BuildProbabilityDetails(ScreenContext ctx)
@@ -328,10 +405,10 @@ namespace Moonlit.UI
             Ui.ArtImage("Dungeon title frame",ctx.Root,360,0,360,164,Resources.Load<Sprite>("Moonlit/Dungeons/DungeonTitle-v1"));
             Ui.Text("Dungeon title",ctx.Root,415,60,250,66,"던전",44,font);
             Ui.Text("Reset",ctx.Root,80,152,920,86,"던전 열쇠는 매일 자정에 보충됩니다.\n열쇠는 보상을 수령할 때만 소모됩니다.",25,font);
-            var scroll=Scroll(ctx.Root,60,250,960,ctx.Height-660);var labels=new Text[4];
+            var scroll=Scroll(ctx.Root,60,250,960,ctx.Height-660);var labels=new Text[4];var dots=new GameObject[4];
             Action refresh=()=>{
                 DungeonProgression.RefreshDay(DateTime.UtcNow);
-                for(int i=0;i<4;i++)if(labels[i])labels[i].text=DungeonProgression.Data.keys[i]+"/2";
+                for(int i=0;i<4;i++){if(labels[i])labels[i].text=DungeonProgression.Data.keys[i]+"/2";if(dots[i])dots[i].SetActive(DungeonProgression.Data.keys[i]>0);}
             };
             for(int i=0;i<4;i++){
                 int index=i;
@@ -342,9 +419,10 @@ namespace Moonlit.UI
                 Ui.Text("Name",row,96,18,470,58,DungeonProgression.Names[i],36,font,Ui.Ivory,TextAnchor.MiddleLeft);
                 Ui.ArtImage("Dungeon key icon",row,702,38,52,52,PopupSkin.RewardIcon(new[]{5,2,4,3}[i]));
                 labels[i]=Ui.Text("Keys",row,760,34,134,58,"",33,font);
-                PopupSkin.Button("Open",row,674,116,224,88,"열기",font,()=>{
+                var open=PopupSkin.Button("Open",row,674,116,224,88,"열기",font,()=>{
                     selectedDungeon=index;ctx.Open("dungeon-details",new DungeonPayload{index=index,refresh=refresh});
                 },Blue,32);
+                dots[i]=RewardNotificationDots.Create(open.transform,204,-7,27,RewardNotificationDots.Circle(ctx.Main));
             }
             scroll.content.sizeDelta=new Vector2(0,1000);refresh();
             var ticker=ctx.Root.gameObject.AddComponent<ProgressionTick>();ticker.tick=refresh;
@@ -509,8 +587,8 @@ namespace Moonlit.UI
             float x=mixed?9:95;
             if(tickets>0){
                 Ui.ArtImage("Summon cost icon",view.costRoot,x,8,46,46,TicketIcon(view.tab)).preserveAspect=true;
-                Ui.Text("Summon cost",view.costRoot,x+48,0,mixed?54:105,64,tickets.ToString(),30,font);
-                x+=110;
+                Ui.Text("Summon cost",view.costRoot,x+48,0,mixed?66:105,64,tickets.ToString(),30,font);
+                x+=122;
             }
             if(mixed){Ui.Text("Cost plus",view.costRoot,x,0,34,64,"+",28,font);x+=42;}
             if(diamonds>0){

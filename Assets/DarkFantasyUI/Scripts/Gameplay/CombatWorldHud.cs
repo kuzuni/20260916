@@ -15,6 +15,8 @@ namespace Moonlit.UI
         SpriteRenderer head;
         Font font;
         bool player;
+        Rect[] protectedAreas;
+        public void SetProtectedAreas(Rect[] areas) { protectedAreas = areas; }
         readonly System.Collections.Generic.List<GameObject> numbers = new System.Collections.Generic.List<GameObject>();
         void OnDisable()
         {
@@ -60,8 +62,21 @@ namespace Moonlit.UI
             if (!Actor) return;
             Vector3 position = head ? new Vector3(head.bounds.center.x, head.bounds.max.y, Actor.position.z) :
                 Actor.position + Vector3.up * 5.1f;
-            transform.position = position + new Vector3(player ? -.35f : .35f, .5f, -2);
+            position += new Vector3(player ? -.35f : .35f, .5f, -2);
+            transform.position = KeepOutsideHud(position, 1.05f, .224f, .224f);
             transform.rotation = Quaternion.identity;
+        }
+        Vector3 KeepOutsideHud(Vector3 position, float halfWidth, float below, float above)
+        {
+            if (protectedAreas == null) return position;
+            foreach (var area in protectedAreas)
+            {
+                if (area.width <= 0 || area.height <= 0 || position.y + above < area.yMin ||
+                    position.y - below > area.yMax) continue;
+                if (position.x + halfWidth <= area.xMin || position.x - halfWidth >= area.xMax) continue;
+                position.x = player ? area.xMin - halfWidth - .06f : area.xMax + halfWidth + .06f;
+            }
+            return position;
         }
         public void Float(string message, Color color)
         {
@@ -86,6 +101,9 @@ namespace Moonlit.UI
             var shadow = label.gameObject.AddComponent<Shadow>();
             shadow.effectDistance = new Vector2(3, -9); shadow.effectColor = new Color(0, 0, 0, .85f);
             Vector3 start = transform.position + new Vector3(0, .65f, -.1f);
+            // Reserve the full pop/drift path before the number starts; it never crosses the wave nodes.
+            float halfWidth = Mathf.Min(760, label.preferredWidth + 24) * .008f * 1.2f / 2;
+            start = KeepOutsideHud(start, halfWidth, .8f, 1.7f);
             for (float t = 0; t < .95f; t += Time.deltaTime)
             {
                 // A sharp pop, a short readable hold, then upward drift and fade.
