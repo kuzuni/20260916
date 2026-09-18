@@ -164,9 +164,13 @@ namespace Moonlit.Editor
                     player.Health != health || player.Turns != 2 || player.AttackBoost != 7 ||
                     actors[0].localPosition != home || !battle.PlayerHud.WorldCanvas.enabled)
                     throw new InvalidOperationException("Wave transition reset the player health, cooldown phase, buff or position.");
-                actors[1].localPosition = new Vector3(2.5f,0,0);
-                battle.EnemyHud.SetVisible(true);
+                Time.timeScale = 1;
+                yield return entrance; // Finish the actual production entry on its resolved ground.
+                Time.timeScale = 0;
                 foreach(var animator in animators) { animator.Play("Idle",0,0);animator.Update(0); }
+                yield return null;yield return null; // Read current SpriteSkin bounds, not the preceding pose.
+                if(Vector3.Distance(actors[0].localPosition,home)>.012f || player.Health!=health)
+                    throw new InvalidOperationException("Enemy arrival moved or healed the existing player.");
                 screen.Refresh();
                 RefreshCombatCapture(battle);
                 SaveCamera(camera, "Artifacts/Runtime-wave-continuity-after-" + aspect + ".png", 1080, height);
@@ -199,5 +203,91 @@ namespace Moonlit.Editor
                 battle.enabled = false; battle.enabled = enabled;
             }
         }
+        // Drive production entry frame-by-frame; do not replace it with fixture positions.
+        static IEnumerator CaptureEntranceGround(MainScreen screen, Camera camera, int height, List<string> report)
+        {
+            var battle=screen.GetComponent<BattleRuntime>();
+            var actors=new[]{battle.PlayerHud.Actor,battle.EnemyHud.Actor};
+            var animators=actors.Select(CaptureAuthoredAnimator).ToArray();
+            var speeds=animators.Select(a=>a.speed).ToArray();
+            var companions=actors[0].parent.GetComponent<CompanionBattleRuntime>();
+            string saved=JsonUtility.ToJson(CollectionProgression.Data);
+            bool screenEnabled=screen.enabled,battleEnabled=battle.enabled;
+            float time=Time.timeScale;
+            string aspect=height==1920?"9x16":"9x19";
+            try {
+                screen.enabled=false;battle.StopAllCoroutines();Time.timeScale=1;
+                CombatCaptureField<CombatAnimationRelay>(battle,"playerRelay").Cancel();
+                CombatCaptureField<CombatAnimationRelay>(battle,"enemyRelay").Cancel();
+                foreach(var hud in new[]{battle.PlayerHud,battle.EnemyHud}) {
+                    hud.gameObject.SetActive(false);hud.gameObject.SetActive(true);
+                }
+                for(int mounted=0;mounted<2;mounted++) {
+                    CollectionProgression.Data.categories[1].equipped=new[]{-1,-1,-1};
+                    CollectionProgression.Data.categories[2].equipped=new[]{-1};
+                    if(mounted==1) {
+                        var mount=CollectionProgression.Data.categories[2].entries[0];mount.unlocked=true;
+                        CollectionProgression.Equip(mount,0);
+                    }
+                    companions.RefreshEquipped();
+                    CombatCaptureState(battle,"PlayerState",new CombatActorState(new CombatStats{health=200,attack=20,speed=10}));
+                    CombatCaptureState(battle,"EnemyState",new CombatActorState(new CombatStats{health=200,attack=20,speed=10}));
+                    foreach(var animator in animators){animator.speed=0;animator.Play("Idle",0,0);animator.Update(0);}
+                    string tag=mounted==0?"bare":"mounted";
+                    float ground=float.NaN;int visibleFrames=0;
+                    var pending=new Stack<IEnumerator>();
+                    pending.Push(CombatCaptureRoutine(battle,"EnterActors",true));
+                    int frames=0;
+                    while(pending.Count>0) {
+                        var routine=pending.Peek();
+                        if(!routine.MoveNext()){(pending.Pop() as IDisposable)?.Dispose();continue;}
+                        if(routine.Current is IEnumerator child){pending.Push(child);continue;}
+                        yield return routine.Current;
+                        if(++frames>240)throw new InvalidOperationException("Entry failed to finish within bounded capture frames.");
+                        if(!battle.IsEntrancePrepared)continue;
+                        if(float.IsNaN(ground))ground=actors[0].localPosition.y;
+                        foreach(var actor in actors)
+                            if(Mathf.Abs(actor.localPosition.y-ground)>.012f)
+                                throw new InvalidOperationException("Visible entrance changed ground height: "+tag+" "+aspect);
+                        if(++visibleFrames==6) {
+                            RefreshCombatCapture(battle);
+                            SaveCamera(camera,"Artifacts/Runtime-entrance-ground-"+tag+"-moving-"+aspect+".png",1080,height);
+                        }
+                    }
+                    if(visibleFrames<6 || float.IsNaN(ground))throw new InvalidOperationException("No visible entrance sampled.");
+                    yield return null;yield return null;
+                    foreach(var actor in actors)
+                        if(Mathf.Abs(actor.localPosition.y-ground)>.012f)
+                            throw new InvalidOperationException("Arrival snapped to a different combat height.");
+                    RefreshCombatCapture(battle);
+                    SaveCamera(camera,"Artifacts/Runtime-entrance-ground-"+tag+"-arrived-"+aspect+".png",1080,height);
+                    var action=CombatCaptureRoutine(battle,"Strike",true,20d,false,0);
+                    pending.Push(action);animators[0].speed=1;
+                    int actionFrames=0;
+                    while(pending.Count>0) {
+                        var routine=pending.Peek();
+                        if(!routine.MoveNext()){(pending.Pop() as IDisposable)?.Dispose();continue;}
+                        if(routine.Current is IEnumerator child){pending.Push(child);continue;}
+                        yield return routine.Current;
+                        foreach(var actor in actors)
+                            if(Mathf.Abs(actor.localPosition.y-ground)>.012f)
+                                throw new InvalidOperationException("First real combat action changed formation height.");
+                        if(++actionFrames==8) {
+                            RefreshCombatCapture(battle);
+                            SaveCamera(camera,"Artifacts/Runtime-entrance-ground-"+tag+"-combat-"+aspect+".png",1080,height);
+                        }
+                        if(actionFrames>180)throw new InvalidOperationException("Authored combat action did not complete.");
+                    }
+                    report.Add("PASS actual entrance and first Animator-event attack share ground "+ground+" "+tag+" "+aspect);
+                }
+            }
+            finally {
+                CollectionProgression.Data=JsonUtility.FromJson<CollectionSave>(saved);companions.RefreshEquipped();
+                Time.timeScale=time;
+                for(int i=0;i<animators.Length;i++)if(animators[i])animators[i].speed=speeds[i];
+                screen.enabled=screenEnabled;battle.enabled=false;battle.enabled=battleEnabled;
+            }
+        }
+
     }
 }
