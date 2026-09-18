@@ -117,7 +117,7 @@ namespace Moonlit.UI.Tests
                 var main=root.AddComponent<MainScreen>();main.enabled=false;main.design=root.transform;
                 assets.font=Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");main.font=assets.font;
                 var battle=root.AddComponent<BattleRuntime>();battle.Initialize(main,assets);battle.StopAllCoroutines();
-                var actor=battle.PlayerHud.Actor;actor.GetComponent<Animator>().enabled=false;
+                var actor=battle.PlayerHud.Actor;AuthoredAnimationTestSupport.ActorAnimator(actor).enabled=false;
                 var rig=actor.Find("Motion/PlayerRig");Vector3 normal=rig.localPosition;
                 var system=actor.parent.GetComponent<CompanionBattleRuntime>();
                 Assert.IsNotNull(system);

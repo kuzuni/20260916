@@ -54,7 +54,7 @@ namespace Moonlit.UI.Tests
                 Assert.IsTrue(attack.MoveNext());
                 var motion = (IEnumerator)attack.Current; Assert.IsTrue(motion.MoveNext());
                 var animator = (Animator)typeof(BattleRuntime).GetField("playerAnimator",Private).GetValue(battle);
-                animator.Update(0); animator.Update(.31f);
+                animator.Update(0); animator.Update(AuthoredAnimationTestSupport.ImpactTime(animator,"Basic",0)+.01f);
                 Assert.AreEqual(80,victim.Health);
                 var stage = battle.EnemyHud.transform.parent;
                 var number = stage.Find("Enemy damage number");

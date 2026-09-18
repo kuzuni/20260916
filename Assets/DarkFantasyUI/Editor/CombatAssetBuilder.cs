@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using System.Linq;
 using UnityEditor;
-using UnityEditor.Animations;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
@@ -68,11 +67,12 @@ namespace Moonlit.Editor
                 AssetDatabase.CreateAsset(material, materialPath);
             }
             catalog.effectMaterial = material;
-            catalog.controller = BuildController(prefab);
             ReferencePlayerAnimatorBuilder.ValidateCommitted();
+            // The prefab Animator is the authority: never generate or replace user-authored clips.
+            catalog.controller = prefab.GetComponent<Animator>().runtimeAnimatorController;
             EditorUtility.SetDirty(catalog);
             AssetDatabase.SaveAssets();
-            Debug.Log("[Moonlit] Combat assets built from the actual Player prefab, 210 PSD sprites, seven Animator states and three primitive VFX.");
+            Debug.Log("[Moonlit] Combat assets built from the actual Player prefab, 210 PSD sprites, the assigned user-authored Animator and three primitive VFX.");
         }
 
         static void ImportEraSkillArt()
@@ -95,65 +95,6 @@ namespace Moonlit.Editor
                     settings.spriteMeshType = SpriteMeshType.FullRect;
                     importer.SetTextureSettings(settings); importer.SaveAndReimport();
                 }
-        }
-
-        static RuntimeAnimatorController BuildController(GameObject prefab)
-        {
-            string path = Root + "/PlayerCombat.controller";
-            var controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(path);
-            if (!controller) controller = AnimatorController.CreateAnimatorControllerAtPath(path);
-            var machine = controller.layers[0].stateMachine;
-            foreach (var child in machine.states) machine.RemoveState(child.state);
-            var source = Object.Instantiate(prefab);
-            source.name = "PlayerRig";
-            try
-            {
-                foreach (string name in new[] { "Idle", "Basic", "Hit", "Buff", "Weak", "Strong", "Death" })
-                {
-                    string clipPath = Root + "/" + name + ".anim";
-                    var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(clipPath);
-                    if (!clip) { clip = new AnimationClip(); AssetDatabase.CreateAsset(clip, clipPath); }
-                    clip.ClearCurves(); clip.name = name; clip.frameRate = 30;
-                    float duration = name == "Idle" ? 1.6f : .72f;
-                    Curve(clip, "Motion", "m_LocalPosition.x", 0, name == "Basic" ? .7f : name == "Weak" ? .35f : name == "Hit" ? -.12f : 0, 0, duration);
-                    Curve(clip, "Motion", "m_LocalPosition.y", 0, name == "Buff" ? .15f : name == "Strong" ? .35f : name == "Idle" ? .035f : 0,
-                        name == "Death" ? -.4f : 0, duration);
-                    Curve(clip, "Motion", "localEulerAnglesRaw.z", 0, name == "Death" ? -55 : name == "Hit" ? 6 : name == "Basic" ? -7 : 0,
-                        name == "Death" ? -85 : 0, duration);
-                    foreach (var bone in source.GetComponentsInChildren<Transform>(true))
-                    {
-                        float swing = 0;
-                        if (bone.name == "bone_7") swing = name == "Basic" ? -75 : name == "Weak" ? -45 : name == "Strong" ? -120 : name == "Buff" ? 50 : 0;
-                        if (bone.name == "bone_5") swing = name == "Basic" ? 20 : name == "Strong" ? 45 : name == "Buff" ? -30 : 0;
-                        if (bone.name == "bone_2") swing = name == "Hit" ? 8 : name == "Buff" ? -8 : 0;
-                        if (bone.name == "bone_4" || bone.name == "bone_3") swing = name == "Basic" ? 7 : 0;
-                        if (!bone.name.StartsWith("bone_", StringComparison.Ordinal)) continue;
-                        string bonePath = "Motion/PlayerRig/" + AnimationUtility.CalculateTransformPath(bone, source.transform);
-                        float angle = bone.localEulerAngles.z;
-                        Curve(clip, bonePath, "localEulerAnglesRaw.z", angle, angle + swing, angle, duration);
-                    }
-                    var settings = AnimationUtility.GetAnimationClipSettings(clip);
-                    settings.loopTime = name == "Idle";
-                    AnimationUtility.SetAnimationClipSettings(clip, settings);
-                    int kind = name == "Basic" ? 0 : name == "Buff" ? 1 : name == "Weak" ? 2 : name == "Strong" ? 3 : -1;
-                    AnimationUtility.SetAnimationEvents(clip, kind < 0 ? Array.Empty<AnimationEvent>() : new[] {
-                        new AnimationEvent { time = kind >= 2 ? PrimitiveSkillEffects.AttackFlightDuration : .3f,
-                            functionName = "OnCombatImpact", intParameter = kind }
-                    });
-                    var state = machine.AddState(name); state.motion = clip;
-                    state.writeDefaultValues = true;
-                    if (name == "Idle") machine.defaultState = state;
-                    EditorUtility.SetDirty(clip);
-                }
-                EditorUtility.SetDirty(controller);
-                return controller;
-            }
-            finally { Object.DestroyImmediate(source); }
-        }
-        static void Curve(AnimationClip clip, string path, string property, float start, float middle, float end, float duration)
-        {
-            AnimationUtility.SetEditorCurve(clip, EditorCurveBinding.FloatCurve(path, typeof(Transform), property),
-                new AnimationCurve(new Keyframe(0, start), new Keyframe(duration * .4f, middle), new Keyframe(duration, end)));
         }
 
         static Sprite SpriteAsset(string name, int variant)
