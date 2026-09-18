@@ -28,7 +28,7 @@ namespace Moonlit.Editor
                 yield return WaitForBattleCaptureReady(screen,previousEncounter);
                 screen.enabled=false;battle.StopAllCoroutines();
                 foreach(var hud in new[]{battle.PlayerHud,battle.EnemyHud}) {
-                    hud.SetVisible(true);var animator=hud.Actor.GetComponent<Animator>();
+                    hud.SetVisible(true);var animator=CaptureAuthoredAnimator(hud.Actor);
                     animator.Play("Idle",0,0);animator.Update(0);
                 }
                 for(int tier=0;tier<10;tier++)for(int variant=0;variant<3;variant++) {
@@ -99,9 +99,10 @@ namespace Moonlit.Editor
             var previousPlayer=battle.PlayerState;var previousEnemy=battle.EnemyState;
             var playerProperty=typeof(BattleRuntime).GetProperty("PlayerState");
             var enemyProperty=typeof(BattleRuntime).GetProperty("EnemyState");
-            var animator=battle.PlayerHud.Actor.GetComponent<Animator>();
-            var enemyAnimator=battle.EnemyHud.Actor.GetComponent<Animator>();
+            var animator=CaptureAuthoredAnimator(battle.PlayerHud.Actor);
+            var enemyAnimator=CaptureAuthoredAnimator(battle.EnemyHud.Actor);
             float speed=animator.speed,enemySpeed=enemyAnimator.speed;
+            float savedEffectClock=effects.PlaybackElapsed,savedEffectOverride=effects.EarlyPlaybackTimeOverride;
             string aspect=height==1920?"9x16":"9x19";
             float[] contacts=SkillChoreography.HitTimes(tier,variant);
             float[] phases;
@@ -142,11 +143,12 @@ namespace Moonlit.Editor
                     if(!action.MoveNext()||!(action.Current is IEnumerator motion)||!motion.MoveNext()) {
                         report.Add("FAIL actual early skill action could not be armed "+tier+"/"+variant);fail();yield break;
                     }
-                    float sample=phases[phase],eventTime=variant==0?.3f:SkillChoreography.AttackLead;
-                    effects.EarlyPlaybackTimeOverride=sample;
+                    float sample=phases[phase];
                     animator.Update(0);
-                    if(sample<eventTime) animator.Update(sample);
+                    float eventTime=CaptureAuthoredEventTime(animator,variant==0?"Buff":variant==1?"Weak":"Strong",variant+1);
+                    if(sample<eventTime) {CaptureEffectClock(effects,sample);animator.Update(sample);}
                     else {
+                        CaptureEffectClock(effects,eventTime);
                         animator.Update(eventTime+.001f);
                         battle.StopAllCoroutines();
                         var combo=CombatCaptureField<CombatComboSequence>(battle,"activeCombo");
@@ -154,6 +156,7 @@ namespace Moonlit.Editor
                         combo.Advance(sample-eventTime);
                         if(sample>eventTime+.001f) animator.Update(sample-eventTime-.001f);
                     }
+                    CaptureEffectClock(effects,sample);
                     animator.speed=0;
                     if(variant>0 && sample>=contacts[0]) enemyAnimator.Update(.04f);
                     enemyAnimator.speed=0;
@@ -192,7 +195,7 @@ namespace Moonlit.Editor
             }
             finally {
                 typeof(BattleRuntime).GetMethod("CancelSkillCombo",flags).Invoke(battle,null);
-                battle.StopAllCoroutines();effects.EarlyPlaybackTimeOverride=-1;
+                battle.StopAllCoroutines();CaptureEffectClock(effects,savedEffectClock);effects.EarlyPlaybackTimeOverride=savedEffectOverride;
                 animator.speed=speed;enemyAnimator.speed=enemySpeed;
                 animator.Play("Idle",0,0);animator.Update(0);enemyAnimator.Play("Idle",0,0);enemyAnimator.Update(0);
                 playerProperty.SetValue(battle,previousPlayer);enemyProperty.SetValue(battle,previousEnemy);
