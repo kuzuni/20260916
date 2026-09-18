@@ -2,10 +2,11 @@ using UnityEngine;
 
 namespace Moonlit.UI
 {
-    // A soft ellipse stays on the ground while the Motion child lunges or jumps.
+    // Project the two rendered feet onto the ground, including rig offsets, mirroring and attack movement.
     public sealed class CombatGroundShadow : MonoBehaviour
     {
         Transform actor, motion;
+        SpriteRenderer[] feet;
         Mesh mesh;
         Material material;
         public static void Create(Transform parent, Transform actor)
@@ -14,6 +15,10 @@ namespace Moonlit.UI
             go.layer = 30; go.transform.SetParent(parent, false);
             var shadow = go.AddComponent<CombatGroundShadow>();
             shadow.actor = actor; shadow.motion = actor.Find("Motion");
+            var footParts = new System.Collections.Generic.List<SpriteRenderer>();
+            foreach (var sprite in actor.GetComponentsInChildren<SpriteRenderer>(true))
+                if (sprite.sprite && (sprite.sprite.name == "다리1" || sprite.sprite.name == "다리2")) footParts.Add(sprite);
+            shadow.feet = footParts.ToArray();
             const int segments = 48;
             var vertices = new Vector3[segments + 1];
             var colors = new Color[segments + 1];
@@ -39,7 +44,23 @@ namespace Moonlit.UI
         void LateUpdate()
         {
             if (!actor) return;
-            transform.position = new Vector3(motion ? motion.position.x : actor.position.x, actor.position.y + .03f, actor.position.z + 1);
+            float x = motion ? motion.position.x : actor.position.x;
+            float ground = actor.position.y;
+            int count = 0; float feetX = 0, feetBottom = float.PositiveInfinity;
+            foreach (var foot in feet)
+            {
+                if (!foot || !foot.sprite) continue;
+                feetX += foot.bounds.center.x;
+                feetBottom = Mathf.Min(feetBottom, foot.bounds.min.y);
+                count++;
+            }
+            if (count > 0)
+            {
+                x = feetX / count;
+                // Remove only the authored vertical jump; retain the real rig/foot offset and pose.
+                ground = feetBottom - (motion ? motion.position.y - actor.position.y : 0);
+            }
+            transform.position = new Vector3(x, ground + .03f, actor.position.z + 1);
         }
         void OnDestroy()
         {

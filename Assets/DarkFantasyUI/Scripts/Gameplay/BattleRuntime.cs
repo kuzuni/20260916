@@ -19,7 +19,7 @@ namespace Moonlit.UI
         public int EnemyResolvedBasicAttacks { get; private set; }
         public CombatActorState PlayerState { get; private set; }
         public CombatActorState EnemyState { get; private set; }
-        public const float SkillHudReservedHeight = 130;
+        public const float SkillHudReservedHeight = 216;
         public int PlayerTurnCount => PlayerState == null ? 0 : PlayerState.Turns;
         readonly HashSet<CombatSkill> playerSkillsUsedThisTurn = new HashSet<CombatSkill>();
         readonly Dictionary<CombatSkill, int> playerSkillActivations = new Dictionary<CombatSkill, int>();
