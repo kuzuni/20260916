@@ -372,6 +372,18 @@ namespace Moonlit.Editor
         {
             while(screen.screens.ModalDepth>0)screen.screens.CloseTop();
             screen.screens.ShowMainPage();
+            var battle=screen.GetComponent<BattleRuntime>();
+            float combatDeadline=Time.realtimeSinceStartup+8;
+            while(battle && (battle.PlayerState==null || battle.PlayerResolvedBasicAttacks+battle.EnemyResolvedBasicAttacks==0) && Time.realtimeSinceStartup<combatDeadline)yield return null;
+            if(!battle || battle.PlayerState==null || battle.EnemyState==null || battle.PlayerResolvedBasicAttacks+battle.EnemyResolvedBasicAttacks==0) {
+                report.Add("FAIL real bootstrap did not progress into an animation-event combat turn");fail();yield break;
+            }
+            Canvas.ForceUpdateCanvases();
+            if(screen.powerText.cachedTextGenerator.lineCount>1) {
+                report.Add("FAIL large power value wraps in the main HUD");fail();yield break;
+            }
+            SaveCamera(camera,"Artifacts/Runtime-live-combat.png",1080,camera.targetTexture.height);
+            report.Add("PASS real bootstrap starts combat and resolves animation-event attacks; large HUD power remains one line");
             ForgeState.Current.pending.Clear();ForgeState.Current.autoEnabled=false;
             int ore=screen.ore;
             var forge=ForgeRuntime.Ensure(screen);
@@ -403,7 +415,6 @@ namespace Moonlit.Editor
             if(screen.ore!=ore-1 || ForgeState.Current.Pending.id!=id) {report.Add("FAIL pending forge result charged twice");fail();yield break;}
             screen.Close();
             report.Add("PASS one-hammer forge sequence, delayed comparison and persistent pending result");
-            var battle=screen.GetComponent<BattleRuntime>();
             var previousTarget=camera.targetTexture;
             var safe=Object.FindFirstObjectByType<PortraitSafeArea>();
             var host=Object.FindFirstObjectByType<UiScreenHost>();
