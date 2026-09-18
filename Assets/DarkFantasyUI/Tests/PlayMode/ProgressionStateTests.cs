@@ -427,9 +427,9 @@ namespace Moonlit.UI.Tests
             DG.Tweening.TweenExtensions.Pause(sequence);
             var cards=reveal.GetComponentsInChildren<CanvasGroup>();
             Assert.AreEqual(5,cards.Length);Assert.IsTrue(cards.All(c=>c.alpha==0&&!c.interactable));
-            DG.Tweening.TweenExtensions.Goto(sequence,.1f);
+            DG.Tweening.TweenExtensions.GotoWithCallbacks(sequence,.1f);
             Assert.Greater(cards[0].alpha,0);Assert.AreEqual(0,cards[1].alpha);Assert.AreEqual(0,cards[4].alpha);
-            DG.Tweening.TweenExtensions.Goto(sequence,2f);
+            DG.Tweening.TweenExtensions.GotoWithCallbacks(sequence,2f);
             Assert.IsTrue(cards.All(c=>Mathf.Approximately(c.alpha,1)&&c.interactable));
             Assert.AreEqual(5,CollectionProgression.Data.categories[0].entries.Sum(e=>e.fragments));
             host.CloseTop();yield return null;
