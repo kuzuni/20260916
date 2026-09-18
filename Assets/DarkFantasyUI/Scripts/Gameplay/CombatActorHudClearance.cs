@@ -17,34 +17,41 @@ namespace Moonlit.UI
         // Pick the nearest surviving X position, preserving ground, scale and the complete formation.
         public static float SafeShift(IList<Bounds> parts,IList<Bounds> formation,Rect[] areas,
             bool player,float viewportLeft,float viewportRight)
+            =>TrySafeShift(parts,formation,areas,player,viewportLeft,viewportRight,
+                float.NegativeInfinity,float.PositiveInfinity,out float shift)?shift:0;
+
+        static readonly List<Vector2> intervals=new List<Vector2>();
+        public static bool TrySafeShift(IList<Bounds> parts,IList<Bounds> formation,Rect[] areas,
+            bool player,float viewportLeft,float viewportRight,float minimumShift,float maximumShift,out float shift)
         {
-            if(formation.Count==0)return 0;
+            shift=0;if(formation.Count==0)return true;
             float left=float.PositiveInfinity,right=float.NegativeInfinity;
             foreach(var part in formation){left=Mathf.Min(left,part.min.x);right=Mathf.Max(right,part.max.x);}
-            float minimum=viewportLeft-left,maximum=viewportRight-right;
-            if(minimum>maximum)return 0; // A too-wide illustration cannot be solved by translation.
-            var allowed=new List<Vector2>{new Vector2(minimum,maximum)};
+            float minimum=Mathf.Max(viewportLeft-left,minimumShift),maximum=Mathf.Min(viewportRight-right,maximumShift);
+            if(minimum>maximum)return false;
+            intervals.Clear();intervals.Add(new Vector2(minimum,maximum));
             const float gap=.12f;
             foreach(var part in parts)foreach(var area in areas) {
                 if(area.width<=0||area.height<=0||part.max.y<area.yMin-gap||part.min.y>area.yMax+gap)continue;
                 float low=area.xMin-gap-part.max.x,high=area.xMax+gap-part.min.x;
-                for(int i=allowed.Count-1;i>=0;i--) {
-                    var range=allowed[i];
+                for(int i=intervals.Count-1;i>=0;i--) {
+                    var range=intervals[i];
                     if(high<=range.x||low>=range.y)continue;
-                    allowed.RemoveAt(i);
-                    if(low>=range.x)allowed.Add(new Vector2(range.x,Mathf.Min(range.y,low)));
-                    if(high<=range.y)allowed.Add(new Vector2(Mathf.Max(range.x,high),range.y));
+                    intervals.RemoveAt(i);
+                    if(low>=range.x)intervals.Add(new Vector2(range.x,Mathf.Min(range.y,low)));
+                    if(high<=range.y)intervals.Add(new Vector2(Mathf.Max(range.x,high),range.y));
                 }
+                if(intervals.Count==0)return false;
             }
             float best=0,distance=float.PositiveInfinity;
-            foreach(var range in allowed) {
+            foreach(var range in intervals) {
                 float candidate=Mathf.Clamp(0,range.x,range.y);
                 if(Mathf.Abs(candidate)<distance-.001f ||
                     (Mathf.Abs(Mathf.Abs(candidate)-distance)<.001f&&(player?candidate<best:candidate>best))) {
                     best=candidate;distance=Mathf.Abs(candidate);
                 }
             }
-            return Mathf.Abs(best)<.005f?0:best;
+            shift=Mathf.Abs(best)<.005f?0:best;return true;
         }
 
         public static float OutwardShift(IList<Bounds> parts, IList<Bounds> formation, Rect[] protectedAreas,

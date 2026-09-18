@@ -112,6 +112,52 @@ namespace Moonlit.UI.Tests
             } finally {Object.DestroyImmediate(root);if(headSprite)Object.DestroyImmediate(headSprite);}
         }
         [UnityTest]
+        public IEnumerator ChickenAndAppleKeepThreeVisiblePulsesBetweenTheActualHeadAndProfileHeader()
+        {
+            foreach(int tier in new[]{0,1})foreach(float headroom in new[]{1.4f,5f}) {
+                var root=new GameObject("Food headroom fixture");
+                Sprite headSprite=null;
+                try {
+                    var motion=new GameObject("Motion").transform;motion.SetParent(root.transform);
+                    motion.position=new Vector3(-3,0,0);
+                    var headObject=new GameObject("Head sprite",typeof(SpriteRenderer));headObject.transform.SetParent(motion,false);
+                    headObject.transform.localPosition=Vector3.up*4.35f;headObject.transform.localScale=Vector3.one*1.5f;
+                    headSprite=Sprite.Create(Texture2D.whiteTexture,new Rect(0,0,1,1),Vector2.one*.5f,1);
+                    headSprite.name="머리";var head=headObject.GetComponent<SpriteRenderer>();head.sprite=headSprite;
+                    var effects=root.AddComponent<PrimitiveSkillEffects>();
+                    effects.Initialize(Resources.Load<BattleAssetCatalog>("Moonlit/Combat/BattleAssets"));
+                    effects.FocusedFoodHeaderBounds=new Rect(-6,head.bounds.max.y+headroom,6,1.3f);
+                    var art=PrimitiveSkillEffects.SkillSprite(tier,0);
+                    float size=effects.FocusedFoodSize(art,head.bounds);
+                    if(headroom<2)Assert.Less(size,PrimitiveSkillEffects.FocusedFoodBaseSize,"Short-screen headroom must constrain the maximum pulse.");
+                    else Assert.AreEqual(PrimitiveSkillEffects.FocusedFoodBaseSize,size,.0001f,"Tall-screen food must retain the original size.");
+                    effects.Play(tier,0,motion.position+Vector3.up*2.4f,Target,motion,null,false);
+                    string effectName=tier==0?"Primitive ancestral blessing":"Era 1 skill 0";
+                    SpriteRenderer food=null;
+                    foreach(float peak in new[]{.2f,.6f,1f}) {
+                        effects.EarlyPlaybackTimeOverride=peak;yield return null;yield return null;
+                        food=root.transform.Find(effectName+"/Overhead food").GetComponent<SpriteRenderer>();
+                        Assert.IsTrue(food.enabled);
+                        Assert.Greater(food.bounds.size.y,.7f,"Each of the three peaks must remain a legible food sprite.");
+                        Assert.GreaterOrEqual(food.bounds.min.y,head.bounds.max.y+.29f);
+                        Assert.LessOrEqual(food.bounds.max.y,effects.FocusedFoodHeaderBounds.yMin-.07f,
+                            "Peak food must not be occluded by the actual profile header.");
+                        float peakHeight=food.bounds.size.y;
+                        effects.EarlyPlaybackTimeOverride=peak+.19f;yield return null;yield return null;
+                        Assert.Less(food.bounds.size.y,peakHeight*.7f,"Each peak must shrink before the next pulse.");
+                    }
+                    // The actor can rise during its animation; recompute from live head bounds, not its initial position.
+                    motion.position+=Vector3.up*.2f;
+                    effects.EarlyPlaybackTimeOverride=1f;yield return null;yield return null;
+                    Assert.GreaterOrEqual(food.bounds.min.y,head.bounds.max.y+.29f);
+                    Assert.LessOrEqual(food.bounds.max.y,effects.FocusedFoodHeaderBounds.yMin-.07f);
+                    effects.EarlyPlaybackTimeOverride=1.3f;yield return null;yield return null;
+                    Assert.IsFalse(food.enabled);
+                    Assert.IsNotNull(root.transform.Find("Green healing body aura"));
+                } finally {Object.DestroyImmediate(root);if(headSprite)Object.DestroyImmediate(headSprite);}
+            }
+        }
+        [UnityTest]
         public IEnumerator PausedLastFrameAndRockFragmentsSurviveUntilExplicitCleanup()
         {
             var root=new GameObject("Stable late focused capture");

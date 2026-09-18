@@ -54,9 +54,14 @@ namespace Moonlit.UI
         Camera renderCamera;
         RenderTexture texture;
         readonly Rect[] protectedHudAreas = new Rect[3];
-        readonly Rect[] actorProtectedHudAreas = new Rect[5];
-        readonly List<Bounds> clearanceParts = new List<Bounds>();
-        readonly List<Bounds> clearanceFormation = new List<Bounds>();
+        readonly Rect[] actorProtectedHudAreas = new Rect[8];
+        readonly List<Bounds> playerLayoutParts=new List<Bounds>(),enemyLayoutParts=new List<Bounds>();
+        readonly List<Bounds> playerLayoutFormation=new List<Bounds>(),enemyLayoutFormation=new List<Bounds>();
+        RectTransform skillStrip;
+        float formationGroundDrop;
+        int formationLayoutKey;
+        CombatActorState formationEncounter;
+        public float FormationGroundOffset => -formationGroundDrop;
         readonly List<SpriteRenderer> clearanceSprites = new List<SpriteRenderer>();
         Animator playerAnimator, enemyAnimator;
         CombatAnimationRelay playerRelay, enemyRelay;
@@ -173,14 +178,18 @@ namespace Moonlit.UI
             float density = oldHeight / (2 * Mathf.Max(2, oldHeight / 200f));
             float bottom = design.rect.height - PortraitSafeArea.BottomHeight - SkillHudReservedHeight;
             float height = Mathf.Max(bottom - 405, 9f * density);
+            // Preserve the original projection above the strip, while allowing a compact formation
+            // to use empty space at the left of that strip. Its actual occupied rectangle is protected below.
+            float extension=SkillHudReservedHeight-12;
             view.anchoredPosition = new Vector2(0, -(bottom - height));
+            height+=extension;
             view.sizeDelta = new Vector2(1080, height);
             if (renderCamera)
             {
                 ResizeRenderTexture(height);
                 renderCamera.orthographicSize = height / (2 * density);
                 renderCamera.aspect = 1080 / height;
-                renderCamera.transform.localPosition = new Vector3(0, renderCamera.orthographicSize - .28f, -12);
+                renderCamera.transform.localPosition = new Vector3(0, renderCamera.orthographicSize - .28f - extension/density, -12);
             }
             UpdateProtectedHudAreas(design, density, bottom);
             if (appearance) appearance.Refresh(ForgeState.Current.equipped);
@@ -188,45 +197,81 @@ namespace Moonlit.UI
         }
         public void ApplyActorHudClearance()
         {
-            if(!renderCamera || !player || !enemy)return;
+            if(!renderCamera||!player||!enemy||!PlayerHud.WorldCanvas.enabled||!EnemyHud.WorldCanvas.enabled)return;
             float left=renderCamera.ViewportToWorldPoint(new Vector3(.025f,0,12)).x;
             float right=renderCamera.ViewportToWorldPoint(new Vector3(.975f,0,12)).x;
+            float floor=renderCamera.ViewportToWorldPoint(new Vector3(0,0,12)).y+.08f;
             var companions=stageRoot.GetComponent<CompanionBattleRuntime>();
-            MoveFormationOutsideHud(player,true,PlayerHud,companions,left,right);
-            MoveFormationOutsideHud(enemy,false,EnemyHud,null,left,right);
-        }
-        void MoveFormationOutsideHud(GameObject actor,bool isPlayer,CombatWorldHud hud,
-            CompanionBattleRuntime companions,float left,float right)
-        {
-            var actorParts=clearanceParts;actorParts.Clear();AddRenderedBounds(actor,actorParts);
-            var formation=clearanceFormation;formation.Clear();formation.AddRange(actorParts);
-            if(companions)
-            {
-                if(companions.Mount)AddRenderedBounds(companions.Mount.gameObject,formation);
-                // Trailing pets may reflow inside the left edge; they must not pin a tall rider under the HUD.
+            int key=Mathf.RoundToInt(view.rect.height)*7+(companions&&companions.Mount?companions.Mount.Variant+1:0);
+            if(key!=formationLayoutKey||formationEncounter!=PlayerState){formationLayoutKey=key;formationEncounter=PlayerState;formationGroundDrop=0;}
+            PrepareLayoutBounds(player,companions,true,playerLayoutParts,playerLayoutFormation);
+            PrepareLayoutBounds(enemy,null,false,enemyLayoutParts,enemyLayoutFormation);
+            float maximumDrop=3f;
+            foreach(var part in playerLayoutFormation)maximumDrop=Mathf.Min(maximumDrop,part.min.y-floor);
+            foreach(var part in enemyLayoutFormation)maximumDrop=Mathf.Min(maximumDrop,part.min.y-floor);
+            float playerHead=LayoutHeadX(player,true),enemyHead=LayoutHeadX(enemy,false),centre=stageRoot.transform.position.x;
+            // Separate the actual heads/HP bars, while allowing authored arms and weapons to reach inward.
+            float playerMaximum=centre-1.35f-playerHead,enemyMinimum=centre+1.35f-enemyHead;
+            float previousDrop=0,firstDrop=Mathf.Min(formationGroundDrop,Mathf.Max(0,maximumDrop));
+            int steps=Mathf.CeilToInt((maximumDrop-firstDrop)/.04f);
+            for(int step=0;step<=steps;step++) {
+                float drop=Mathf.Min(maximumDrop,firstDrop+step*.04f);
+                float change=previousDrop-drop;previousDrop=drop;
+                TranslateBounds(playerLayoutParts,Vector3.up*change);TranslateBounds(playerLayoutFormation,Vector3.up*change);
+                TranslateBounds(enemyLayoutParts,Vector3.up*change);TranslateBounds(enemyLayoutFormation,Vector3.up*change);
+                bool p=CombatActorHudClearance.TrySafeShift(playerLayoutParts,playerLayoutFormation,actorProtectedHudAreas,
+                    true,left,right,float.NegativeInfinity,playerMaximum,out float playerX);
+                bool e=CombatActorHudClearance.TrySafeShift(enemyLayoutParts,enemyLayoutFormation,actorProtectedHudAreas,
+                    false,left,right,enemyMinimum,float.PositiveInfinity,out float enemyX);
+                if(!p||!e)continue;
+                formationGroundDrop=drop;
+                MoveFormationTo(player,true,PlayerHud,companions,playerX,-drop,left,right);
+                MoveFormationTo(enemy,false,EnemyHud,null,enemyX,-drop,left,right);
+                return;
             }
-            float shift=CombatActorHudClearance.SafeShift(actorParts,formation,actorProtectedHudAreas,isPlayer,left,right);
-            if(shift==0)return;
-            Vector3 offset=Vector3.right*shift;
+            // An impossible layout remains visible to the geometry/capture assertions instead of crossing sides.
+        }
+        void PrepareLayoutBounds(GameObject actor,CompanionBattleRuntime companions,bool isPlayer,List<Bounds> parts,List<Bounds> formation)
+        {
+            parts.Clear();AddRenderedBounds(actor,parts);
+            if(companions&&companions.Mount)AddRenderedBounds(companions.Mount.gameObject,parts);
+            formation.Clear();formation.AddRange(parts);
+            var home=stageRoot.transform.position+new Vector3(isPlayer?-2.5f:2.5f,0,0);
+            var offset=home-actor.transform.position;offset.z=0;
+            TranslateBounds(parts,offset);TranslateBounds(formation,offset);
+        }
+        static void TranslateBounds(List<Bounds> parts,Vector3 offset)
+        {
+            for(int i=0;i<parts.Count;i++){var part=parts[i];part.center+=offset;parts[i]=part;}
+        }
+        float LayoutHeadX(GameObject actor,bool isPlayer)
+        {
+            float x=actor.transform.position.x;
+            foreach(var sprite in actor.GetComponentsInChildren<SpriteRenderer>())
+                if(sprite.enabled&&sprite.sprite&&sprite.sprite.name=="머리"){x=sprite.bounds.center.x;break;}
+            return x-actor.transform.position.x+stageRoot.transform.position.x+(isPlayer?-2.5f:2.5f);
+        }
+        void MoveFormationTo(GameObject actor,bool isPlayer,CombatWorldHud hud,CompanionBattleRuntime companions,
+            float shift,float ground,float left,float right)
+        {
+            var destination=stageRoot.transform.position+new Vector3((isPlayer?-2.5f:2.5f)+shift,ground,0);
+            var offset=destination-actor.transform.position;offset.z=0;
             actor.transform.position+=offset;
-            // Companion placement has already run this frame. Translate the whole formation rigidly so
-            // the rider remains attached to the unchanged saddle while the UI-safe world position changes.
-            if(companions)
-            {
+            if(companions) {
                 if(companions.Mount)MoveCompanionWorld(companions.Mount,offset);
-                foreach(var pet in companions.Pets)if(pet)
-                {
+                foreach(var pet in companions.Pets)if(pet) {
                     MoveCompanionWorld(pet,offset);
                     var bounds=pet.VisibleBounds;
                     float correction=bounds.min.x<left?left-bounds.min.x:bounds.max.x>right?right-bounds.max.x:0;
                     if(correction!=0){pet.transform.position+=Vector3.right*correction;pet.RefreshShadow();}
                 }
             }
-            if(hud)hud.transform.position+=offset;
+            if(hud)hud.RefreshPosition();
         }
         void MoveCompanionWorld(FlatCompanionActor companion,Vector3 offset)
         {
             companion.transform.position+=offset;
+            companion.groundY+=offset.y;
             companion.RefreshShadow();
         }
         void AddRenderedBounds(GameObject actor,List<Bounds> result)
@@ -266,6 +311,17 @@ namespace Moonlit.UI
             actorProtectedHudAreas[3]=HudWorldRect(main.fairyButton ? main.fairyButton.transform as RectTransform : null,
                 null,design,density,bottom);
             actorProtectedHudAreas[4]=HudWorldRect(main.eventButton ? main.eventButton.transform as RectTransform : null,
+                null,design,density,bottom);
+            if(!skillStrip) {
+                var strip=main.GetComponentInChildren<EquippedSkillHud>(true);
+                if(strip)skillStrip=strip.transform as RectTransform;
+            }
+            for(int slot=0;slot<3;slot++) {
+                var item=skillStrip?skillStrip.Find("Equipped battle skill "+slot) as RectTransform:null;
+                actorProtectedHudAreas[5+slot]=item&&item.gameObject.activeInHierarchy?
+                    HudWorldRect(item,null,design,density,bottom):default;
+            }
+            if(effects)effects.FocusedFoodHeaderBounds=HudWorldRect(main.profileButton?main.profileButton.transform as RectTransform:null,
                 null,design,density,bottom);
             if (PlayerHud) PlayerHud.SetProtectedAreas(protectedHudAreas);
             if (EnemyHud) EnemyHud.SetProtectedAreas(protectedHudAreas);

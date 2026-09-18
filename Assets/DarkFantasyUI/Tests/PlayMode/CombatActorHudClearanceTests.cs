@@ -45,6 +45,18 @@ namespace Moonlit.UI.Tests
                 Assert.IsFalse(item.min.x<area.xMax&&item.max.x>area.xMin&&item.min.y<area.yMax&&item.max.y>area.yMin);
         }
 
+        [Test]
+        public void OwnHalfConstraintRejectsTheOtherwiseClearOppositeSide()
+        {
+            var head=new Bounds(new Vector3(3,4,0),new Vector3(2,2,0));
+            var parts=new[]{head};
+            var areas=new[]{new Rect(1,2,4,4)};
+            Assert.Less(CombatActorHudClearance.SafeShift(parts,parts,areas,false,-6,6),-2);
+            Assert.IsFalse(CombatActorHudClearance.TrySafeShift(parts,parts,areas,false,-6,6,-1.5f,
+                float.PositiveInfinity,out float shift),"No legal own-half interval must be reported as failure, not an opposite-side fallback.");
+            Assert.AreEqual(0,shift);
+        }
+
         [UnityTest]
         public IEnumerator ActualMountedPosesClearCentralAndFixedPassHudAtBothRatiosAndNotchWithoutShrinking()
         {
@@ -63,6 +75,7 @@ namespace Moonlit.UI.Tests
                 var main=new RuntimeMainScreenFactory(assets).Create(root.transform);main.enabled=false;
                 root.SetActive(true);
                 var battle=main.GetComponent<BattleRuntime>();battle.StopAllCoroutines();
+                battle.PlayerHud.SetVisible(true);battle.EnemyHud.SetVisible(true);
                 var safe=main.GetComponentInParent<PortraitSafeArea>();
                 var host=main.GetComponentInParent<UiScreenHost>();
                 var player=battle.PlayerHud.Actor;var enemy=battle.EnemyHud.Actor;
@@ -73,9 +86,16 @@ namespace Moonlit.UI.Tests
                     CollectionProgression.Data.categories[1].entries[index].unlocked=true;
                     CollectionProgression.Equip(CollectionProgression.Data.categories[1].entries[index],index);
                 }
+                foreach(int skillCount in new[]{0,3})
                 foreach(int height in new[]{1920,2280})
                 foreach(bool notch in new[]{false,true})
                 {
+                    CollectionProgression.Data.categories[0].equipped=new[]{-1,-1,-1};
+                    for(int slot=0;slot<skillCount;slot++) {
+                        var entry=CollectionProgression.Data.categories[0].entries[slot];entry.unlocked=true;
+                        CollectionProgression.Equip(entry,slot);
+                    }
+                    main.GetComponentInChildren<EquippedSkillHud>(true).Refresh();
                     Rect safePixels=notch?new Rect(36,84,1008,height-150):new Rect(0,0,1080,height);
                     safe.SetPreviewMetrics(new Vector2Int(1080,height),safePixels);
                     host.SetPreviewMetrics(new Vector2Int(1080,height),safePixels);
@@ -98,31 +118,54 @@ namespace Moonlit.UI.Tests
                             foreach(var actor in new[]{player,enemy})
                             {
                                 Assert.AreEqual(2,Mathf.Abs(actor.localScale.x));Assert.AreEqual(2,actor.localScale.y);
-                                Assert.AreEqual(0,actor.localPosition.y,"Do not push the feet into the lower skill strip.");
+                                Assert.AreEqual(battle.FormationGroundOffset,actor.localPosition.y,.01f,"Both actors use the same bounded ground offset.");
+                                Assert.LessOrEqual(actor.localPosition.y,.01f);
+                                Assert.GreaterOrEqual(actor.localPosition.y,-3.01f);
                                 foreach(var sprite in actor.GetComponentsInChildren<SpriteRenderer>().Where(x=>x.enabled && x.sprite))
                                 foreach(var area in areas)
                                 {
                                     var bounds=sprite.bounds;
                                     bool overlaps=area.width>0 && area.height>0 && bounds.min.x<area.xMax-.01f &&
                                         bounds.max.x>area.xMin+.01f && bounds.min.y<area.yMax-.01f && bounds.max.y>area.yMin+.01f;
-                                    Assert.IsFalse(overlaps,height+" notch="+notch+" mount="+mount+" "+state+" "+sprite.name+" overlaps central/fixed reward HUD");
+                                    Assert.IsFalse(overlaps,height+" skills="+skillCount+" notch="+notch+" mount="+mount+" "+state+" "+sprite.name+" overlaps central/fixed reward HUD");
                                 }
                             }
+                            float centre=player.parent.position.x;
+                            float HeadX(Transform actor)=>actor.GetComponentsInChildren<SpriteRenderer>().First(x=>x.enabled&&x.sprite&&x.sprite.name=="머리").bounds.center.x;
+                            Assert.LessOrEqual(HeadX(player),centre-1.34f,"Mounted player head must stay on the left.");
+                            Assert.GreaterOrEqual(HeadX(enemy),centre+1.34f,"Enemy must not escape the pass by crossing onto the player.");
+                            battle.PlayerHud.SendMessage("LateUpdate");battle.EnemyHud.SendMessage("LateUpdate");
+                            Assert.Greater(battle.EnemyHud.transform.position.x-battle.PlayerHud.transform.position.x,2.1f,
+                                "The two 2.1-world-unit HP bars must not overlap.");
+                            var mountBounds=companions.Mount.VisibleBounds;
+                            foreach(var area in areas)
+                                Assert.IsFalse(area.width>0&&area.height>0&&mountBounds.min.x<area.xMax-.01f&&
+                                    mountBounds.max.x>area.xMin+.01f&&mountBounds.min.y<area.yMax-.01f&&mountBounds.max.y>area.yMin+.01f,
+                                    height+" "+mount+" "+state+" mounted artwork covers fixed HUD");
                             Assert.Less(Vector2.Distance(companions.Mount.saddle.position,companions.RiderHip.position),.03f);
                             Vector3 stablePlayer=player.position,stableEnemy=enemy.position;
                             for(int repeat=0;repeat<6;repeat++)battle.ApplyActorHudClearance();
                             Assert.Less(Vector3.Distance(stablePlayer,player.position),.02f);
                             Assert.Less(Vector3.Distance(stableEnemy,enemy.position),.02f);
                             var camera=battle.PlayerHud.WorldCanvas.worldCamera;
+                            var design=(RectTransform)main.design;
+                            float oldHeight=Mathf.Max(110,design.rect.height-PortraitSafeArea.BottomHeight-495);
+                            float density=oldHeight/(2*Mathf.Max(2,oldHeight/200f));
+                            var view=(RectTransform)design.Find("Live turn battle");
+                            Assert.AreEqual(density,view.rect.height/(2*camera.orthographicSize),.01f,
+                                "Extending the transparent viewport must not shrink the requested doubled actors.");
+
                             foreach(var actor in new[]{player,enemy})
                             foreach(var sprite in actor.GetComponentsInChildren<SpriteRenderer>().Where(x=>x.enabled && x.sprite))
                             {
                                 Assert.GreaterOrEqual(camera.WorldToViewportPoint(sprite.bounds.min).x,-.005f);
+                                Assert.GreaterOrEqual(camera.WorldToViewportPoint(sprite.bounds.min).y,-.005f);
                                 Assert.LessOrEqual(camera.WorldToViewportPoint(sprite.bounds.max).x,1.005f);
                             }
                             foreach(var flat in companions.Pets.Concat(new[]{companions.Mount}))
                             {
                                 Assert.GreaterOrEqual(camera.WorldToViewportPoint(flat.VisibleBounds.min).x,-.005f);
+                                Assert.GreaterOrEqual(camera.WorldToViewportPoint(flat.VisibleBounds.min).y,-.005f);
                                 Assert.LessOrEqual(camera.WorldToViewportPoint(flat.VisibleBounds.max).x,1.005f);
                             }
                         }
