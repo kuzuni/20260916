@@ -245,7 +245,7 @@ namespace Moonlit.Editor
                         yield return routine.Current;
                         if(++frames>240)throw new InvalidOperationException("Entry failed to finish within bounded capture frames.");
                         if(!battle.IsEntrancePrepared)continue;
-                        if(float.IsNaN(ground))ground=actors[0].localPosition.y;
+                        if(float.IsNaN(ground))ground=0; // Explicit user ground, never infer success from a relocated actor.
                         foreach(var actor in actors)
                             if(Mathf.Abs(actor.localPosition.y-ground)>.012f)
                                 throw new InvalidOperationException("Visible entrance changed ground height: "+tag+" "+aspect);
@@ -261,9 +261,10 @@ namespace Moonlit.Editor
                             throw new InvalidOperationException("Arrival snapped to a different combat height.");
                     RefreshCombatCapture(battle);
                     SaveCamera(camera,"Artifacts/Runtime-entrance-ground-"+tag+"-arrived-"+aspect+".png",1080,height);
+                    int beforeHits=battle.PlayerResolvedBasicAttacks;
                     var action=CombatCaptureRoutine(battle,"Strike",true,20d,false,0);
                     pending.Push(action);animators[0].speed=1;
-                    int actionFrames=0;
+                    int actionFrames=0;bool combatCaptured=false;
                     while(pending.Count>0) {
                         var routine=pending.Peek();
                         if(!routine.MoveNext()){(pending.Pop() as IDisposable)?.Dispose();continue;}
@@ -272,13 +273,17 @@ namespace Moonlit.Editor
                         foreach(var actor in actors)
                             if(Mathf.Abs(actor.localPosition.y-ground)>.012f)
                                 throw new InvalidOperationException("First real combat action changed formation height.");
-                        if(++actionFrames==8) {
+                        actionFrames++;
+                        if(!combatCaptured && (actionFrames>=8 || battle.PlayerResolvedBasicAttacks>beforeHits)) {
+                            combatCaptured=true;
                             RefreshCombatCapture(battle);
                             SaveCamera(camera,"Artifacts/Runtime-entrance-ground-"+tag+"-combat-"+aspect+".png",1080,height);
                         }
                         if(actionFrames>180)throw new InvalidOperationException("Authored combat action did not complete.");
                     }
-                    report.Add("PASS actual entrance and first Animator-event attack share ground "+ground+" "+tag+" "+aspect);
+                    if(!combatCaptured || battle.PlayerResolvedBasicAttacks!=beforeHits+1 || battle.EnemyState.Health!=180)
+                        throw new InvalidOperationException("Actual authored impact must resolve once before certifying combat height.");
+                    report.Add("PASS actual entrance and first Animator-event attack remain at ground zero "+tag+" "+aspect);
                 }
             }
             finally {

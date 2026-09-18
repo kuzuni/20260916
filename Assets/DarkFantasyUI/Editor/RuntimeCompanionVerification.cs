@@ -71,7 +71,7 @@ namespace Moonlit.Editor
                             if(pet.transform.position.x>=actor.Find("Motion").position.x)
                                 throw new InvalidOperationException("Pet formation must remain behind the player.");
                         RefreshCombatCapture(battle);
-                        VerifyCompanionHudClearance(battle,system,height+" "+mount+" "+state);
+                        VerifyCompanionHudClearance(battle,system,height+" "+mount+" "+state,report);
                         SaveCamera(camera,"Artifacts/Runtime-companions-mount-"+mount+"-"+state.ToLowerInvariant()+"-"+aspect+".png",1080,height);
                         if(state=="Basic")
                         {
@@ -84,7 +84,7 @@ namespace Moonlit.Editor
                                 host.SetPreviewMetrics(new Vector2Int(1080,height),inset);
                                 yield return null;yield return null;
                                 RefreshCombatCapture(battle);
-                                VerifyCompanionHudClearance(battle,system,height+" notch "+mount);
+                                VerifyCompanionHudClearance(battle,system,height+" notch "+mount,report);
                                 SaveCamera(camera,"Artifacts/Runtime-companions-mount-"+mount+"-basic-notch-"+aspect+".png",1080,height);
                             } finally {
                                 safe.SetPreviewMetrics(previousPixels,previousSafe);
@@ -96,7 +96,7 @@ namespace Moonlit.Editor
                 for(int category=1;category<=2;category++)
                     for(int variant=0;variant<3;variant++)
                         yield return CaptureFlatCompanionAssembly(category,variant,height,aspect);
-                report.Add("PASS six right-facing static whole PNGs, three pets, simple mounted back anchors, no live companion Animator/SpriteSkin and clear stage and fixed reward/pass HUD "+height);
+                report.Add("PASS six right-facing static whole PNGs, three pets, simple mounted back anchors, no live companion Animator/SpriteSkin and fixed-zero ground with measured HUD intersections "+height);
             }
             finally
             {
@@ -106,22 +106,23 @@ namespace Moonlit.Editor
                 screen.enabled=enabled;battle.enabled=false;battle.enabled=battleEnabled;
             }
         }
-        static void VerifyCompanionHudClearance(BattleRuntime battle,CompanionBattleRuntime companions,string context)
+        static void VerifyCompanionHudClearance(BattleRuntime battle,CompanionBattleRuntime companions,string context,List<string> report)
         {
             battle.ApplyActorHudClearance();
             var areas=CombatCaptureField<Rect[]>(battle,"actorProtectedHudAreas");
             var actors=new[]{battle.PlayerHud.Actor,battle.EnemyHud.Actor};
+            int artHudOverlaps=0;
             foreach(var actor in actors)
             {
                 if(Mathf.Abs(Mathf.Abs(actor.localScale.x)-2)>.001f || Mathf.Abs(actor.localScale.y-2)>.001f ||
-                    Mathf.Abs(actor.localPosition.y-battle.FormationGroundOffset)>.01f || actor.localPosition.y>0.01f || actor.localPosition.y< -3.01f)throw new InvalidOperationException("Actor size/ground changed: "+context);
+                    Mathf.Abs(actor.localPosition.y)>.01f || Mathf.Abs(battle.FormationGroundOffset)>.01f)throw new InvalidOperationException("Actor size/ground changed: "+context);
                 foreach(var sprite in actor.GetComponentsInChildren<SpriteRenderer>().Where(x=>x.enabled && x.sprite))
                 foreach(var area in areas)
                 {
                     var bounds=sprite.bounds;
                     if(area.width>0 && area.height>0 && bounds.min.x<area.xMax-.01f && bounds.max.x>area.xMin+.01f &&
                         bounds.min.y<area.yMax-.01f && bounds.max.y>area.yMin+.01f)
-                        throw new InvalidOperationException("Actual actor part covers stage/wave/round/pass/rewards: "+context+" "+sprite.name);
+                        artHudOverlaps++; // Fixed Y=0 is the latest user requirement; report art overlap instead of moving the ground.
                 }
             }
             float centre=actors[0].parent.position.x;
@@ -135,7 +136,7 @@ namespace Moonlit.Editor
             foreach(var area in areas)
                 if(area.width>0&&area.height>0&&mountBounds.min.x<area.xMax-.01f&&mountBounds.max.x>area.xMin+.01f&&
                     mountBounds.min.y<area.yMax-.01f&&mountBounds.max.y>area.yMin+.01f)
-                    throw new InvalidOperationException("Mounted artwork covers fixed HUD: "+context);
+                    artHudOverlaps++;
             if(Vector2.Distance(companions.Mount.saddle.position,companions.RiderHip.position)>.03f)
                 throw new InvalidOperationException("World layout detached rider from unchanged saddle: "+context);
             var camera=battle.PlayerHud.WorldCanvas.worldCamera;
@@ -154,6 +155,7 @@ namespace Moonlit.Editor
                     flat.Illustration.flipX || flat.Illustration.transform.localScale.x<=0)
                     throw new InvalidOperationException("Companion must remain one unmirrored, unrigged illustration: "+flat.name);
             }
+            if(artHudOverlaps>0)report.Add("NOTE fixed-zero-ground authored artwork/HUD intersections "+context+": "+artHudOverlaps);
             camera.Render();
         }
         static IEnumerator CaptureFlatCompanionAssembly(int category,int variant,int height,string aspect)
