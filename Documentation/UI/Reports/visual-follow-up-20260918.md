@@ -17,8 +17,10 @@ Run109 original captures under `C:/Users/user/.codex/artifacts/moonlit-gameplay-
 - `Runtime-shop-diamond-absorption-9x19.png`: wallet100 and claimed offer render, but reward particles and +100 are absent. The existence-of-Image assertion is insufficient.
 - `Runtime-dungeon-1-absorption-9x19.png` does show ticket particles and +4; the rendering failure needs shop-specific diagnosis.
 
-Companion pivots/attachment geometry and shop reward visibility are being corrected and require new hosted captures. The user's latest skill direction also requires new evidence for every skill's choreography and real3/5hit sequences. No final visual pass is claimed.
+Companion pivot/attachment corrections are stopped at the user's explicit request; current rigs remain as-is. Shop reward visibility is being corrected and requires new hosted captures. The user's latest skill direction also requires new evidence for every skill's choreography and real3/5hit sequences. No final visual pass is claimed.
 
 ## Remaining acceptance
 
 Validate committed companion delivery without rebuilding over it, all revised combat tests, actual captures at9:16/9:19, preserved original routes and simulated safe areas. Preserve the user's local Player.prefab edit and Recovery scene. Higher-era companion art remains deferred; enemy still uses the Player prefab, arena opponents remain dummy data, demo accessory slots/shop retain the requested local behavior. Physical devices have not been used.
+
+Latest user direction: stop companion rigging and leave the current committed rigs as-is. Known visual attachment gaps remain deferred; no rig/pivot/bone/part edits or regeneration are authorized. This is not a visual acceptance of the rigs. Skill choreography and general UI work continue.
