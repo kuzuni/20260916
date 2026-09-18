@@ -1,3 +1,5 @@
+> Superseded runtime connection: [authored Player animation verification](authored-player-animation-runtime-20260919.md). PR104 removes the wrapper Animator; the reports below retain their historical source/run details.
+
 > Current status: [latest validation and remaining visual limitations](runtime-validation-20260919.md). The historical findings below describe their named revisions.
 
 # Player prefab Animator delivery — 2026-09-19
