@@ -16,8 +16,8 @@ namespace Moonlit.UI
         {
             get {
                 if(category==0)return SkillCatalog.Name(grade,variant);
-                var illustrated=CompanionRigCatalog.Load()?.Find(category,grade,variant);
-                if(illustrated!=null&&!string.IsNullOrEmpty(illustrated.displayName))return illustrated.displayName;
+                var illustrated=FlatCompanionCatalog.Name(category,grade,variant);
+                if(!string.IsNullOrEmpty(illustrated))return illustrated;
                 return EquipmentRules.TierNames[grade]+" "+CollectionProgression.CategoryNames[category]+" "+(variant+1);
             }
         }

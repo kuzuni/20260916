@@ -1,0 +1,109 @@
+{
+  "date": "2026-09-18",
+  "generator": "Built-in image_gen",
+  "purpose": "User-requested whole-sprite replacement mounts; old rig assets intentionally unchanged.",
+  "reference": {
+    "path": "Assets/Art/ChihuahuaEquipmentThemes/Reference/character_base.png",
+    "role": "Style only; no character parts copied or rigged."
+  },
+  "pixelProcessing": "None: generated original PNG bytes uploaded unchanged; no cropping, recoloring or background manipulation.",
+  "runtimeValidation": "Pending cloud integration and both-aspect captures; standalone output review is not runtime acceptance.",
+  "assets": [
+    {
+      "path": "C:/Users/user/.codex/generated_images/01a0b1a7-bfdf-73f1-b6ef-0d4cfd3eb3c2/exec-384d3233-c705-4479-983c-ab9211c96ae0.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "alphaZero": 976291,
+      "alphaOpaque": 1993,
+      "visibleBounds": [
+        76,
+        251,
+        1204,
+        1058
+      ],
+      "sha256": "3ff48bcbece41fdf179252b3af9f6e204ac328d8ffafac94e4eb5d340d973086",
+      "guid": "5deae5c11a95494cb14a8e425f64c101",
+      "spriteID": "7f7a53ff7bbe47c18221319936491ad9",
+      "repositoryPath": "Assets/DarkFantasyUI/Resources/Moonlit/Companions/Flat/Mount0-v1.png",
+      "prompt": "Use case: stylized-concept. Asset type: Unity 2D whole-character companion mount sprite, one complete animal, not a parts sheet.\nSTYLE REFERENCE ONLY: the supplied character_base.png. Match the Chihuahua player's exact simple cartoon visual language: very thick smooth clean black outlines, rounded simplified shapes, big round black eyes with white highlights, bright flat saturated colors with only one or two restrained shade shapes. Do not copy the dog or the separated-parts layout.\nCompose ONE complete quadruped, side profile facing RIGHT, both torso and muzzle and gaze point RIGHT. Calm standing idle pose, four feet visibly planted on the same horizontal ground baseline, all four legs weight-bearing, no raised leg, no action, no walking, no jump. Large rounded head and stout compact body. A simple brown leather back pad/saddle with a clearly horizontal unobstructed seat for the player, no rider.\nGenuinely transparent alpha background, absolutely no white background or checkerboard painted into image. No cast shadow, ground, scene, text, border, props, UI, sparkle. Entire creature including every foot, tail and ears stays within canvas with about 10% transparent breathing room. Square 1024x1024 canvas, ground baseline approximately 82% from top, center the entire silhouette. Do not split into parts; no rig; no separate limbs; no painterly texture, gradients, realistic fur, detailed rendering or 3D.\nSubject: Mount0, a stout cute wild boar, reddish warm brown body, pale beige small curved tusks, rounded pinkish-brown broad snout, dark brown hooves, small perky ears, tiny curled tail at LEFT, simple low flat leather saddle across back. Face points RIGHT.",
+      "bounds": {
+        "category": 2,
+        "variant": 0,
+        "x": 76,
+        "y": 196,
+        "width": 1128,
+        "height": 807,
+        "backX": 0.32172,
+        "backY": 0.689467
+      },
+      "backAnchorStatus": "Approximate visual seat center; verify rider alignment in runtime capture."
+    },
+    {
+      "path": "C:/Users/user/.codex/generated_images/01a0b1a7-bfdf-73f1-b6ef-0d4cfd3eb3c2/exec-06696aa6-5705-47ab-b872-f2d10334e907.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "alphaZero": 976512,
+      "alphaOpaque": 1876,
+      "visibleBounds": [
+        48,
+        184,
+        1207,
+        1010
+      ],
+      "sha256": "45185444eabbacdf72be0754fb7ff2581e3a8cad9f7ce039174a63cf48ae934c",
+      "guid": "a1947390347e4ddf996c9221902aacc9",
+      "spriteID": "7575d5dcb44f4bc0b46dcc7d9f3e2a57",
+      "repositoryPath": "Assets/DarkFantasyUI/Resources/Moonlit/Companions/Flat/Mount1-v1.png",
+      "prompt": "Use case: stylized-concept. Asset type: Unity 2D whole-character companion mount sprite, one complete animal, not a parts sheet.\nSTYLE REFERENCE ONLY: the supplied character_base.png. Match the Chihuahua player's exact simple cartoon visual language: very thick smooth clean black outlines, rounded simplified shapes, big round black eyes with white highlights, bright flat saturated colors with only one or two restrained shade shapes. Do not copy the dog or the separated-parts layout.\nCompose ONE complete quadruped, side profile facing RIGHT, both torso and muzzle and gaze point RIGHT. Calm standing idle pose, four feet visibly planted on the same horizontal ground baseline, all four legs weight-bearing, no raised leg, no action, no walking, no jump. Large rounded head and stout compact body. A simple brown leather back pad/saddle with a clearly horizontal unobstructed seat for the player, no rider.\nGenuinely transparent alpha background, absolutely no white background or checkerboard painted into image. No cast shadow, ground, scene, text, border, props, UI, sparkle. Entire creature including every foot, tail and ears stays within canvas with about 10% transparent breathing room. Square 1024x1024 canvas, ground baseline approximately 82% from top, center the entire silhouette. Do not split into parts; no rig; no separate limbs; no painterly texture, gradients, realistic fur, detailed rendering or 3D.\nSubject: Mount1, a small cute woolly mammoth, rounded warm caramel-orange wool body indicated with only a few broad scalloped tufts, big round ears, two pale ivory curved tusks, short relaxed downward-curving trunk at RIGHT, stubby grounded legs and tiny tail at LEFT. Simple low flat brown leather saddle on back. Face points RIGHT.",
+      "bounds": {
+        "category": 2,
+        "variant": 1,
+        "x": 48,
+        "y": 244,
+        "width": 1159,
+        "height": 826,
+        "backX": 0.337274,
+        "backY": 0.585133
+      },
+      "backAnchorStatus": "Approximate visual seat center; verify rider alignment in runtime capture."
+    },
+    {
+      "path": "C:/Users/user/.codex/generated_images/01a0b1a7-bfdf-73f1-b6ef-0d4cfd3eb3c2/exec-27a71c1f-b886-427a-a113-662500865fa7.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "alphaZero": 999187,
+      "alphaOpaque": 1026,
+      "visibleBounds": [
+        30,
+        236,
+        1229,
+        1043
+      ],
+      "sha256": "600dd28efb8470b9a64afbfc1c2cf34e4fe16221f6563b185f474d78df3376ca",
+      "guid": "9450e87b79bb4bc2a8c91bba94552f33",
+      "spriteID": "5901905866ca47cca41790f8ced7ccec",
+      "repositoryPath": "Assets/DarkFantasyUI/Resources/Moonlit/Companions/Flat/Mount2-v1.png",
+      "prompt": "Use case: stylized-concept. Asset type: Unity 2D whole-character companion mount sprite, one complete animal, not a parts sheet.\nSTYLE REFERENCE ONLY: the supplied character_base.png. Match the Chihuahua player's exact simple cartoon visual language: very thick smooth clean black outlines, rounded simplified shapes, big round black eyes with white highlights, bright flat saturated colors with only one or two restrained shade shapes. Do not copy the dog or the separated-parts layout.\nCompose ONE complete quadruped, side profile facing RIGHT, both torso and muzzle and gaze point RIGHT. Calm standing idle pose, four feet visibly planted on the same horizontal ground baseline, all four legs weight-bearing, no raised leg, no action, no walking, no jump. Large rounded head and stout compact body. A simple brown leather back pad/saddle with a clearly horizontal unobstructed seat for the player, no rider.\nGenuinely transparent alpha background, absolutely no white background or checkerboard painted into image. No cast shadow, ground, scene, text, border, props, UI, sparkle. Entire creature including every foot, tail and ears stays within canvas with about 10% transparent breathing room. Square 1024x1024 canvas, ground baseline approximately 82% from top, center the entire silhouette. Do not split into parts; no rig; no separate limbs; no painterly texture, gradients, realistic fur, detailed rendering or 3D.\nSubject: Mount2, a stocky cute one-horn rhinoceros, rounded saturated blue-gray body with minimal flat shading, one short ivory horn on snout at RIGHT, large friendly round eye, small rounded ears, four thick grounded legs, tiny tail at LEFT. Simple low flat brown leather saddle on back. Face points RIGHT. Exactly one horn.",
+      "bounds": {
+        "category": 2,
+        "variant": 2,
+        "x": 30,
+        "y": 211,
+        "width": 1199,
+        "height": 807,
+        "backX": 0.393328,
+        "backY": 0.686419
+      },
+      "backAnchorStatus": "Approximate visual seat center; verify rider alignment in runtime capture."
+    }
+  ]
+}

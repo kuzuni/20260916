@@ -28,6 +28,13 @@ namespace Moonlit.UI
             if(!art&&tier==0&&catalog)art=variant==0?catalog.buffSprite:variant==1?catalog.weakSprite:catalog.strongSprite;
             return art;
         }
+        // Physical objects stay whole in flight; contact particles use real dust/spark textures.
+        Sprite ContactArt(int tier,int variant,Sprite projectile)
+            => tier<=3 ? Resources.Load<Sprite>(tier>0&&variant==1?BasicSlashKey:HitDustKey) : projectile;
+        Sprite AccentArt(int tier,Sprite buff)
+            => tier<=3 ? Resources.Load<Sprite>(tier==1?BasicSlashKey:HitDustKey) : buff;
+        static void Tint(SpriteRenderer renderer,Color tint)
+            => renderer.color=new Color(tint.r,tint.g,tint.b,renderer.color.a);
         void OnDisable()
         {
             generation++;IsPlaying=false;StopAllCoroutines();
@@ -82,7 +89,7 @@ namespace Moonlit.UI
             trail.startColor=Colors[tier];trail.endColor=new Color(Colors[tier].r,Colors[tier].g,Colors[tier].b,0);
             trail.sortingOrder=148;trail.minVertexDistance=.025f;trail.emitting=variant!=0||tier>=4;
             var accents=new List<SpriteRenderer>();
-            if(variant==0)for(int i=0;i<4;i++)accents.Add(Render(root.transform,art,"Buff accent "+i,149));
+            if(variant==0)for(int i=0;i<4;i++)accents.Add(Render(root.transform,AccentArt(tier,art),"Buff accent "+i,149));
             float[] hits=SkillChoreography.HitTimes(tier,variant);
             float duration=variant==0?SkillChoreography.BuffDuration(tier):AttackFlightDuration+hits[hits.Length-1];
             float time=0;int nextHit=0,previousFlight=-1;
@@ -94,7 +101,10 @@ namespace Moonlit.UI
                 if(variant==0) {
                     float t=time/duration;
                     Pose(renderer,SkillChoreography.Sample(tier,0,source,target,t),2.4f);
-                    for(int i=0;i<accents.Count;i++)Pose(accents[i],SkillChoreography.BuffAccent(tier,i,t,source),2.4f);
+                    for(int i=0;i<accents.Count;i++) {
+                        Pose(accents[i],SkillChoreography.BuffAccent(tier,i,t,source),2.4f);
+                        if(tier<=3)Tint(accents[i],Colors[tier]);
+                    }
                 } else {
                     while(nextHit<hits.Length&&time>=AttackFlightDuration+hits[nextHit]) {
                         if(preview)PlaySkillHit(tier,variant,nextHit,source,target,true);
@@ -123,7 +133,7 @@ namespace Moonlit.UI
             if(!catalog||!landed)return;
             tier=Mathf.Clamp(tier,0,9);variant=Mathf.Clamp(variant,1,2);
             var art=Art(tier,variant);if(!art)return;
-            StartCoroutine(Contact(art,tier,variant,hitIndex,target));
+            StartCoroutine(Contact(ContactArt(tier,variant,art),tier,variant,hitIndex,target));
             // Real stones splinter. This remains the only skill using the original stone-fragment burst.
             if(tier==0)Burst(art,tier,variant,target+Vector3.back,Colors[tier]);
             else if(tier==2||tier==3)ContactSmoke(tier,variant,target);
@@ -138,7 +148,10 @@ namespace Moonlit.UI
             float duration=variant==1?.38f:.52f;
             for(float elapsed=0;elapsed<duration;elapsed+=Time.deltaTime) {
                 if(!root)yield break;
-                for(int i=0;i<count;i++)Pose(pieces[i],SkillChoreography.Impact(tier,variant,i,elapsed/duration,point,hit),2.5f);
+                for(int i=0;i<count;i++) {
+                    Pose(pieces[i],SkillChoreography.Impact(tier,variant,i,elapsed/duration,point,hit),2.5f);
+                    if(tier<=3)Tint(pieces[i],Colors[tier]);
+                }
                 yield return null;
             }
             if(root)Destroy(root);
