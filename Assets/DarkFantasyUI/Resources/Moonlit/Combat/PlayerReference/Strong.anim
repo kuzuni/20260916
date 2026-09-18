@@ -955,7 +955,7 @@ AnimationClip:
   m_Events:
   - time: 0.65
     functionName: OnCombatImpact
-    data: 
+    data:
     objectReferenceParameter: {fileID: 0}
     floatParameter: 0
     intParameter: 3
