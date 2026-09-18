@@ -6,6 +6,8 @@ using UnityEngine.UI;
 namespace Moonlit.UI
 {
     // A genuine world-space canvas follows the moving head, independently of the actor's mirrored scale.
+    // Follow this frame's deformed head, after SpriteSkin (order 10), without a backward offset.
+    [DefaultExecutionOrder(25)]
     public sealed class CombatWorldHud : MonoBehaviour
     {
         public Text HealthText { get; private set; }
@@ -76,8 +78,9 @@ namespace Moonlit.UI
             if (!Actor) return;
             Vector3 position = head ? new Vector3(head.bounds.center.x, head.bounds.max.y, Actor.position.z) :
                 Actor.position + Vector3.up * 5.1f;
-            position += new Vector3(player ? -.35f : .35f, .5f, -2);
-            transform.position = KeepOutsideHud(position, 1.05f, .224f, .224f);
+            position += new Vector3(0, .5f, -2);
+            // Health belongs directly above its head. HUD avoidance is reserved for floating numbers.
+            transform.position = position;
             transform.rotation = Quaternion.identity;
         }
         Vector3 KeepOutsideHud(Vector3 position, float halfWidth, float below, float above)

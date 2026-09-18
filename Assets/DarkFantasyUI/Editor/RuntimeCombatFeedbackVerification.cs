@@ -21,7 +21,13 @@ namespace Moonlit.Editor
         {
             typeof(BattleRuntime).GetMethod("LateUpdate", CombatCapturePrivate).Invoke(battle, null);
             foreach (var hud in new[] { battle.PlayerHud, battle.EnemyHud })
+            {
                 typeof(CombatWorldHud).GetMethod("LateUpdate", CombatCapturePrivate).Invoke(hud, null);
+                var head=hud.Actor.GetComponentsInChildren<SpriteRenderer>().FirstOrDefault(part=>part.sprite && part.sprite.name=="머리");
+                if(head && (Mathf.Abs(hud.transform.position.x-head.bounds.center.x)>.012f ||
+                    Mathf.Abs(hud.transform.position.y-(head.bounds.max.y+.5f))>.012f))
+                    throw new InvalidOperationException("World HP must stay directly over its current rendered head without side offsets.");
+            }
             foreach (var shadow in battle.PlayerHud.Actor.parent.GetComponentsInChildren<CombatGroundShadow>())
                 typeof(CombatGroundShadow).GetMethod("LateUpdate", CombatCapturePrivate).Invoke(shadow, null);
             CombatCaptureField<Camera>(battle, "renderCamera").Render();
