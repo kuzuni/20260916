@@ -73,7 +73,9 @@ namespace Moonlit.UI
             if(goldText) goldText.text=Compact(gold);
             if(gemText) gemText.text=Compact(gems);
             var stats=ForgeState.Current.TotalStats;
-            if(powerText) powerText.text=Compact(System.Math.Max(80,stats.health+CollectionProgression.OwnedHealth+CollectionProgression.EquippedHealth)+System.Math.Max(10,stats.attack+CollectionProgression.OwnedAttack+CollectionProgression.EquippedAttack)*8);
+            double power=System.Math.Max(80,stats.health+CollectionProgression.OwnedHealth+CollectionProgression.EquippedHealth)+System.Math.Max(10,stats.attack+CollectionProgression.OwnedAttack+CollectionProgression.EquippedAttack)*8;
+            if(powerText) powerText.text=Compact(power);
+            PowerChangeToast.Ensure(this).Observe(power);
             if(stageText) stageText.text="스테이지 "+stage;
             if(autoText){ autoText.text="자동";autoText.color=autoForge?Ui.Cyan:Ui.Ivory; }
             if(autoIcon)autoIcon.color=autoForge?Ui.Cyan:Color.white;

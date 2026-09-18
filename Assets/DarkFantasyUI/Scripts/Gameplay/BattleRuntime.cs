@@ -22,6 +22,18 @@ namespace Moonlit.UI
         public const float SkillHudReservedHeight = 130;
         public int PlayerTurnCount => PlayerState == null ? 0 : PlayerState.Turns;
         readonly HashSet<CombatSkill> playerSkillsUsedThisTurn = new HashSet<CombatSkill>();
+        readonly Dictionary<CombatSkill, int> playerSkillActivations = new Dictionary<CombatSkill, int>();
+        public int PlayerSkillActivationCount(int skillIndex)
+        {
+            if (PlayerState == null || skillIndex < 0 || skillIndex >= PlayerState.skills.Count) return 0;
+            return playerSkillActivations.TryGetValue(PlayerState.skills[skillIndex], out int count) ? count : 0;
+        }
+        void RecordPlayerSkill(CombatSkill skill)
+        {
+            playerSkillsUsedThisTurn.Add(skill);
+            playerSkillActivations.TryGetValue(skill, out int count);
+            playerSkillActivations[skill] = count + 1;
+        }
         // Zero means due during this actor turn; after the impact, show the full next cooldown.
         public int PlayerSkillTurnsUntilReady(int skillIndex)
         {
@@ -45,6 +57,7 @@ namespace Moonlit.UI
         Animator playerAnimator, enemyAnimator;
         CombatAnimationRelay playerRelay, enemyRelay;
         CombatAppearance appearance;
+        CombatHitFlash playerFlash, enemyFlash;
         PrimitiveSkillEffects effects;
         Coroutine battle;
         Action<bool> externalCallback;
@@ -104,6 +117,8 @@ namespace Moonlit.UI
             enemy = CreateActor("Enemy (temporary Player prefab)", 2.5f, true, out enemyAnimator, out enemyRelay);
             appearance = player.AddComponent<CombatAppearance>(); appearance.Initialize(assets);
             effects = stageRoot.AddComponent<PrimitiveSkillEffects>(); effects.Initialize(assets);
+            playerFlash = player.AddComponent<CombatHitFlash>();
+            enemyFlash = enemy.AddComponent<CombatHitFlash>();
             PlayerHud = CombatWorldHud.Create(stageRoot.transform, player, renderCamera, main.font, true);
             EnemyHud = CombatWorldHud.Create(stageRoot.transform, enemy, renderCamera, main.font, false);
         }
@@ -254,10 +269,13 @@ namespace Moonlit.UI
         IEnumerator FightStage(int difficulty, int waves, Action<bool> complete)
         {
             WaveCount = waves;
+            // A stage is one continuous player encounter; only its first wave refreshes the build and heals.
+            PlayerState = BuildPlayer(); playerSkillsUsedThisTurn.Clear(); playerSkillActivations.Clear();
+            playerDeathStarted = false;
             for (Wave = 1; Wave <= waves; Wave++)
             {
+                Round = 1;
                 PlayerResolvedBasicAttacks = EnemyResolvedBasicAttacks = 0;
-                PlayerState = BuildPlayer(); playerSkillsUsedThisTurn.Clear();
                 var stats = CombatRules.StageEnemy(difficulty, Wave);
                 if (arenaRating >= 0 && IsExternalBattle && externalName == "아레나")
                 {
@@ -266,9 +284,10 @@ namespace Moonlit.UI
                     stats.speed = Math.Max(1, stats.speed * scale);
                 }
                 EnemyState = new CombatActorState(stats);
-                playerDeathStarted = enemyDeathStarted = false;
-                playerAnimator.Play("Idle", 0, 0); enemyAnimator.Play("Idle", 0, 0);
-                yield return Entrance();
+                enemyDeathStarted = false;
+                if (Wave == 1) playerAnimator.Play("Idle", 0, 0);
+                enemyAnimator.Play("Idle", 0, 0);
+                yield return Wave == 1 ? Entrance() : EnemyEntrance();
                 bool playerFirst = CombatRules.PlayerFirst(PlayerState.stats.speed, EnemyState.stats.speed, random.NextDouble());
                 for (Round = 1; Round <= CombatRules.RoundsPerWave; Round++)
                 {
@@ -287,16 +306,19 @@ namespace Moonlit.UI
             Wave = waves;
             complete(true);
         }
-        IEnumerator Entrance()
+        IEnumerator Entrance() => EnterActors(true);
+        IEnumerator EnemyEntrance() => EnterActors(false);
+        IEnumerator EnterActors(bool includePlayer)
         {
-            PlayerHud.SetVisible(false); EnemyHud.SetVisible(false);
+            if (includePlayer) PlayerHud.SetVisible(false);
+            EnemyHud.SetVisible(false);
             for (float t = 0; t < .45f; t += Time.deltaTime)
             {
-                player.transform.localPosition = new Vector3(Mathf.Lerp(-5.5f, -2.5f, t / .45f), 0, 0);
+                if (includePlayer) player.transform.localPosition = new Vector3(Mathf.Lerp(-5.5f, -2.5f, t / .45f), 0, 0);
                 enemy.transform.localPosition = new Vector3(Mathf.Lerp(5.5f, 2.5f, t / .45f), 0, 0);
                 yield return null;
             }
-            player.transform.localPosition = new Vector3(-2.5f, 0, 0);
+            if (includePlayer) player.transform.localPosition = new Vector3(-2.5f, 0, 0);
             enemy.transform.localPosition = new Vector3(2.5f, 0, 0);
             PlayerHud.SetVisible(true); EnemyHud.SetVisible(true);
         }
@@ -314,7 +336,7 @@ namespace Moonlit.UI
                     yield return Strike(isPlayer, actor.stats.attack + actor.AttackBoost, false, 0);
                 else if (skill.variant == 0)
                     yield return AnimatedAction(isPlayer, 1, "Buff", () => {
-                        if (isPlayer) playerSkillsUsedThisTurn.Add(skill);
+                        if (isPlayer) RecordPlayerSkill(skill);
                         double healing = actor.Heal(skill.heal); actor.SetAttackBoost(Math.Max(actor.AttackBoost, skill.attackBoost));
                         ShowSkill(isPlayer, 0, skill.tier);
                         (isPlayer ? PlayerHud : EnemyHud).Float("+" + Format(healing), new Color(.4f, 1, .55f));
@@ -338,10 +360,13 @@ namespace Moonlit.UI
                 if (!skill) { if (isPlayer) PlayerResolvedBasicAttacks++; else EnemyResolvedBasicAttacks++; }
                 if (isPlayer && skill)
                     foreach (var equipped in actor.skills)
-                        if (equipped.tier == tier && equipped.variant == variant) playerSkillsUsedThisTurn.Add(equipped);
+                        if (equipped.tier == tier && equipped.variant == variant) RecordPlayerSkill(equipped);
                 var hit = CombatRules.Strike(actor, target, damage, skill, random.NextDouble);
-                if (!hit.evaded)
+                if (!hit.evaded && hit.damage > 0)
                 {
+                    (isPlayer ? enemyFlash : playerFlash).Play();
+                    var victimMotion = (isPlayer ? enemy : player).transform.Find("Motion");
+                    effects.PlayImpact(skill ? tier : 0, skill ? variant : 1, victimMotion.position + Vector3.up * 2.4f);
                     if (target.Alive) (isPlayer ? enemyAnimator : playerAnimator).Play("Hit", 0, 0);
                     else PlayDeathOnce(!isPlayer);
                 }
@@ -374,19 +399,19 @@ namespace Moonlit.UI
             }
             else if ((isPlayer ? PlayerState : EnemyState).Alive) animator.Play("Idle", 0, 0);
         }
-        void ShowSkill(bool isPlayer, int variant, int tier = 0)
+        void ShowSkill(bool isPlayer, int variant, int tier = 0, bool preview = false)
         {
             Transform sourceMotion = (isPlayer ? player : enemy).transform.Find("Motion");
             Transform targetMotion = (isPlayer ? enemy : player).transform.Find("Motion");
             Vector3 source = sourceMotion.position + Vector3.up * 2.4f;
             Vector3 target = targetMotion.position + Vector3.up * 2.4f;
-            effects.Play(tier, variant, source, target, sourceMotion, targetMotion);
+            effects.Play(tier, variant, source, target, sourceMotion, targetMotion, preview || variant == 0);
         }
         public void PreviewPrimitiveSkill(int variant) => PreviewSkill(0, variant);
         public void PreviewSkill(int tier, int variant)
         {
             if (!effects) { main.Toast("전투 에셋 준비가 필요합니다"); return; }
-            ShowSkill(true, Mathf.Clamp(variant, 0, 2), Mathf.Clamp(tier, 0, 9));
+            ShowSkill(true, Mathf.Clamp(variant, 0, 2), Mathf.Clamp(tier, 0, 9), true);
         }
         public bool StartDungeon(int index, int difficulty, int waves, Action<bool> callback)
         {

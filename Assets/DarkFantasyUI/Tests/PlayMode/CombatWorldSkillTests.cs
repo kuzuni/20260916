@@ -151,7 +151,7 @@ namespace Moonlit.UI.Tests
                 yield return new WaitForSeconds(PrimitiveSkillEffects.AttackFlightDuration+.03f);
                 var particles = root.GetComponentInChildren<ParticleSystem>();
                 Assert.IsNotNull(particles);
-                Assert.AreEqual(.88f,particles.main.startSize.constant,.001f,"Stone fragments are 4x their original size.");
+                Assert.AreEqual(2.64f,particles.main.startSize.constant,.001f,"Stone fragments are three times the previous .88 size.");
                 var sheet = particles.textureSheetAnimation;
                 Assert.IsTrue(sheet.enabled);
                 Assert.AreEqual(ParticleSystemAnimationMode.Sprites,sheet.mode);

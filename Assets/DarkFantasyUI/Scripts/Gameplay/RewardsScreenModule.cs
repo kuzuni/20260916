@@ -99,10 +99,18 @@ namespace Moonlit.UI
             Ui.Text("Free",b,0,126,422,74,"무료",34,Font(c));
             var premiumTab=Ui.Image("Premium tab",b,458,126,422,74,PopupSkin.GoldActionArt);premiumTab.type=Image.Type.Sliced;premiumTab.pixelsPerUnitMultiplier=8;
             Ui.Text("Premium",b,458,126,422,74,"프리미엄",34,Font(c));
-            Scroll(c,b,0,212,894,b.rect.height-212,100*216,out var content);
+            var scroll=Scroll(c,b,0,212,894,b.rect.height-212,100*216,out var content);
+            // The rail spans stage markers; each milestone label hides the line beneath it.
+            const float timelineHeight=99*216;
+            Ui.Image("Timeline track",content,435,24,10,timelineHeight,null,new Color(.08f,.14f,.19f));
+            var progress=Ui.Image("Timeline glow",content,435,24,10,0,null,new Color(.1f,.65f,1f));
+            var progressCore=Ui.Image("Timeline",content,439,24,2,0,null,Color.white);
             var claims=new Button[100];var checks=new Image[100];
             for(int i=0;i<100;i++) PassRow(c,content,i,i*216,claims,checks);
             void Refresh() {
+                float fill=Mathf.Clamp((c.Main.highestClearedStage-5)/5f,0,99)*216;
+                progress.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical,fill);
+                progressCore.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical,fill);
                 for(int i=0;i<100;i++) {
                     bool claimed=RewardState.Current.passClaimed[i];
                     claims[i].interactable=RewardState.Current.CanClaimPass(c.Main.highestClearedStage,i);
@@ -111,15 +119,17 @@ namespace Moonlit.UI
                 }
             }
             b.gameObject.AddComponent<LiveUiRefresh>().RefreshView=Refresh;Refresh();
+            // Choose the opening position once. Claims and live progress must not fight a user's scroll.
+            int focus=Mathf.Clamp(c.Main.highestClearedStage/5,0,99);
+            for(int i=0;i<100;i++)if(RewardState.Current.CanClaimPass(c.Main.highestClearedStage,i)){focus=i;break;}
+            float offset=Mathf.Clamp(focus*216,0,Mathf.Max(0,content.rect.height-scroll.viewport.rect.height));
+            scroll.StopMovement();content.anchoredPosition=new Vector2(content.anchoredPosition.x,offset);
             PopupSkin.Close("Close",root,w/2-50,h-50,100,Font(c),c.Close,64);
         }
         static void PassRow(ScreenContext c,Transform p,int index,float y,Button[] claims,Image[] checks)
         {
             var frame=Ui.Image("Stage frame",p,305,y,270,48,PopupSkin.ActionArt);frame.type=Image.Type.Sliced;frame.pixelsPerUnitMultiplier=9;
             Ui.Text("Stage milestone "+index,p,305,y,270,48,"스테이지 "+((index+1)*5),26,Font(c),Ui.Ivory);
-            Ui.Image("Timeline glow",p,435,y+48,10,168,null,new Color(.1f,.65f,1f));
-            Ui.Image("Timeline",p,439,y+48,2,168,null,Color.white);
-            var node=Ui.Image("Node",p,430,y+112,20,20,null,Ui.Gold);node.rectTransform.localRotation=Quaternion.Euler(0,0,45);
             var free=PassCard("Free reward "+index,p,8,y+52,new Color(.65f,.85f,1f));
             var ticket=RewardVisuals.Ticket(index%3);
             PassReward(c,free,20,14,ticket,"10");

@@ -256,10 +256,130 @@ namespace Moonlit.UI.Tests
                 Assert.AreEqual("+20",amount.text);
                 Assert.AreEqual(new Color(.4f,1,.55f),amount.color);
                 Assert.AreEqual(3,fixture.battle.PlayerTurnCount);
+                Assert.AreEqual(1,fixture.battle.PlayerSkillActivationCount(0));
+                var relay=(CombatAnimationRelay)typeof(BattleRuntime).GetField("playerRelay",PrivateInstance).GetValue(fixture.battle);
+                relay.OnCombatImpact(1);
+                Assert.AreEqual(1,fixture.battle.PlayerSkillActivationCount(0),"Duplicate event cannot duplicate HUD activation.");
                 Assert.AreEqual(3,fixture.battle.PlayerSkillTurnsUntilReady(0));
                 Assert.AreEqual(-1,fixture.battle.PlayerSkillTurnsUntilReady(1));
             }
             yield return null;
+        }
+
+
+        [Test]
+        public void WaveTransitionsPreserveHealthPositionBuffAndSkillPhaseUntilStageReset()
+        {
+            using (var fixture = new Fixture())
+            {
+                var fight = (IEnumerator)typeof(BattleRuntime).GetMethod("FightStage", PrivateInstance).Invoke(
+                    fixture.battle, new object[] { 1, 3, new Action<bool>(won => Assert.IsTrue(won)) });
+                Assert.IsTrue(fight.MoveNext()); // Initial entrance.
+                var player = fixture.battle.PlayerState;
+                var skill = new CombatSkill { tier = 0, variant = 1, cooldown = 2, damage = 15 };
+                player.skills.Add(skill); player.BeginTurn(); player.BeginTurn();
+                player.Damage(13); player.SetAttackBoost(7);
+                typeof(BattleRuntime).GetMethod("RecordPlayerSkill", PrivateInstance).Invoke(fixture.battle, new object[] { skill });
+                var home = new Vector3(-2.7f, .15f, 0);
+                fixture.battle.PlayerHud.Actor.localPosition = home;
+                fixture.battle.PlayerHud.SetVisible(true);
+                for (int wave = 1; wave <= 3; wave++)
+                {
+                    Assert.IsTrue(fight.MoveNext()); // Round one, deliberately hold the actor iterator.
+                    Assert.AreEqual(1, fixture.battle.Round);
+                    fixture.battle.EnemyState.Damage(double.MaxValue);
+                    Assert.IsTrue(fight.MoveNext()); // Death hold.
+                    if (wave == 3) { Assert.IsFalse(fight.MoveNext()); break; }
+                    Assert.IsTrue(fight.MoveNext()); // Only the next enemy enters.
+                    Assert.AreEqual(wave + 1, fixture.battle.Wave);
+                    Assert.AreSame(player, fixture.battle.PlayerState);
+                    Assert.AreEqual(player.stats.health - 13, player.Health);
+                    Assert.AreEqual(7, player.AttackBoost);
+                    Assert.AreEqual(2, fixture.battle.PlayerTurnCount);
+                    Assert.AreEqual(1, fixture.battle.PlayerSkillActivationCount(0));
+                    Assert.AreEqual(2, fixture.battle.PlayerSkillTurnsUntilReady(0), "Used skill must not appear ready again between waves.");
+                    var entrance = (IEnumerator)fight.Current;
+                    Assert.IsTrue(entrance.MoveNext());
+                    Assert.AreEqual(home, fixture.battle.PlayerHud.Actor.localPosition);
+                    Assert.IsTrue(fixture.battle.PlayerHud.WorldCanvas.enabled, "The player must stay visible during the next enemy entrance.");
+                }
+                var nextStage = (IEnumerator)typeof(BattleRuntime).GetMethod("FightStage", PrivateInstance).Invoke(
+                    fixture.battle, new object[] { 2, 3, new Action<bool>(_ => {}) });
+                Assert.IsTrue(nextStage.MoveNext());
+                Assert.AreNotSame(player, fixture.battle.PlayerState);
+                Assert.AreEqual(fixture.battle.PlayerState.stats.health, fixture.battle.PlayerState.Health);
+                Assert.AreEqual(0, fixture.battle.PlayerTurnCount);
+                Assert.AreEqual(0, fixture.battle.PlayerSkillActivationCount(0));
+                Assert.AreEqual(0, fixture.battle.PlayerState.AttackBoost);
+            }
+        }
+
+        [TestCase(true, 0, false)]
+        [TestCase(false, 0, false)]
+        [TestCase(true, 1, false)]
+        [TestCase(true, 2, false)]
+        [TestCase(true, 1, true)]
+        public void AnimatorImpactAloneFlashesVictimAndSpawnsIllustratedFragments(bool isPlayer, int variant, bool evade)
+        {
+            using (var fixture = new Fixture())
+            {
+                var attacker = new CombatActorState(new CombatStats { health = 100 });
+                var victim = new CombatActorState(new CombatStats { health = 100, dodge = evade ? 100 : 0 });
+                typeof(BattleRuntime).GetProperty("PlayerState").SetValue(fixture.battle, isPlayer ? attacker : victim);
+                typeof(BattleRuntime).GetProperty("EnemyState").SetValue(fixture.battle, isPlayer ? victim : attacker);
+                var victimActor = isPlayer ? fixture.battle.EnemyHud.Actor : fixture.battle.PlayerHud.Actor;
+                var flash = victimActor.GetComponent<CombatHitFlash>();
+                var animator = (Animator)typeof(BattleRuntime).GetField(isPlayer ? "playerAnimator" : "enemyAnimator", PrivateInstance).GetValue(fixture.battle);
+                var relay = (CombatAnimationRelay)typeof(BattleRuntime).GetField(isPlayer ? "playerRelay" : "enemyRelay", PrivateInstance).GetValue(fixture.battle);
+                var effects = (PrimitiveSkillEffects)typeof(BattleRuntime).GetField("effects", PrivateInstance).GetValue(fixture.battle);
+                var strike = (IEnumerator)typeof(BattleRuntime).GetMethod("Strike", PrivateInstance)
+                    .Invoke(fixture.battle, new object[] { isPlayer, 10d, variant > 0, variant });
+                Assert.IsTrue(strike.MoveNext());
+                var action = (IEnumerator)strike.Current; Assert.IsTrue(action.MoveNext());
+                Assert.IsFalse(flash.IsFlashing); Assert.AreEqual(0, effects.GetComponentsInChildren<ParticleSystem>().Length);
+                float impactTime = variant == 0 ? .3f : PrimitiveSkillEffects.AttackFlightDuration;
+                animator.Update(0); animator.Update(impactTime - .01f);
+                Assert.AreEqual(100, victim.Health); Assert.IsFalse(flash.IsFlashing);
+                animator.Update(.02f);
+                Assert.AreEqual(evade ? 100 : 90, victim.Health);
+                Assert.AreEqual(!evade, flash.IsFlashing);
+                var fragments = effects.GetComponentsInChildren<ParticleSystem>();
+                Assert.AreEqual(evade ? 0 : 1, fragments.Length);
+                if (!evade)
+                {
+                    foreach (var sprite in victimActor.GetComponentsInChildren<SpriteRenderer>())
+                        Assert.AreEqual("Moonlit/Combat/HitWhite", sprite.sharedMaterial.shader.name);
+                    Assert.AreEqual(2.64f, fragments[0].main.startSize.constant, .001f, "Three times the previous .88 fragment size.");
+                    var art = PrimitiveSkillEffects.SkillSprite(0, variant == 2 ? 2 : 1);
+                    Assert.AreSame(art, fragments[0].textureSheetAnimation.GetSprite(0));
+                    Assert.AreSame(art.texture, fragments[0].GetComponent<ParticleSystemRenderer>().sharedMaterial.mainTexture);
+                }
+                relay.OnCombatImpact(variant == 0 ? 0 : variant + 1);
+                Assert.AreEqual(evade ? 100 : 90, victim.Health);
+                Assert.AreEqual(evade ? 0 : 1, effects.GetComponentsInChildren<ParticleSystem>().Length, "Duplicate events must not spawn another impact.");
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator HitFlashRestoresOriginalMaterialsAfterHoldAndOnDisable()
+        {
+            using (var fixture = new Fixture())
+            {
+                Time.timeScale = 1;
+                var actor = fixture.battle.EnemyHud.Actor;
+                var sprites = actor.GetComponentsInChildren<SpriteRenderer>();
+                var originals = sprites.Select(sprite => sprite.sharedMaterial).ToArray();
+                var flash = actor.GetComponent<CombatHitFlash>();
+                flash.Play(); Assert.IsTrue(flash.IsFlashing);
+                yield return null;
+                yield return new WaitForSeconds(CombatHitFlash.Duration + .05f);
+                Assert.IsFalse(flash.IsFlashing);
+                for (int i = 0; i < sprites.Length; i++) Assert.AreSame(originals[i], sprites[i].sharedMaterial);
+                flash.Play(); flash.Play(); // Refresh during another hit must retain the actual original material.
+                flash.enabled = false;
+                Assert.IsFalse(flash.IsFlashing);
+                for (int i = 0; i < sprites.Length; i++) Assert.AreSame(originals[i], sprites[i].sharedMaterial);
+            }
         }
 
         static Rect WorldRect(RectTransform rect)

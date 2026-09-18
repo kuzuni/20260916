@@ -53,7 +53,7 @@ namespace Moonlit.UI
         }
         public void SetAttackBoost(double value) { AttackBoost = Math.Max(0, value); }
         public void Regenerate() { if (Alive) Heal(stats.health * CombatRules.Percent(stats.regeneration)); }
-        // First activation is on the cooldown-th actor turn; cooldowns reset at each wave.
+        // First activation is on the cooldown-th actor turn; cooldowns continue across waves and reset only with a new stage actor.
         public bool Ready(CombatSkill skill) => Turns > 0 && Turns % Math.Max(1, skill.cooldown) == 0;
     }
 

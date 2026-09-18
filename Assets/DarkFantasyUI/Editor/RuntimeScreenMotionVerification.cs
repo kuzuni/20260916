@@ -13,7 +13,7 @@ namespace Moonlit.Editor
         {
             string aspect=height==1920?"9x16":"9x19";
             foreach(string route in new[]{"forge-probability","shop","chat"}) {
-                screen.screens.ShowMainPage();screen.screens.Open(route);yield return null;
+                screen.screens.ShowMainPage();screen.screens.Open(route);
                 var layer=GameObject.Find((route=="shop"?"Page — ":"Popup Layer ")+route);
                 var motion=layer?layer.GetComponentInChildren<UiScreenMotion>():null;
                 if(!motion || motion.Sequential!=(route!="forge-probability")) {
@@ -23,8 +23,9 @@ namespace Moonlit.Editor
                 SaveCamera(camera,"Artifacts/Runtime-"+route+"-entering-"+aspect+".png",1080,height,false);
                 motion.Complete();Canvas.ForceUpdateCanvases();
                 SaveCamera(camera,"Artifacts/Runtime-"+route+"-entered-"+aspect+".png",1080,height);
+                bool sequential=motion.Sequential;
                 screen.screens.ShowMainPage();
-                report.Add("PASS "+route+" DOTween "+(motion.Sequential?"sequential contents":"modal fade")+" "+height);
+                report.Add("PASS "+route+" DOTween "+(sequential?"sequential contents":"modal fade")+" "+height);
             }
         }
     }
