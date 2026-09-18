@@ -316,6 +316,45 @@ namespace Moonlit.UI.Tests
         }
 
         [UnityTest]
+        public IEnumerator AlreadyFloatingDamageRechecksProtectionWhenSafeAreaShrinks()
+        {
+            using(var fixture=new Fixture(2280))
+            {
+                Time.timeScale=1;
+                fixture.main.stageText=Ui.Text("Stage title",fixture.root.transform,290,146,500,58,"스테이지 2",45,fixture.main.font);
+                fixture.main.roundText=Ui.Text("Battle round",fixture.root.transform,290,258,500,48,"라운드 1/15",26,fixture.main.font);
+                fixture.main.waveNodes=new UnityEngine.UI.Image[3];
+                for(int n=0;n<3;n++)fixture.main.waveNodes[n]=Ui.Image("Wave "+n,fixture.root.transform,402+n*127,219,22,22,null,Color.cyan);
+                var animator=(Animator)typeof(BattleRuntime).GetField("playerAnimator",PrivateInstance).GetValue(fixture.battle);
+                animator.Play("Basic",0,0);animator.Update(0);animator.Update(.36f);animator.speed=0;
+                yield return null;
+                typeof(BattleRuntime).GetMethod("LateUpdate",PrivateInstance).Invoke(fixture.battle,null);
+                typeof(CombatWorldHud).GetMethod("LateUpdate",PrivateInstance).Invoke(fixture.battle.PlayerHud,null);
+                var amount=(IEnumerator)typeof(CombatWorldHud).GetMethod("FloatNumber",PrivateInstance)
+                    .Invoke(fixture.battle.PlayerHud,new object[]{"5",Color.white});
+                Assert.IsTrue(amount.MoveNext());
+                var number=fixture.battle.PlayerHud.transform.parent.Find("Player damage number");
+                var label=number.GetComponentInChildren<UnityEngine.UI.Text>();
+                Vector3 before=number.position;
+                // Same responsive design-height transition used by the 9:19 -> notched 9:16 capture.
+                ((RectTransform)fixture.root.transform).sizeDelta=new Vector2(1080,1720);
+                typeof(BattleRuntime).GetMethod("LateUpdate",PrivateInstance).Invoke(fixture.battle,null);
+                var areas=(Rect[])typeof(BattleRuntime).GetField("protectedHudAreas",PrivateInstance).GetValue(fixture.battle);
+                float halfWidth=Mathf.Min(760,label.preferredWidth+24)*.008f*1.2f/2;
+                var oldPath=new Rect(before.x-halfWidth,before.y-.8f,halfWidth*2,2.5f);
+                Assert.IsTrue(areas.Any(area=>area.Overlaps(oldPath)),"The already-spawned number must cross the new stage protection.");
+                Assert.Less(number.position.x,before.x,"Resolve before rendering, without waiting for another coroutine frame.");
+                Assert.AreEqual(before.y,number.position.y,.001f,"Keep the upward animation continuous.");
+                var newPath=new Rect(number.position.x-halfWidth,number.position.y-.8f,halfWidth*2,2.5f);
+                foreach(var area in areas)Assert.IsFalse(area.Overlaps(newPath));
+                Assert.IsTrue(amount.MoveNext());
+                Assert.LessOrEqual(number.position.x,before.x);
+                Assert.AreEqual(117,label.fontSize);
+            }
+            yield return null;
+        }
+
+        [UnityTest]
         public IEnumerator CompactSafeAreaKeepsEntireActorAndHudInsideBattleView()
         {
             using (var fixture = new Fixture(1600))
