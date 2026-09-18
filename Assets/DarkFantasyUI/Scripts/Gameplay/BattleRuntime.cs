@@ -60,6 +60,7 @@ namespace Moonlit.UI
         RectTransform skillStrip;
         float formationGroundDrop;
         int formationLayoutKey;
+        CombatActorState formationEncounter;
         public float FormationGroundOffset => -formationGroundDrop;
         readonly List<SpriteRenderer> clearanceSprites = new List<SpriteRenderer>();
         Animator playerAnimator, enemyAnimator;
@@ -202,7 +203,7 @@ namespace Moonlit.UI
             float floor=renderCamera.ViewportToWorldPoint(new Vector3(0,0,12)).y+.08f;
             var companions=stageRoot.GetComponent<CompanionBattleRuntime>();
             int key=Mathf.RoundToInt(view.rect.height)*7+(companions&&companions.Mount?companions.Mount.Variant+1:0);
-            if(key!=formationLayoutKey){formationLayoutKey=key;formationGroundDrop=0;}
+            if(key!=formationLayoutKey||formationEncounter!=PlayerState){formationLayoutKey=key;formationEncounter=PlayerState;formationGroundDrop=0;}
             PrepareLayoutBounds(player,companions,true,playerLayoutParts,playerLayoutFormation);
             PrepareLayoutBounds(enemy,null,false,enemyLayoutParts,enemyLayoutFormation);
             float maximumDrop=3f;
@@ -262,7 +263,7 @@ namespace Moonlit.UI
                     if(correction!=0){pet.transform.position+=Vector3.right*correction;pet.RefreshShadow();}
                 }
             }
-            if(hud)hud.transform.position+=offset;
+            if(hud)hud.RefreshPosition();
         }
         void MoveCompanionWorld(FlatCompanionActor companion,Vector3 offset)
         {
