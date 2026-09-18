@@ -24,6 +24,8 @@ namespace Moonlit.Editor
             bool screenEnabled=screen.enabled,battleEnabled=battle.enabled,hudEnabled=hud.enabled;
             var playerProperty=typeof(BattleRuntime).GetProperty("PlayerState");
             var enemyProperty=typeof(BattleRuntime).GetProperty("EnemyState");
+            var effects=CombatCaptureField<PrimitiveSkillEffects>(battle,"effects");
+            float savedEffectClock=effects.PlaybackElapsed,savedEffectOverride=effects.EarlyPlaybackTimeOverride;
             try {
                 screen.screens.ShowMainPage();screen.enabled=false;hud.enabled=false;battle.StopAllCoroutines();
                 CollectionProgression.Data=CollectionProgression.Create();
@@ -40,7 +42,7 @@ namespace Moonlit.Editor
                 enemyProperty.SetValue(battle,new CombatActorState(new CombatStats{health=10000,attack=1,speed=1}));
                 foreach(var actorHud in new[]{battle.PlayerHud,battle.EnemyHud}) {
                     actorHud.SetVisible(true);
-                    var idle=actorHud.Actor.GetComponent<Animator>();idle.Play("Idle",0,0);idle.Update(0);
+                    var idle=CaptureAuthoredAnimator(actorHud.Actor);idle.Play("Idle",0,0);idle.Update(0);
                 }
                 hud.Refresh();yield return null;
                 actor.BeginTurn();hud.Refresh();
@@ -63,16 +65,18 @@ namespace Moonlit.Editor
                     report.Add("FAIL skill HUD capture could not arm the actual buff action");fail();yield break;
                 }
                 int before=battle.PlayerSkillActivationCount(0);
-                var animator=battle.PlayerHud.Actor.GetComponent<Animator>();
-                animator.Update(0);animator.Update(.31f);
+                var animator=CaptureAuthoredAnimator(battle.PlayerHud.Actor);
+                animator.Update(0);
+                float eventTime=CaptureAuthoredEventTime(animator,"Buff",1);
+                CaptureEffectClock(effects,eventTime);
+                animator.Update(eventTime+.001f);
                 battle.StopAllCoroutines();
                 var sequence=CombatCaptureField<CombatComboSequence>(battle,"activeCombo");
                 if(sequence==null || battle.PlayerSkillActivationCount(0)!=before) {
                     report.Add("FAIL food buff must not heal or activate HUD before its three pulses");fail();yield break;
                 }
-                var effects=CombatCaptureField<PrimitiveSkillEffects>(battle,"effects");
-                effects.EarlyPlaybackTimeOverride=SkillChoreography.BuffHealTime(0)+.04f;
-                sequence.Advance(SkillChoreography.BuffHealTime(0)-.3f+.001f);
+                CaptureEffectClock(effects,SkillChoreography.BuffHealTime(0)+.04f);
+                sequence.Advance(SkillChoreography.BuffHealTime(0)-eventTime+.001f);
                 if(battle.PlayerSkillActivationCount(0)!=before+1) {
                     report.Add("FAIL skill HUD activation must come from one real Animator-authorized delayed heal");fail();yield break;
                 }
@@ -91,7 +95,7 @@ namespace Moonlit.Editor
                 foreach(var indicator in hud.GetComponentsInChildren<SkillHudFeedback>(true))
                     DOTween.Kill(indicator);
                 var cleanupEffects=CombatCaptureField<PrimitiveSkillEffects>(battle,"effects");
-                if(cleanupEffects)cleanupEffects.EarlyPlaybackTimeOverride=-1;
+                if(cleanupEffects){CaptureEffectClock(cleanupEffects,savedEffectClock);cleanupEffects.EarlyPlaybackTimeOverride=savedEffectOverride;}
                 CollectionProgression.Data=collections;
                 playerProperty.SetValue(battle,previousPlayer);enemyProperty.SetValue(battle,previousEnemy);
                 screen.enabled=screenEnabled;hud.enabled=hudEnabled;hud.Refresh();
