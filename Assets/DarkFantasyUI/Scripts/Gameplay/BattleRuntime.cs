@@ -58,10 +58,11 @@ namespace Moonlit.UI
         readonly List<Bounds> playerLayoutParts=new List<Bounds>(),enemyLayoutParts=new List<Bounds>();
         readonly List<Bounds> playerLayoutFormation=new List<Bounds>(),enemyLayoutFormation=new List<Bounds>();
         RectTransform skillStrip;
-        float formationGroundDrop;
-        int formationLayoutKey;
-        CombatActorState formationEncounter;
-        public float FormationGroundOffset => -formationGroundDrop;
+        // User-authored animation can move bones, but the battle formation always uses ground Y = 0.
+        public float FormationGroundOffset => 0;
+        public bool IsEnteringFormation { get; private set; }
+        public bool IsEntrancePrepared { get; private set; }
+        public bool IsFormationClear { get; private set; }
         readonly List<SpriteRenderer> clearanceSprites = new List<SpriteRenderer>();
         Animator playerAnimator, enemyAnimator;
         CombatAnimationRelay playerRelay, enemyRelay;
@@ -102,6 +103,7 @@ namespace Moonlit.UI
         {
             CancelSkillCombo();
             StopAllCoroutines(); battle = null;
+            IsEnteringFormation = IsEntrancePrepared = false;
             if (playerRelay) playerRelay.Cancel();
             if (enemyRelay) enemyRelay.Cancel();
             if (stageRoot) stageRoot.SetActive(false);
@@ -201,39 +203,33 @@ namespace Moonlit.UI
         }
         public void ApplyActorHudClearance()
         {
-            if(!renderCamera||!player||!enemy||!PlayerHud.WorldCanvas.enabled||!EnemyHud.WorldCanvas.enabled)return;
+            if(!renderCamera||!player||!enemy||IsEnteringFormation)return;
+            // A visible entry and every subsequent combat pose share this same outer-actor ground.
+            // Never compensate an authored bone animation by lowering or raising its actor.
+            var playerPosition=player.transform.localPosition;playerPosition.y=0;player.transform.localPosition=playerPosition;
+            var enemyPosition=enemy.transform.localPosition;enemyPosition.y=0;enemy.transform.localPosition=enemyPosition;
+            if(!PlayerHud.WorldCanvas.enabled||!EnemyHud.WorldCanvas.enabled)return;
             float left=renderCamera.ViewportToWorldPoint(new Vector3(.025f,0,12)).x;
             float right=renderCamera.ViewportToWorldPoint(new Vector3(.975f,0,12)).x;
-            float floor=renderCamera.ViewportToWorldPoint(new Vector3(0,0,12)).y+.08f;
             var companions=stageRoot.GetComponent<CompanionBattleRuntime>();
-            int key=Mathf.RoundToInt(view.rect.height)*7+(companions&&companions.Mount?companions.Mount.Variant+1:0);
-            if(key!=formationLayoutKey||formationEncounter!=PlayerState){formationLayoutKey=key;formationEncounter=PlayerState;formationGroundDrop=0;}
             PrepareLayoutBounds(player,companions,true,playerLayoutParts,playerLayoutFormation);
             PrepareLayoutBounds(enemy,null,false,enemyLayoutParts,enemyLayoutFormation);
-            float maximumDrop=3f;
-            foreach(var part in playerLayoutFormation)maximumDrop=Mathf.Min(maximumDrop,part.min.y-floor);
-            foreach(var part in enemyLayoutFormation)maximumDrop=Mathf.Min(maximumDrop,part.min.y-floor);
-            float playerHead=LayoutHeadX(player,true),enemyHead=LayoutHeadX(enemy,false),centre=stageRoot.transform.position.x;
-            // Separate the actual heads/HP bars, while allowing authored arms and weapons to reach inward.
-            float playerMaximum=centre-1.35f-playerHead,enemyMinimum=centre+1.35f-enemyHead;
-            float previousDrop=0,firstDrop=Mathf.Min(formationGroundDrop,Mathf.Max(0,maximumDrop));
-            int steps=Mathf.CeilToInt((maximumDrop-firstDrop)/.04f);
-            for(int step=0;step<=steps;step++) {
-                float drop=Mathf.Min(maximumDrop,firstDrop+step*.04f);
-                float change=previousDrop-drop;previousDrop=drop;
-                TranslateBounds(playerLayoutParts,Vector3.up*change);TranslateBounds(playerLayoutFormation,Vector3.up*change);
-                TranslateBounds(enemyLayoutParts,Vector3.up*change);TranslateBounds(enemyLayoutFormation,Vector3.up*change);
-                bool p=CombatActorHudClearance.TrySafeShift(playerLayoutParts,playerLayoutFormation,actorProtectedHudAreas,
-                    true,left,right,float.NegativeInfinity,playerMaximum,out float playerX);
-                bool e=CombatActorHudClearance.TrySafeShift(enemyLayoutParts,enemyLayoutFormation,actorProtectedHudAreas,
-                    false,left,right,enemyMinimum,float.PositiveInfinity,out float enemyX);
-                if(!p||!e)continue;
-                formationGroundDrop=drop;
-                MoveFormationTo(player,true,PlayerHud,companions,playerX,-drop,left,right);
-                MoveFormationTo(enemy,false,EnemyHud,null,enemyX,-drop,left,right);
-                return;
-            }
-            // An impossible layout remains visible to the geometry/capture assertions instead of crossing sides.
+            float centre=stageRoot.transform.position.x;
+            float playerMaximum=centre-1.35f-LayoutHeadX(player,true);
+            float enemyMinimum=centre+1.35f-LayoutHeadX(enemy,false);
+            bool p=CombatActorHudClearance.TrySafeShift(playerLayoutParts,playerLayoutFormation,actorProtectedHudAreas,
+                true,left,right,float.NegativeInfinity,playerMaximum,out float playerX);
+            bool e=CombatActorHudClearance.TrySafeShift(enemyLayoutParts,enemyLayoutFormation,actorProtectedHudAreas,
+                false,left,right,enemyMinimum,float.PositiveInfinity,out float enemyX);
+            IsFormationClear=p&&e;
+            // The latest explicit fixed-height rule takes priority when the compact HUD leaves no interval.
+            // Still retain own-side heads and horizontal screen bounds; report the overlap rather than changing Y.
+            if(!p)CombatActorHudClearance.TrySafeShift(playerLayoutParts,playerLayoutFormation,Array.Empty<Rect>(),
+                true,left,right,float.NegativeInfinity,playerMaximum,out playerX);
+            if(!e)CombatActorHudClearance.TrySafeShift(enemyLayoutParts,enemyLayoutFormation,Array.Empty<Rect>(),
+                false,left,right,enemyMinimum,float.PositiveInfinity,out enemyX);
+            MoveFormationTo(player,true,PlayerHud,companions,playerX,0,left,right);
+            MoveFormationTo(enemy,false,EnemyHud,null,enemyX,0,left,right);
         }
         void PrepareLayoutBounds(GameObject actor,CompanionBattleRuntime companions,bool isPlayer,List<Bounds> parts,List<Bounds> formation)
         {
@@ -437,17 +433,23 @@ namespace Moonlit.UI
         IEnumerator EnemyEntrance() => EnterActors(false);
         IEnumerator EnterActors(bool includePlayer)
         {
+            IsEnteringFormation=true;IsEntrancePrepared=true;
             if (includePlayer) PlayerHud.SetVisible(false);
             EnemyHud.SetVisible(false);
-            for (float t = 0; t < .45f; t += Time.deltaTime)
+            try
             {
-                if (includePlayer) player.transform.localPosition = new Vector3(Mathf.Lerp(-5.5f, -2.5f, t / .45f), 0, 0);
-                enemy.transform.localPosition = new Vector3(Mathf.Lerp(5.5f, 2.5f, t / .45f), 0, 0);
-                yield return null;
+                // Entry changes X only. Y is the same explicit zero used by the combat layout.
+                for (float t = 0; t < .45f; t += Time.deltaTime)
+                {
+                    if (includePlayer) player.transform.localPosition = new Vector3(Mathf.Lerp(-5.5f, -2.5f, t / .45f), 0, 0);
+                    enemy.transform.localPosition = new Vector3(Mathf.Lerp(5.5f, 2.5f, t / .45f), 0, 0);
+                    yield return null;
+                }
+                if (includePlayer) player.transform.localPosition = new Vector3(-2.5f, 0, 0);
+                enemy.transform.localPosition = new Vector3(2.5f, 0, 0);
+                PlayerHud.SetVisible(true); EnemyHud.SetVisible(true);
             }
-            if (includePlayer) player.transform.localPosition = new Vector3(-2.5f, 0, 0);
-            enemy.transform.localPosition = new Vector3(2.5f, 0, 0);
-            PlayerHud.SetVisible(true); EnemyHud.SetVisible(true);
+            finally { IsEnteringFormation=false; }
         }
         IEnumerator ActorTurn(bool isPlayer)
         {

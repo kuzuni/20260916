@@ -58,7 +58,98 @@ namespace Moonlit.UI.Tests
         }
 
         [UnityTest]
-        public IEnumerator ActualMountedPosesClearCentralAndFixedPassHudAtBothRatiosAndNotchWithoutShrinking()
+        public IEnumerator RealEntryNativeCombatAndLaterEnemyEntryKeepZeroGroundWithoutResettingPlayer()
+        {
+#if UNITY_EDITOR
+            var savedForge=ForgeState.Current;var savedCollections=CollectionProgression.Data;
+            var savedRewards=RewardState.Current;bool persistence=MainScreen.PersistenceEnabled;
+            float time=Time.timeScale;GameObject root=null;
+            try
+            {
+                MainScreen.PersistenceEnabled=false;Time.timeScale=1;
+                ForgeState.Current=new ForgeState();CollectionProgression.Data=CollectionProgression.Create();RewardState.Current=new RewardState();
+                var assets=AssetDatabase.LoadAssetAtPath<MainScreenAssets>("Assets/DarkFantasyUI/Data/MainScreenAssets.asset");
+                root=new GameObject("Real zero-ground entrance fixture");root.SetActive(false);
+                var main=new RuntimeMainScreenFactory(assets).Create(root.transform);main.enabled=false;root.SetActive(true);
+                var battle=main.GetComponent<BattleRuntime>();battle.StopAllCoroutines();
+                var player=battle.PlayerHud.Actor;var enemy=battle.EnemyHud.Actor;
+                var safe=main.GetComponentInParent<PortraitSafeArea>();var host=main.GetComponentInParent<UiScreenHost>();
+                var companions=player.parent.GetComponent<CompanionBattleRuntime>();
+                var enter=typeof(BattleRuntime).GetMethod("EnterActors",BindingFlags.Instance|BindingFlags.NonPublic);
+                CollectionProgression.Data.categories[2].entries[0].unlocked=true;
+                foreach(int height in new[]{1920,2280})
+                foreach(int mount in new[]{-1,0})
+                {
+                    CollectionProgression.Data.categories[2].equipped[0]=mount;
+                    companions.RefreshEquipped();
+                    var pixels=new Rect(0,0,1080,height);
+                    safe.SetPreviewMetrics(new Vector2Int(1080,height),pixels);host.SetPreviewMetrics(new Vector2Int(1080,height),pixels);
+                    foreach(var actor in new[]{player,enemy})
+                    {
+                        var animator=AuthoredAnimationTestSupport.ActorAnimator(actor);
+                        animator.speed=1;animator.Play("Idle",0,0);animator.Update(0);
+                    }
+                    yield return null;yield return null;
+                    var entry=(IEnumerator)enter.Invoke(battle,new object[]{true});
+                    int frames=0;
+                    while(entry.MoveNext())
+                    {
+                        Assert.IsTrue(battle.IsEnteringFormation);Assert.IsTrue(battle.IsEntrancePrepared);
+                        Assert.AreEqual(0,player.localPosition.y,.001f);
+                        Assert.AreEqual(0,enemy.localPosition.y,.001f);
+                        Assert.Less(++frames,240,"The visible entrance must finish within a bounded number of real frames.");
+                        yield return entry.Current;
+                    }
+                    Assert.IsFalse(battle.IsEnteringFormation);Assert.Greater(frames,0);
+                    yield return null;yield return null;
+                    foreach(string pose in new[]{"Idle","Basic","Strong"})
+                    foreach(float phase in new[]{0f,.25f,.5f,.75f,.99f})
+                    {
+                        foreach(var actor in new[]{player,enemy})
+                        {
+                            var animator=AuthoredAnimationTestSupport.ActorAnimator(actor);
+                            animator.Play(pose,0,phase);animator.Update(0);animator.speed=0;
+                        }
+                        yield return null;yield return null;
+                        battle.ApplyActorHudClearance();
+                        Assert.AreEqual(0,player.localPosition.y,.001f,height+" mount="+mount+" "+pose+" cannot lower the established ground.");
+                        Assert.AreEqual(0,enemy.localPosition.y,.001f);
+                        Assert.AreEqual(2,Mathf.Abs(player.localScale.x));Assert.AreEqual(2,Mathf.Abs(enemy.localScale.x));
+                    }
+                    var state=new CombatActorState(new CombatStats{health=100});
+                    state.Damage(13);state.BeginTurn();state.BeginTurn();state.SetAttackBoost(7);
+                    typeof(BattleRuntime).GetProperty("PlayerState").SetValue(battle,state);
+                    Vector3 home=player.localPosition;
+                    var next=(IEnumerator)enter.Invoke(battle,new object[]{false});frames=0;
+                    while(next.MoveNext())
+                    {
+                        Assert.AreEqual(home,player.localPosition,"Only the next enemy moves; the player is not sent through another entrance.");
+                        Assert.AreEqual(0,enemy.localPosition.y,.001f);
+                        Assert.AreSame(state,battle.PlayerState);Assert.AreEqual(87,state.Health);
+                        Assert.AreEqual(2,state.Turns);Assert.AreEqual(7,state.AttackBoost);
+                        Assert.IsTrue(battle.PlayerHud.WorldCanvas.enabled);
+                        Assert.Less(++frames,240);
+                        yield return next.Current;
+                    }
+                    yield return null;
+                    Assert.AreEqual(0,player.localPosition.y,.001f);Assert.AreEqual(0,enemy.localPosition.y,.001f);
+                    Assert.AreSame(state,battle.PlayerState);Assert.AreEqual(87,state.Health);Assert.AreEqual(2,state.Turns);
+                }
+            }
+            finally
+            {
+                if(root)UnityEngine.Object.DestroyImmediate(root);
+                Time.timeScale=time;MainScreen.PersistenceEnabled=persistence;
+                ForgeState.Current=savedForge;CollectionProgression.Data=savedCollections;RewardState.Current=savedRewards;
+            }
+#else
+            Assert.Fail("This real-native-animation regression requires the cloud Editor PlayMode job.");
+            yield break;
+#endif
+        }
+
+        [UnityTest]
+        public IEnumerator ActualMountedPosesKeepExplicitZeroGroundAndOwnSidesAtBothRatiosAndNotchWithoutShrinking()
         {
 #if UNITY_EDITOR
             var savedForge=ForgeState.Current;var savedCollections=CollectionProgression.Data;
@@ -115,19 +206,19 @@ namespace Moonlit.UI.Tests
                             yield return null;yield return null;
                             battle.ApplyActorHudClearance();
                             var areas=(Rect[])typeof(BattleRuntime).GetField("actorProtectedHudAreas",BindingFlags.NonPublic|BindingFlags.Instance).GetValue(battle);
+                            int overlappingParts=0;
                             foreach(var actor in new[]{player,enemy})
                             {
                                 Assert.AreEqual(2,Mathf.Abs(actor.localScale.x));Assert.AreEqual(2,actor.localScale.y);
-                                Assert.AreEqual(battle.FormationGroundOffset,actor.localPosition.y,.01f,"Both actors use the same bounded ground offset.");
-                                Assert.LessOrEqual(actor.localPosition.y,.01f);
-                                Assert.GreaterOrEqual(actor.localPosition.y,-3.01f);
+                                Assert.AreEqual(0,battle.FormationGroundOffset);
+                                Assert.AreEqual(0,actor.localPosition.y,.001f,"Entry and all authored combat poses retain the user's requested Y=0.");
                                 foreach(var sprite in actor.GetComponentsInChildren<SpriteRenderer>().Where(x=>x.enabled && x.sprite))
                                 foreach(var area in areas)
                                 {
                                     var bounds=sprite.bounds;
                                     bool overlaps=area.width>0 && area.height>0 && bounds.min.x<area.xMax-.01f &&
                                         bounds.max.x>area.xMin+.01f && bounds.min.y<area.yMax-.01f && bounds.max.y>area.yMin+.01f;
-                                    Assert.IsFalse(overlaps,height+" skills="+skillCount+" notch="+notch+" mount="+mount+" "+state+" "+sprite.name+" overlaps central/fixed reward HUD");
+                                    if(overlaps)overlappingParts++;
                                 }
                             }
                             float centre=player.parent.position.x;
@@ -139,9 +230,12 @@ namespace Moonlit.UI.Tests
                                 "The two 2.1-world-unit HP bars must not overlap.");
                             var mountBounds=companions.Mount.VisibleBounds;
                             foreach(var area in areas)
-                                Assert.IsFalse(area.width>0&&area.height>0&&mountBounds.min.x<area.xMax-.01f&&
-                                    mountBounds.max.x>area.xMin+.01f&&mountBounds.min.y<area.yMax-.01f&&mountBounds.max.y>area.yMin+.01f,
-                                    height+" "+mount+" "+state+" mounted artwork covers fixed HUD");
+                                if(area.width>0&&area.height>0&&mountBounds.min.x<area.xMax-.01f&&
+                                    mountBounds.max.x>area.xMin+.01f&&mountBounds.min.y<area.yMax-.01f&&mountBounds.max.y>area.yMin+.01f)
+                                    overlappingParts++;
+                            if(battle.IsFormationClear)Assert.AreEqual(0,overlappingParts,"A reported clear fixed-height formation must actually clear the HUD.");
+                            else TestContext.Progress.WriteLine(height+" skills="+skillCount+" notch="+notch+" mount="+mount+" "+state+
+                                ": fixed Y=0 retains "+overlappingParts+" part/HUD overlaps; no automatic lowering is permitted.");
                             Assert.Less(Vector2.Distance(companions.Mount.saddle.position,companions.RiderHip.position),.03f);
                             Vector3 stablePlayer=player.position,stableEnemy=enemy.position;
                             for(int repeat=0;repeat<6;repeat++)battle.ApplyActorHudClearance();
