@@ -127,7 +127,6 @@ namespace Moonlit.UI
             SetInputState();
             ApplySafeArea(true);
             route.build(new ScreenContext(this, entry.id, entry.safeRoot, assets, main, payload));
-            if(entry.safeRoot)UiScreenMotion.Play(entry.safeRoot,key=="chat");
         }
 
         void OpenPage(string key, UiScreenRegistry.Route route, object payload)
@@ -139,7 +138,6 @@ namespace Moonlit.UI
             SetInputState();
             ApplySafeArea(true);
             route.build(new ScreenContext(this, page.id, page.safeRoot, assets, main, payload));
-            if(page!=null && page.safeRoot)UiScreenMotion.Play(page.safeRoot,true);
         }
 
         Entry CreateEntry(string key, int order, RectTransform parent, bool modal)
@@ -218,8 +216,6 @@ namespace Moonlit.UI
 
         static void Fit(RectTransform root, Vector2Int size, Rect safe)
         {
-            var motion=root.GetComponent<UiScreenMotion>();
-            if(motion)motion.Complete();
             root.anchorMin = new Vector2(safe.xMin / size.x, safe.yMin / size.y);
             root.anchorMax = new Vector2(safe.xMax / size.x, safe.yMax / size.y);
             root.pivot = new Vector2(.5f, .5f); root.offsetMin = root.offsetMax = Vector2.zero;

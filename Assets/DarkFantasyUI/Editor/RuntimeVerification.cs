@@ -571,7 +571,7 @@ namespace Moonlit.Editor
                         yield return null;yield return null;Canvas.ForceUpdateCanvases();
                         yield return CaptureBattleOverlay(screen,camera,height,report,fail);
                         yield return CaptureRewardAvailability(screen,camera,height,report,fail);
-                yield return CaptureScreenMotions(screen,camera,height,report,fail);
+                yield return CaptureInstantScreens(screen,camera,height,report,fail);
                         yield return CaptureForgePassFeedback(screen,camera,height,report,fail);
                         yield return CaptureSkillHudFeedback(screen,camera,height,report,fail);
                         yield return CaptureCombatFeedback(screen,camera,height,report,fail);
@@ -708,9 +708,8 @@ namespace Moonlit.Editor
             Ui.Image("Home gesture indicator",parent,400,height-31,280,9,null,new Color(.7f,.7f,.7f));
             return parent.gameObject;
         }
-        static void SaveCamera(Camera camera,string path,int width,int height,bool settleScreenMotion=true)
+        static void SaveCamera(Camera camera,string path,int width,int height)
         {
-            if(settleScreenMotion)foreach(var motion in Object.FindObjectsByType<UiScreenMotion>(FindObjectsSortMode.None))motion.Complete();
             var active=RenderTexture.active;
             Canvas.ForceUpdateCanvases(); camera.Render(); RenderTexture.active=camera.targetTexture;
             var image=new Texture2D(width,height,TextureFormat.RGB24,false);
