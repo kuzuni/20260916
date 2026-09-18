@@ -231,6 +231,10 @@ namespace Moonlit.UI.Tests
                 Assert.IsNotNull(GameObject.Find("Summon currency icon").GetComponent<Image>().sprite);
                 var equipped=GameObject.Find("Equipped panel").GetComponent<RectTransform>();
                 Assert.That(-equipped.anchoredPosition.y,Is.EqualTo(safeHeight-840).Within(.1f));
+                var content=GameObject.Find("Tab content").GetComponent<RectTransform>();
+                Assert.That(-content.anchoredPosition.y+content.rect.height,
+                    Is.EqualTo(-equipped.anchoredPosition.y-20).Within(.1f),
+                    "The scroll mask should reach immediately above the equipped panel at both aspect ratios.");
                 var label=GameObject.Find("Equipped label").GetComponent<RectTransform>();
                 var slots=GameObject.Find("Equipped skills").GetComponent<RectTransform>();
                 Assert.AreSame(equipped,label.parent);
@@ -344,7 +348,7 @@ namespace Moonlit.UI.Tests
         }
 
         [UnityTest]
-        public IEnumerator SkillArtwork_LoadsDistinctAtlasCells_AndReusesFrameInDetails()
+        public IEnumerator SkillArtwork_LoadsAllThirtyThemedSprites_AndReusesFrameInDetails()
         {
 
             host.Registry.Open("skills-pets-heroes");yield return null;
@@ -354,13 +358,90 @@ namespace Moonlit.UI.Tests
             Assert.IsNotNull(icon.sprite);Assert.IsNotNull(frame.sprite);
             Assert.AreNotSame(icon.sprite.texture,frame.sprite.texture);
             Assert.IsFalse(icon.raycastTarget);Assert.IsFalse(frame.raycastTarget);
-            Assert.AreEqual(3,slots.Count(s=>s.transform.Find("Icon")!=null),"Only three primitive skill illustrations are approved.");
+            Assert.AreEqual(30,slots.Count(s=>s.transform.Find("Icon")!=null));
+            var icons=slots.Select(s=>s.transform.Find("Icon").GetComponent<Image>()).ToArray();
+            Assert.IsTrue(icons.All(i=>i.sprite!=null),"Every unowned skill still displays its actual artwork.");
+            Assert.AreEqual(30,icons.Select(i=>i.sprite).Distinct().Count());
+            Assert.IsTrue(slots.All(s=>s.transform.Find("Ownership lock").gameObject.activeSelf));
+            for(int i=0;i<30;i++)Assert.AreSame(Resources.Load<Sprite>(SkillCatalog.IconKey(i/3,i%3)),icons[i].sprite);
             slots[0].onClick.Invoke();yield return null;
             var detail=GameObject.Find("Popup Layer skill-details").GetComponentsInChildren<Button>().Single(b=>b.name==slots[0].name);
             Assert.AreSame(icon.sprite,detail.transform.Find("Icon").GetComponent<Image>().sprite);
             Assert.AreSame(frame.sprite,detail.transform.Find("Slot frame").GetComponent<Image>().sprite);
             Assert.IsNotNull(GameObject.Find("Preview skill"));
             host.CloseTop();yield return null;Assert.IsTrue(slots[0].IsInteractable());
+        }
+
+        [UnityTest]
+        public IEnumerator SummonCostsShowOnlyCurrenciesActuallySpentAndUseCategoryTicketArt()
+        {
+            var main=root.GetComponent<MainScreen>();main.skillTickets=main.petTickets=main.mountTickets=0;main.gems=1000;
+            host.Registry.Open("skills-pets-heroes");yield return null;
+            for(int category=0;category<3;category++){
+                var tab=GameObject.Find("Tab "+CollectionProgression.CategoryNames[category]).GetComponent<Button>();
+                tab.onClick.Invoke();yield return null;
+                var row=GameObject.Find("Summon cost row");
+                Assert.AreEqual(1,row.GetComponentsInChildren<Image>().Length);
+                Assert.AreEqual("500",row.GetComponentsInChildren<Text>().Single().text);
+                Assert.IsNull(row.transform.Find("Cost plus"));
+                if(category==0)main.skillTickets=2;else if(category==1)main.petTickets=2;else main.mountTickets=2;
+                tab.onClick.Invoke();yield return null;row=GameObject.Find("Summon cost row");
+                Assert.AreEqual(2,row.GetComponentsInChildren<Image>().Length);
+                Assert.AreEqual("2",ChildText(row.transform,"Summon cost").text);
+                Assert.AreEqual("300",ChildText(row.transform,"Summon diamond cost").text);
+                Assert.AreEqual("+",ChildText(row.transform,"Cost plus").text);
+                Assert.AreSame(GameObject.Find("Summon currency icon").GetComponent<Image>().sprite,
+                    row.transform.Find("Summon cost icon").GetComponent<Image>().sprite);
+                if(category==0)main.skillTickets=10;else if(category==1)main.petTickets=10;else main.mountTickets=10;
+                tab.onClick.Invoke();yield return null;row=GameObject.Find("Summon cost row");
+                Assert.AreEqual(1,row.GetComponentsInChildren<Image>().Length);
+                Assert.AreEqual("5",row.GetComponentsInChildren<Text>().Single().text);
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator ProbabilityShowsActualCategoryExperienceWhileBrowsingOtherLevels()
+        {
+            var category=CollectionProgression.Data.categories[1];category.summonLevel=12;category.experience=7;
+            host.Registry.Open("skills-pets-heroes");yield return null;
+            GameObject.Find("Tab 펫").GetComponent<Button>().onClick.Invoke();
+            GameObject.Find("Probability").GetComponent<Button>().onClick.Invoke();yield return null;
+            var layer=GameObject.Find("Popup Layer summon-probability");
+            Assert.AreEqual("펫 소환 Lv.12",ChildText(layer.transform,"Current summon level").text);
+            Assert.AreEqual("7/43",ChildText(layer.transform,"Value").text);
+            Assert.IsFalse(layer.GetComponentsInChildren<Text>().Any(t=>t.name=="Hint"));
+            layer.GetComponentsInChildren<Button>().Single(b=>b.name=="Next level").onClick.Invoke();
+            Assert.AreEqual("7/43",ChildText(layer.transform,"Value").text);
+            Assert.IsTrue(ChildText(layer.transform,"Probability title").text.Contains("13"));
+        }
+
+        [UnityTest]
+        public IEnumerator SummonRevealUsesOrderedTweenAndClosingEarlyCancelsWithoutLosingRewards()
+        {
+            var main=root.GetComponent<MainScreen>();main.skillTickets=5;
+            host.Registry.Open("skills-pets-heroes");yield return null;
+            GameObject.Find("Summon five").GetComponent<Button>().onClick.Invoke();
+            var reveal=GameObject.Find("Summon result cards").GetComponent<SummonRevealAnimation>();
+            var sequence=(DG.Tweening.Sequence)typeof(SummonRevealAnimation).GetField("sequence",
+                System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Instance).GetValue(reveal);
+            DG.Tweening.TweenExtensions.Pause(sequence);
+            var cards=reveal.GetComponentsInChildren<CanvasGroup>();
+            Assert.AreEqual(5,cards.Length);Assert.IsTrue(cards.All(c=>c.alpha==0&&!c.interactable));
+            DG.Tweening.TweenExtensions.Goto(sequence,.1f);
+            Assert.Greater(cards[0].alpha,0);Assert.AreEqual(0,cards[1].alpha);Assert.AreEqual(0,cards[4].alpha);
+            DG.Tweening.TweenExtensions.Goto(sequence,2f);
+            Assert.IsTrue(cards.All(c=>Mathf.Approximately(c.alpha,1)&&c.interactable));
+            Assert.AreEqual(5,CollectionProgression.Data.categories[0].entries.Sum(e=>e.fragments));
+            host.CloseTop();yield return null;
+            main.skillTickets=5;
+            GameObject.Find("Summon five").GetComponent<Button>().onClick.Invoke();
+            reveal=GameObject.Find("Summon result cards").GetComponent<SummonRevealAnimation>();
+            sequence=(DG.Tweening.Sequence)typeof(SummonRevealAnimation).GetField("sequence",
+                System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Instance).GetValue(reveal);
+            host.CloseTop();yield return null;
+            Assert.IsFalse(DG.Tweening.TweenExtensions.IsActive(sequence));
+            Assert.AreEqual(10,CollectionProgression.Data.categories[0].entries.Sum(e=>e.fragments));
+            Assert.AreEqual(0,main.skillTickets);
         }
 
         [UnityTest]
@@ -512,7 +593,7 @@ namespace Moonlit.UI.Tests
 
         static string[] ResultNames()
         {
-            return GameObject.Find("Summon result cards").transform.Cast<Transform>()
+            return GameObject.Find("Summon result cards").GetComponentsInChildren<Button>()
                 .Where(t => t.name.StartsWith("Skill ")).Select(t => t.name).ToArray();
         }
 

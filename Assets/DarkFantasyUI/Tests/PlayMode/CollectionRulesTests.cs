@@ -86,6 +86,51 @@ namespace Moonlit.UI.Tests
             Assert.AreEqual(full.attack/2,skills[1].FixedDamage);Assert.AreEqual(full.attack*1.5,skills[2].FixedDamage);
             skills[2].level=100;Assert.AreEqual(EquipmentRules.FullSetStats(0,100).attack*1.5,skills[2].FixedDamage);
         }
+        [Test] public void LinearGearTierBoundaryPropagatesToEveryCollectionBenefit()
+        {
+            double oldHealth=EquipmentRules.baseHealth,oldAttack=EquipmentRules.baseAttack;
+            try {
+                EquipmentRules.baseHealth=80;EquipmentRules.baseAttack=10;
+                var skills=CollectionProgression.Data.categories[0].entries;
+                var pet=CollectionProgression.Data.categories[1].entries[0];
+                var mount=CollectionProgression.Data.categories[2].entries[0];
+                for(int tier=0;tier<=1;tier++){
+                    int level=tier==0?100:1;
+                    double hp=tier==0?2640:5280,attack=tier==0?330:660;
+                    foreach(var entry in skills.Take(3)){entry.grade=tier;entry.level=level;}
+                    pet.grade=mount.grade=tier;pet.level=mount.level=level;
+                    Assert.That(skills[0].OwnedHealth*3,Is.EqualTo(hp/4).Within(.000001));
+                    Assert.That(skills[0].OwnedAttack*3,Is.EqualTo(attack/4).Within(.000001));
+                    Assert.That(pet.EquippedHealth*3,Is.EqualTo(hp/2).Within(.000001));
+                    Assert.That(pet.EquippedAttack*3,Is.EqualTo(attack/2).Within(.000001));
+                    Assert.That(mount.EquippedHealth,Is.EqualTo(hp/2).Within(.000001));
+                    Assert.That(mount.EquippedAttack,Is.EqualTo(attack/2).Within(.000001));
+                    Assert.That(skills[0].FixedHeal,Is.EqualTo(hp/4).Within(.000001));
+                    Assert.That(skills[0].FixedAttackBoost,Is.EqualTo(attack/5).Within(.000001));
+                    Assert.That(skills[1].FixedDamage,Is.EqualTo(attack/2).Within(.000001));
+                    Assert.That(skills[2].FixedDamage,Is.EqualTo(attack*1.5).Within(.000001));
+                }
+                double heal=skills[0].FixedHeal,damage=skills[2].FixedDamage,owned=pet.OwnedHealth;
+                EquipmentRules.baseHealth*=2;EquipmentRules.baseAttack*=3;
+                Assert.That(skills[0].FixedHeal,Is.EqualTo(heal*2).Within(.000001));
+                Assert.That(skills[2].FixedDamage,Is.EqualTo(damage*3).Within(.000001));
+                Assert.That(pet.OwnedHealth,Is.EqualTo(owned*2).Within(.000001));
+            } finally {EquipmentRules.baseHealth=oldHealth;EquipmentRules.baseAttack=oldAttack;}
+        }
+        [Test] public void ThirtySkillsHaveDistinctThemedIdentityAndStableArtPaths()
+        {
+            var skills=CollectionProgression.Data.categories[0].entries;
+            Assert.AreEqual(30,skills.Select(e=>e.Name).Distinct().Count());
+            Assert.AreEqual(30,skills.Select(e=>SkillCatalog.IconKey(e.grade,e.variant)).Distinct().Count());
+            foreach(var entry in skills){
+                Assert.IsNotEmpty(SkillCatalog.Description(entry.grade,entry.variant));
+                Assert.AreEqual(entry.variant==0?3:entry.variant==1?2:5,entry.Cooldown);
+            }
+            Assert.AreEqual("사냥꾼의 만찬",skills[0].Name);
+            Assert.AreEqual("전차 돌격",skills[10].Name);
+            Assert.AreEqual("신의 분노",skills[29].Name);
+            Assert.AreEqual("Moonlit/Combat/Skills/Tier09/Strong",SkillCatalog.IconKey(9,2));
+        }
         [Test] public void JsonRestoreRetainsUnlockedZeroFragmentEntryAndIndependentSummonProgress()
         {
             var entry=CollectionProgression.Data.categories[1].entries[0];

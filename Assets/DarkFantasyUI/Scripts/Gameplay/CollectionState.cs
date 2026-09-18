@@ -11,9 +11,8 @@ namespace Moonlit.UI
         public int Id => grade * 3 + variant;
         public int Required => Math.Min(level + 1, 20);
         public int Cooldown => variant == 0 ? 3 : variant == 1 ? 2 : 5;
-        public string Name => EquipmentRules.TierNames[grade] + " " +
-            (category == 0 ? new[] { "생명의 기원", "돌날 투척", "유성 강타" }[variant] :
-             CollectionProgression.CategoryNames[category] + " " + (variant + 1));
+        public string Name => category == 0 ? SkillCatalog.Name(grade, variant) :
+            EquipmentRules.TierNames[grade] + " " + CollectionProgression.CategoryNames[category] + " " + (variant + 1);
         public double OwnedHealth => EquipmentRules.FullSetStats(grade, level).health / 12d;
         public double OwnedAttack => EquipmentRules.FullSetStats(grade, level).attack / 12d;
         public double EquippedHealth => category == 1 ? EquipmentRules.FullSetStats(grade, level).health / 6d :
