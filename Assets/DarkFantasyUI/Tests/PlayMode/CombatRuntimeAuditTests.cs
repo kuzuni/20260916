@@ -187,6 +187,52 @@ namespace Moonlit.UI.Tests
         }
 
         [UnityTest]
+        public IEnumerator NativeSevenStatesKeepBothHealthBarsOnThisFramesHeadDespiteProtectedUi()
+        {
+            var order=(DefaultExecutionOrder)Attribute.GetCustomAttribute(typeof(CombatWorldHud),typeof(DefaultExecutionOrder));
+            Assert.IsNotNull(order,"Head following must run after SpriteSkin updates its bounds.");
+            Assert.AreEqual(25,order.order);
+            foreach(float height in new[]{1920f,2280f})
+            using(var fixture=new Fixture(height))
+            {
+                Time.timeScale=0;
+                // Freeze only battle progression/layout; the real native Animators, SpriteSkins and HUD LateUpdates run.
+                fixture.battle.enabled=false;
+                var huds=new[]{fixture.battle.PlayerHud,fixture.battle.EnemyHud};
+                huds[0].Actor.parent.gameObject.SetActive(true); // OnDisable hides the stage; keep its native render components running.
+                var animators=huds.Select(h=>AuthoredAnimationTestSupport.ActorAnimator(h.Actor)).ToArray();
+                var heads=huds.Select(h=>h.Actor.GetComponentsInChildren<SpriteRenderer>().First(r=>r.sprite&&r.sprite.name=="머리")).ToArray();
+                var homes=huds.Select(h=>h.Actor.localPosition).ToArray();
+                var scales=huds.Select(h=>h.Actor.localScale).ToArray();
+                Assert.Less(scales[0].x*scales[1].x,0,"Both actual mirrored actors must be tested.");
+                foreach(var hud in huds)hud.SetVisible(true);
+                var observer=fixture.root.AddComponent<CombatHeadHudFrameProbe>();
+                observer.enabled=false;observer.Huds=huds;observer.Heads=heads;observer.Homes=homes;observer.Scales=scales;
+                Vector3 origin=huds[0].Actor.parent.position;
+                foreach(var hud in huds)hud.SetProtectedAreas(new[]{new Rect(origin.x-100,origin.y-100,200,200)});
+                foreach(string state in new[]{"Idle","Basic","Hit","Buff","Weak","Strong","Death"})
+                {
+                    var clip=AuthoredAnimationTestSupport.Clip(animators[0],state);
+                    int frames=Mathf.Max(2,Mathf.CeilToInt(clip.length*Mathf.Max(1,clip.frameRate)));
+                    for(int frame=0;frame<=frames;frame++)
+                    {
+                        float phase=Mathf.Min(.999f,frame/(float)frames);
+                        foreach(var animator in animators) {
+                            animator.speed=1;animator.Play(state,0,phase);animator.Update(0);animator.speed=0;
+                        }
+                        observer.Context=height+" "+state+" sample="+frame+"/"+frames;
+                        observer.enabled=true;int before=observer.Samples;
+                        yield return null;
+                        Assert.Greater(observer.Samples,before,"The actual post-HUD LateUpdate observer must run.");
+                        Assert.IsNull(observer.Failure,observer.Failure);
+                    }
+                }
+                Assert.Greater(observer.MovingHeadSamples,0,"Native animation must actually change head bounds during observation.");
+                observer.enabled=false;
+            }
+        }
+
+        [UnityTest]
         public IEnumerator DoubledStrongMotionKeepsHeadHealthInsideViewAtEveryPortraitHeight()
         {
             foreach(float height in new[]{1600f,1920f,2280f})
@@ -726,9 +772,9 @@ namespace Moonlit.UI.Tests
         }
 
         [UnityTest]
-        public IEnumerator CompactHeadBarsAndLargeAmountsAvoidStageRoundAndWaveNodes()
+        public IEnumerator CompactHeadBarsRemainHeadCenteredWhileLargeAmountsAvoidStageRoundAndWaveNodes()
         {
-            bool reproducedOldOverlap=false;
+            int checkedAmountFrames=0;
             foreach(float height in new[]{1600f,1660f,1720f,1920f,2280f})
             using(var fixture=new Fixture(height))
             {
@@ -745,11 +791,11 @@ namespace Moonlit.UI.Tests
                 {
                     hud.SetProtectedAreas(null);
                     typeof(CombatWorldHud).GetMethod("LateUpdate",PrivateInstance).Invoke(hud,null);
-                    reproducedOldOverlap |= areas.Any(area=>area.Overlaps(WorldRect((RectTransform)hud.transform)));
+                    Vector3 headPosition=hud.transform.position;
                     hud.SetProtectedAreas(areas);
                     typeof(CombatWorldHud).GetMethod("LateUpdate",PrivateInstance).Invoke(hud,null);
-                    foreach(var area in areas)
-                        Assert.IsFalse(area.Overlaps(WorldRect((RectTransform)hud.transform)),"Head HP must avoid stage text at "+height);
+                    Assert.AreEqual(headPosition,hud.transform.position,
+                        "Protected UI may move floating amounts, never move HP away from the actual head.");
                     Assert.AreEqual(48,((RectTransform)hud.transform.Find("Health fill")).rect.height);
                     // Step each phase of the real number coroutine so slow cloud frames cannot hide overlap.
                     var amount=(IEnumerator)typeof(CombatWorldHud).GetMethod("FloatNumber",PrivateInstance)
@@ -759,6 +805,7 @@ namespace Moonlit.UI.Tests
                     var label=number.GetComponentInChildren<UnityEngine.UI.Text>();
                     for(int frame=0;frame<4;frame++)
                     {
+                        checkedAmountFrames++;
                         float halfWidth=(label.preferredWidth+24)*number.localScale.x/2;
                         var rendered=new Rect(number.position.x-halfWidth,number.position.y-.8f,halfWidth*2,1.6f);
                         foreach(var area in areas)
@@ -769,7 +816,7 @@ namespace Moonlit.UI.Tests
                     Assert.AreEqual(117,label.fontSize,"Readability fix must not shrink the requested amount size.");
                 }
             }
-            Assert.IsTrue(reproducedOldOverlap,"This fixture must reproduce the actual compact HUD regression before avoidance.");
+            Assert.Greater(checkedAmountFrames,0,"The real floating-number animation must be inspected.");
         }
 
         [UnityTest]
@@ -839,6 +886,34 @@ namespace Moonlit.UI.Tests
                     "Expanding the viewport must preserve the old compact pixels/world-unit so doubling is not cancelled.");
             }
             yield return null;
+        }
+    }
+
+    // Runs after the production HUD (25), so assertions see this rendered frame's deformed head bounds.
+    [DefaultExecutionOrder(26)]
+    public sealed class CombatHeadHudFrameProbe : MonoBehaviour
+    {
+        public CombatWorldHud[] Huds;
+        public SpriteRenderer[] Heads;
+        public Vector3[] Homes,Scales;
+        public string Context,Failure;
+        public int Samples,MovingHeadSamples;
+        Vector3[] previous;
+        void LateUpdate()
+        {
+            if(Huds==null)return;
+            for(int index=0;index<Huds.Length;index++)
+            {
+                var hud=Huds[index];var head=Heads[index];
+                Vector3 expected=new Vector3(head.bounds.center.x,head.bounds.max.y+.5f,hud.Actor.position.z-2);
+                if(Vector3.Distance(expected,hud.transform.position)>.003f&&Failure==null)
+                    Failure=Context+" actor="+index+" this-frame head="+expected+" HP="+hud.transform.position;
+                if((hud.Actor.localPosition!=Homes[index]||hud.Actor.localScale!=Scales[index])&&Failure==null)
+                    Failure=Context+" actor="+index+" outer anchor or scale changed.";
+                if(previous!=null&&Vector3.Distance(previous[index],head.bounds.center)>.002f)MovingHeadSamples++;
+            }
+            previous=Heads.Select(head=>head.bounds.center).ToArray();
+            Samples++;
         }
     }
 }

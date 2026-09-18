@@ -78,7 +78,7 @@ namespace Moonlit.UI.Tests
         }
 
         [UnityTest]
-        public IEnumerator EntranceHidesHeadBarsUntilHomeAndLungingBarsStaySeparate()
+        public IEnumerator EntranceHidesHeadBarsUntilHomeThenBarsStayCenteredOnEachLungingHead()
         {
             var root=new GameObject("Entrance HUD fixture",typeof(RectTransform));
             var assets=ScriptableObject.CreateInstance<MainScreenAssets>();
@@ -109,10 +109,13 @@ namespace Moonlit.UI.Tests
                 yield return null;
                 typeof(CombatWorldHud).GetMethod("LateUpdate",Private).Invoke(battle.PlayerHud,null);
                 typeof(CombatWorldHud).GetMethod("LateUpdate",Private).Invoke(battle.EnemyHud,null);
-                var left=new Vector3[4];var right=new Vector3[4];
-                ((RectTransform)battle.PlayerHud.transform).GetWorldCorners(left);
-                ((RectTransform)battle.EnemyHud.transform).GetWorldCorners(right);
-                Assert.Less(left[2].x,right[0].x,"Melee contact must not join the two health bars.");
+                foreach(var hud in new[]{battle.PlayerHud,battle.EnemyHud})
+                {
+                    var head=hud.Actor.GetComponentsInChildren<SpriteRenderer>().First(r=>r.sprite&&r.sprite.name=="머리");
+                    Assert.AreEqual(head.bounds.center.x,hud.transform.position.x,.002f,
+                        "Melee HP follows its own head without an outward separation offset.");
+                    Assert.AreEqual(head.bounds.max.y+.5f,hud.transform.position.y,.002f);
+                }
             }
             finally { UnityEngine.Object.DestroyImmediate(root);UnityEngine.Object.DestroyImmediate(assets); }
         }
