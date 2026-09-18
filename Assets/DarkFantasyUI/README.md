@@ -7,6 +7,10 @@
 
 Unity 6000.3 / uGUI. Open `Scenes/MoonlitMain.unity` and press Play.
 
+## Authored Player animation — 2026-09-19
+
+Live combat uses the Animator/controller/clips assigned to `Art/ChihuahuaEquipmentThemes/Reference/Player.prefab`, including user-edited native position/rotation/scale curves and event times. The `Motion` parent only places the actor; it has no replacement Animator. Animation builders validate the assigned assets without regenerating either native or legacy clips. See [runtime binding verification](../../Documentation/UI/Reports/authored-player-animation-runtime-20260919.md).
+
 ## Latest gameplay corrections — 2026-09-18
 
 - Equipment grows linearly between the user's exact endpoints: primitive health equipment has HP80 at level1 and HP880 at level100; medieval level1 has HP1760. Attack uses the same scale (10 → 110 → 220). The shared six-piece EquipmentRules baseline also drives collection ownership/equipment bonuses and fixed skill values.

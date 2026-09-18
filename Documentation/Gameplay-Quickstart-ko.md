@@ -35,4 +35,4 @@
 
 ## Player 프리팹의 Animator
 
-`Assets/Art/ChihuahuaEquipmentThemes/Reference/Player.prefab` 자체에 Animator와 애니메이션 이벤트 수신기를 직렬화합니다. `Combat/PlayerReference/PlayerReference.controller`는 프리팹 내부 본에 직접 연결된 Idle·Basic·Hit·Buff·Weak·Strong·Death 7개 상태를 가집니다. 로컬 에디터에서 빌더를 실행할 필요가 없도록 클라우드 생성 결과를 저장소에 포함합니다. 게임 전투에서는 기존 이동용 래퍼 Animator를 유지하여 이벤트가 중복 발생하지 않도록 합니다.
+`Assets/Art/ChihuahuaEquipmentThemes/Reference/Player.prefab` 자체에 Animator와 애니메이션 이벤트 수신기를 직렬화합니다. `Combat/PlayerReference/PlayerReference.controller`는 프리팹 내부 본에 직접 연결된 Idle·Basic·Hit·Buff·Weak·Strong·Death 7개 상태를 가집니다. 로컬 에디터에서 빌더를 실행할 필요가 없도록 클라우드 생성 결과를 저장소에 포함합니다. 게임 전투에서도 이 프리팹에 지정된 Animator·컨트롤러·클립을 직접 사용합니다. `Motion`은 배치용 부모이며 별도 Animator로 동작을 덮어쓰지 않습니다. 클립의 타격 이벤트 시점과 동작 길이를 따르고, 빌더는 사용자 애니메이션을 재생성하거나 수정하지 않습니다. 이후 편집한 클립은 다음 실행에도 그대로 사용됩니다.

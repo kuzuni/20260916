@@ -1,3 +1,5 @@
+> Superseded runtime connection: [authored Player animation verification](authored-player-animation-runtime-20260919.md). PR104 removes the wrapper Animator; the reports below retain their historical source/run details.
+
 # Runtime validation — 2026-09-19
 
 The Player reference prefab contains its Animator, native controller, seven clips and exactly-once CombatAnimationRelay. Hosted validation loads the committed assets without rebuilding them. The first two skill eras use the six requested sequences, collection details use one Equip button, and selecting equipment preserves its rarity frame. The latest runtime snapshot is main357ec7a76a860f1ddf6add700730d00f20497a30, tree88fa4f290301ea08f39fc4184aaa0f739db57e48.
