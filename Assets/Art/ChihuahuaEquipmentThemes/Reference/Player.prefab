@@ -98,11 +98,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1770433945857213737, guid: 0225bdb3079f441fbe3fe34b65e42c44, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.161544
+      value: 0.18273899
       objectReference: {fileID: 0}
     - target: {fileID: 1770433945857213737, guid: 0225bdb3079f441fbe3fe34b65e42c44, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.97464305
+      value: 0.52342415
       objectReference: {fileID: 0}
     - target: {fileID: 4824610095084909450, guid: 0225bdb3079f441fbe3fe34b65e42c44, type: 3}
       propertyPath: m_SortingOrder
@@ -138,11 +138,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8648882755762834919, guid: 0225bdb3079f441fbe3fe34b65e42c44, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.08889121
+      value: 0.28291616
       objectReference: {fileID: 0}
     - target: {fileID: 8648882755762834919, guid: 0225bdb3079f441fbe3fe34b65e42c44, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.55277556
+      value: -0.6300131
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -177,7 +177,7 @@ Animator:
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
   m_AnimatePhysics: 0
-  m_WarningMessage:
+  m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
@@ -192,5 +192,5 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3095cea2859f09d5ca869046553a5b61, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Moonlit.UI::Moonlit.UI.CombatAnimationRelay
