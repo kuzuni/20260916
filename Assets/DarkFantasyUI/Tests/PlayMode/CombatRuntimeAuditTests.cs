@@ -772,90 +772,105 @@ namespace Moonlit.UI.Tests
         }
 
         [UnityTest]
-        public IEnumerator CompactHeadBarsRemainHeadCenteredWhileLargeAmountsAvoidStageRoundAndWaveNodes()
+        public IEnumerator DamageHealAndCriticalAmountsShareTheCurrentHeadAnchorRegardlessOfWidthOrProtectedUi()
         {
-            int checkedAmountFrames=0;
-            foreach(float height in new[]{1600f,1660f,1720f,1920f,2280f})
+            foreach(float height in new[]{1600f,1920f,2280f})
             using(var fixture=new Fixture(height))
             {
-                fixture.main.stageText=Ui.Text("Stage title",fixture.root.transform,290,146,500,58,"스테이지 2",45,fixture.main.font);
-                fixture.main.roundText=Ui.Text("Battle round",fixture.root.transform,290,258,500,48,"라운드 15/15",26,fixture.main.font);
-                fixture.main.waveNodes=new UnityEngine.UI.Image[3];
-                for(int n=0;n<3;n++) fixture.main.waveNodes[n]=Ui.Image("Wave "+n,fixture.root.transform,402+n*127,219,22,22,null,Color.cyan);
-                var animator=(Animator)typeof(BattleRuntime).GetField("playerAnimator",PrivateInstance).GetValue(fixture.battle);
-                animator.Play("Basic",0,0);animator.Update(0);animator.Update(.36f);animator.speed=0;
-                yield return null;
-                typeof(BattleRuntime).GetMethod("LateUpdate",PrivateInstance).Invoke(fixture.battle,null);
-                var areas=(Rect[])typeof(BattleRuntime).GetField("protectedHudAreas",PrivateInstance).GetValue(fixture.battle);
-                foreach(var hud in new[]{fixture.battle.PlayerHud,fixture.battle.EnemyHud})
+                Time.timeScale=0;
+                var huds=new[]{fixture.battle.PlayerHud,fixture.battle.EnemyHud};
+                foreach(var hud in huds) {
+                    var animator=AuthoredAnimationTestSupport.ActorAnimator(hud.Actor);
+                    animator.Play("Idle",0,0);animator.Update(0);animator.speed=0;
+                }
+                yield return null;yield return null;
+                foreach(var hud in huds)
                 {
-                    hud.SetProtectedAreas(null);
-                    typeof(CombatWorldHud).GetMethod("LateUpdate",PrivateInstance).Invoke(hud,null);
-                    Vector3 headPosition=hud.transform.position;
-                    hud.SetProtectedAreas(areas);
-                    typeof(CombatWorldHud).GetMethod("LateUpdate",PrivateInstance).Invoke(hud,null);
-                    Assert.AreEqual(headPosition,hud.transform.position,
-                        "Protected UI may move floating amounts, never move HP away from the actual head.");
+                    var head=hud.Actor.GetComponentsInChildren<SpriteRenderer>().First(r=>r.sprite&&r.sprite.name=="머리");
+                    Vector3 actorPosition=hud.Actor.position;
+                    Vector3 expected=new Vector3(head.bounds.center.x,head.bounds.max.y+1.15f,hud.Actor.position.z-2.1f);
+                    hud.SetProtectedAreas(new[]{new Rect(expected.x-50,expected.y-50,100,100)});
+                    hud.RefreshPosition();
+                    Assert.AreEqual(head.bounds.center.x,hud.transform.position.x,.003f);
                     Assert.AreEqual(48,((RectTransform)hud.transform.Find("Health fill")).rect.height);
-                    // Step each phase of the real number coroutine so slow cloud frames cannot hide overlap.
-                    var amount=(IEnumerator)typeof(CombatWorldHud).GetMethod("FloatNumber",PrivateInstance)
-                        .Invoke(hud,new object[]{"+16k",Color.green});
-                    Assert.IsTrue(amount.MoveNext());
-                    var number=hud.transform.parent.Find(hud==fixture.battle.PlayerHud?"Player damage number":"Enemy damage number");
-                    var label=number.GetComponentInChildren<UnityEngine.UI.Text>();
-                    for(int frame=0;frame<4;frame++)
+                    // Deliberately stale HUD: a contact in Update must sample the current head, before the HUD's LateUpdate.
+                    hud.transform.position+=new Vector3(4,3,0);
+                    var messages=new[]{"5","12345678901234567890","CRITICAL 999999","+16k"};
+                    var colors=new[]{Color.white,Color.white,Color.red,Color.green};
+                    for(int index=0;index<messages.Length;index++)
                     {
-                        checkedAmountFrames++;
-                        float halfWidth=(label.preferredWidth+24)*number.localScale.x/2;
-                        var rendered=new Rect(number.position.x-halfWidth,number.position.y-.8f,halfWidth*2,1.6f);
-                        foreach(var area in areas)
-                            Assert.IsFalse(area.Overlaps(rendered),"Large amount must avoid wave nodes at "+height);
-                        yield return null;
-                        if(!amount.MoveNext())break;
+                        var amount=(IEnumerator)typeof(CombatWorldHud).GetMethod("FloatNumber",PrivateInstance)
+                            .Invoke(hud,new object[]{messages[index],colors[index]});
+                        Assert.IsTrue(amount.MoveNext());
+                        var number=hud.transform.parent.Find(hud==fixture.battle.PlayerHud?"Player damage number":"Enemy damage number");
+                        Assert.IsNotNull(number);
+                        Assert.Less(Vector3.Distance(expected,number.position),.003f,
+                            height+" "+messages[index]+": text width, color and protected UI cannot change the hit anchor.");
+                        var label=number.GetComponentInChildren<UnityEngine.UI.Text>();
+                        Assert.AreEqual(messages[index],label.text);Assert.AreEqual(colors[index],label.color);
+                        Assert.AreEqual(117,label.fontSize);
+                        Assert.AreEqual(new Vector2(6,-6),label.GetComponent<UnityEngine.UI.Outline>().effectDistance);
+                        Assert.AreEqual(actorPosition,hud.Actor.position,"A floating number cannot reposition its actor.");
+                        (amount as IDisposable)?.Dispose();
+                        UnityEngine.Object.DestroyImmediate(number.gameObject);
                     }
-                    Assert.AreEqual(117,label.fontSize,"Readability fix must not shrink the requested amount size.");
                 }
             }
-            Assert.Greater(checkedAmountFrames,0,"The real floating-number animation must be inspected.");
         }
 
         [UnityTest]
-        public IEnumerator AlreadyFloatingDamageRechecksProtectionWhenSafeAreaShrinks()
+        public IEnumerator LiveNumbersKeepTheirSpawnXThroughSafeAreaChangesAndLaterVictimMotion()
         {
-            using(var fixture=new Fixture(2280))
+            foreach(float height in new[]{1920f,2280f})
+            using(var fixture=new Fixture(height))
             {
                 Time.timeScale=1;
-                fixture.main.stageText=Ui.Text("Stage title",fixture.root.transform,290,146,500,58,"스테이지 2",45,fixture.main.font);
-                fixture.main.roundText=Ui.Text("Battle round",fixture.root.transform,290,258,500,48,"라운드 1/15",26,fixture.main.font);
-                fixture.main.waveNodes=new UnityEngine.UI.Image[3];
-                for(int n=0;n<3;n++)fixture.main.waveNodes[n]=Ui.Image("Wave "+n,fixture.root.transform,402+n*127,219,22,22,null,Color.cyan);
-                var animator=(Animator)typeof(BattleRuntime).GetField("playerAnimator",PrivateInstance).GetValue(fixture.battle);
-                animator.Play("Basic",0,0);animator.Update(0);animator.Update(.36f);animator.speed=0;
-                yield return null;
-                typeof(BattleRuntime).GetMethod("LateUpdate",PrivateInstance).Invoke(fixture.battle,null);
-                typeof(CombatWorldHud).GetMethod("LateUpdate",PrivateInstance).Invoke(fixture.battle.PlayerHud,null);
-                var amount=(IEnumerator)typeof(CombatWorldHud).GetMethod("FloatNumber",PrivateInstance)
-                    .Invoke(fixture.battle.PlayerHud,new object[]{"5",Color.white});
-                Assert.IsTrue(amount.MoveNext());
-                var number=fixture.battle.PlayerHud.transform.parent.Find("Player damage number");
-                var label=number.GetComponentInChildren<UnityEngine.UI.Text>();
-                Vector3 before=number.position;
-                // Same responsive design-height transition used by the 9:19 -> notched 9:16 capture.
-                ((RectTransform)fixture.root.transform).sizeDelta=new Vector2(1080,1720);
-                typeof(BattleRuntime).GetMethod("LateUpdate",PrivateInstance).Invoke(fixture.battle,null);
-                var areas=(Rect[])typeof(BattleRuntime).GetField("protectedHudAreas",PrivateInstance).GetValue(fixture.battle);
-                float halfWidth=Mathf.Min(760,label.preferredWidth+24)*.008f*1.2f/2;
-                var oldPath=new Rect(before.x-halfWidth,before.y-.8f,halfWidth*2,2.5f);
-                Assert.IsTrue(areas.Any(area=>area.Overlaps(oldPath)),"The already-spawned number must cross the new stage protection.");
-                Assert.Less(number.position.x,before.x,"Resolve before rendering, without waiting for another coroutine frame.");
-                Assert.AreEqual(before.y,number.position.y,.001f,"Keep the upward animation continuous.");
-                var newPath=new Rect(number.position.x-halfWidth,number.position.y-.8f,halfWidth*2,2.5f);
-                foreach(var area in areas)Assert.IsFalse(area.Overlaps(newPath));
-                Assert.IsTrue(amount.MoveNext());
-                Assert.LessOrEqual(number.position.x,before.x);
-                Assert.AreEqual(117,label.fontSize);
+                var huds=new[]{fixture.battle.PlayerHud,fixture.battle.EnemyHud};
+                foreach(var hud in huds) {
+                    var animator=AuthoredAnimationTestSupport.ActorAnimator(hud.Actor);
+                    animator.Play("Idle",0,0);animator.Update(0);animator.speed=0;
+                }
+                yield return null;yield return null;
+                foreach(var hud in huds)
+                {
+                    hud.RefreshPosition();
+                    var amount=(IEnumerator)typeof(CombatWorldHud).GetMethod("FloatNumber",PrivateInstance)
+                        .Invoke(hud,new object[]{"999999999",Color.red});
+                    Assert.IsTrue(amount.MoveNext());
+                    var number=hud.transform.parent.Find(hud==fixture.battle.PlayerHud?"Player damage number":"Enemy damage number");
+                    Vector3 start=number.position;
+                    // The responsive design-height change mirrors the portrait -> notched portrait transition.
+                    ((RectTransform)fixture.root.transform).sizeDelta=new Vector2(1080,height==2280?1720:2280);
+                    typeof(BattleRuntime).GetMethod("LateUpdate",PrivateInstance).Invoke(fixture.battle,null);
+                    hud.SetProtectedAreas(new[]{new Rect(start.x-50,start.y-50,100,100)});
+                    Assert.AreEqual(start,number.position,"Changing Safe Area/protected rectangles must not teleport a live number.");
+                    Vector3 actorMoved=hud.Actor.position+new Vector3(.8f,.3f,0);
+                    hud.Actor.position=actorMoved;
+                    var animator=AuthoredAnimationTestSupport.ActorAnimator(hud.Actor);
+                    animator.speed=1;animator.Play("Strong",0,.45f);animator.Update(0);animator.speed=0;
+                    float previousY=start.y;int driftSamples=0;
+                    for(int frame=0;frame<4;frame++)
+                    {
+                        yield return null;
+                        Assert.AreEqual(actorMoved,hud.Actor.position,"HUD/amount updates must not counteract actor movement.");
+                        if(!amount.MoveNext())break;
+                        driftSamples++;
+                        Assert.AreEqual(start.x,number.position.x,.003f,"The number keeps the hit-time X after its victim moves.");
+                        Assert.AreEqual(start.z,number.position.z,.003f);
+                        Assert.GreaterOrEqual(number.position.y,previousY);
+                        previousY=number.position.y;
+                        Vector3 beforeProtection=number.position;
+                        hud.SetProtectedAreas(new[]{new Rect(number.position.x-1,number.position.y-1,2,2)});
+                        Assert.AreEqual(beforeProtection,number.position,"No per-frame safety snap is allowed.");
+                    }
+                    Assert.Greater(driftSamples,0,"Inspect at least one real upward-drift step.");
+                    Assert.Greater(previousY,start.y,"The number must still animate vertically.");
+                    if(number) {
+                        (amount as IDisposable)?.Dispose();
+                        UnityEngine.Object.DestroyImmediate(number.gameObject);
+                    }
+                }
             }
-            yield return null;
         }
 
         [UnityTest]
