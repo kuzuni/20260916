@@ -69,7 +69,7 @@ namespace Moonlit.Editor
             }
             catalog.effectMaterial = material;
             catalog.controller = BuildController(prefab);
-            ReferencePlayerAnimatorBuilder.Build();
+            ReferencePlayerAnimatorBuilder.ValidateCommitted();
             EditorUtility.SetDirty(catalog);
             AssetDatabase.SaveAssets();
             Debug.Log("[Moonlit] Combat assets built from the actual Player prefab, 210 PSD sprites, seven Animator states and three primitive VFX.");
