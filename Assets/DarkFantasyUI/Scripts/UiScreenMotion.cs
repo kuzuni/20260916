@@ -5,11 +5,13 @@ using UnityEngine.UI;
 
 namespace Moonlit.UI
 {
-    /// <summary>Animate visibility only, preserving Safe Area geometry, hit areas and modal input ownership.</summary>
+    /// <summary>Animate popup entrance and page contents while preserving resting Safe Area layout and modal input ownership.</summary>
     public sealed class UiScreenMotion : MonoBehaviour
     {
         readonly List<CanvasGroup> targets=new List<CanvasGroup>();
         Sequence sequence;
+        RectTransform scaledRoot;
+        Vector3 restingScale, restingPosition;
         public bool Sequential { get; private set; }
         public bool IsPlaying => sequence!=null && sequence.IsActive() && !sequence.IsComplete();
         public IReadOnlyList<CanvasGroup> Targets => targets;
@@ -39,7 +41,28 @@ namespace Moonlit.UI
                 var group=targets[i];group.alpha=0;
                 sequence.Insert(i*gap,DOTween.To(()=>group?group.alpha:1,value=>{if(group)group.alpha=value;},1f,.22f).SetEase(Ease.OutCubic));
             }
+            if(!sequential) {
+                scaledRoot=root;restingScale=root.localScale;restingPosition=root.localPosition;
+                float scale=.86f;
+                ApplyScale(scale);
+                sequence.Insert(0,DOTween.To(()=>scale,value=>{scale=value;ApplyScale(value);},1.045f,.19f).SetEase(Ease.OutCubic));
+                sequence.Insert(.19f,DOTween.To(()=>scale,value=>{scale=value;ApplyScale(value);},1f,.12f).SetEase(Ease.OutSine));
+                sequence.OnComplete(RestoreScale);
+            }
             if(targets.Count==0)Complete();
+        }
+        void ApplyScale(float factor)
+        {
+            if(!scaledRoot)return;
+            var offset=scaledRoot.localRotation*Vector3.Scale(restingScale,(Vector3)scaledRoot.rect.center);
+            scaledRoot.localScale=restingScale*factor;
+            scaledRoot.localPosition=restingPosition+offset*(1-factor);
+        }
+        void RestoreScale()
+        {
+            if(!scaledRoot)return;
+            scaledRoot.localScale=restingScale;scaledRoot.localPosition=restingPosition;
+            scaledRoot=null;
         }
         static CanvasGroup Group(RectTransform rect)
         {
@@ -64,6 +87,7 @@ namespace Moonlit.UI
         public void Complete()
         {
             if(sequence!=null){sequence.Kill();sequence=null;}
+            RestoreScale();
             foreach(var target in targets)if(target)target.alpha=1;
         }
         void OnDisable(){Complete();}

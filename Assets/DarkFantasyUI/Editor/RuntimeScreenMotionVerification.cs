@@ -21,11 +21,15 @@ namespace Moonlit.Editor
                 }
                 DOTween.Goto(motion,.08f,false);Canvas.ForceUpdateCanvases();
                 SaveCamera(camera,"Artifacts/Runtime-"+route+"-entering-"+aspect+".png",1080,height,false);
+                if(!motion.Sequential) {
+                    DOTween.Goto(motion,.19f,false);Canvas.ForceUpdateCanvases();
+                    SaveCamera(camera,"Artifacts/Runtime-"+route+"-overshoot-"+aspect+".png",1080,height,false);
+                }
                 motion.Complete();Canvas.ForceUpdateCanvases();
                 SaveCamera(camera,"Artifacts/Runtime-"+route+"-entered-"+aspect+".png",1080,height);
                 bool sequential=motion.Sequential;
                 screen.screens.ShowMainPage();
-                report.Add("PASS "+route+" DOTween "+(sequential?"sequential contents":"modal fade")+" "+height);
+                report.Add("PASS "+route+" DOTween "+(sequential?"sequential contents":"modal centered scale overshoot and fade")+" "+height);
             }
         }
     }
