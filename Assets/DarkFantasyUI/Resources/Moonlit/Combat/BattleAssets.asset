@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: BattleAssets
   m_EditorClassIdentifier: Moonlit.UI::Moonlit.UI.BattleAssetCatalog
   playerPrefab: {fileID: 2385306054767752248, guid: 11b16d06f9e43d64b925d4826cc6f53e, type: 3}
-  controller: {fileID: 9100000, guid: c594b9a1a3615d1d78befa275e54e5bd, type: 2}
+  controller: {fileID: 9100000, guid: 3e3c17d591e8526a0b6af63cdcb0aae8, type: 2}
   effectMaterial: {fileID: 2100000, guid: eefb15d378d895062a8d39e10bcf5829, type: 2}
   buffSprite: {fileID: 21300000, guid: 438806a3c73088e7c83393e74662e0a4, type: 3}
   weakSprite: {fileID: 21300000, guid: 7fa4ab168bc6ea3d4aafd1b32ea2c3d5, type: 3}

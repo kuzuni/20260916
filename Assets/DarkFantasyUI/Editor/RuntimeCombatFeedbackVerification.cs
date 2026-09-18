@@ -27,6 +27,40 @@ namespace Moonlit.Editor
             CombatCaptureField<Camera>(battle, "renderCamera").Render();
         }
 
+
+        static Animator CaptureAuthoredAnimator(Transform actor)
+        {
+            var rig=actor ? actor.Find("Motion/PlayerRig") : null;
+            var animator=rig ? rig.GetComponent<Animator>() : null;
+            if(!animator || !animator.runtimeAnimatorController)
+                throw new InvalidOperationException("Capture requires the instantiated PlayerRig's authored Animator: "+(actor?actor.name:"missing actor"));
+            return animator;
+        }
+        static AnimationClip CaptureAuthoredClip(Animator animator,string state)
+        {
+            AnimationClip clip=null;
+            if(animator.GetCurrentAnimatorStateInfo(0).IsName(state))
+                clip=animator.GetCurrentAnimatorClipInfo(0).Select(info=>info.clip).FirstOrDefault(item=>item);
+            if(!clip)clip=animator.runtimeAnimatorController.animationClips.FirstOrDefault(item=>item && item.name==state);
+            if(!clip)throw new InvalidOperationException("Missing authored clip for capture state "+state);
+            return clip;
+        }
+        static float CaptureAuthoredEventTime(Animator animator,string state,int kind)
+        {
+            var events=CaptureAuthoredClip(animator,state).events
+                .Where(item=>item.functionName=="OnCombatImpact" && item.intParameter==kind).OrderBy(item=>item.time).ToArray();
+            if(events.Length==0)throw new InvalidOperationException("Missing authored OnCombatImpact/"+kind+" event in "+state);
+            return events[0].time;
+        }
+        static float CaptureAuthoredPoseTime(Animator animator,string state)
+            =>CaptureAuthoredClip(animator,state).length*.35f;
+        static void CaptureEffectClock(PrimitiveSkillEffects effects,float seconds)
+        {
+            // Seek only the VFX presentation clock. Native Animator events remain the sole authority for damage/healing.
+            typeof(PrimitiveSkillEffects).GetProperty("PlaybackElapsed").SetValue(effects,seconds);
+            effects.EarlyPlaybackTimeOverride=seconds;
+        }
+
         // Call once inside CaptureGameplay's existing per-height Safe Area / RenderTexture scope.
         static IEnumerator CaptureCombatFeedback(MainScreen screen, Camera camera, int height, List<string> report, Action fail)
         {
@@ -47,7 +81,7 @@ namespace Moonlit.Editor
             bool enabled = battle.enabled, mainEnabled = screen.enabled;
             float scale = Time.timeScale;
             var actors = new[] { battle.PlayerHud.Actor, battle.EnemyHud.Actor };
-            var animators = actors.Select(actor => actor.GetComponent<Animator>()).ToArray();
+            var animators = actors.Select(actor => CaptureAuthoredAnimator(actor)).ToArray();
             var speeds = animators.Select(animator => animator.speed).ToArray();
             string aspect = height == 1920 ? "9x16" : "9x19";
             try
@@ -84,7 +118,7 @@ namespace Moonlit.Editor
                     var strike = CombatCaptureRoutine(battle, "Strike", isPlayer, 20d, false, 0);
                     if (!strike.MoveNext() || !((IEnumerator)strike.Current).MoveNext())
                         throw new InvalidOperationException("Could not arm real basic action.");
-                    actor.speed = 1; actor.Update(0); actor.Update(.31f); actor.speed = 0;
+                    actor.speed = 1; actor.Update(0); actor.Update(CaptureAuthoredEventTime(actor,"Basic",0)+.001f); actor.speed = 0;
                     var flash = victimActor.GetComponent<CombatHitFlash>();
                     var effects = CombatCaptureField<PrimitiveSkillEffects>(battle, "effects");
                     var fragments = effects.GetComponentsInChildren<ParticleSystem>();
@@ -138,7 +172,7 @@ namespace Moonlit.Editor
                 SaveCamera(camera, "Artifacts/Runtime-wave-continuity-after-" + aspect + ".png", 1080, height);
                 foreach (var state in new[] { "Basic", "Strong" })
                 {
-                    foreach(var animator in animators) { animator.speed=1;animator.Play(state,0,0);animator.Update(0);animator.Update(.28f);animator.speed=0; }
+                    foreach(var animator in animators) { animator.speed=1;animator.Play(state,0,0);animator.Update(0);animator.Update(CaptureAuthoredPoseTime(animator,state));animator.speed=0; }
                     yield return null;
                     RefreshCombatCapture(battle);
                     foreach (var a in actors)

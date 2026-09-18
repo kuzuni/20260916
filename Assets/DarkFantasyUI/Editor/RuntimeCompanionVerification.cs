@@ -38,7 +38,7 @@ namespace Moonlit.Editor
             bool enabled=screen.enabled,battleEnabled=battle.enabled;
             float scale=Time.timeScale;
             string aspect=height==1920?"9x16":"9x19";
-            var animators=new[]{actor.GetComponent<Animator>(),battle.EnemyHud.Actor.GetComponent<Animator>()};
+            var animators=new[]{CaptureAuthoredAnimator(actor),CaptureAuthoredAnimator(battle.EnemyHud.Actor)};
             var speeds=animators.Select(item=>item.speed).ToArray();
             try
             {
@@ -63,7 +63,7 @@ namespace Moonlit.Editor
                     CollectionProgression.Equip(CollectionProgression.Data.categories[2].entries[mount],0);system.RefreshEquipped();
                     foreach(string state in new[]{"Idle","Basic"})
                     {
-                        animators[0].speed=1;animators[0].Play(state,0,0);animators[0].Update(0);animators[0].Update(state=="Basic"?.24f:0);animators[0].speed=0;
+                        animators[0].speed=1;animators[0].Play(state,0,0);animators[0].Update(0);animators[0].Update(state=="Basic"?CaptureAuthoredPoseTime(animators[0],state):0);animators[0].speed=0;
                         yield return null;yield return null;
                         if(!system.Mount || Vector2.Distance(system.Mount.saddle.position,system.RiderHip.position)>.03f)
                             throw new InvalidOperationException("Mounted rider must follow the actual saddle bone.");

@@ -629,7 +629,7 @@ namespace Moonlit.Editor
             try {
                 screen.enabled=false;battle.StopAllCoroutines();
                 foreach(var actor in new[]{battle.PlayerHud.Actor,battle.EnemyHud.Actor}) {
-                    var animator=actor.GetComponent<Animator>();animator.Play("Idle",0,0);animator.Update(0);
+                    var animator=CaptureAuthoredAnimator(actor);animator.Play("Idle",0,0);animator.Update(0);
                 }
                 battle.PlayerHud.SetVisible(true);battle.EnemyHud.SetVisible(true);
                 for(int i=0;i<3;i++) {

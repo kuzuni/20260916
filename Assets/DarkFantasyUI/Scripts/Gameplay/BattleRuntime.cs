@@ -87,7 +87,8 @@ namespace Moonlit.UI
             view = Ui.Rect("Live turn battle", main.design, 0, 495, 1080, 440);
             view.SetAsFirstSibling();
             image = view.gameObject.AddComponent<RawImage>(); image.raycastTarget = false;
-            if (!assets || !assets.playerPrefab || !assets.controller)
+            if (!assets || !assets.playerPrefab || !assets.playerPrefab.GetComponent<Animator>() ||
+                !assets.playerPrefab.GetComponent<Animator>().runtimeAnimatorController)
             {
                 Debug.LogWarning("[Moonlit] Combat asset catalog unavailable; combat has not been simulated.");
                 return;
@@ -161,10 +162,13 @@ namespace Moonlit.UI
             }
             actor.transform.localScale *= 2; // Explicit user request: twice the authored runtime size.
             foreach (var item in actor.GetComponentsInChildren<Transform>(true)) item.gameObject.layer = 30;
-            foreach (var existingAnimator in rig.GetComponentsInChildren<Animator>(true)) existingAnimator.enabled = false;
-            animator = actor.AddComponent<Animator>(); animator.runtimeAnimatorController = assets.controller;
+            // The prefab's Animator is the source of truth. A wrapper controller would bypass
+            // the user's edited native clips and consume events on the wrong GameObject.
+            animator = rig.GetComponent<Animator>();
+            animator.enabled = true;
             animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
-            relay = actor.AddComponent<CombatAnimationRelay>();
+            relay = animator.GetComponent<CombatAnimationRelay>();
+            if (!relay) relay = animator.gameObject.AddComponent<CombatAnimationRelay>();
             animator.Play("Idle", 0, 0);
             CombatGroundShadow.Create(stageRoot.transform, actor.transform);
             return actor;
@@ -423,7 +427,7 @@ namespace Moonlit.UI
                 bool wonWave = PlayerState.Alive && !EnemyState.Alive;
                 // Lethal impacts already started Death. Only a round-limit loss still needs to start it.
                 PlayDeathOnce(!wonWave);
-                yield return new WaitForSeconds(.85f);
+                yield return WaitForAuthoredAnimation(wonWave ? enemyAnimator : playerAnimator, "Death");
                 if (!wonWave) { complete(false); yield break; }
             }
             Wave = waves;
@@ -483,8 +487,9 @@ namespace Moonlit.UI
             CombatComboSequence sequence = null;
             ShowSkill(isPlayer, 0, skill.tier);
             yield return AnimatedAction(isPlayer, 1, "Buff", () => {
+                float eventTime = Mathf.Min(effects.PlaybackElapsed, SkillChoreography.BuffHealTime(skill.tier));
                 sequence = new CombatComboSequence(0,
-                    CombatComboSequence.TimesAfterEvent(new[] { SkillChoreography.BuffHealTime(skill.tier) }, .3f),
+                    CombatComboSequence.TimesAfterEvent(new[] { SkillChoreography.BuffHealTime(skill.tier) }, eventTime),
                     () => actor.Alive && ReferenceEquals(actor, isPlayer ? PlayerState : EnemyState) && isActiveAndEnabled,
                     (_, __) => {
                         if (isPlayer) RecordPlayerSkill(skill);
@@ -493,7 +498,7 @@ namespace Moonlit.UI
                         (isPlayer ? PlayerHud : EnemyHud).Float("+" + Format(healing), new Color(.4f, 1, .55f));
                     },
                     cancelled => { if (cancelled && effects) effects.CancelSkillPlayback(); },
-                    Mathf.Max(SkillChoreography.BuffHealTime(skill.tier), SkillChoreography.BuffDuration(skill.tier)) - .3f);
+                    Mathf.Max(0, Mathf.Max(SkillChoreography.BuffHealTime(skill.tier), SkillChoreography.BuffDuration(skill.tier)) - eventTime));
                 activeCombo = sequence;
                 sequence.Advance(0);
                 if (sequence.Pending) StartCoroutine(AdvanceSkillCombo(sequence));
@@ -519,7 +524,11 @@ namespace Moonlit.UI
                 if (isPlayer)
                     foreach (var equipped in actor.skills)
                         if (equipped.tier == tier && equipped.variant == variant) RecordPlayerSkill(equipped);
-                combo = new CombatComboSequence(damage, CombatComboSequence.TimesAfterEvent(SkillChoreography.HitTimes(tier, variant), SkillChoreography.AttackLead),
+                var hitTimes = SkillChoreography.HitTimes(tier, variant);
+                // A long frame or a late authored event may pass the first visual contact.
+                // Authorize it now and retain the intervals; never throw or deal damage before the event.
+                float eventTime = Mathf.Min(effects.PlaybackElapsed, hitTimes[0]);
+                combo = new CombatComboSequence(damage, CombatComboSequence.TimesAfterEvent(hitTimes, eventTime),
                     () => actor.Alive && target.Alive && ReferenceEquals(actor, isPlayer ? PlayerState : EnemyState) &&
                         ReferenceEquals(target, isPlayer ? EnemyState : PlayerState) && isActiveAndEnabled,
                     (hitIndex, portion) => ResolveStrike(isPlayer, actor, target, portion, true, variant, tier, hitIndex),
@@ -579,7 +588,7 @@ namespace Moonlit.UI
             var relay = isPlayer ? playerRelay : enemyRelay;
             var animator = isPlayer ? playerAnimator : enemyAnimator;
             relay.Arm(kind, impact); animator.Play(state, 0, 0);
-            yield return new WaitForSeconds(.8f);
+            yield return WaitForAuthoredAnimation(animator, state);
             if (relay.Pending)
             {
                 // A missing animation event must never silently apply guessed damage.
@@ -591,6 +600,25 @@ namespace Moonlit.UI
             {
                 while (pendingCombo != null && pendingCombo()) yield return null;
                 if ((isPlayer ? PlayerState : EnemyState).Alive) animator.Play("Idle", 0, 0);
+            }
+        }
+        static IEnumerator WaitForAuthoredAnimation(Animator animator, string state)
+        {
+            // Play is evaluated on the next animation update. Let the native clip's own
+            // length, speed and transition determine completion instead of cutting it at .8s.
+            yield return null;
+            int stateHash = Animator.StringToHash(state);
+            while (animator && animator.isActiveAndEnabled)
+            {
+                var current = animator.GetCurrentAnimatorStateInfo(0);
+                if (current.shortNameHash == stateHash)
+                {
+                    if (current.normalizedTime >= 1) yield break;
+                }
+                else if (!animator.IsInTransition(0) ||
+                    animator.GetNextAnimatorStateInfo(0).shortNameHash != stateHash)
+                    yield break;
+                yield return null;
             }
         }
         void ShowSkill(bool isPlayer, int variant, int tier = 0, bool preview = false)
