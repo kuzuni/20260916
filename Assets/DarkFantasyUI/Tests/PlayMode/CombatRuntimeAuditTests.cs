@@ -77,6 +77,50 @@ namespace Moonlit.UI.Tests
         }
 
         [UnityTest]
+        public IEnumerator LethalAnimatorImpactThenWaveCompletionDoesNotReplayDeath()
+        {
+            using(var fixture = new Fixture())
+            {
+                ForgeState.Current.equipped[(int)EquipmentPart.Weapon] = new EquipmentRoll {
+                    id=801,part=EquipmentPart.Weapon,tier=0,level=100
+                };
+                ForgeState.Current.equipped[(int)EquipmentPart.Necklace] = new EquipmentRoll {
+                    id=802,part=EquipmentPart.Necklace,tier=0,level=100
+                };
+                bool completed=false, victory=false;
+                var stage=(IEnumerator)typeof(BattleRuntime).GetMethod("FightStage",PrivateInstance).Invoke(
+                    fixture.battle,new object[]{1,1,new Action<bool>(won=>{completed=true;victory=won;})});
+                // Step actual production iterators explicitly so a slow render frame cannot skip the restart.
+                Assert.IsTrue(stage.MoveNext()); // entrance
+                Assert.IsTrue(stage.MoveNext()); // faster player's turn
+                var turn=(IEnumerator)stage.Current; Assert.IsTrue(turn.MoveNext());
+                var strike=(IEnumerator)turn.Current; Assert.IsTrue(strike.MoveNext());
+                var action=(IEnumerator)strike.Current; Assert.IsTrue(action.MoveNext());
+                var playerAnimator=(Animator)typeof(BattleRuntime).GetField("playerAnimator",PrivateInstance).GetValue(fixture.battle);
+                var enemyAnimator=(Animator)typeof(BattleRuntime).GetField("enemyAnimator",PrivateInstance).GetValue(fixture.battle);
+                playerAnimator.Update(0); playerAnimator.Update(.31f);
+                Assert.IsFalse(fixture.battle.EnemyState.Alive,"A real Animator impact must be lethal.");
+                enemyAnimator.Update(0); enemyAnimator.Update(.4f);
+                var halfway=enemyAnimator.GetCurrentAnimatorStateInfo(0);
+                Assert.IsTrue(halfway.IsName("Death")); Assert.Greater(halfway.normalizedTime,.4f);
+                Assert.IsFalse(enemyAnimator.runtimeAnimatorController.animationClips.Single(clip=>clip.name=="Death").isLooping);
+                Assert.IsFalse(action.MoveNext()); Assert.IsFalse(strike.MoveNext()); Assert.IsFalse(turn.MoveNext());
+                Assert.IsTrue(stage.MoveNext()); // wave outcome's death hold
+                enemyAnimator.Update(0);
+                Assert.GreaterOrEqual(enemyAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime,halfway.normalizedTime-.001f,
+                    "Wave completion must not rewind the death already started at the lethal hit.");
+                enemyAnimator.Update(.5f);
+                Assert.IsTrue(enemyAnimator.GetCurrentAnimatorStateInfo(0).IsName("Death"));
+                Assert.GreaterOrEqual(enemyAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime,1);
+                Assert.IsFalse(stage.MoveNext());
+                Assert.IsTrue(completed);Assert.IsTrue(victory);
+                Assert.AreEqual(1,fixture.battle.PlayerResolvedBasicAttacks);
+                Assert.AreEqual(0,fixture.battle.EnemyResolvedBasicAttacks);
+            }
+            yield return null;
+        }
+
+        [UnityTest]
         public IEnumerator ActualBattleTimesOutAfterBothActorsCompleteRoundFifteen()
         {
             using (var fixture = new Fixture())
