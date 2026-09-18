@@ -152,12 +152,32 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: moonlit-evidence-9x16
-          path: Artifacts/Runtime-*9x16*.png
+          path: |
+            Artifacts/Runtime-*9x16*.png
+            !Artifacts/Runtime-skill-[0-9]*-9x16.png
           if-no-files-found: error
       - name: Upload 9 by 19 original captures
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: moonlit-evidence-9x19
-          path: Artifacts/Runtime-*9x19*.png
+          path: |
+            Artifacts/Runtime-*9x19*.png
+            !Artifacts/Runtime-skill-[0-9]*-9x19.png
+          if-no-files-found: error
+
+      - name: Upload 9x16 skill flight and impact captures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: moonlit-evidence-skills-9x16
+          path: Artifacts/Runtime-skill-[0-9]*-9x16.png
+          if-no-files-found: error
+
+      - name: Upload 9x19 skill flight and impact captures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: moonlit-evidence-skills-9x19
+          path: Artifacts/Runtime-skill-[0-9]*-9x19.png
           if-no-files-found: error

@@ -14,11 +14,13 @@ namespace Moonlit.Editor
         static IEnumerator CaptureRewardAvailability(MainScreen screen,Camera camera,int height,List<string> report,Action fail)
         {
             var savedRewards=RewardState.Current;var savedDungeons=DungeonProgression.Data;
+            var savedForge=ForgeState.Current;var savedCollections=CollectionProgression.Data;
             int stage=screen.stage,cleared=screen.highestClearedStage,gold=screen.gold,gems=screen.gems,ore=screen.ore;
             int skill=screen.skillTickets,pet=screen.petTickets,mount=screen.mountTickets;
             bool enabled=screen.enabled;string aspect=height==1920?"9x16":"9x19";
             try {
                 screen.enabled=false;screen.stage=1;screen.highestClearedStage=0;
+                CollectionProgression.Data=CollectionProgression.Create();ForgeState.Current=new ForgeState();screen.gold=0;
                 screen.skillTickets=screen.petTickets=screen.mountTickets=0;
                 var state=RewardState.Current=new RewardState {lastTickUtc=DateTimeOffset.UtcNow.ToUnixTimeSeconds()+3600};
                 DungeonProgression.Data=new DungeonSave();DungeonProgression.RefreshDay(DateTime.UtcNow);
@@ -31,6 +33,15 @@ namespace Moonlit.Editor
                 screen.skillTickets=1;screen.highestClearedStage=5;DungeonProgression.Data.keys[0]=1;
                 dots.RefreshNow();Canvas.ForceUpdateCanvases();
                 SaveCamera(camera,"Artifacts/Runtime-reward-dots-available-"+aspect+".png",1080,height);
+                var forgeState=ForgeState.Current=new ForgeState {level=4};
+                forgeState.filledSegments=forgeState.Segments;forgeState.upgradeEndsUtcTicks=DateTime.UtcNow.AddMinutes(1).Ticks;
+                screen.Refresh();dots.RefreshNow();Canvas.ForceUpdateCanvases();
+                SaveCamera(camera,"Artifacts/Runtime-forge-timer-running-"+aspect+".png",1080,height);
+                forgeState.upgradeEndsUtcTicks=DateTime.UtcNow.AddSeconds(-1).Ticks;dots.RefreshNow();Canvas.ForceUpdateCanvases();
+                SaveCamera(camera,"Artifacts/Runtime-forge-timer-complete-"+aspect+".png",1080,height);
+                forgeState.upgradeEndsUtcTicks=0;dots.RefreshNow();Canvas.ForceUpdateCanvases();
+                SaveCamera(camera,"Artifacts/Runtime-forge-time-start-ready-"+aspect+".png",1080,height);
+                ForgeState.Current=savedForge;screen.Refresh();dots.RefreshNow();
                 screen.screens.Open("progress-pass");yield return null;Canvas.ForceUpdateCanvases();
                 SaveCamera(camera,"Artifacts/Runtime-pass-claim-dot-"+aspect+".png",1080,height);
                 screen.screens.CloseTop();
@@ -42,8 +53,16 @@ namespace Moonlit.Editor
                 var claim=UnityEngine.Object.FindObjectsByType<Button>(FindObjectsSortMode.None).FirstOrDefault(b=>b.name=="Claim daily diamonds");
                 if(!claim){report.Add("FAIL daily diamond shop claim is missing");fail();yield break;}
                 int before=screen.gems;claim.onClick.Invoke();
+                // Let newly created graphics register before seeking the deterministic effect frame.
+                yield return null;
+                foreach(var refresh in UnityEngine.Object.FindObjectsByType<LiveUiRefresh>(FindObjectsSortMode.None))
+                    refresh.RefreshView?.Invoke();
                 foreach(var life in UnityEngine.Object.FindObjectsByType<RewardVisualLifetime>(FindObjectsSortMode.None)) {
                     var tweens=DOTween.TweensByTarget(life,false);if(tweens!=null)foreach(var tween in tweens)tween.Goto(.16f,false);
+                }
+                var particles=UnityEngine.Object.FindObjectsByType<RewardVisualLifetime>(FindObjectsSortMode.None);
+                if(!particles.Any(p=>p.GetComponentsInChildren<Image>().Length>0)){
+                    report.Add("FAIL shop absorption particles are missing");fail();yield break;
                 }
                 dots.RefreshNow();Canvas.ForceUpdateCanvases();
                 SaveCamera(camera,"Artifacts/Runtime-shop-diamond-absorption-"+aspect+".png",1080,height);
@@ -56,6 +75,7 @@ namespace Moonlit.Editor
             } finally {
                 while(screen.screens.ModalDepth>0)screen.screens.CloseTop();screen.screens.ShowMainPage();
                 RewardState.Current=savedRewards;DungeonProgression.Data=savedDungeons;
+                ForgeState.Current=savedForge;CollectionProgression.Data=savedCollections;
                 screen.stage=stage;screen.highestClearedStage=cleared;screen.gold=gold;screen.gems=gems;screen.ore=ore;
                 screen.skillTickets=skill;screen.petTickets=pet;screen.mountTickets=mount;screen.enabled=enabled;
                 screen.Refresh();screen.GetComponent<RewardNotificationDots>().RefreshNow();
