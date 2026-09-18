@@ -140,9 +140,9 @@ namespace Moonlit.UI
             if(entry.category==0){
                 var icon=Ui.ArtImage("Icon",button.transform,size*.17f,size*.17f,size*.66f,size*.66f,SkillIcon(entry.grade,entry.variant));
                 Ui.CenterAspect(icon);
-            } else Ui.Text("Art pending",button.transform,size*.1f,size*.2f,size*.8f,size*.45f,
-                "아트 보류\n"+CollectionProgression.CategoryNames[entry.category]+" "+(entry.variant+1),
-                Mathf.RoundToInt(size*.11f),font);
+            } else Ui.Text("Art pending",button.transform,size*.1f,
+                size*(compact ? .1f : probability ? .35f : .62f),size*.8f,size*.12f,
+                "아트 보류",Mathf.RoundToInt(size*.11f),font);
             var frame=Ui.ArtImage("Slot frame",button.transform,0,0,size,size,SkillRing);
             frame.color=EquipmentRules.TierColor(entry.grade); frame.preserveAspect=true; button.targetGraphic=frame;
             Text level=null,owned=null,fragments=null,badge=null;
