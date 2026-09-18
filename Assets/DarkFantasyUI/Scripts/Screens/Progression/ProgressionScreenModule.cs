@@ -63,7 +63,8 @@ namespace Moonlit.UI
             view.scroll=Scroll(content,0,0,984,content.rect.height); view.grid=view.scroll.content;
             var equipped=PopupSkin.Panel("Equipped panel",ctx.Root,88,equippedY,904,142).rectTransform;
             Ui.ArtImage("Equipped ribbon",equipped,0,30,220,49,PopupSkin.ParchmentRibbonArt);
-            Ui.Text("Equipped label",equipped,8,30,204,49,"장착됨",30,font,new Color(.06f,.045f,.025f));
+            var equippedLabel=Ui.Text("Equipped label",equipped,8,30,204,49,"장착됨",30,font,new Color(.06f,.045f,.025f));
+            equippedLabel.GetComponent<Outline>().effectColor=new Color(1,1,1,.2f);
             view.equipped=Ui.Rect("Equipped skills",equipped,350,8,540,126);
             PopupSkin.Button("Upgrade all",ctx.Root,240,equippedY+162,285,86,"모두 업그레이드",font,()=>{
                 int count=0; foreach(var entry in CollectionProgression.Data.categories[view.tab].entries) if(entry.Upgrade()) count++;
@@ -272,7 +273,7 @@ namespace Moonlit.UI
             var panel=Panel(ctx.Root,90,(ctx.Height-h)/2,900,h,CollectionProgression.CategoryNames[info.category]+" 목록 · 레벨 "+info.level,font,34);
             var scroll=Scroll(panel,35,145,830,h-230);var rates=CollectionProgression.Probabilities(info.level);
             for(int grade=0;grade<rates.Length;grade++){
-                var row=PopupSkin.Panel("Grade "+grade,scroll.content,10,grade*320,800,300).rectTransform;
+                var row=PopupSkin.Panel("Grade "+grade,scroll.content,10,grade*340,800,320).rectTransform;
                 Ui.Text("Tier",row,18,8,760,58,EquipmentRules.TierNames[grade]+"  "+(rates[grade]*100).ToString("0.00")+"%",28,font,EquipmentRules.TierColor(grade));
                 for(int variant=0;variant<3;variant++){
                     var entry=CollectionProgression.Data.categories[info.category].entries[grade*3+variant];
@@ -280,7 +281,7 @@ namespace Moonlit.UI
                     Ui.Text("Chance",row,75+variant*245,258,158,36,(rates[grade]*100/3).ToString("0.0000")+"%",22,font);
                 }
             }
-            scroll.content.sizeDelta=new Vector2(0,rates.Length*320);Close(panel,400,h-48,font,ctx.Close);
+            scroll.content.sizeDelta=new Vector2(0,rates.Length*340);Close(panel,400,h-48,font,ctx.Close);
         }
 
         static void BuildDungeons(ScreenContext ctx)
