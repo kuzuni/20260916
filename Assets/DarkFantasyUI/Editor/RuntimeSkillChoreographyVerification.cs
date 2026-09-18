@@ -21,7 +21,12 @@ namespace Moonlit.Editor
             bool screenEnabled=screen.enabled,battleEnabled=battle.enabled;
             string aspect=height==1920?"9x16":"9x19";
             try {
-                screen.screens.ShowMainPage();screen.enabled=false;battle.StopAllCoroutines();
+                screen.screens.ShowMainPage();
+                // Previous helpers restart combat. Let this ratio's real entrance finish before freezing it.
+                var previousEncounter=battle.PlayerState;
+                battle.enabled=false;battle.enabled=true;
+                yield return WaitForBattleCaptureReady(screen,previousEncounter);
+                screen.enabled=false;battle.StopAllCoroutines();
                 foreach(var hud in new[]{battle.PlayerHud,battle.EnemyHud}) {
                     hud.SetVisible(true);var animator=hud.Actor.GetComponent<Animator>();
                     animator.Play("Idle",0,0);animator.Update(0);
@@ -71,7 +76,12 @@ namespace Moonlit.Editor
             }
             bool screenEnabled=screen.enabled,battleEnabled=battle.enabled;
             try {
-                screen.screens.ShowMainPage();screen.enabled=false;battle.StopAllCoroutines();
+                screen.screens.ShowMainPage();
+                // Previous helpers restart combat. Let this ratio's real entrance finish before freezing it.
+                var previousEncounter=battle.PlayerState;
+                battle.enabled=false;battle.enabled=true;
+                yield return WaitForBattleCaptureReady(screen,previousEncounter);
+                screen.enabled=false;battle.StopAllCoroutines();
                 for(int tier=0;tier<2;tier++)for(int variant=0;variant<3;variant++)
                     yield return CaptureEarlySkillContactPhases(screen,camera,height,battle,effects,tier,variant,report,fail);
             }
@@ -113,7 +123,8 @@ namespace Moonlit.Editor
                     effects.enabled=false;effects.enabled=true;
                     foreach(var actorHud in new[]{battle.PlayerHud,battle.EnemyHud}) {
                         var flash=actorHud.Actor.GetComponent<CombatHitFlash>();flash.enabled=false;flash.enabled=true;
-                        actorHud.SetVisible(true);
+                        // Each sample is a fresh action, including its floating-number lifetime.
+                        actorHud.enabled=false;actorHud.enabled=true;actorHud.SetVisible(true);
                     }
                     animator.speed=1;enemyAnimator.speed=1;
                     animator.Play("Idle",0,0);animator.Update(0);
@@ -147,7 +158,19 @@ namespace Moonlit.Editor
                     if(variant>0 && sample>=contacts[0]) enemyAnimator.Update(.04f);
                     enemyAnimator.speed=0;
                     battle.PlayerHud.Bind(actor);battle.EnemyHud.Bind(target);
+                    // A yield alone does not guarantee another component's coroutine or camera has sampled.
+                    int settleFrames=0;float settleDeadline=Time.realtimeSinceStartup+12;
+                    do {
+                        yield return null;
+                        if(++settleFrames>60||Time.realtimeSinceStartup>settleDeadline)
+                            throw new InvalidOperationException("Early effect did not sample "+tier+"/"+variant+" at "+sample+
+                                "; observed time="+effects.PlaybackElapsed);
+                    } while(!EarlySkillPoseMatches(battle,effects,tier,variant,sample));
+                    // Complete a full additional animation/skin/LateUpdate pass, then refresh the nested RT explicitly.
                     yield return null;
+                    if(!EarlySkillPoseMatches(battle,effects,tier,variant,sample))
+                        throw new InvalidOperationException("Early effect pose changed after its render barrier.");
+                    RefreshCombatCapture(battle);
                     Canvas.ForceUpdateCanvases();
                     int expected=variant==0 ? (sample>=SkillChoreography.BuffHealTime(tier)?1:0) : contacts.Count(t=>t<=sample);
                     var sequence=CombatCaptureField<CombatComboSequence>(battle,"activeCombo");
@@ -165,7 +188,7 @@ namespace Moonlit.Editor
                     SaveCamera(camera,"Artifacts/Runtime-skill-"+tier+"-"+variant+"-"+names[phase]+"-"+aspect+".png",1080,height);
                 }
                 report.Add("PASS actual early skill "+tier+"/"+variant+" "+aspect+": "+phases.Length+
-                    " bounded contact/food samples; unchanged total, delayed event-authorized damage/healing");
+                    " verified absolute-time object poses, food disappearance/aura, fresh battle RT and event-authorized contacts");
             }
             finally {
                 typeof(BattleRuntime).GetMethod("CancelSkillCombo",flags).Invoke(battle,null);
@@ -175,5 +198,59 @@ namespace Moonlit.Editor
                 playerProperty.SetValue(battle,previousPlayer);enemyProperty.SetValue(battle,previousEnemy);
             }
         }
+        // Used before freezing an action and before opening a modal over the live battlefield.
+        // Observe the real entrance's own completion signal; never reposition actors for this guard.
+        static IEnumerator WaitForBattleCaptureReady(MainScreen screen,CombatActorState previousEncounter=null)
+        {
+            var battle=screen.GetComponent<BattleRuntime>();
+            if(!battle)throw new InvalidOperationException("Capture requires BattleRuntime.");
+            float deadline=Time.realtimeSinceStartup+20;int frames=0;
+            // Give a newly enabled NormalLoop its first yield and the UI resize its layout pass.
+            yield return null;yield return null;
+            while((previousEncounter!=null && ReferenceEquals(previousEncounter,battle.PlayerState)) ||
+                battle.PlayerState==null || !battle.PlayerState.Alive || battle.EnemyState==null || !battle.EnemyState.Alive ||
+                !battle.PlayerHud || !battle.EnemyHud || !battle.PlayerHud.WorldCanvas.enabled ||
+                !battle.EnemyHud.WorldCanvas.enabled || battle.Round<1) {
+                if(++frames>600||Time.realtimeSinceStartup>deadline)
+                    throw new InvalidOperationException("Real battle entrance did not settle before capture.");
+                yield return null;
+            }
+            yield return null;
+            RefreshCombatCapture(battle);
+        }
+
+        static bool EarlySkillPoseMatches(BattleRuntime battle,PrimitiveSkillEffects effects,int tier,int variant,float sample)
+        {
+            if(Mathf.Abs(effects.PlaybackElapsed-sample)>.001f)return false;
+            var objects=effects.GetComponentsInChildren<SpriteRenderer>();
+            var sourceMotion=battle.PlayerHud.Actor.Find("Motion");
+            var targetMotion=battle.EnemyHud.Actor.Find("Motion");
+            Vector3 source=sourceMotion.position+Vector3.up*2.4f;
+            Vector3 target=PrimitiveSkillEffects.FocusedTarget(targetMotion,targetMotion.position+Vector3.up*2.4f);
+            if(variant==0) {
+                var food=objects.SingleOrDefault(r=>r.name=="Overhead food");
+                if(!food)return false;
+                if(sample>=SixSkillChoreography.FoodVanishTime)
+                    return !food.enabled&&objects.Any(r=>r.name=="Healing body glow"&&r.enabled&&r.color.a>.02f);
+                var head=sourceMotion.GetComponentsInChildren<SpriteRenderer>().FirstOrDefault(r=>r.sprite&&r.sprite.name=="머리");
+                if(!head||!food.enabled||food.bounds.min.y<head.bounds.max.y+.15f)return false;
+                float size=1.65f/Mathf.Max(food.sprite.bounds.size.x,food.sprite.bounds.size.y);
+                return Mathf.Abs(food.transform.localScale.x-SixSkillChoreography.FoodScale(sample)*size)<.005f;
+            }
+            int count=variant==1?SkillChoreography.HitCount(tier,variant):1;
+            for(int index=0;index<count;index++) {
+                string name=variant==1?(tier==0?"Orbit bone ":"Curved arrow ")+index:tier==0?"Single rock":"Single sword";
+                var sprite=objects.SingleOrDefault(r=>r.name==name);if(!sprite)return false;
+                var pose=variant==1?(tier==0?SixSkillChoreography.Bone(source,target,index,sample):SixSkillChoreography.Arrow(source,target,index,sample)):
+                    tier==0?SixSkillChoreography.Rock(source,target,sample):SixSkillChoreography.Sword(source,target,sample);
+                if(sprite.enabled!=(pose.alpha>0)||Mathf.Abs(sprite.color.a-pose.alpha)>.005f||
+                    Vector3.Distance(sprite.transform.position,pose.position)>.06f||
+                    Mathf.Abs(Mathf.DeltaAngle(sprite.transform.eulerAngles.z,pose.rotation))>.1f)return false;
+                float size=(variant==1?(tier==0?1.8f:2f):3.3f)/Mathf.Max(sprite.sprite.bounds.size.x,sprite.sprite.bounds.size.y);
+                if(Vector2.Distance(sprite.transform.localScale,pose.scale*size)>.01f)return false;
+            }
+            return true;
+        }
+
     }
 }

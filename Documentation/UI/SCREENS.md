@@ -3,7 +3,7 @@
 
 # 30-screen reference catalog
 
-> 2026-09-18 gameplay update: [current game rules](../Gameplay-20260918.md) supersede screenshot/demo economy, equipment, collection, combat and reward values. The 30 reference routes and safe-area contracts remain in effect. All 30 era-themed skills now have generated sprites and previews. Six primitive pet/mount whole-PNG sprites are included; higher-era companion art remains deferred. Generated rig assets are committed in PR94; run109 passed210PlayMode tests. Assembled visual review and latest-source validation remain pending. Summon currency icons use standalone egg/hoof artwork.
+> 2026-09-18 gameplay update: [current game rules](../Gameplay-20260918.md) supersede screenshot/demo economy, equipment, collection, combat and reward values. The 30 reference routes and safe-area contracts remain in effect. All 30 era-themed skills now have generated sprites and previews. Six primitive pet/mount whole-PNG sprites are included; higher-era companion art remains deferred. The PR94 rig assets are archived; live companions use whole PNGs. Latest validation and visual follow-up are recorded under Reports. Summon currency icons use standalone egg/hoof artwork.
 
 The user supplied 24 initial images and six additional profile/settings dialogs on 2026-09-17, explicitly making their filenames the screen and navigation requirements. Full original names are preserved in reference-manifest.json. Short ASCII filenames avoid Windows path limits. Reference PNGs are byte-for-byte copies, outside Assets so Unity does not import them into the player.
 
