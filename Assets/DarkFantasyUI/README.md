@@ -1,8 +1,16 @@
 # Moonlit — dark fantasy main screen
 
-> 2026-09-18 gameplay update: [current game rules](../../Documentation/Gameplay-20260918.md) supersede screenshot/demo economy, equipment, collection, combat and reward values. The 30 reference routes and safe-area contracts remain in effect. Three primitive skill effects are implemented; higher skill and pet/mount illustrations remain deferred by user request.
+> 2026-09-18 gameplay update: [current game rules](../../Documentation/Gameplay-20260918.md) supersede screenshot/demo economy, equipment, collection, combat and reward values. The 30 reference routes and safe-area contracts remain in effect. The latest revision expands skills to all 30 era-themed entries with generated sprites; pet/mount character illustrations remain deferred. Follow the [Korean gameplay quickstart](../../Documentation/Gameplay-Quickstart-ko.md) for current interactions.
 
 Unity 6000.3 / uGUI. Open `Scenes/MoonlitMain.unity` and press Play.
+
+## Latest gameplay corrections — 2026-09-18
+
+- Equipment grows linearly between the user's exact endpoints: primitive health equipment has HP80 at level1 and HP880 at level100; medieval level1 has HP1760. Attack uses the same scale (10 → 110 → 220). The shared six-piece EquipmentRules baseline also drives collection ownership/equipment bonuses and fixed skill values.
+- All ten eras now have three named skill entries (buff, weak attack, strong attack), generated sprites, descriptions and previews. Collection icons and combat effects share `Moonlit/Combat/Skills/Tier00..Tier09/{Buff,Weak,Strong}`. Pet and mount character art is still deferred.
+- The pet summon currency icon is a standalone egg; the mount summon currency icon is a standalone hoof. The `PetTicketEgg-v2` and `MountTicketHoof-v2` resource filenames do not imply a ticket-shaped illustration. Summon buttons show only the currency icons and amounts actually spent.
+- Dungeon entry reserves a challenge without consuming its key. A win creates a saved pending reward. Only the reward popup's claim button consumes one key, updates the highest cleared difficulty and pays the reward once; defeat/cancellation spends no key. Sweeps still spend one key and grant the previous-difficulty reward immediately.
+- Current revision validation is recorded separately in cloud reports; earlier passing results do not certify later source or artwork changes.
 
 ## Runtime generation
 
@@ -60,7 +68,9 @@ slot.Clicked += selectedSlot => Debug.Log(selectedSlot.item.displayName);
 
 Assign a different sprite to an item's `icon` field to reuse the slot with any future artwork. Rarity selects or tints the frame independently; the item icon is never tinted. PortraitSafeArea adapts the logical height to the safe viewport while preserving slot aspect ratios.
 
-## Local UI interactions
+## Original main-screen demo interactions (historical)
+
+These retained notes describe the initial UI prototype. Gameplay requests and the latest corrections above supersede their costs, progression, battle and persistence behavior; use the current quickstart for testing.
 
 - Select a slot: inspect, lock/unlock, upgrade.
 - Anvil button: standalone transparent foreground artwork; spend 100 stones and upgrade one unlocked equipment item.
@@ -75,7 +85,7 @@ Assign a different sprite to an item's `icon` field to reuse the slot with any f
 
 Main combat scenery uses the dedicated `Resources/Moonlit/Main/EmptyCryptBattle-v1.png`: an empty stone crypt with ribbed arches, wall statues, warm torches and a cracked flagstone floor. No character, pet, monster or health bar is painted into this background; the previous cyan particle overlay is also removed. Other pages/cards retain `MainScreenAssets.worldBackground`. The battle image follows the same elastic crop and does not change HUD/forge/navigation layout. Source reference and exact built-in imagegen prompt: `Documentation/UI/EmptyCryptBattle-v1-prompt.md`. The older forest asset remains available for rollback.
 
-Production images were generated using the built-in image generation tool. Original prompts are in `Art/GENERATION.md`; reference-fidelity revision prompts are in `Art/GENERATION-v2.md` and `Art/CompanionFrame-v2-prompt.md`. Versioned files preserve earlier artwork. All project references use local assets. No reference screenshot is baked into the UI. The main battle viewport contains only its empty environment painting.
+Production images were generated using the built-in image generation tool. Original prompts are in `Art/GENERATION.md`; reference-fidelity revision prompts are in `Art/GENERATION-v2.md` and `Art/CompanionFrame-v2-prompt.md`. Versioned files preserve earlier artwork. All project references use local assets. No reference screenshot is baked into the UI. The environment asset itself contains no actors; current gameplay places runtime player/enemy objects and effects over it.
 
 Noto Sans KR and Noto Sans CJK KR Bold are bundled under the SIL Open Font License, included in `Fonts/OFL.txt`.
 

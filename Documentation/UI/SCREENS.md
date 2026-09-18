@@ -1,6 +1,6 @@
 # 30-screen reference catalog
 
-> 2026-09-18 gameplay update: [current game rules](../Gameplay-20260918.md) supersede screenshot/demo economy, equipment, collection, combat and reward values. The 30 reference routes and safe-area contracts remain in effect. Three primitive skill effects are implemented; higher skill and pet/mount illustrations remain deferred by user request.
+> 2026-09-18 gameplay update: [current game rules](../Gameplay-20260918.md) supersede screenshot/demo economy, equipment, collection, combat and reward values. The 30 reference routes and safe-area contracts remain in effect. All 30 era-themed skills now have generated sprites and previews. Pet/mount character illustrations remain deferred; their summon currency icons use standalone egg/hoof artwork.
 
 The user supplied 24 initial images and six additional profile/settings dialogs on 2026-09-17, explicitly making their filenames the screen and navigation requirements. Full original names are preserved in reference-manifest.json. Short ASCII filenames avoid Windows path limits. Reference PNGs are byte-for-byte copies, outside Assets so Unity does not import them into the player.
 
@@ -33,7 +33,18 @@ Read the corresponding original image at full resolution before implementing. Th
 | 23 | `pvp` | PVP 팝업-하단네비중 맨왼쪽 해골 버튼 클릭시 뜸. | [PNG](References/23-pvp.png) |
 | 24 | `pvp-rewards` | pvp팝업에서 상단에 선물상자 버튼 클릭시 뜨는 pvp 보상 세부 팝업 | [PNG](References/24-pvp-rewards.png) |
 
-## Explicit overrides
+## Latest gameplay overrides — 2026-09-18
+
+The original filenames, Korean instructions and reference tables remain below as visual/navigation provenance. These later user corrections supersede conflicting demo text and quantities without changing the 30 supplied reference routes:
+
+- The third collection tab is **탈것**; the legacy route key remains `skills-pets-heroes`. Each category has three entries per equipment era (30 total), starting locked. All 30 skill icons remain visible while unowned, with a separate ownership-lock overlay; generated art, names and descriptions come from the era catalog.
+- The collection mask extends to just above the equipped panel. Result cards reveal sequentially with DOTween on the dedicated summon scenery. The summon-probability footer shows the selected category's actual current XP gauge, even when previewing another level's probabilities.
+- Pet summon currency is an **egg itself**, and mount summon currency is a **hoof itself**; neither icon is drawn as a ticket. A summon button shows ticket or diamond icon/count alone when only one currency is used, and both icon/count groups separated by `+` for mixed payment.
+- Equipment HP anchors are primitive level1=80, primitive level100=880, medieval level1=1760 per health piece. Linear growth and each next-era base are shared by equipment, collection bonuses and skill values.
+- Dungeon entry/defeat/cancellation do not consume a key. Victory opens the supplemental `dungeon-reward` modal; claiming consumes one key and grants the reward exactly once. Pending rewards survive saves and block another entry or sweep. Sweeps retain immediate key consumption. This supplemental gameplay route has no additional supplied reference PNG.
+- Current shop contents/prices and all gameplay economy values are defined in [the game rules](../Gameplay-20260918.md). Historical 18-entry and shop demo quantities below are retained reference notes, not current runtime defaults.
+
+## Original explicit overrides and reference notes
 
 Additional child dialogs (each opens above the existing profile/settings modal, preserving its tab):
 
