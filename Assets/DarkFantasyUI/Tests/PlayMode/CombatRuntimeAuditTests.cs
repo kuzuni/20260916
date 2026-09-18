@@ -224,19 +224,26 @@ namespace Moonlit.UI.Tests
                 Assert.IsNotNull(ground);
                 Assert.That(ground.GetComponent<MeshFilter>().sharedMesh.bounds.size.x,Is.GreaterThan(2));
                 var motion=actor.Find("Motion");
-                actor.GetComponent<Animator>().speed=0;
+                actor.GetComponent<Animator>().enabled=false;
                 var feet=actor.GetComponentsInChildren<SpriteRenderer>().Where(part=>part.sprite &&
                     (part.sprite.name=="다리1" || part.sprite.name=="다리2")).ToArray();
                 Assert.AreEqual(2,feet.Length,"Measure actual prefab foot renderers, not the weapon-centered actor pivot.");
+                // Let the native skinning pass settle before recording the real foot plane.
+                // Creation-time bounds are not the assembled/deformed PSB bounds.
+                yield return null;yield return null;
                 float floor=ground.position.y;
+                float projectedFoot=feet.Min(part=>part.bounds.min.y)-(motion.position.y-actor.position.y)+.03f;
+                Assert.AreEqual(projectedFoot,floor,.02f,"The natural LateUpdate must follow this frame's SpriteSkin bounds.");
+                float previousMotionY=motion.position.y;
                 motion.position+=new Vector3(.8f,.5f,0);
-                yield return null;
+                yield return null;yield return null;
+                Assert.AreEqual(previousMotionY+.5f,motion.position.y,.002f,"The test must retain a real half-unit jump.");
                 Assert.AreEqual(feet.Average(part=>part.bounds.center.x),ground.position.x,.01f);
                 Assert.AreEqual(floor,ground.position.y,.02f,"A jumping actor must leave its shadow on the ground.");
                 // An asymmetric rig offset/foot pose must move the shadow even while the Motion pivot stays fixed.
                 float before=ground.position.x;
                 actor.Find("Motion/PlayerRig").position+=Vector3.right*.6f;
-                yield return null;
+                yield return null;yield return null;
                 Assert.AreEqual(feet.Average(part=>part.bounds.center.x),ground.position.x,.01f);
                 Assert.Greater(ground.position.x,before+.1f);
             }
