@@ -41,6 +41,7 @@ namespace Moonlit.Editor
                     icon=AssetDatabase.LoadAssetAtPath<Sprite>(Root+"/"+Keys[i]+".png"),prefab=prefab};
             }
             EditorUtility.SetDirty(catalog);AssetDatabase.SaveAssets();
+            ValidateSavedMeshes(catalog);
             Debug.Log("[Moonlit] Built six primitive companions from 48 separated SpriteSkin parts and ten reusable skeleton definitions.");
         }
         static Texture2D ImportTexture(string path,bool readable)
@@ -135,7 +136,8 @@ namespace Moonlit.Editor
         {
             const int columns=12,rows=16;
             float width=sprite.rect.width/sprite.pixelsPerUnit,height=sprite.rect.height/sprite.pixelsPerUnit;
-            var vertices=new Vector2[(columns+1)*(rows+1)];
+            var vertices=new NativeArray<Vector3>((columns+1)*(rows+1),Allocator.Temp);
+            var uvs=new NativeArray<Vector2>(vertices.Length,Allocator.Temp);
             var weights=new NativeArray<BoneWeight>(vertices.Length,Allocator.Temp);
             var tangents=new NativeArray<Vector4>(vertices.Length,Allocator.Temp);
             var indices=new ushort[columns*rows*6];int index=0;
@@ -143,6 +145,8 @@ namespace Moonlit.Editor
             {
                 int id=y*(columns+1)+x;var uv=new Vector2((float)x/columns,(float)y/rows);
                 vertices[id]=Vector2.Scale(uv-part.pivot,new Vector2(width,height));
+                uvs[id]=new Vector2((sprite.rect.x+uv.x*sprite.rect.width)/sprite.texture.width,
+                    (sprite.rect.y+uv.y*sprite.rect.height)/sprite.texture.height);
                 float along=Vector2.Dot(uv-part.pivot,part.weightAxis);
                 float distal=bones.Length==1?0:Mathf.SmoothStep(0,1,Mathf.Clamp01((along-.2f)/.45f));
                 weights[id]=new BoneWeight {boneIndex0=0,weight0=1-distal,boneIndex1=bones.Length==1?0:1,weight1=distal};
@@ -154,7 +158,12 @@ namespace Moonlit.Editor
                     indices[index++]=(ushort)b;indices[index++]=(ushort)c;indices[index++]=(ushort)d;
                 }
             }
-            sprite.OverrideGeometry(vertices,indices);
+            // OverrideGeometry is a runtime override and leaves serialized Sprite render data as a quad.
+            // Write the same native mesh streams used by Unity's 2D Animation sprite importer.
+            sprite.SetVertexCount(vertices.Length);
+            sprite.SetVertexAttribute<Vector3>(VertexAttribute.Position,vertices);
+            sprite.SetVertexAttribute<Vector2>(VertexAttribute.TexCoord0,uvs);
+            using(var nativeIndices=new NativeArray<ushort>(indices,Allocator.Temp))sprite.SetIndices(nativeIndices);
             var bind=new NativeArray<Matrix4x4>(bones.Length,Allocator.Temp);
             var metadata=new SpriteBone[bones.Length];
             for(int i=0;i<bones.Length;i++)
@@ -167,7 +176,26 @@ namespace Moonlit.Editor
             sprite.SetBindPoses(bind);sprite.SetBones(metadata);
             sprite.SetVertexAttribute<BoneWeight>(VertexAttribute.BlendWeight,weights);
             sprite.SetVertexAttribute<Vector4>(VertexAttribute.Tangent,tangents);
-            bind.Dispose();weights.Dispose();tangents.Dispose();
+            bind.Dispose();weights.Dispose();tangents.Dispose();vertices.Dispose();uvs.Dispose();
+        }
+        static void ValidateSavedMeshes(CompanionRigCatalog catalog)
+        {
+            foreach(var entry in catalog.entries)
+            foreach(var skin in entry.prefab.GetComponentsInChildren<SpriteSkin>(true))
+            {
+                var sprite=skin.GetComponent<SpriteRenderer>().sprite;
+                string path=AssetDatabase.GetAssetPath(sprite);
+                if(sprite.GetVertexCount()!=221 || sprite.GetIndices().Length!=1152)
+                    throw new InvalidOperationException(path+" did not retain its 12-by-16 skinned grid.");
+                var uv=sprite.GetVertexAttribute<Vector2>(VertexAttribute.TexCoord0);
+                if(uv.Length!=221 || Vector2.Distance(uv[0],uv[uv.Length-1])<.01f)
+                    throw new InvalidOperationException(path+" lost illustrated atlas UV coordinates.");
+                // Verify the native stream on disk as well as the in-memory Sprite after SaveAssets.
+                string serialized=File.ReadAllText(path);
+                var count=System.Text.RegularExpressions.Regex.Match(serialized,@"m_VertexCount:\s*(\d+)");
+                if(!count.Success || int.Parse(count.Groups[1].Value)!=221)
+                    throw new InvalidOperationException(path+" serialized a fallback quad instead of the weighted grid.");
+            }
         }
         static RuntimeAnimatorController Controller(string directory,GameObject root,CompanionSkeletonDefinition definition,Transform[] bones)
         {

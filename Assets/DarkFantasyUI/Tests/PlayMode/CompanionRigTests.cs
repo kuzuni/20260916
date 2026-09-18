@@ -39,6 +39,16 @@ namespace Moonlit.UI.Tests
                 {
                     var sprite=skin.GetComponent<SpriteRenderer>().sprite;
                     Assert.IsNotNull(sprite);Assert.Greater(sprite.GetVertexCount(),100);
+                    Assert.AreEqual(221,sprite.GetVertexCount(),"Persist all internal skinning vertices.");
+                    Assert.AreEqual(1152,sprite.GetIndices().Length);
+                    var uv=sprite.GetVertexAttribute<Vector2>(VertexAttribute.TexCoord0);
+                    Assert.AreEqual(221,uv.Length);
+                    Assert.Greater(Vector2.Distance(uv[0],uv[uv.Length-1]),.01f,"Texture UVs must span the actual illustrated part.");
+                    foreach(var point in uv)
+                    {
+                        Assert.That(point.x,Is.InRange(sprite.rect.xMin/sprite.texture.width-.0001f,sprite.rect.xMax/sprite.texture.width+.0001f));
+                        Assert.That(point.y,Is.InRange(sprite.rect.yMin/sprite.texture.height-.0001f,sprite.rect.yMax/sprite.texture.height+.0001f));
+                    }
                     Assert.AreEqual(skin.boneTransforms.Length,sprite.GetBones().Length);
                     Assert.AreEqual(skin.boneTransforms.Length,sprite.GetBindPoses().Length);
                     var weights=sprite.GetVertexAttribute<BoneWeight>(VertexAttribute.BlendWeight);
