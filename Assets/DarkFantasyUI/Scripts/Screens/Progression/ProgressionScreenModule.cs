@@ -225,7 +225,7 @@ namespace Moonlit.UI
                 (CompanionRigCatalog.Icon(entry.category,entry.grade,entry.variant)?"":"\n외형 아트 제작 보류");
             string theme=SkillCatalog.Description(entry.grade,entry.variant)+"\n";
             if(entry.variant==0) return theme+"매 3턴 · 평타 전에 발동\n체력 "+Number(entry.FixedHeal)+" 회복\n공격력 +"+Number(entry.FixedAttackBoost);
-            return theme+"매 "+entry.Cooldown+"턴 · 평타와 추가타 후 발동\n고정 피해 "+Number(entry.FixedDamage);
+            return theme+"매 "+entry.Cooldown+"턴 · "+(entry.variant==1?"3타":"5타")+" 연속공격\n총 고정 피해 "+Number(entry.FixedDamage);
         }
         static void BuildSkillDetails(ScreenContext ctx)
         {
