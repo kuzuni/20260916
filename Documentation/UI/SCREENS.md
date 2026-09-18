@@ -35,6 +35,8 @@ Read the corresponding original image at full resolution before implementing. Th
 
 ## Latest gameplay overrides — 2026-09-18
 
+Latest entrance-animation direction: all modal popup, navigation page and chat opening effects are removed. These screens and their internal controls appear immediately at their final size and opacity.
+
 The original filenames, Korean instructions and reference tables remain below as visual/navigation provenance. These later user corrections supersede conflicting demo text and quantities without changing the 30 supplied reference routes:
 
 - The third collection tab is **탈것**; the legacy route key remains `skills-pets-heroes`. Each category has three entries per equipment era (30 total), starting locked. The collection page shows owned entries only, in three larger columns; the probability catalog retains the full set of possible entries. Generated art, names and descriptions come from the era catalog.
