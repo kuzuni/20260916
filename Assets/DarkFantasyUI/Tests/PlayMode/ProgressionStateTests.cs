@@ -197,7 +197,8 @@ namespace Moonlit.UI.Tests
                 Assert.IsNotNull(card.Find("Card painting crop/Card painting").GetComponent<Image>().sprite);
             }
             Assert.AreEqual(100,pass.GetComponentsInChildren<Image>(true).Count(i=>i.name=="Claimed reward check"));
-            Assert.AreEqual(100,pass.GetComponentsInChildren<Image>().Count(i=>i.name=="Timeline glow"));
+            Assert.AreEqual(1,pass.GetComponentsInChildren<Image>().Count(i=>i.name=="Timeline glow"));
+            Assert.IsFalse(pass.GetComponentsInChildren<Image>().Any(i=>i.name=="Node"));
             Assert.AreEqual(100,pass.GetComponentsInChildren<Image>().Count(i=>i.name=="Premium lock"));
             for(int i=0;i<3;i++) {
                 var free=cards.Single(t=>t.name=="Free reward "+i);
@@ -243,6 +244,64 @@ namespace Moonlit.UI.Tests
             Assert.IsTrue(RewardState.Current.passClaimed[99]);
             Assert.AreEqual(oreBefore+400,screen.ore);Assert.AreEqual(skillBefore+20,screen.skillTickets);
             host.CloseTop();yield return null;
+        }
+
+
+        [UnityTest]
+        public IEnumerator PassOpensAtFirstClaimableAndKeepsUserScrollAfterClaim()
+        {
+            RewardsScreenModule.Register(host.Registry);
+            var main=root.GetComponent<MainScreen>();main.design=root.transform;main.highestClearedStage=120;
+            for(int i=0;i<18;i++)RewardState.Current.passClaimed[i]=true;
+            host.Registry.Open("progress-pass");yield return null;
+            var pass=GameObject.Find("Popup Layer progress-pass");
+            var scroll=pass.GetComponentInChildren<ScrollRect>();
+            Assert.That(scroll.content.anchoredPosition.y,Is.EqualTo(18*216).Within(1));
+            var first=pass.GetComponentsInChildren<Button>(true).Single(b=>b.name=="Claim milestone 18");
+            Assert.IsTrue(first.interactable);
+            var card=(RectTransform)first.transform.parent;
+            Assert.IsTrue(scroll.viewport.rect.Contains(scroll.viewport.InverseTransformPoint(card.TransformPoint(card.rect.center))));
+            Assert.IsFalse(pass.GetComponentsInChildren<Image>(true).Any(i=>i.name=="Node"));
+            scroll.content.anchoredPosition=new Vector2(0,19*216);
+            scroll.StopMovement();first.onClick.Invoke();
+            yield return new WaitForSecondsRealtime(.25f);
+            Assert.That(scroll.content.anchoredPosition.y,Is.EqualTo(19*216).Within(1),"Claim/live updates must preserve deliberate scrolling.");
+            host.CloseTop();yield return null;
+            host.Registry.Open("progress-pass");yield return null;
+            scroll=GameObject.Find("Popup Layer progress-pass").GetComponentInChildren<ScrollRect>();
+            Assert.That(scroll.content.anchoredPosition.y,Is.EqualTo(19*216).Within(1),"Reopening follows the next unclaimed reward.");
+        }
+
+        [UnityTest]
+        public IEnumerator PassRailTracksClearPositionAndNoClaimFallsBackToNextMilestone()
+        {
+            RewardsScreenModule.Register(host.Registry);
+            var main=root.GetComponent<MainScreen>();main.highestClearedStage=120;
+            for(int i=0;i<24;i++)RewardState.Current.passClaimed[i]=true;
+            foreach(int height in new[]{1920,2280}) {
+                host.SetPreviewMetrics(new Vector2Int(1080,height),new Rect(0,0,1080,height));
+                host.Registry.Open("progress-pass");yield return null;
+                var pass=GameObject.Find("Popup Layer progress-pass");
+                var scroll=pass.GetComponentInChildren<ScrollRect>();
+                Assert.That(scroll.content.anchoredPosition.y,Is.EqualTo(24*216).Within(1));
+                var glow=pass.GetComponentsInChildren<Image>().Single(i=>i.name=="Timeline glow");
+                var track=pass.GetComponentsInChildren<Image>().Single(i=>i.name=="Timeline track");
+                Assert.That(glow.rectTransform.rect.height,Is.EqualTo(23*216).Within(.01f));
+                main.highestClearedStage=123;yield return new WaitForSecondsRealtime(.25f);
+                Assert.That(glow.rectTransform.rect.height,Is.EqualTo(23.6f*216).Within(.1f));
+                Assert.Less(glow.rectTransform.rect.height,track.rectTransform.rect.height);
+                Assert.That(scroll.content.anchoredPosition.y,Is.EqualTo(24*216).Within(1));
+                main.highestClearedStage=0;yield return new WaitForSecondsRealtime(.25f);
+                Assert.AreEqual(0,glow.rectTransform.rect.height);
+                main.highestClearedStage=500;yield return new WaitForSecondsRealtime(.25f);
+                Assert.That(glow.rectTransform.rect.height,Is.EqualTo(track.rectTransform.rect.height).Within(.01f));
+                host.CloseTop();yield return null;main.highestClearedStage=120;
+            }
+            main.highestClearedStage=500;
+            for(int i=0;i<100;i++)RewardState.Current.passClaimed[i]=true;
+            host.Registry.Open("progress-pass");yield return null;
+            var finalScroll=GameObject.Find("Popup Layer progress-pass").GetComponentInChildren<ScrollRect>();
+            Assert.That(finalScroll.content.anchoredPosition.y,Is.EqualTo(finalScroll.content.rect.height-finalScroll.viewport.rect.height).Within(1));
         }
 
         [UnityTest]
