@@ -55,21 +55,35 @@ namespace Moonlit.Editor
                 var claim=UnityEngine.Object.FindObjectsByType<Button>(FindObjectsSortMode.None).FirstOrDefault(b=>b.name=="Claim daily diamonds");
                 if(!claim){report.Add("FAIL daily diamond shop claim is missing");fail();yield break;}
                 int before=screen.gems;claim.onClick.Invoke();
-                // Let newly created graphics register before seeking the deterministic effect frame.
+                // Hold immediately: a slow first frame must not finish/destroy the reward before registration.
+                var particles=screen.toastRoot.GetComponentsInChildren<RewardVisualLifetime>();
+                foreach(var life in particles)life.HoldAt(.16f);
                 yield return null;
                 foreach(var refresh in UnityEngine.Object.FindObjectsByType<LiveUiRefresh>(FindObjectsSortMode.None))
                     refresh.RefreshView?.Invoke();
-                foreach(var life in UnityEngine.Object.FindObjectsByType<RewardVisualLifetime>(FindObjectsSortMode.None)) {
-                    var tweens=DOTween.TweensByTarget(life,false);if(tweens!=null)foreach(var tween in tweens)tween.Goto(.16f,false);
-                }
-                var particles=UnityEngine.Object.FindObjectsByType<RewardVisualLifetime>(FindObjectsSortMode.None);
-                if(!particles.Any(p=>p.GetComponentsInChildren<Image>().Length>0)){
+                if(particles.Length!=1 || !particles[0] || particles[0].GetComponentsInChildren<Image>().Length!=12){
                     report.Add("FAIL shop absorption particles are missing");fail();yield break;
                 }
                 dots.RefreshNow();Canvas.ForceUpdateCanvases();
+                foreach(var bit in particles[0].GetComponentsInChildren<Image>()) {
+                    Vector3 viewport=camera.WorldToViewportPoint(bit.rectTransform.TransformPoint(bit.rectTransform.rect.center));
+                    if(viewport.z<=0 || viewport.x<0 || viewport.x>1 || viewport.y<0 || viewport.y>1)
+                        throw new InvalidOperationException("Shop reward particle is outside the camera viewport: "+viewport);
+                }
+                // Compare two actual renders in the same frame; object existence alone missed invisible effects.
+                var shown=ReadRewardPixels(camera,1080,height);
+                var group=particles[0].GetComponent<CanvasGroup>();float alpha=group.alpha;
+                Color32[] hidden;
+                try { group.alpha=0;hidden=ReadRewardPixels(camera,1080,height); }
+                finally { group.alpha=alpha; }
+                int changed=0;
+                for(int pixel=0;pixel<shown.Length;pixel++)
+                    if(Math.Abs(shown[pixel].r-hidden[pixel].r)+Math.Abs(shown[pixel].g-hidden[pixel].g)+
+                        Math.Abs(shown[pixel].b-hidden[pixel].b)>36)changed++;
+                if(changed<400)throw new InvalidOperationException("Shop reward exists but does not render visibly: "+changed+" changed pixels.");
                 SaveCamera(camera,"Artifacts/Runtime-shop-diamond-absorption-"+aspect+".png",1080,height);
-                foreach(var life in UnityEngine.Object.FindObjectsByType<RewardVisualLifetime>(FindObjectsSortMode.None))
-                    DOTween.Play(life);
+                report.Add("PASS shop reward rendered "+changed+" distinct overlay pixels inside viewport "+height);
+                foreach(var life in particles)if(life)life.Resume();
                 if(screen.gems!=before+100 || state.CanClaimDailyDiamonds || RewardNotificationDots.NavigationAvailable(screen,3)) {
                     report.Add("FAIL daily diamond claim did not settle exactly once");fail();
                 } else report.Add("PASS reward availability markers, pass claim markers and daily shop absorption "+height);
@@ -82,6 +96,16 @@ namespace Moonlit.Editor
                 screen.skillTickets=skill;screen.petTickets=pet;screen.mountTickets=mount;screen.enabled=enabled;
                 screen.Refresh();screen.GetComponent<RewardNotificationDots>().RefreshNow();
             }
+        }
+        static Color32[] ReadRewardPixels(Camera camera,int width,int height)
+        {
+            var previous=RenderTexture.active;
+            var image=new Texture2D(width,height,TextureFormat.RGB24,false);
+            try {
+                Canvas.ForceUpdateCanvases();camera.Render();RenderTexture.active=camera.targetTexture;
+                image.ReadPixels(new Rect(0,0,width,height),0,0);image.Apply();
+                return image.GetPixels32();
+            } finally { RenderTexture.active=previous;UnityEngine.Object.DestroyImmediate(image); }
         }
         static IEnumerator CaptureAscension(MainScreen screen,Camera camera,int height,List<string> report,Action fail)
         {
