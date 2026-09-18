@@ -4,6 +4,7 @@ using UnityEngine.UI;
 namespace Moonlit.UI
 {
     // Canvas-native particles remain visible over the anvil without a world camera or extra material.
+    [RequireComponent(typeof(CanvasRenderer))]
     public sealed class ForgeImpactSparks : MaskableGraphic
     {
         const int ParticleCount = 18;

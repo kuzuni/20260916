@@ -100,11 +100,23 @@ namespace Moonlit.UI.Tests
             var anvil = Ui.Rect("Anvil", root.transform, 350, 1400, 350, 230);
             var motion = ForgeHammerMotion.Play(anvil);
             var particles = motion.GetComponentInChildren<ForgeImpactSparks>();
+            Assert.IsNotNull(particles.GetComponent<CanvasRenderer>(),
+                "A custom Graphic created on a RectTransform needs its own renderer; particle counts alone can pass while nothing is drawn.");
             int callbacks = 0; motion.Struck += _ => callbacks++;
             motion.Sample(.15);
             Assert.AreEqual(0, motion.ImpactCount); Assert.AreEqual(0, particles.VisibleSparkCount);
             motion.Sample(.16f);
             Assert.AreEqual(1, motion.ImpactCount); Assert.AreEqual(18, particles.VisibleSparkCount);
+            // Unity 6000 exposes no CanvasRenderer.GetMesh. Exercise the actual Graphic mesh
+            // callback with the supported VertexHelper API; hosted ON/OFF pixels prove visibility.
+            using (var mesh = new VertexHelper())
+            {
+                typeof(ForgeImpactSparks).GetMethod("OnPopulateMesh",
+                    System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+                    .Invoke(particles, new object[] { mesh });
+                Assert.Greater(mesh.currentVertCount, 4, "The live impact must produce burst geometry.");
+                Assert.Greater(mesh.currentIndexCount, 6);
+            }
             motion.Sample(.16f); Assert.AreEqual(1, callbacks, "Repeated clip evaluation must not duplicate a burst.");
             motion.Sample(.4);
             Assert.AreEqual(0, particles.VisibleSparkCount);
