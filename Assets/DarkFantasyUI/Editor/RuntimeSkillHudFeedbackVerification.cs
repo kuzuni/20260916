@@ -58,14 +58,23 @@ namespace Moonlit.Editor
                 actor.BeginTurn();
                 var turn=(IEnumerator)typeof(BattleRuntime).GetMethod("ActorTurn",BindingFlags.Instance|BindingFlags.NonPublic)
                     .Invoke(battle,new object[]{true});
-                if(!turn.MoveNext() || !(turn.Current is IEnumerator action) || !action.MoveNext()) {
+                if(!turn.MoveNext() || !(turn.Current is IEnumerator buff) || !buff.MoveNext() ||
+                    !(buff.Current is IEnumerator action) || !action.MoveNext()) {
                     report.Add("FAIL skill HUD capture could not arm the actual buff action");fail();yield break;
                 }
                 int before=battle.PlayerSkillActivationCount(0);
                 var animator=battle.PlayerHud.Actor.GetComponent<Animator>();
                 animator.Update(0);animator.Update(.31f);
+                battle.StopAllCoroutines();
+                var sequence=CombatCaptureField<CombatComboSequence>(battle,"activeCombo");
+                if(sequence==null || battle.PlayerSkillActivationCount(0)!=before) {
+                    report.Add("FAIL food buff must not heal or activate HUD before its three pulses");fail();yield break;
+                }
+                var effects=CombatCaptureField<PrimitiveSkillEffects>(battle,"effects");
+                effects.EarlyPlaybackTimeOverride=SkillChoreography.BuffHealTime(0)+.04f;
+                sequence.Advance(SkillChoreography.BuffHealTime(0)-.3f+.001f);
                 if(battle.PlayerSkillActivationCount(0)!=before+1) {
-                    report.Add("FAIL skill HUD activation must come from one real Animator impact");fail();yield break;
+                    report.Add("FAIL skill HUD activation must come from one real Animator-authorized delayed heal");fail();yield break;
                 }
                 hud.Refresh();
                 foreach(var indicator in indicators)SeekHudFeedback(indicator,.1f);
@@ -81,6 +90,8 @@ namespace Moonlit.Editor
             finally {
                 foreach(var indicator in hud.GetComponentsInChildren<SkillHudFeedback>(true))
                     DOTween.Kill(indicator);
+                var cleanupEffects=CombatCaptureField<PrimitiveSkillEffects>(battle,"effects");
+                if(cleanupEffects)cleanupEffects.EarlyPlaybackTimeOverride=-1;
                 CollectionProgression.Data=collections;
                 playerProperty.SetValue(battle,previousPlayer);enemyProperty.SetValue(battle,previousEnemy);
                 screen.enabled=screenEnabled;hud.enabled=hudEnabled;hud.Refresh();

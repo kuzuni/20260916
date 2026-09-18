@@ -28,12 +28,21 @@ namespace Moonlit.UI
         static readonly float[] BuffSeconds={1.05f,1.35f,1.12f,1.25f,1.46f,1.54f,1.38f,1.22f,1.48f,1.7f};
         static int Tier(int tier)=>Mathf.Clamp(tier,0,9);
         public static float[] HitTimes(int tier,int variant)
-            => variant==0?new[]{0f}:(float[])(variant==1?Weak[Tier(tier)]:Strong[Tier(tier)]).Clone();
+        {
+            tier=Tier(tier);
+            if(tier<=1)return SixSkillChoreography.Arrivals(tier,variant);
+            if(variant==0)return new[]{BuffHealTime(tier)};
+            var times=(float[])(variant==1?Weak[tier]:Strong[tier]).Clone();
+            for(int i=0;i<times.Length;i++)times[i]+=AttackLead;
+            return times;
+        }
         public static int HitCount(int variant)=>variant==0?1:variant==1?3:5;
-        public static float BuffDuration(int tier)=>BuffSeconds[Tier(tier)];
+        public static int HitCount(int tier,int variant)=>HitTimes(tier,variant).Length;
+        public static float BuffHealTime(int tier)=>Tier(tier)<=1?SixSkillChoreography.FoodVanishTime:.3f;
+        public static float BuffDuration(int tier)=>Tier(tier)<=1?SixSkillChoreography.BuffEnd:BuffSeconds[Tier(tier)];
         public static float LastHit(int tier,int variant)
-        {var hits=variant==1?Weak[Tier(tier)]:Strong[Tier(tier)];return hits[hits.Length-1];}
-        public static float Duration(int tier,int variant)=>variant==0?BuffDuration(tier):AttackLead+LastHit(tier,variant)+.55f;
+        {var hits=HitTimes(tier,variant);return hits[hits.Length-1];}
+        public static float Duration(int tier,int variant)=>variant==0?BuffDuration(tier):LastHit(tier,variant)+.55f;
         public static float In(float t)=>Mathf.Clamp01(t)*Mathf.Clamp01(t)*Mathf.Clamp01(t);
         public static float Out(float t)=>1-In(1-t);
         public static float Window(float t,float from,float to)=>Mathf.Clamp01((t-from)/(to-from));
@@ -49,6 +58,13 @@ namespace Moonlit.UI
         {
             tier=Tier(tier);float t=Mathf.Clamp01(time),d=target.x>=source.x?1:-1;
             Vector3 a=source,b=target,p;float r=0,x=1,y=1,alpha=1;
+            if(tier<=1) {
+                if(variant==0)return SixSkillChoreography.Food(source,t*SixSkillChoreography.BuffEnd);
+                if(variant==1)return tier==0?SixSkillChoreography.Bone(source,target,hit,t*LastHit(tier,variant)):
+                    SixSkillChoreography.Arrow(source,target,hit,t*LastHit(tier,variant));
+                return tier==0?SixSkillChoreography.Rock(source,target,t*LastHit(tier,variant)):
+                    SixSkillChoreography.Sword(source,target,t*LastHit(tier,variant));
+            }
             if(variant==0)return Buff(tier,source,t,d);
             if(hit>0 && tier==0)a=target+new Vector3(-d*(.6f+hit*.16f),.12f,0);
             if(variant==1)switch(tier) {
