@@ -73,8 +73,39 @@ namespace Moonlit.UI
             }
             int extra=bone("Extra",body,human?0:bird?.06f:.45f,human?.68f:bird?1.1f:vehicle?1.0f:.88f);
             parts.Add(new CompanionPartSpec("Extra",7,extra,human?.15f:vehicle?.22f:.24f,5,Center));
+            if(type==CompanionRigType.BipedMount || type==CompanionRigType.QuadrupedMount)
+            {
+                bones[extra].position=new Vector2(-.08f,1.12f);
+                parts.Find(part=>part.name=="Extra").height=.62f;
+                foreach(var part in parts)
+                {
+                    if(part.name.StartsWith("Front"))
+                    {
+                        part.pivot=type==CompanionRigType.BipedMount?new Vector2(.2f,.9f):new Vector2(.2f,.83f);
+                        if(type==CompanionRigType.QuadrupedMount)bones[part.bone].position=new Vector2(part.name.EndsWith("Near")?.33f:.2f,.56f);
+                    }
+                    if(part.name.StartsWith("Hind"))
+                    {
+                        part.pivot=type==CompanionRigType.BipedMount?new Vector2(.2f,.92f):new Vector2(.8f,.83f);
+                        bones[part.bone].position=new Vector2(part.name.EndsWith("Near")?-.27f:-.4f,type==CompanionRigType.BipedMount?.66f:.56f);
+                    }
+                }
+                if(type==CompanionRigType.QuadrupedMount)
+                {
+                    bones[head].position=new Vector2(.44f,1.01f);
+                    parts.Find(part=>part.name=="Head").pivot=new Vector2(.12f,.46f);
+                }
+                else parts.Find(part=>part.name=="Tail").pivot=new Vector2(.94f,.26f);
+            }
+            if(vehicle)
+            {
+                bones[head].position=new Vector2(-.35f,1.01f);
+                bones[tail].position=new Vector2(.45f,.85f);
+                var handle=parts.Find(part=>part.name=="Tail");handle.pivot=new Vector2(.13f,.11f);handle.tip=-1;
+                bones[extra].position=new Vector2(0,1.03f);
+            }
             var definition=new CompanionSkeletonDefinition {
-                type=type,bones=bones.ToArray(),parts=parts.ToArray(),saddle=new Vector2(-.06f,vehicle?1.12f:1.19f),
+                type=type,bones=bones.ToArray(),parts=parts.ToArray(),saddle=new Vector2(-.06f,vehicle?1.17f:1.32f),
                 displayScale=type>=CompanionRigType.BipedMount?1.45f:human?.8f:bird?.72f:.85f,
                 shadowWidth=type>=CompanionRigType.BipedMount?2.1f:1.0f
             };
