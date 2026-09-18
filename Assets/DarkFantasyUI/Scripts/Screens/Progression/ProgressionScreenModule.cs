@@ -59,13 +59,14 @@ namespace Moonlit.UI
             var view = activeCollection = new CollectionView { context = ctx, root = ctx.Root, tab = selectedCollectionTab };
             view.title = Ui.Text("Collection title",ctx.Root,300,30,480,76,"",42,font);
             var wallet=PopupSkin.Panel("Summon wallet",ctx.Root,28,46,240,60).rectTransform;
-            view.currencyIcon=Ui.ArtImage("Summon currency icon",wallet,0,-4,64,64,TicketIcon(view.tab));
+            view.currencyIcon=Ui.ArtImage("Summon currency icon",wallet,0,-10,77,77,TicketIcon(view.tab));
             view.currencyIcon.preserveAspect=true;
-            view.currency=Ui.Text("Currency",wallet,65,0,170,60,"",27,font);
+            view.currency=Ui.Text("Currency",wallet,82,0,153,60,"",30,font);
             var diamondWallet=PopupSkin.Panel("Summon diamond wallet",ctx.Root,812,46,240,60).rectTransform;
             var diamond=ctx.Assets.interfaceIcons!=null&&ctx.Assets.interfaceIcons.Length>1?ctx.Assets.interfaceIcons[1]:PopupSkin.RewardIcon(1);
-            Ui.ArtImage("Summon diamond balance icon",diamondWallet,0,-4,64,64,diamond).preserveAspect=true;
-            view.diamonds=Ui.Text("Summon diamond balance",diamondWallet,65,0,170,60,"",27,font);
+            Ui.ArtImage("Summon diamond balance icon",diamondWallet,0,-10,65,77,diamond).preserveAspect=true;
+            view.diamonds=Ui.Text("Summon diamond balance",diamondWallet,72,0,163,60,"",30,font);
+            FitCurrency(view.currency);FitCurrency(view.diamonds);
             var summary=PopupSkin.Panel("Collection summary frame",ctx.Root,110,120,860,64).rectTransform;
             view.summary=Ui.Text("Summary",summary,16,0,828,64,"",24,font);
             float equippedY = ctx.Height - 840;
@@ -92,11 +93,11 @@ namespace Moonlit.UI
             view.equipDot=RewardNotificationDots.Create(quickEquip.transform,265,-7,27,RewardNotificationDots.Circle(ctx.Main));
             float summonY=ctx.Height-540;
             PopupSkin.Panel("Summon rail",ctx.Root,0,summonY-24,1080,206);
-            var summon=PopupSkin.Button("Summon five",ctx.Root,330,summonY,390,154,"",font,()=>Summon(ctx,view),Blue,30);
+            var summon=PopupSkin.Button("Summon five",ctx.Root,330,summonY,390,170,"",font,()=>Summon(ctx,view),Blue,30);
             view.summon=summon;
             view.summonDot=RewardNotificationDots.Create(summon.transform,366,-7,27,RewardNotificationDots.Circle(ctx.Main));
             view.summonLabel=Ui.Text("Summon label",summon.transform,8,4,374,65,"",40,font);
-            view.costRoot=Ui.Rect("Summon cost row",summon.transform,18,76,354,64);
+            view.costRoot=Ui.Rect("Summon cost row",summon.transform,18,76,354,82);
             var quantity=PopupSkin.Button("Summon quantity",ctx.Root,180,summonY+90,132,64,"x5",font,()=>{
                 view.quantity=SummonBatches[(Array.IndexOf(SummonBatches,view.quantity)+1)%SummonBatches.Length]; RefreshCollection(view);
             },Blue,27); view.quantityLabel=quantity.GetComponentInChildren<Text>();
@@ -317,6 +318,8 @@ namespace Moonlit.UI
         {
             PopupSkin.FullViewportBackdrop(ctx,Resources.Load<Sprite>("Moonlit/Skills/SummonDais-v1"),Color.white);
             var session=ctx.Payload as SummonSession;var font=ctx.Assets.font;
+            SummonRevealAnimation reveal=null;
+            var input=ctx.Root.gameObject.AddComponent<Image>();input.color=Color.clear;input.raycastTarget=true;
             Ui.Text("Result title",ctx.Root,90,100,900,82,"소환 결과",45,font);
             if(session==null){Ui.Text("No result",ctx.Root,140,ctx.Height*.4f,800,100,"소환 후 결과를 확인할 수 있습니다.",30,font);}
             else {
@@ -335,14 +338,16 @@ namespace Moonlit.UI
                     float offset=session.results.Length==1?396:0;
                     var card=Ui.Rect("Result card "+i,root,14+col*198+offset,row*255,170,246);
                     card.pivot=new Vector2(.5f,.5f);card.anchoredPosition+=new Vector2(85,-123);
-                    EntryCard(card,0,0,170,entry,font,
-                        ()=>ctx.Open("skill-details",new DetailPayload{entry=entry,refresh=()=>RefreshCollection(session.parent)}),false,true);
+                    EntryCard(card,0,0,170,entry,font,null,false,true);
+                    card.GetComponentInChildren<Button>().enabled=false;
                     Ui.Text("Summon status "+i,card,0,202,170,44,session.fresh[i]?"신규 +1":"조각 +1",23,font,session.fresh[i]?Green:Ui.Gold);
                     reveals[i]=card.gameObject.AddComponent<CanvasGroup>();
                 }
-                root.gameObject.AddComponent<SummonRevealAnimation>().Play(reveals);
+                reveal=root.gameObject.AddComponent<SummonRevealAnimation>();reveal.Play(reveals);
             }
-            PopupSkin.Button("Continue",ctx.Root,330,ctx.Height-300,420,96,"확인",font,ctx.Close,Blue,33);
+            var tap=ctx.Root.gameObject.AddComponent<SummonResultTap>();tap.Initialize(reveal,ctx.Close);
+            var dim=ctx.Root.parent.Find("Dim");
+            if(dim)dim.gameObject.AddComponent<SummonResultTap>().ForwardTo(tap);
         }
         static ProbabilityPayload ProbabilityContext(ScreenContext ctx) =>
             ctx.Payload as ProbabilityPayload ?? new ProbabilityPayload { category=selectedCollectionTab,level=CollectionProgression.Data.categories[selectedCollectionTab].summonLevel };
@@ -584,23 +589,31 @@ namespace Moonlit.UI
             "Moonlit/Skills/SummonTicket-v1":category==1?
             "Moonlit/Popup/PetTicketEgg-v2":"Moonlit/Popup/MountTicketHoof-v2");
 
+        static void FitCurrency(Text label)
+        {
+            label.resizeTextForBestFit=true;label.resizeTextMaxSize=Ui.ReadableFontSize(30);
+            label.resizeTextMinSize=Ui.ReadableFontSize(18);
+            label.verticalOverflow=VerticalWrapMode.Truncate;
+        }
         static void RenderSummonCost(CollectionView view,int tickets,int diamonds)
         {
             ClearChildren(view.costRoot);
             var font=view.context.Assets.font;
             bool mixed=tickets>0&&diamonds>0;
-            float x=mixed?9:95;
             if(tickets>0){
-                Ui.ArtImage("Summon cost icon",view.costRoot,x,8,46,46,TicketIcon(view.tab)).preserveAspect=true;
-                Ui.Text("Summon cost",view.costRoot,x+48,0,mixed?66:105,64,tickets.ToString(),30,font);
-                x+=122;
+                float x=mixed?0:77;
+                Ui.ArtImage("Summon cost icon",view.costRoot,x,0,77,77,TicketIcon(view.tab)).preserveAspect=true;
+                Ui.Text("Summon cost",view.costRoot,x+78,0,mixed?66:120,77,tickets.ToString(),30,font);
+                FitCurrency(view.costRoot.Find("Summon cost").GetComponent<Text>());
             }
-            if(mixed){Ui.Text("Cost plus",view.costRoot,x,0,34,64,"+",28,font);x+=42;}
+            if(mixed)Ui.Text("Cost plus",view.costRoot,144,0,28,77,"+",28,font);
             if(diamonds>0){
                 var icons=view.context.Assets.interfaceIcons;
                 Sprite diamond=icons!=null&&icons.Length>1?icons[1]:PopupSkin.RewardIcon(1);
-                Ui.ArtImage(tickets>0?"Summon diamond icon":"Summon cost icon",view.costRoot,x,8,46,46,diamond).preserveAspect=true;
-                Ui.Text(tickets>0?"Summon diamond cost":"Summon cost",view.costRoot,x+48,0,112,64,diamonds.ToString(),30,font);
+                float x=mixed?175:83;
+                Ui.ArtImage(tickets>0?"Summon diamond icon":"Summon cost icon",view.costRoot,x,0,65,77,diamond).preserveAspect=true;
+                Ui.Text(tickets>0?"Summon diamond cost":"Summon cost",view.costRoot,x+67,0,112,77,diamonds.ToString(),30,font);
+                FitCurrency(view.costRoot.Find(tickets>0?"Summon diamond cost":"Summon cost").GetComponent<Text>());
             }
         }
 

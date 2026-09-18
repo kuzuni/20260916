@@ -42,6 +42,7 @@ namespace Moonlit.UI
                 }));
             }
         }
+        public void Complete() { Finish(); }
         void Finish()
         {
             if (sequence != null) { sequence.Kill(); sequence = null; }
