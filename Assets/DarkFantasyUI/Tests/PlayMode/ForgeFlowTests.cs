@@ -64,6 +64,39 @@ namespace Moonlit.UI.Tests
             Assert.IsNull(ForgeState.Current.Pending);Assert.AreEqual(0,host.ModalDepth);
             Assert.IsTrue(mainGroup.blocksRaycasts);
         }
+
+        [UnityTest] public IEnumerator BatchDropdownChoosesTwentyTwoPersistsAndSpendsTwentyTwoHammers()
+        {
+            main.screens.Open("auto-forge");yield return null;
+            var dropdown=GameObject.Find("Batch dropdown").GetComponent<Dropdown>();
+            Assert.AreEqual(99,dropdown.options.Count);
+            dropdown.Show();yield return null;
+            var list=dropdown.transform.Find("Dropdown List");
+            Assert.IsNotNull(list,"The batch selector must open an actual scrollable dropdown.");
+            Assert.IsNotNull(list.GetComponent<ScrollRect>());
+            var choice=list.GetComponentsInChildren<Toggle>().Single(toggle=>
+                toggle.GetComponentsInChildren<Text>().Any(label=>label.text=="22"));
+            var choicesScroll=list.GetComponent<ScrollRect>();
+            Canvas.ForceUpdateCanvases();
+            choicesScroll.verticalNormalizedPosition=1-(21*58f)/(choicesScroll.content.rect.height-choicesScroll.viewport.rect.height);
+            Canvas.ForceUpdateCanvases();
+            choice.OnPointerClick(new PointerEventData(EventSystem.current){button=PointerEventData.InputButton.Left});
+            Assert.AreEqual(22,ForgeState.Current.batchSize);
+            Assert.AreEqual("22",dropdown.captionText.text);
+            yield return new WaitForSecondsRealtime(.2f);
+            host.CloseTop();yield return null;
+            ForgeState.Current=JsonUtility.FromJson<ForgeState>(JsonUtility.ToJson(ForgeState.Current));
+            main.screens.Open("auto-forge");yield return null;
+            dropdown=GameObject.Find("Batch dropdown").GetComponent<Dropdown>();
+            Assert.AreEqual(21,dropdown.value);Assert.AreEqual("22",dropdown.captionText.text);
+            main.ore=50;
+            GameObject.Find("시작").GetComponent<Button>().onClick.Invoke();
+            yield return null;yield return null;
+            Assert.IsTrue(ForgeRuntime.Ensure(main).Busy);
+            Assert.AreEqual(28,main.ore);Assert.AreEqual(22,ForgeState.Current.pending.Count);
+            ForgeRuntime.Ensure(main).StopAuto();
+        }
+
         [UnityTest] public IEnumerator CompareSwapsCardsTwiceAndSellsOnlyTheUnequippedItem()
         {
             var state=ForgeState.Current;
