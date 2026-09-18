@@ -22,6 +22,7 @@ namespace Moonlit.UI
         float nextSave;
         bool pendingDungeonPopup;
         BattleRuntime battle;
+        StageWaveProgress stageProgress;
 
         public void InitializeGameplay(MainScreenAssets assets)
         {
@@ -66,9 +67,8 @@ namespace Moonlit.UI
         {
             if(!battle)return;
             if(roundText)roundText.text="라운드 "+Mathf.Clamp(battle.Round,1,15)+"/15";
-            if(waveNodes==null)return;
-            for(int i=0;i<waveNodes.Length;i++)if(waveNodes[i])
-                waveNodes[i].color=i+1==battle.Wave?new Color(.48f,1,1):i+1<battle.Wave?Ui.Cyan:new Color(0,.24f,.34f);
+            if(!stageProgress)stageProgress=GetComponent<StageWaveProgress>();
+            if(stageProgress)stageProgress.SetProgress(stage,battle.Wave);
         }
         public void CompleteDungeonClaim() { if(battle)battle.CompleteExternalClaim(); }
         public void PreviewSkill(int tier,int variant)

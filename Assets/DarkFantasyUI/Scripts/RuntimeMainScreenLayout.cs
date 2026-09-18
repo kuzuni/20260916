@@ -32,14 +32,22 @@ namespace Moonlit.UI
         {
             main.stageButton=Ui.ArtButton("Stage selector",parent,320,146,440,120);
             main.stageText=Ui.Text("Stage title",parent,290,146,500,58,"스테이지 1",45,font,Color.white);
-            Ui.Image("Progress shadow",parent,409,222,256,17,null,new Color(0,.015f,.025f));
-            Ui.Image("Progress cyan",parent,409,227,256,7,null,Ui.Cyan);
-            main.waveNodes=new Image[3];
-            for(int i=0;i<3;i++) {
-                Ui.Image("Stage node rim",parent,394+i*127,211,38,38,circle,Color.black);
-                Ui.Image("Stage node edge",parent,398+i*127,215,30,30,circle,new Color(0,.76f,.98f));
-                main.waveNodes[i]=Ui.Image("Stage node",parent,402+i*127,219,22,22,circle,new Color(0,.24f,.34f));
+            var lines=new Image[2];
+            for(int i=0;i<2;i++) {
+                Ui.Image("Wave line track "+i,parent,413+i*127,222,127,17,null,new Color(.015f,.035f,.04f));
+                lines[i]=Ui.Image("Wave line fill "+i,parent,413+i*127,227,127,7,null,Ui.Cyan);
             }
+            main.waveNodes=new Image[3];
+            var pulseRoots=new RectTransform[3];
+            for(int i=0;i<3;i++) {
+                var node=Ui.Rect("Wave node "+i,parent,394+i*127,211,38,38);
+                node.pivot=new Vector2(.5f,.5f);node.anchoredPosition+=new Vector2(19,-19);
+                pulseRoots[i]=node;
+                Ui.Image("Stage node rim",node,0,0,38,38,circle,Color.black);
+                Ui.Image("Stage node edge",node,4,4,30,30,circle,new Color(0,.76f,.98f));
+                main.waveNodes[i]=Ui.Image("Stage node",node,8,8,22,22,circle,new Color(.015f,.04f,.05f));
+            }
+            main.gameObject.AddComponent<StageWaveProgress>().Initialize(main.waveNodes,lines,pulseRoots);
             main.roundText=Ui.Text("Battle round",parent,290,258,500,48,"라운드 1/15",26,font,Ui.Ivory);
             main.eventButton=Ui.ArtButton("Offline rewards — frameless",parent,29,335,111,142);
             var eventIcon=Ui.ArtImage("Offline reward clock and chest",main.eventButton.transform,5,0,101,100,
@@ -78,30 +86,6 @@ namespace Moonlit.UI
             Ui.Text("Unread count",badge.transform,0,-1,44,43,"99",23,font,Color.white);
             Ui.Text("Chat preview",main.chatButton.transform,98,17,958,83,"Tacomaker: gotta be the movement sp\nGuest 41194: Lol",25,font,new Color(.84f,.82f,.76f),TextAnchor.MiddleLeft);
             AddPanelFlourish(main.chatButton.transform,1080,112);
-        }
-        void BuildNavigation(MainScreen main,Transform parent)
-        {
-            var background=Ui.Image("Navigation shared stone panel",parent,0,1920-PortraitSafeArea.NavigationTopFromBottom,1080,180,panels[1]); background.type=Image.Type.Sliced; background.pixelsPerUnitMultiplier=6;
-            background.fillCenter=false;
-            var navStone=Ui.Image("Navigation stone texture",background.transform,10,10,1060,160,panels[4],new Color(.53f,.53f,.53f)); navStone.type=Image.Type.Tiled;
-            AddPanelFlourish(background.transform,1080,180);
-            main.navigation=new Button[5];
-            string[] names={"Equipment","Dungeon","Companions","Quests","Shop"}; int[] glyphs={5,6,7,8,9};
-            for(int i=0;i<5;i++) {
-                var button=Ui.ArtButton(names[i]+" — icon navigation",background.transform,14+i*215,17,194,146);
-                main.navigation[i]=button;
-                var icon=Ui.Image("Menu icon",button.transform,37,4,117,118,referenceIcons[glyphs[i]]); icon.preserveAspect=true;
-                var close=Ui.Image("Close icon",button.transform,37,4,117,118,PopupSkin.CloseArt); close.preserveAspect=true;
-                Ui.Text("Close mark",close.transform,0,-2,117,118,"×",66,font);
-                close.gameObject.SetActive(false);
-                button.targetGraphic=icon; button.transition=Selectable.Transition.ColorTint;
-                var feedback=button.gameObject.AddComponent<ButtonFeedback>(); feedback.artwork=icon.rectTransform;
-                if(i<4) Badge(button.transform,145,23,27);
-                if(i>0) {
-                    Ui.Image("Bronze divider",background.transform,3+i*215,30,2,110,null,new Color(.32f,.25f,.17f));
-                    var diamond=Ui.Image("Divider tip",background.transform,0+i*215,28,8,8,null,new Color(.32f,.25f,.17f)); diamond.rectTransform.localRotation=Quaternion.Euler(0,0,45);
-                }
-            }
         }
         void AddPanelFlourish(Transform parent,float width,float height)
         {
