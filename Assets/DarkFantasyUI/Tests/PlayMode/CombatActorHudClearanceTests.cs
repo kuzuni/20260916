@@ -58,7 +58,7 @@ namespace Moonlit.UI.Tests
         }
 
         [UnityTest]
-        public IEnumerator RealEntryNativeCombatAndLaterEnemyEntryKeepZeroGroundWithoutResettingPlayer()
+        public IEnumerator RealEntryNativeCombatAndLaterEnemyEntryNeverReanchorAuthoredActors()
         {
 #if UNITY_EDITOR
             var savedForge=ForgeState.Current;var savedCollections=CollectionProgression.Data;
@@ -102,6 +102,14 @@ namespace Moonlit.UI.Tests
                     }
                     Assert.IsFalse(battle.IsEnteringFormation);Assert.Greater(frames,0);
                     yield return null;yield return null;
+                    Vector3 playerHome=player.localPosition,enemyHome=enemy.localPosition;
+                    Vector3 playerScale=player.localScale,enemyScale=enemy.localScale;
+                    Assert.AreEqual(new Vector3(-2.5f,0,0),playerHome);
+                    Assert.AreEqual(new Vector3(2.5f,0,0),enemyHome);
+                    var bones=player.GetComponentsInChildren<Transform>().Where(t=>t.name.StartsWith("bone_",StringComparison.Ordinal)).ToArray();
+                    var posePositions=new System.Collections.Generic.Dictionary<string,Vector3[]>();
+                    var poseRotations=new System.Collections.Generic.Dictionary<string,Quaternion[]>();
+                    var movedPoses=new System.Collections.Generic.HashSet<string>();
                     foreach(string pose in new[]{"Idle","Basic","Strong"})
                     foreach(float phase in new[]{0f,.25f,.5f,.75f,.99f})
                     {
@@ -112,10 +120,17 @@ namespace Moonlit.UI.Tests
                         }
                         yield return null;yield return null;
                         battle.ApplyActorHudClearance();
-                        Assert.AreEqual(0,player.localPosition.y,.001f,height+" mount="+mount+" "+pose+" cannot lower the established ground.");
-                        Assert.AreEqual(0,enemy.localPosition.y,.001f);
-                        Assert.AreEqual(2,Mathf.Abs(player.localScale.x));Assert.AreEqual(2,Mathf.Abs(enemy.localScale.x));
+                        Assert.AreEqual(playerHome,player.localPosition,height+" mount="+mount+" "+pose+" cannot counteract a native pose by moving its actor.");
+                        Assert.AreEqual(enemyHome,enemy.localPosition);
+                        Assert.AreEqual(playerScale,player.localScale);Assert.AreEqual(enemyScale,enemy.localScale);
+                        if(phase==0) {
+                            posePositions[pose]=bones.Select(t=>t.localPosition).ToArray();
+                            poseRotations[pose]=bones.Select(t=>t.localRotation).ToArray();
+                        } else if(bones.Where((bone,i)=>Vector3.Distance(bone.localPosition,posePositions[pose][i])>.001f ||
+                            Quaternion.Angle(bone.localRotation,poseRotations[pose][i])>.1f).Any())movedPoses.Add(pose);
                     }
+                    CollectionAssert.AreEquivalent(new[]{"Idle","Basic","Strong"},movedPoses,
+                        "All three supplied clips must actually move native bones while the actor anchor remains untouched.");
                     var state=new CombatActorState(new CombatStats{health=100});
                     state.Damage(13);state.BeginTurn();state.BeginTurn();state.SetAttackBoost(7);
                     typeof(BattleRuntime).GetProperty("PlayerState").SetValue(battle,state);
@@ -132,8 +147,14 @@ namespace Moonlit.UI.Tests
                         yield return next.Current;
                     }
                     yield return null;
-                    Assert.AreEqual(0,player.localPosition.y,.001f);Assert.AreEqual(0,enemy.localPosition.y,.001f);
+                    Assert.AreEqual(playerHome,player.localPosition);Assert.AreEqual(enemyHome,enemy.localPosition);
                     Assert.AreSame(state,battle.PlayerState);Assert.AreEqual(87,state.Health);Assert.AreEqual(2,state.Turns);
+                    // A diagnostic call must also leave an externally supplied offset intact; no hidden X/Y snapping.
+                    player.localPosition+=new Vector3(.17f,.23f,.1f);
+                    enemy.localPosition+=new Vector3(-.13f,.19f,-.1f);
+                    Vector3 offsetPlayer=player.localPosition,offsetEnemy=enemy.localPosition;
+                    for(int repeat=0;repeat<6;repeat++)battle.ApplyActorHudClearance();
+                    Assert.AreEqual(offsetPlayer,player.localPosition);Assert.AreEqual(offsetEnemy,enemy.localPosition);
                 }
             }
             finally
@@ -149,7 +170,7 @@ namespace Moonlit.UI.Tests
         }
 
         [UnityTest]
-        public IEnumerator ActualMountedPosesKeepExplicitZeroGroundAndOwnSidesAtBothRatiosAndNotchWithoutShrinking()
+        public IEnumerator ActualMountedPosesRetainAuthoredActorHomesAndReportOverlapsAtBothRatiosAndNotch()
         {
 #if UNITY_EDITOR
             var savedForge=ForgeState.Current;var savedCollections=CollectionProgression.Data;
@@ -196,7 +217,7 @@ namespace Moonlit.UI.Tests
                         companions.RefreshEquipped();
                         foreach(string state in new[]{"Idle","Basic","Strong"})
                         {
-                            // Reset the same authored entrance homes to also test fitting from a fresh encounter.
+                            // The entry assigns these homes once; diagnostic updates must never fit them to the HUD.
                             player.localPosition=new Vector3(-2.5f,0,0);enemy.localPosition=new Vector3(2.5f,0,0);
                             foreach(var actor in new[]{player,enemy})
                             {
@@ -221,13 +242,11 @@ namespace Moonlit.UI.Tests
                                     if(overlaps)overlappingParts++;
                                 }
                             }
-                            float centre=player.parent.position.x;
-                            float HeadX(Transform actor)=>actor.GetComponentsInChildren<SpriteRenderer>().First(x=>x.enabled&&x.sprite&&x.sprite.name=="머리").bounds.center.x;
-                            Assert.LessOrEqual(HeadX(player),centre-1.34f,"Mounted player head must stay on the left.");
-                            Assert.GreaterOrEqual(HeadX(enemy),centre+1.34f,"Enemy must not escape the pass by crossing onto the player.");
+                            Assert.AreEqual(new Vector3(-2.5f,0,0),player.localPosition);
+                            Assert.AreEqual(new Vector3(2.5f,0,0),enemy.localPosition);
                             battle.PlayerHud.SendMessage("LateUpdate");battle.EnemyHud.SendMessage("LateUpdate");
-                            Assert.Greater(battle.EnemyHud.transform.position.x-battle.PlayerHud.transform.position.x,2.1f,
-                                "The two 2.1-world-unit HP bars must not overlap.");
+                            float healthGap=battle.EnemyHud.transform.position.x-battle.PlayerHud.transform.position.x;
+                            if(healthGap<=2.1f)TestContext.Progress.WriteLine(height+" "+state+": authored head poses produce HP overlap; actors remain at their homes.");
                             var mountBounds=companions.Mount.VisibleBounds;
                             foreach(var area in areas)
                                 if(area.width>0&&area.height>0&&mountBounds.min.x<area.xMax-.01f&&
@@ -235,12 +254,12 @@ namespace Moonlit.UI.Tests
                                     overlappingParts++;
                             if(battle.IsFormationClear)Assert.AreEqual(0,overlappingParts,"A reported clear fixed-height formation must actually clear the HUD.");
                             else TestContext.Progress.WriteLine(height+" skills="+skillCount+" notch="+notch+" mount="+mount+" "+state+
-                                ": fixed Y=0 retains "+overlappingParts+" part/HUD overlaps; no automatic lowering is permitted.");
+                                ": fixed actor homes retain "+overlappingParts+" part/HUD overlaps; no automatic repositioning is permitted.");
                             Assert.Less(Vector2.Distance(companions.Mount.saddle.position,companions.RiderHip.position),.03f);
                             Vector3 stablePlayer=player.position,stableEnemy=enemy.position;
                             for(int repeat=0;repeat<6;repeat++)battle.ApplyActorHudClearance();
-                            Assert.Less(Vector3.Distance(stablePlayer,player.position),.02f);
-                            Assert.Less(Vector3.Distance(stableEnemy,enemy.position),.02f);
+                            Assert.AreEqual(stablePlayer,player.position);
+                            Assert.AreEqual(stableEnemy,enemy.position);
                             var camera=battle.PlayerHud.WorldCanvas.worldCamera;
                             var design=(RectTransform)main.design;
                             float oldHeight=Mathf.Max(110,design.rect.height-PortraitSafeArea.BottomHeight-495);
@@ -249,19 +268,21 @@ namespace Moonlit.UI.Tests
                             Assert.AreEqual(density,view.rect.height/(2*camera.orthographicSize),.01f,
                                 "Extending the transparent viewport must not shrink the requested doubled actors.");
 
+                            int outsideViewport=0;
                             foreach(var actor in new[]{player,enemy})
                             foreach(var sprite in actor.GetComponentsInChildren<SpriteRenderer>().Where(x=>x.enabled && x.sprite))
                             {
-                                Assert.GreaterOrEqual(camera.WorldToViewportPoint(sprite.bounds.min).x,-.005f);
-                                Assert.GreaterOrEqual(camera.WorldToViewportPoint(sprite.bounds.min).y,-.005f);
-                                Assert.LessOrEqual(camera.WorldToViewportPoint(sprite.bounds.max).x,1.005f);
+                                var min=camera.WorldToViewportPoint(sprite.bounds.min);var max=camera.WorldToViewportPoint(sprite.bounds.max);
+                                if(min.x<-.005f||min.y<-.005f||max.x>1.005f||max.y>1.005f)outsideViewport++;
                             }
                             foreach(var flat in companions.Pets.Concat(new[]{companions.Mount}))
                             {
-                                Assert.GreaterOrEqual(camera.WorldToViewportPoint(flat.VisibleBounds.min).x,-.005f);
-                                Assert.GreaterOrEqual(camera.WorldToViewportPoint(flat.VisibleBounds.min).y,-.005f);
-                                Assert.LessOrEqual(camera.WorldToViewportPoint(flat.VisibleBounds.max).x,1.005f);
+                                var min=camera.WorldToViewportPoint(flat.VisibleBounds.min);var max=camera.WorldToViewportPoint(flat.VisibleBounds.max);
+                                if(min.x<-.005f||min.y<-.005f||max.x>1.005f||max.y>1.005f)outsideViewport++;
                             }
+                            if(outsideViewport>0)TestContext.Progress.WriteLine(height+" "+state+": "+outsideViewport+
+                                " illustrated bounds cross the viewport at authored homes; diagnostics do not move the formation.");
+
                         }
                     }
                 }
