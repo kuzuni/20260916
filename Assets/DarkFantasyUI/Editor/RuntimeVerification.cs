@@ -107,6 +107,7 @@ namespace Moonlit.Editor
                 if (pageRoute) screen.RefreshNavigation(route);
                 var navigationPixels = pageRoute ? ReadNavigationPixels(screen, camera) : null;
                 if (pageRoute) screen.RefreshNavigation(null);
+                if(route=="summon-result"){screen.skillTickets=100;screen.petTickets=100;screen.mountTickets=100;screen.Refresh();}
                 foreach(var parent in CaptureParents(route)) {
                     host.Registry.Open(parent);
                     if(host.ActivePageKey!=parent && !GameObject.Find("Popup Layer "+parent)) {
@@ -114,7 +115,21 @@ namespace Moonlit.Editor
                     }
                 }
                 int expectedDepth=host.ModalDepth+(pageRoute?0:1);
-                host.Registry.Open(route);
+                if(route=="forge-comparison" || route=="equipment-details") {
+                    var worn=new EquipmentRoll{id=8001,tier=4,level=25,part=EquipmentPart.Armor,variant=0,
+                        affixes=new[]{new EquipmentAffix{kind=EquipmentAffixKind.CriticalChance,percent=10},new EquipmentAffix{kind=EquipmentAffixKind.SkillDamage,percent=15}}};
+                    ForgeState.Current.equipped[0]=worn;ForgeRuntime.Ensure(screen).SyncSlots();
+                    if(route=="forge-comparison") {
+                        ForgeState.Current.pending.Clear();
+                        ForgeState.Current.pending.Add(new EquipmentRoll{id=8002,tier=4,level=26,part=EquipmentPart.Armor,variant=1,
+                            affixes=new[]{new EquipmentAffix{kind=EquipmentAffixKind.DoubleChance,percent=10},new EquipmentAffix{kind=EquipmentAffixKind.Regeneration,percent=3}}});
+                        host.Registry.Open(route);
+                    } else host.Registry.Open(route,worn);
+                } else if(route=="summon-result") {
+                    screen.skillTickets=100;screen.petTickets=100;screen.mountTickets=100;screen.Refresh();
+                    if(aspect==1)GameObject.Find("Summon quantity").GetComponent<Button>().onClick.Invoke();
+                    GameObject.Find("Summon five").GetComponent<Button>().onClick.Invoke();
+                } else host.Registry.Open(route);
                 yield return null; yield return null; Canvas.ForceUpdateCanvases();
                 var layer=GameObject.Find((host.ActivePageKey==route ? "Page — " : "Popup Layer ")+route);
                 var routeRoot=layer ? layer.transform.Find("SafeArea") as RectTransform : null;
@@ -160,6 +175,11 @@ namespace Moonlit.Editor
                     yield return new WaitForSecondsRealtime(.25f);
                     yield return null; Canvas.ForceUpdateCanvases();
                     SaveCamera(camera,"Artifacts/Runtime-progress-pass-claimed-"+(aspect==0?"9x16":"9x19")+".png",1080,heights[aspect]);
+                }
+                if(route=="auto-forge") {
+                    layer.GetComponentInChildren<ScrollRect>().verticalNormalizedPosition=0;
+                    yield return null;Canvas.ForceUpdateCanvases();
+                    SaveCamera(camera,"Artifacts/Runtime-auto-forge-bottom-"+(aspect==0?"9x16":"9x19")+".png",1080,heights[aspect]);
                 }
                 host.Registry.ShowMainPage();
             }
@@ -354,13 +374,29 @@ namespace Moonlit.Editor
             screen.screens.ShowMainPage();
             ForgeState.Current.pending.Clear();ForgeState.Current.autoEnabled=false;
             int ore=screen.ore;
+            var forge=ForgeRuntime.Ensure(screen);
+            bool revealed=false, prematureComparison=false;Exception revealError=null;
+            float started=Time.realtimeSinceStartup,revealedAt=0;
+            Action onReveal=()=>{
+                revealed=true;revealedAt=Time.realtimeSinceStartup;
+                prematureComparison=screen.screens.ModalDepth!=0;
+                try { SaveCamera(camera,"Artifacts/Runtime-forge-equipment-reveal.png",1080,camera.targetTexture.height); }
+                catch(Exception e){revealError=e;}
+            };
+            forge.HandRevealed+=onReveal;
             screen.forgeButton.onClick.Invoke();
-            yield return new WaitForSecondsRealtime(.3f);
-            if(screen.ore!=ore-1 || screen.screens.ModalDepth!=0) {report.Add("FAIL forge must spend one hammer and wait for animation");fail();yield break;}
-            yield return new WaitForSecondsRealtime(.8f);
-            if(!GameObject.Find("Forged equipment hand")) {report.Add("FAIL timed equipment reveal missing");fail();yield break;}
-            yield return new WaitForSecondsRealtime(.6f);
-            if(screen.screens.ModalDepth!=1 || ForgeState.Current.Pending==null) {report.Add("FAIL forge comparison must follow anvil and reveal");fail();yield break;}
+            if(screen.ore!=ore-1 || screen.screens.ModalDepth!=0 || !forge.Busy) {
+                forge.HandRevealed-=onReveal;report.Add("FAIL forge must spend one hammer and wait for animation");fail();yield break;
+            }
+            float deadline=Time.realtimeSinceStartup+15;
+            while(forge.Busy && Time.realtimeSinceStartup<deadline)yield return null;
+            forge.HandRevealed-=onReveal;
+            if(!revealed || prematureComparison || revealedAt-started<.95f || revealError!=null) {
+                report.Add("FAIL observed forge reveal/order: revealed="+revealed+" elapsed="+(revealedAt-started)+" error="+revealError);fail();yield break;
+            }
+            if(forge.Busy || Time.realtimeSinceStartup-revealedAt<.49f || screen.screens.ModalDepth!=1 || ForgeState.Current.Pending==null) {
+                report.Add("FAIL forge comparison must follow anvil and half-second reveal");fail();yield break;
+            }
             SaveCamera(camera,"Artifacts/Runtime-forge-timed-result.png",1080,camera.targetTexture.height);
             int id=ForgeState.Current.Pending.id;
             screen.Close();screen.Forge();
