@@ -20,6 +20,9 @@ namespace Moonlit.Editor
             try {
                 screen.screens.ShowMainPage();
                 motion=ForgeHammerMotion.Play(screen.forgeButton.transform);
+                // Newly added Graphics need a canvas-registration frame before camera-only rendering.
+                // The PlayableGraph uses manual time, so this does not advance any hammer phase.
+                yield return null;
                 int strike=0;
                 foreach(double t in new[]{.20,.53,.86}) {
                     motion.Sample(t);
@@ -27,7 +30,25 @@ namespace Moonlit.Editor
                         report.Add("FAIL forge strike sparks "+strike);fail();yield break;
                     }
                     Canvas.ForceUpdateCanvases();
+                    var sparks=motion.GetComponentInChildren<ForgeImpactSparks>();
+                    var shown=ReadRewardPixels(camera,1080,height);
+                    Color32[] hidden;
+                    // Same frame, same hammer pose, same anvil art: only the procedural burst changes.
+                    try { sparks.enabled=false;hidden=ReadRewardPixels(camera,1080,height); }
+                    finally { sparks.enabled=true;Canvas.ForceUpdateCanvases(); }
+                    int changed=0;
+                    for(int pixel=0;pixel<shown.Length;pixel++)
+                        if(Math.Abs(shown[pixel].r-hidden[pixel].r)+Math.Abs(shown[pixel].g-hidden[pixel].g)+
+                            Math.Abs(shown[pixel].b-hidden[pixel].b)>36)changed++;
                     SaveCamera(camera,"Artifacts/Runtime-anvil-strike-"+strike+"-"+aspect+".png",1080,height);
+                    if(changed<400) {
+                        var viewport=camera.WorldToViewportPoint(sparks.rectTransform.position);
+                        throw new InvalidOperationException("Forge strike "+strike+" burst exists but is not visibly rendered: "+
+                            changed+" changed pixels, depth="+sparks.depth+
+                            ", culled="+sparks.canvasRenderer.cull+", alpha="+sparks.canvasRenderer.GetInheritedAlpha()+
+                            ", viewport="+viewport+", layer="+sparks.gameObject.layer);
+                    }
+                    report.Add("PASS forge strike "+strike+" rendered "+changed+" burst-only pixels "+height);
                 }
                 UnityEngine.Object.DestroyImmediate(motion.gameObject);motion=null;
                 ForgeState.Current=new ForgeState();screen.Refresh();
