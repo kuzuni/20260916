@@ -80,18 +80,47 @@ namespace Moonlit.UI.Tests
             }
         }
 
+        [Test]
+        public void Navigation_FourEqualCellsKeepOriginalIconsAndDecoration()
+        {
+            assets.panels=new Sprite[5];
+            assets.interfaceIcons=new Sprite[14];
+            var screen=root.GetComponent<MainScreen>();
+            var factory=new RuntimeMainScreenFactory(assets);
+            typeof(RuntimeMainScreenFactory).GetMethod("BuildNavigation",
+                System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)
+                .Invoke(factory,new object[]{screen,navigation.transform});
+            Assert.AreEqual(4,screen.navigation.Length);
+            CollectionAssert.AreEqual(new[]{"Arena","Dungeon","Companions","Shop"},
+                screen.navigation.Select(button=>button.name.Split(' ')[0]).ToArray());
+            var panel=screen.navigation[0].transform.parent;
+            Assert.IsNotNull(panel.Find("Navigation stone texture"));
+            Assert.IsNotNull(panel.Find("Upper bronze ornament"));
+            Assert.AreEqual(3,panel.Cast<Transform>().Count(child=>child.name=="Bronze divider"));
+            for(int i=0;i<screen.navigation.Length;i++) {
+                var rect=(RectTransform)screen.navigation[i].transform;
+                Assert.That(rect.rect.width,Is.EqualTo(250).Within(.01f));
+                Assert.That(rect.anchoredPosition.x,Is.EqualTo(10+i*270).Within(.01f));
+                var icon=(RectTransform)rect.Find("Menu icon");
+                Assert.That(icon.anchoredPosition.x+icon.rect.width*.5f,
+                    Is.EqualTo(rect.rect.width*.5f).Within(.01f),"Icon must stay centered in its enlarged cell");
+                Assert.IsNotNull(rect.Find("Close icon"));
+                Assert.IsFalse(rect.Find("Close icon").gameObject.activeSelf);
+            }
+        }
+
         [UnityTest]
         public IEnumerator Navigation_TogglesMatchingPage_AndRestoresIconOnEveryClosePath()
         {
             var screen=root.GetComponent<MainScreen>();
             screen.screens=host.Registry;
-            screen.navigation=new Button[5];
-            string[] routes={"pvp","dungeons","skills-pets-heroes","quests","shop"};
+            screen.navigation=new Button[4];
+            string[] routes={"pvp","dungeons","skills-pets-heroes","shop"};
             ScreenContext lastContext=null;
             foreach (string route in routes)
                 host.Registry.Register(route,ScreenPresentation.Page,context=>lastContext=context);
             host.Registry.Register("child",ScreenPresentation.Modal,context=>{});
-            for (int i=0;i<5;i++)
+            for (int i=0;i<4;i++)
             {
                 int index=i;
                 var button=Ui.ArtButton("Navigation "+i,navigation.transform,i*200,0,190,146);
@@ -102,7 +131,7 @@ namespace Moonlit.UI.Tests
                 button.onClick.AddListener(()=>screen.Navigate(index));
                 screen.navigation[i]=button;
             }
-            for(int i=0;i<5;i++)
+            for(int i=0;i<4;i++)
             {
                 var button=screen.navigation[i];
                 button.onClick.Invoke(); yield return null;
@@ -116,6 +145,8 @@ namespace Moonlit.UI.Tests
                 Assert.IsFalse(button.transform.Find("Close icon").gameObject.activeSelf);
                 Assert.IsTrue(button.transform.Find("Menu icon").gameObject.activeSelf);
             }
+            screen.Navigate(4); yield return null;
+            Assert.IsNull(host.ActivePageKey,"The removed fifth navigation index must not open a page");
             screen.Navigate(0); screen.Navigate(1); yield return null;
             Assert.AreEqual("dungeons",host.ActivePageKey);
             Assert.IsTrue(screen.navigation[0].transform.Find("Menu icon").gameObject.activeSelf);
@@ -130,9 +161,9 @@ namespace Moonlit.UI.Tests
             lastContext.Close(); yield return null;
             Assert.IsNull(host.ActivePageKey);
             Assert.IsTrue(screen.navigation[1].transform.Find("Menu icon").gameObject.activeSelf);
-            screen.Navigate(4); host.CloseTop(); yield return null;
+            screen.Navigate(3); host.CloseTop(); yield return null;
             Assert.IsNull(host.ActivePageKey);
-            Assert.IsTrue(screen.navigation[4].transform.Find("Menu icon").gameObject.activeSelf);
+            Assert.IsTrue(screen.navigation[3].transform.Find("Menu icon").gameObject.activeSelf);
         }
 
         [UnityTest]

@@ -44,6 +44,7 @@ namespace Moonlit.UI
             BuildHud(main,hud); BuildStage(main,hud);
             var bottom=Ui.Rect("Bottom equipment forge and navigation",design,0,0,1080,PortraitSafeArea.BottomHeight);
             Ui.Image("Forge backdrop",bottom,0,0,1080,680,assets.forgeBackground);
+            BattleOverlayLayout.Create(main,bottom,circle);
             var slotRoot=Ui.Rect("Equipment slots",bottom,0,0,1080,400);
             var slots=new List<EquipmentSlot>();
             for(int i=0;i<assets.items.Length;i++) {

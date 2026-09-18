@@ -211,11 +211,21 @@ namespace Moonlit.Editor
             List<string> report,Action fail)
         {
             int skill=screen.skillTickets,pet=screen.petTickets,mount=screen.mountTickets,gems=screen.gems;
+            string savedCollection=JsonUtility.ToJson(CollectionProgression.Data);
             var wallet=GameObject.Find("Summon currency icon").GetComponent<Image>();
             int originalCategory=Array.FindIndex(new[]{0,1,2},category=>RewardVisuals.Ticket(category)==wallet.sprite);
             string[] categories={"skill","pet","mount"},modes={"ticket-only","diamond-only","mixed"};
             try
             {
+                for(int category=1;category<3;category++) {
+                    foreach(var entry in CollectionProgression.Data.categories[category].entries)entry.unlocked=false;
+                    GameObject.Find("Tab "+CollectionProgression.CategoryNames[category]).GetComponent<Button>().onClick.Invoke();
+                    yield return null;Canvas.ForceUpdateCanvases();
+                    SaveCamera(camera,"Artifacts/Runtime-collection-"+(category==1?"pet":"mount")+"-empty-"+(height==1920?"9x16":"9x19")+".png",1080,height);
+                }
+                for(int category=0;category<3;category++)
+                    foreach(int id in new[]{0,2,4,6,8,10,12})
+                        CollectionProgression.Data.categories[category].entries[id].unlocked=true;
                 for(int category=0;category<3;category++)for(int mode=0;mode<3;mode++)
                 {
                     int tickets=mode==0?10:mode==1?0:2;
@@ -256,6 +266,7 @@ namespace Moonlit.Editor
             finally
             {
                 screen.skillTickets=skill;screen.petTickets=pet;screen.mountTickets=mount;screen.gems=gems;
+                CollectionProgression.Data=JsonUtility.FromJson<CollectionSave>(savedCollection);
                 var originalTab=GameObject.Find("Tab "+CollectionProgression.CategoryNames[Math.Max(0,originalCategory)]);
                 if(originalTab)originalTab.GetComponent<Button>().onClick.Invoke();
                 screen.Refresh();
@@ -483,7 +494,7 @@ namespace Moonlit.Editor
             int ore=screen.ore;
             screen.forgeLevelButton.onClick.Invoke(); if(screen.ore!=ore || screen.screens.ModalDepth!=1) throw new Exception("Forge probability route failed"); screen.Close();
             screen.autoButton.onClick.Invoke(); if(screen.autoForge || screen.screens.ModalDepth!=1) throw new Exception("Auto settings must not start forging"); screen.Close();
-            for(int i=0;i<screen.navigation.Length;i++) { screen.navigation[i].onClick.Invoke(); if(i!=3 && string.IsNullOrEmpty(Object.FindFirstObjectByType<UiScreenHost>().ActivePageKey)) throw new Exception("Navigation route missing at index "+i); screen.screens.ShowMainPage(); }
+            for(int i=0;i<screen.navigation.Length;i++) { screen.navigation[i].onClick.Invoke(); if(string.IsNullOrEmpty(Object.FindFirstObjectByType<UiScreenHost>().ActivePageKey)) throw new Exception("Navigation route missing at index "+i); screen.screens.ShowMainPage(); }
             var blank=Object.Instantiate(screen.equipment[1],screen.design); blank.roll=null;blank.Bind(null);
             if(blank.icon.enabled || blank.levelLabel.text!="" || blank.lockedBadge.activeSelf || blank.notificationBadge.activeSelf) throw new Exception("Empty slot retains stale content");
             var item=ForgeRuntime.Ensure(screen).Definition(new EquipmentRoll{tier=0,level=8,part=EquipmentPart.Armor});
@@ -558,6 +569,7 @@ namespace Moonlit.Editor
                         safe.SetPreviewMetrics(new Vector2Int(1080,height),area);
                         host.SetPreviewMetrics(new Vector2Int(1080,height),area);
                         yield return null;yield return null;Canvas.ForceUpdateCanvases();
+                        yield return CaptureBattleOverlay(screen,camera,height,report,fail);
                         yield return CaptureDungeonClaims(screen,camera,height,report,fail);
                         for(int tier=0;tier<10;tier++) for(int skill=0;skill<3;skill++) {
                             battle.PreviewSkill(tier,skill);
@@ -574,6 +586,59 @@ namespace Moonlit.Editor
             }
             finally {Time.captureFramerate=previousCaptureRate;Time.timeScale=previousTimeScale;}
             report.Add("CAPTURE all 30 themed skills in flight and at impact at both aspect ratios");
+        }
+
+        static IEnumerator CaptureBattleOverlay(MainScreen screen,Camera camera,int height,List<string> report,Action fail)
+        {
+            var battle=screen.GetComponent<BattleRuntime>();
+            var progress=screen.GetComponent<StageWaveProgress>();
+            var hud=screen.GetComponentInChildren<EquippedSkillHud>(true);
+            string saved=JsonUtility.ToJson(CollectionProgression.Data);
+            bool screenEnabled=screen.enabled,battleEnabled=battle.enabled;
+            try {
+                screen.enabled=false;battle.StopAllCoroutines();
+                foreach(var actor in new[]{battle.PlayerHud.Actor,battle.EnemyHud.Actor}) {
+                    var animator=actor.GetComponent<Animator>();animator.Play("Idle",0,0);animator.Update(0);
+                }
+                battle.PlayerHud.SetVisible(true);battle.EnemyHud.SetVisible(true);
+                for(int i=0;i<3;i++) {
+                    var entry=CollectionProgression.Data.categories[0].entries[i];
+                    entry.unlocked=true;CollectionProgression.Equip(entry,i);
+                }
+                hud.Refresh();
+                yield return new WaitForSeconds(1.1f);
+                Canvas.ForceUpdateCanvases();
+                string aspect=height==1920?"9x16":"9x19";
+                if(screen.navigation.Length!=4 || hud.GetComponentsInChildren<Button>().Length!=3) {
+                    report.Add("FAIL annotated HUD: four navigation buttons and three equipped skills required");fail();yield break;
+                }
+                SaveCamera(camera,"Artifacts/Runtime-equipped-battle-skills-"+aspect+".png",1080,height);
+                progress.SetProgress(900,1);progress.SetProgress(900,2);
+                var tweens=DOTween.TweensByTarget(progress,false);
+                if(tweens==null || tweens.Count==0) {report.Add("FAIL wave transition has no tween");fail();yield break;}
+                foreach(var tween in tweens)tween.Goto(.2f,false);
+                Canvas.ForceUpdateCanvases();
+                SaveCamera(camera,"Artifacts/Runtime-wave-line-filling-"+aspect+".png",1080,height);
+                foreach(var tween in tweens)tween.Goto(.5f,false);
+                Canvas.ForceUpdateCanvases();
+                SaveCamera(camera,"Artifacts/Runtime-wave-node-pop-"+aspect+".png",1080,height);
+                foreach(var tween in tweens)tween.Goto(.7f,false);
+                for(int kind=0;kind<3;kind++) {
+                    var target=kind==2?battle.PlayerHud:battle.EnemyHud;
+                    target.Float(kind==2?"+16k":"16k",kind==2?new Color(.3f,1,.42f):kind==1?new Color(1,.15f,.18f):Color.white);
+                    yield return null;Canvas.ForceUpdateCanvases();
+                    SaveCamera(camera,"Artifacts/Runtime-combat-number-"+new[]{"normal","critical","healing"}[kind]+"-"+aspect+".png",1080,height);
+                    yield return new WaitForSeconds(1.1f);
+                }
+                report.Add("PASS annotated combat HUD, equipped turn indicators, animated wave line/node and three amount colors "+height);
+            }
+            finally {
+                CollectionProgression.Data=JsonUtility.FromJson<CollectionSave>(saved);
+                screen.enabled=screenEnabled;
+                battle.enabled=false;battle.enabled=battleEnabled;
+                if(progress)progress.SetProgress(screen.stage,battle.Wave);
+                if(hud)hud.Refresh();
+            }
         }
 
         static IEnumerator CaptureDungeonClaims(MainScreen screen,Camera camera,int height,List<string> report,Action fail)

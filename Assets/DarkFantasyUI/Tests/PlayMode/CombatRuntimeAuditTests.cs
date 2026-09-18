@@ -161,6 +161,64 @@ namespace Moonlit.UI.Tests
         }
 
         [UnityTest]
+        public IEnumerator SkillStripKeepsFeetClearAndGroundShadowsFollowOnlyHorizontalMotion()
+        {
+            foreach(float height in new[]{1600f,1920f,2280f})
+            using(var fixture=new Fixture(height))
+            {
+                yield return null;
+                typeof(BattleRuntime).GetMethod("LateUpdate",PrivateInstance).Invoke(fixture.battle,null);
+                var camera=(Camera)typeof(BattleRuntime).GetField("renderCamera",PrivateInstance).GetValue(fixture.battle);
+                var view=fixture.root.transform.Find("Live turn battle") as RectTransform;
+                var actor=fixture.battle.PlayerHud.Actor;
+                float bottom= -view.anchoredPosition.y+view.rect.height;
+                float footY=bottom-camera.WorldToViewportPoint(actor.position).y*view.rect.height;
+                Assert.LessOrEqual(footY,height-PortraitSafeArea.BottomHeight-BattleRuntime.SkillHudReservedHeight,
+                    "Feet must stay above the 130-unit skill strip at "+height);
+                Assert.AreEqual(2,actor.localScale.y,.001f,"Do not reduce the doubled actor.");
+                var ground=actor.parent.Find(actor.name+" ground shadow");
+                Assert.IsNotNull(ground);
+                Assert.That(ground.GetComponent<MeshFilter>().sharedMesh.bounds.size.x,Is.GreaterThan(2));
+                var motion=actor.Find("Motion");
+                motion.position+=new Vector3(.8f,.5f,0);
+                yield return null;
+                Assert.AreEqual(motion.position.x,ground.position.x,.01f);
+                Assert.AreEqual(actor.position.y+.03f,ground.position.y,.01f,"A jumping actor must leave its shadow on the floor.");
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator SkillCooldownCountdownResetsOnlyWhenTheDueSkillImpacts()
+        {
+            using(var fixture=new Fixture())
+            {
+                var skill=new CombatSkill {tier=0,variant=0,cooldown=3,heal=20};
+                var state=new CombatActorState(new CombatStats(),new System.Collections.Generic.List<CombatSkill>{skill});
+                typeof(BattleRuntime).GetProperty("PlayerState").SetValue(fixture.battle,state);
+                Assert.AreEqual(3,fixture.battle.PlayerSkillTurnsUntilReady(0));
+                state.BeginTurn();Assert.AreEqual(2,fixture.battle.PlayerSkillTurnsUntilReady(0));
+                state.BeginTurn();Assert.AreEqual(1,fixture.battle.PlayerSkillTurnsUntilReady(0));
+                state.Damage(40);
+                typeof(BattleRuntime).GetProperty("EnemyState").SetValue(fixture.battle,new CombatActorState(new CombatStats()));
+                var turn=(IEnumerator)typeof(BattleRuntime).GetMethod("ActorTurn",PrivateInstance)
+                    .Invoke(fixture.battle,new object[]{true});
+                Assert.IsTrue(turn.MoveNext());
+                Assert.AreEqual(0,fixture.battle.PlayerSkillTurnsUntilReady(0),"Buff is due while its animation is pending.");
+                var action=(IEnumerator)turn.Current; Assert.IsTrue(action.MoveNext());
+                var animator=(Animator)typeof(BattleRuntime).GetField("playerAnimator",PrivateInstance).GetValue(fixture.battle);
+                animator.Update(0);animator.Update(.31f);
+                Assert.AreEqual(60,state.Health,"The Animator event healed once.");
+                var amount=fixture.battle.PlayerHud.transform.parent.Find("Player damage number").GetComponentInChildren<UnityEngine.UI.Text>();
+                Assert.AreEqual("+20",amount.text);
+                Assert.AreEqual(new Color(.4f,1,.55f),amount.color);
+                Assert.AreEqual(3,fixture.battle.PlayerTurnCount);
+                Assert.AreEqual(3,fixture.battle.PlayerSkillTurnsUntilReady(0));
+                Assert.AreEqual(-1,fixture.battle.PlayerSkillTurnsUntilReady(1));
+            }
+            yield return null;
+        }
+
+        [UnityTest]
         public IEnumerator CompactSafeAreaKeepsEntireActorAndHudInsideBattleView()
         {
             using (var fixture = new Fixture(1600))

@@ -78,7 +78,15 @@ namespace Moonlit.UI.Tests
                 Assert.IsNotEmpty(label.text, name);
                 StringAssert.Contains("/", label.text);
                 Assert.IsTrue(label.resizeTextForBestFit);
-                Assert.AreEqual(18, label.resizeTextMinSize);
+                Assert.AreEqual(28, label.resizeTextMinSize);
+                Assert.AreEqual(52, label.resizeTextMaxSize);
+                Assert.AreEqual(52, label.fontSize);
+                var fill = label.transform.parent.Find("Health fill") as RectTransform;
+                Assert.IsNotNull(fill, "The health amount must render inside its world health bar.");
+                Assert.AreEqual(48, fill.rect.height);
+                Assert.AreEqual(fill.anchoredPosition.y, label.rectTransform.anchoredPosition.y, .001f);
+                Assert.AreEqual(fill.rect.height, label.rectTransform.rect.height, .001f);
+                Assert.Greater(label.transform.GetSiblingIndex(), fill.GetSiblingIndex());
                 Assert.AreEqual(VerticalWrapMode.Truncate, label.verticalOverflow);
             }
         }

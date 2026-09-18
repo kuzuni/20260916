@@ -58,16 +58,18 @@ namespace Moonlit.UI.Tests
             host.Registry.Open("skills-pets-heroes"); yield return null;
             var scroll=GameObject.Find("Tab content").GetComponentInChildren<ScrollRect>();
             var slots=scroll.content.GetComponentsInChildren<Button>();
-            Assert.AreEqual(30,slots.Length);
+            Assert.AreEqual(0,slots.Length);
+            Assert.IsNotNull(GameObject.Find("Empty collection"));
             Assert.AreEqual("스킬 0/30",GameObject.Find("Collection title").GetComponent<Text>().text);
-            Assert.IsTrue(slots.All(b=>ChildText(b.transform,"Ownership").text=="미보유"));
             var entries=CollectionProgression.Data.categories[0].entries;
-            for(int i=0;i<3;i++){entries[i].unlocked=true;entries[i].fragments=1;}
+            for(int i=0;i<7;i++){entries[i].unlocked=true;entries[i].fragments=1;}
             GameObject.Find("Quick equip").GetComponent<Button>().onClick.Invoke();yield return null;
             Assert.AreSame(scroll,GameObject.Find("Tab content").GetComponentInChildren<ScrollRect>());
             Assert.AreEqual(3,CollectionProgression.EquippedSkills.Count);
-            Assert.AreEqual("스킬 3/30",GameObject.Find("Collection title").GetComponent<Text>().text);
-            for(int i=0;i<slots.Length;i++)Assert.AreEqual(i<3?"장착됨":"",ChildText(slots[i].transform,"Equipped badge").text);
+            Assert.AreEqual("스킬 7/30",GameObject.Find("Collection title").GetComponent<Text>().text);
+            slots=scroll.content.GetComponentsInChildren<Button>();Assert.AreEqual(7,slots.Length);
+            Assert.IsNull(GameObject.Find("Empty collection"));
+            for(int i=0;i<slots.Length;i++)Assert.AreEqual(CollectionProgression.IsEquipped(entries[i])?"장착됨":"",ChildText(slots[i].transform,"Equipped badge").text);
             scroll.verticalNormalizedPosition=0;Canvas.ForceUpdateCanvases();yield return null;
             var last=slots.Last().GetComponent<RectTransform>();
             Assert.IsTrue(scroll.viewport.rect.Contains(scroll.viewport.InverseTransformPoint(last.TransformPoint(last.rect.center))));
@@ -88,19 +90,63 @@ namespace Moonlit.UI.Tests
         }
 
         [UnityTest]
-        public IEnumerator Collection_AllTabsLoadCurrencyRibbonAndProgressArtwork()
+        public IEnumerator Collection_AllTabsShowOnlyOwnedEntriesInThreeColumnsAndKeepSummoningWhenEmpty()
         {
-
-            host.Registry.Open("skills-pets-heroes");yield return null;
-            foreach(string tab in new[]{"스킬","펫","탈것"}){
-                GameObject.Find("Tab "+tab).GetComponent<Button>().onClick.Invoke();yield return null;
-                Assert.AreEqual(tab+" 0/30",GameObject.Find("Collection title").GetComponent<Text>().text);
-                foreach(string name in new[]{"Summon currency icon","Summon cost icon","Equipped ribbon"})
-                    Assert.IsNotNull(GameObject.Find(name).GetComponent<Image>().sprite);
-                var content=GameObject.Find("Tab content");
-                Assert.AreEqual(30,content.GetComponentsInChildren<Button>().Length);
-                Assert.IsTrue(content.GetComponentsInChildren<Image>().Where(i=>i.name=="Progress frame").All(i=>i.sprite!=null));
-                if(tab!="스킬")Assert.AreEqual(30,content.GetComponentsInChildren<Text>().Count(t=>t.name=="Art pending"));
+            foreach(int height in new[]{1920,2280}){
+                CollectionProgression.Reset();
+                host.SetPreviewMetrics(new Vector2Int(1080,height),new Rect(36,84,1008,height-168));
+                host.Registry.Open("skills-pets-heroes");yield return null;
+                for(int category=0;category<3;category++){
+                    var tab=GameObject.Find("Tab "+CollectionProgression.CategoryNames[category]).GetComponent<Button>();
+                    tab.onClick.Invoke();yield return null;
+                    var scroll=GameObject.Find("Tab content").GetComponentInChildren<ScrollRect>();
+                    Assert.AreEqual(0,scroll.content.GetComponentsInChildren<Button>().Length);
+                    StringAssert.Contains(CollectionProgression.CategoryNames[category],GameObject.Find("Empty collection").GetComponent<Text>().text);
+                    Assert.IsTrue(GameObject.Find("Summon five").GetComponent<Button>().IsInteractable());
+                    foreach(string name in new[]{"Summon currency icon","Summon cost icon","Equipped ribbon"})
+                        Assert.IsNotNull(GameObject.Find(name).GetComponent<Image>().sprite);
+                    var entries=CollectionProgression.Data.categories[category].entries;
+                    int[] owned={0,2,4,6,8,10,12};
+                    foreach(int index in owned){entries[index].unlocked=true;entries[index].fragments=0;}
+                    entries[owned[0]].fragments=entries[owned[0]].Required;
+                    tab.onClick.Invoke();yield return null;Canvas.ForceUpdateCanvases();
+                    var cards=scroll.content.GetComponentsInChildren<Button>();
+                    Assert.AreEqual(7,cards.Length,"Zero fragments still counts as permanently owned.");
+                    Assert.IsNull(GameObject.Find("Empty collection"));
+                    for(int i=0;i<cards.Length;i++){
+                        Assert.AreEqual("Skill "+entries[owned[i]].Name,cards[i].name);
+                        var rect=(RectTransform)cards[i].transform;
+                        Assert.That(rect.rect.width,Is.EqualTo(260).Within(.1f));
+                        Assert.That(rect.anchoredPosition.x,Is.EqualTo(56+(i%3)*306).Within(.1f));
+                        Assert.That(-rect.anchoredPosition.y,Is.EqualTo(16+(i/3)*390).Within(.1f));
+                        Assert.IsFalse(cards[i].transform.Find("Ownership lock").gameObject.activeSelf);
+                        Assert.IsNotNull(cards[i].GetComponentsInChildren<Image>().Single(image=>image.name=="Progress frame").sprite);
+                        var level=cards[i].transform.Find("Level").GetComponent<RectTransform>();
+                        var grade=cards[i].transform.Find("Grade").GetComponent<RectTransform>();
+                        var progress=cards[i].transform.Find("Progress").GetComponent<RectTransform>();
+                        var badge=cards[i].transform.Find("Equipped badge").GetComponent<RectTransform>();
+                        Assert.Less(-badge.anchoredPosition.y+badge.rect.height,-level.anchoredPosition.y);
+                        Assert.Less(-level.anchoredPosition.y+level.rect.height,-grade.anchoredPosition.y);
+                        Assert.Less(-grade.anchoredPosition.y+grade.rect.height,-progress.anchoredPosition.y);
+                        Assert.LessOrEqual(-progress.anchoredPosition.y+progress.rect.height,rect.rect.height);
+                        if(i==0)Assert.That(progress.Find("Fill").GetComponent<RectTransform>().rect.width,
+                            Is.EqualTo(progress.rect.width-progress.rect.height).Within(.1f),"A full scaled gauge stays inside its bevel.");
+                        foreach(var label in new[]{level,grade,badge,progress.Find("Value").GetComponent<RectTransform>()}){
+                            var text=label.GetComponent<Text>();
+                            if(string.IsNullOrEmpty(text.text))text.text="장착됨";
+                            Assert.LessOrEqual(text.preferredHeight,label.rect.height+1,"Scaled text must fit its own line box.");
+                        }
+                        if(category>0){
+                            var pending=cards[i].transform.Find("Art pending").GetComponent<RectTransform>();
+                            Assert.Less(-pending.anchoredPosition.y+pending.rect.height,-badge.anchoredPosition.y);
+                            Assert.LessOrEqual(pending.GetComponent<Text>().preferredHeight,pending.rect.height+1);
+                        }
+                    }
+                    scroll.verticalNormalizedPosition=0;Canvas.ForceUpdateCanvases();yield return null;
+                    var last=(RectTransform)cards.Last().transform;
+                    Assert.IsTrue(scroll.viewport.rect.Contains(scroll.viewport.InverseTransformPoint(last.TransformPoint(last.rect.center))));
+                }
+                host.Registry.ShowMainPage();yield return null;
             }
         }
 
@@ -317,6 +363,7 @@ namespace Moonlit.UI.Tests
             entries[0].unlocked=true;entries[0].fragments=2;
             entries[1].unlocked=true;entries[1].fragments=1;
             entries[2].unlocked=true;entries[2].level=100;entries[2].fragments=20;
+            for(int i=3;i<9;i++)entries[i].unlocked=true;
             host.Registry.Open("skills-pets-heroes");yield return null;
             var scroll=GameObject.Find("Tab content").GetComponentInChildren<ScrollRect>();
             Canvas.ForceUpdateCanvases();scroll.verticalNormalizedPosition=.42f;
@@ -339,6 +386,7 @@ namespace Moonlit.UI.Tests
         {
 
             var entry=CollectionProgression.Data.categories[0].entries[0];entry.unlocked=true;entry.fragments=2;
+            for(int i=1;i<9;i++)CollectionProgression.Data.categories[0].entries[i].unlocked=true;
             host.Registry.Open("skills-pets-heroes");yield return null;
             var skillTab=GameObject.Find("Tab 스킬").GetComponent<Button>();
             var petTab=GameObject.Find("Tab 펫").GetComponent<Button>();
@@ -376,6 +424,9 @@ namespace Moonlit.UI.Tests
             foreach(var card in cards){Assert.IsNull(card.transform.Find("Level"));Assert.IsNull(card.transform.Find("Progress"));}
             Assert.AreEqual(1,host.ModalDepth);
             GameObject.Find("Continue").GetComponent<Button>().onClick.Invoke();yield return null;
+            var visible=GameObject.Find("Tab content").GetComponentInChildren<ScrollRect>().content.GetComponentsInChildren<Button>();
+            Assert.AreEqual(CollectionProgression.Data.categories[0].entries.Count(entry=>entry.unlocked),visible.Length);
+            Assert.Greater(visible.Length,0);Assert.IsNull(GameObject.Find("Empty collection"));
             summon.onClick.Invoke();summon.onClick.Invoke();yield return null;
             Assert.AreEqual(0,main.skillTickets);Assert.AreEqual(0,main.gems);
             Assert.AreEqual(10,CollectionProgression.Data.categories[0].entries.Sum(e=>e.fragments));
@@ -402,7 +453,7 @@ namespace Moonlit.UI.Tests
         [UnityTest]
         public IEnumerator SkillArtwork_LoadsAllThirtyThemedSprites_AndReusesFrameInDetails()
         {
-
+            foreach(var entry in CollectionProgression.Data.categories[0].entries)entry.unlocked=true;
             host.Registry.Open("skills-pets-heroes");yield return null;
             var slots=GameObject.Find("Tab content").GetComponentInChildren<ScrollRect>().content.GetComponentsInChildren<Button>();
             var icon=slots[0].transform.Find("Icon").GetComponent<Image>();
@@ -412,9 +463,9 @@ namespace Moonlit.UI.Tests
             Assert.IsFalse(icon.raycastTarget);Assert.IsFalse(frame.raycastTarget);
             Assert.AreEqual(30,slots.Count(s=>s.transform.Find("Icon")!=null));
             var icons=slots.Select(s=>s.transform.Find("Icon").GetComponent<Image>()).ToArray();
-            Assert.IsTrue(icons.All(i=>i.sprite!=null),"Every unowned skill still displays its actual artwork.");
+            Assert.IsTrue(icons.All(i=>i.sprite!=null),"Every owned skill displays its actual artwork.");
             Assert.AreEqual(30,icons.Select(i=>i.sprite).Distinct().Count());
-            Assert.IsTrue(slots.All(s=>s.transform.Find("Ownership lock").gameObject.activeSelf));
+            Assert.IsTrue(slots.All(s=>!s.transform.Find("Ownership lock").gameObject.activeSelf));
             for(int i=0;i<30;i++)Assert.AreSame(Resources.Load<Sprite>(SkillCatalog.IconKey(i/3,i%3)),icons[i].sprite);
             slots[0].onClick.Invoke();yield return null;
             var detail=GameObject.Find("Popup Layer skill-details").GetComponentsInChildren<Button>().Single(b=>b.name==slots[0].name);
