@@ -30,6 +30,22 @@ jobs:
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL
           df -h /
       - uses: actions/checkout@v4
+      - name: Validate UI metadata and clear stale evidence
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re, shutil
+          invalid = [str(p) for p in Path("Assets/DarkFantasyUI").rglob("*.meta") if not re.search(r"(?m)^guid: [0-9a-f]{32}$", p.read_text(encoding="utf-8"))]
+          if invalid:
+              raise SystemExit("Invalid Unity GUID: " + ", ".join(invalid))
+          artifacts = Path("Artifacts")
+          for pattern in ("Runtime-*.png", "Verification.txt", "CloudCapture.log"):
+              for path in artifacts.glob(pattern):
+                  path.unlink()
+          results = artifacts / "TestResults"
+          if results.is_dir():
+              shutil.rmtree(results)
+          PY
       - name: Require configured Unity credentials
         env:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
@@ -80,6 +96,22 @@ jobs:
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL
           df -h /
       - uses: actions/checkout@v4
+      - name: Validate UI metadata and clear stale evidence
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re, shutil
+          invalid = [str(p) for p in Path("Assets/DarkFantasyUI").rglob("*.meta") if not re.search(r"(?m)^guid: [0-9a-f]{32}$", p.read_text(encoding="utf-8"))]
+          if invalid:
+              raise SystemExit("Invalid Unity GUID: " + ", ".join(invalid))
+          artifacts = Path("Artifacts")
+          for pattern in ("Runtime-*.png", "Verification.txt", "CloudCapture.log"):
+              for path in artifacts.glob(pattern):
+                  path.unlink()
+          results = artifacts / "TestResults"
+          if results.is_dir():
+              shutil.rmtree(results)
+          PY
       - name: Require configured Unity credentials
         env:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
