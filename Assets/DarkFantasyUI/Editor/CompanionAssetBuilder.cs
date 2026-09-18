@@ -155,8 +155,6 @@ namespace Moonlit.Editor
                 }
             }
             sprite.OverrideGeometry(vertices,indices);
-            sprite.SetVertexAttribute<BoneWeight>(VertexAttribute.BlendWeight,weights);
-            sprite.SetVertexAttribute<Vector4>(VertexAttribute.Tangent,tangents);
             var bind=new NativeArray<Matrix4x4>(bones.Length,Allocator.Temp);
             var metadata=new SpriteBone[bones.Length];
             for(int i=0;i<bones.Length;i++)
@@ -167,6 +165,8 @@ namespace Moonlit.Editor
                     rotation=Quaternion.identity,length=.3f};
             }
             sprite.SetBindPoses(bind);sprite.SetBones(metadata);
+            sprite.SetVertexAttribute<BoneWeight>(VertexAttribute.BlendWeight,weights);
+            sprite.SetVertexAttribute<Vector4>(VertexAttribute.Tangent,tangents);
             bind.Dispose();weights.Dispose();tangents.Dispose();
         }
         static RuntimeAnimatorController Controller(string directory,GameObject root,CompanionSkeletonDefinition definition,Transform[] bones)

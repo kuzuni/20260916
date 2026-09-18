@@ -31,7 +31,7 @@ namespace Moonlit.UI
                 {legs.Add(bone);unseated.Add(bone.localRotation);seated.Add(bone.localRotation);}
             }
             playerShadow=player.parent.Find(player.name+" ground shadow");
-            catalog=CompanionRigCatalog.Load();lastPlayerPosition=motion.position;
+            catalog=CompanionRigCatalog.Load();lastPlayerPosition=player.position;
             RefreshEquipped();
         }
         public void RefreshEquipped()
@@ -71,10 +71,11 @@ namespace Moonlit.UI
             if(!player || !rig)return;
             RefreshEquipped();
             if(playerShadow)playerShadow.gameObject.SetActive(!Mount);
-            bool moving=(motion.position-lastPlayerPosition).sqrMagnitude>.0001f;
-            lastPlayerPosition=motion.position;
+            bool moving=(player.position-lastPlayerPosition).sqrMagnitude>.0001f;
+            lastPlayerPosition=player.position;
             var state=player.GetComponent<Animator>().GetCurrentAnimatorStateInfo(0);
             bool attacking=state.IsName("Basic") || state.IsName("Weak") || state.IsName("Strong");
+            bool dead=state.IsName("Death");
             float left=camera?camera.ViewportToWorldPoint(new Vector3(.035f,0,12)).x:player.position.x-3;
             for(int i=0;i<Pets.Count;i++)
             {
@@ -84,13 +85,13 @@ namespace Moonlit.UI
                 float x=Mathf.Max(left+.8f,motion.position.x-behind);
                 pet.groundY=player.position.y+(pet.rigType==CompanionRigType.Humanoid?.42f:0);
                 pet.transform.position=new Vector3(x,player.position.y+lane,player.position.z+.2f);
-                pet.SetMotion(moving?"Walk":attacking?"Attack":"Idle");
+                pet.SetMotion(dead?"Death":attacking?"Attack":moving?"Walk":"Idle");
             }
             if(Mount && riderHip && Mount.saddle)
             {
                 Mount.groundY=player.position.y;
                 Mount.transform.position=new Vector3(motion.position.x,player.position.y,player.position.z+.1f);
-                Mount.SetMotion(moving || attacking?"Walk":"Idle");
+                Mount.SetMotion(dead?"Death":moving || attacking?"Walk":"Idle");
                 for(int i=0;i<legs.Count;i++)
                 {
                     var current=legs[i].localRotation;
