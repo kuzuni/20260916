@@ -24,7 +24,7 @@ namespace Moonlit.UI
         BattleAssetCatalog assets;
         RectTransform view;
         RawImage image;
-        
+
         GameObject stageRoot, player, enemy;
         Camera renderCamera;
         RenderTexture texture;
@@ -131,7 +131,7 @@ namespace Moonlit.UI
             float oldHeight = Mathf.Max(110, design.rect.height - PortraitSafeArea.BottomHeight - 495);
             float density = oldHeight / (2 * Mathf.Max(2, oldHeight / 200f));
             float bottom = design.rect.height - PortraitSafeArea.BottomHeight;
-            float height = Mathf.Max(bottom - 405, 6.2f * density);
+            float height = Mathf.Max(bottom - 405, 7.1f * density);
             view.anchoredPosition = new Vector2(0, -(bottom - height));
             view.sizeDelta = new Vector2(1080, height);
             if (renderCamera)
@@ -183,7 +183,6 @@ namespace Moonlit.UI
             yield return null;
             while (isActiveAndEnabled)
             {
-                while(DungeonProgression.Data.pendingClaim)yield return null;
                 bool won = false;
                 yield return FightStage(Math.Max(1, main.stage), CombatRules.WavesPerStage, result => won = result);
                 if (failedAnimation) yield break;

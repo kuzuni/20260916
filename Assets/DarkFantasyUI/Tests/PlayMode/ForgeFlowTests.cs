@@ -200,5 +200,30 @@ namespace Moonlit.UI.Tests
             }
         }
 
+        [UnityTest] public IEnumerator AutoComparisonWaitsForCoveringModalThenOpensOnce()
+        {
+            foreach(int initialHammers in new[]{2,1}){
+                var state=ForgeState.Current=new ForgeState {batchSize=1,continueAfterMatch=false};
+                main.ore=initialHammers;
+                var runtime=ForgeRuntime.Ensure(main);runtime.StartAuto();yield return null;
+                Assert.IsTrue(runtime.Busy);
+                host.Registry.Open("equipment-details");yield return null;
+                double until=Time.realtimeSinceStartupAsDouble+5;
+                while(runtime.Busy && Time.realtimeSinceStartupAsDouble<until)yield return null;
+                Assert.IsFalse(runtime.Busy);Assert.AreEqual(1,host.ModalDepth);
+                Assert.IsNotNull(GameObject.Find("Popup Layer equipment-details"));
+                Assert.IsNull(GameObject.Find("Popup Layer forge-comparison"));
+                host.CloseTop();yield return null;yield return null;
+                Assert.AreEqual(1,host.ModalDepth);
+                Assert.IsNotNull(GameObject.Find("Popup Layer forge-comparison"));
+                Assert.AreEqual(initialHammers-1,main.ore);
+                Assert.AreEqual(initialHammers>1,state.autoEnabled,"Zero hammers stop forging but must not suppress the completed result");
+                // Explicit dismissal keeps the reviewed queue without reopening it on every frame.
+                host.CloseTop();yield return null;yield return null;
+                Assert.AreEqual(0,host.ModalDepth);Assert.AreEqual(initialHammers-1,main.ore);
+                runtime.StopAuto();yield return null;Assert.IsFalse(state.autoEnabled);
+            }
+        }
+
     }
 }
