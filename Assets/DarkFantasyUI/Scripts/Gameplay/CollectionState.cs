@@ -12,8 +12,15 @@ namespace Moonlit.UI
         public bool CanUpgrade => unlocked && level < 100 && fragments >= Required;
         public int Required => Math.Min(level + 1, 20);
         public int Cooldown => variant == 0 ? 3 : variant == 1 ? 2 : 5;
-        public string Name => category == 0 ? SkillCatalog.Name(grade, variant) :
-            EquipmentRules.TierNames[grade] + " " + CollectionProgression.CategoryNames[category] + " " + (variant + 1);
+        public string Name
+        {
+            get {
+                if(category==0)return SkillCatalog.Name(grade,variant);
+                var illustrated=CompanionRigCatalog.Load()?.Find(category,grade,variant);
+                if(illustrated!=null&&!string.IsNullOrEmpty(illustrated.displayName))return illustrated.displayName;
+                return EquipmentRules.TierNames[grade]+" "+CollectionProgression.CategoryNames[category]+" "+(variant+1);
+            }
+        }
         public double OwnedHealth => EquipmentRules.FullSetStats(grade, level, ascension).health / 12d;
         public double OwnedAttack => EquipmentRules.FullSetStats(grade, level, ascension).attack / 12d;
         public double EquippedHealth => category == 1 ? EquipmentRules.FullSetStats(grade, level, ascension).health / 6d :

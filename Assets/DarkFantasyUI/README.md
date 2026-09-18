@@ -1,15 +1,20 @@
 # Moonlit — dark fantasy main screen
 
-> 2026-09-18 gameplay update: [current game rules](../../Documentation/Gameplay-20260918.md) supersede screenshot/demo economy, equipment, collection, combat and reward values. The 30 reference routes and safe-area contracts remain in effect. The latest revision expands skills to all 30 era-themed entries with generated sprites; pet/mount character illustrations remain deferred. Follow the [Korean gameplay quickstart](../../Documentation/Gameplay-Quickstart-ko.md) for current interactions.
+> 2026-09-18 gameplay update: [current game rules](../../Documentation/Gameplay-20260918.md) supersede screenshot/demo economy, equipment, collection, combat and reward values. The 30 reference routes and safe-area contracts remain in effect. The latest revision expands skills to all 30 era-themed entries with generated sprites; six primitive pet/mount illustrations and separated-part rig sources are included; higher-era companion art remains deferred. Cloud generation/commit of the companion prefabs and their runtime validation are pending for this revision. Follow the [Korean gameplay quickstart](../../Documentation/Gameplay-Quickstart-ko.md) for current interactions.
 
 Unity 6000.3 / uGUI. Open `Scenes/MoonlitMain.unity` and press Play.
 
 ## Latest gameplay corrections — 2026-09-18
 
 - Equipment grows linearly between the user's exact endpoints: primitive health equipment has HP80 at level1 and HP880 at level100; medieval level1 has HP1760. Attack uses the same scale (10 → 110 → 220). The shared six-piece EquipmentRules baseline also drives collection ownership/equipment bonuses and fixed skill values.
-- All ten eras now have three named skill entries (buff, weak attack, strong attack), generated sprites, descriptions and previews. Collection icons and combat effects share `Moonlit/Combat/Skills/Tier00..Tier09/{Buff,Weak,Strong}`. Pet and mount character art is still deferred.
+- All ten eras now have three named skill entries (buff, weak attack, strong attack), generated sprites, descriptions and previews. Collection icons and combat effects share `Moonlit/Combat/Skills/Tier00..Tier09/{Buff,Weak,Strong}`. Primitive companion art now includes three pets and three mounts; see the rig pipeline below for its pending generated assets and validation.
 - The pet summon currency icon is a standalone egg; the mount summon currency icon is a standalone hoof. The `PetTicketEgg-v2` and `MountTicketHoof-v2` resource filenames do not imply a ticket-shaped illustration. Summon buttons show only the currency icons and amounts actually spent.
 - Dungeon entry reserves a challenge without consuming its key. A win creates a saved pending reward. Only the reward popup's claim button consumes one key, updates the highest cleared difficulty and pays the reward once; defeat/cancellation spends no key. Sweeps still spend one key and grant the previous-difficulty reward immediately.
+- Forging uses three Animator-driven hammer strikes with synchronized sparks, then a square rarity frame and equipment icon for 0.5 seconds. Multiple results overlap as a hand. Automatic forging uses a persistent 1–99 batch-size dropdown.
+- Waves retain the current player and combat state within a stage; only the next enemy enters. Result-screen taps finish a running summon reveal, then close on the next tap; scrolling does not count as a tap. “모두 업그레이드” consumes each owned entry's available fragments repeatedly up to its affordable level or level100.
+- The shop has one six-offer diamond grid: first row free100 / 600 / 2200; second row8000 / 15000 / 33000. The free offer is claimable once per Korean day. All purchases remain local demonstrations.
+- The pass opens at the first claimable milestone (otherwise the next progress milestone). Its central cyan rail fills to the highest cleared stage; intermediate diamond ornaments are removed. Reward/pass icons and equipped-skill HUD slots are enlarged1.5×, with matching enlarged reward/pass labels.
+- Actual power changes show the new total in an independent DOTween popup, with a green UP or red DOWN arrow above it. Initial loading and unchanged refreshes do not create power popups.
 - Current revision validation is recorded separately in cloud reports; earlier passing results do not certify later source or artwork changes.
 
 ## Runtime generation
@@ -89,14 +94,22 @@ Production images were generated using the built-in image generation tool. Origi
 
 Noto Sans KR and Noto Sans CJK KR Bold are bundled under the SIL Open Font License, included in `Fonts/OFL.txt`.
 
+## Primitive companion art and rig pipeline
+
+PR88 introduces six primitive samples: 원시 꼬마, 검치호 새끼, 새끼 익룡, 원시 랩터, 야생 멧돼지 and 돌바퀴 수레. Collection illustrations live under `Resources/Moonlit/Companions`; their separate transparent part sheets live under `Resources/Moonlit/CompanionParts`. Each sample has eight parts (48 parts across six samples).
+
+`CompanionRigTemplates` defines ten anatomical templates: humanoid, quadruped, bird, serpentine, insect, aquatic, floating, biped mount, quadruped mount and vehicle. Six templates have primitive samples; ten templates do not mean ten finished companions. The cloud editor builder creates a bone hierarchy, per-part SpriteRenderer/SpriteSkin meshes and native Animator clips (Idle/Walk/Attack/Hit/Death), rather than moving one whole illustration as a fake rig. Runtime integration provides equipped-pet following and player saddle/leg positioning for a mount. Higher-era companion art remains deferred.
+
+At this documentation revision, generated prefab/controller/sprite assets are pending the cloud build and generated-asset commit. Source and input art being present do not certify successful prefab generation, deformation, riding alignment or runtime captures. The coordinator records those outcomes separately.
+
 ## Verification
 
-`Moonlit > Capture Main Screen` or the `verify` command in `Library/Moonlit.command` enters Play mode, verifies the runtime-built UI, writes six screenshots to `Artifacts/Runtime-*.png`, writes `Artifacts/Verification.txt`, and returns to Edit mode. The saved scene remains bootstrap-only.
+Acceptance runs in cloud Unity6000.3.8f1, with compile/tests and captures at both portrait ratios and simulated safe insets. Agents must not run or control local Unity or use `Library/Moonlit.command`. The saved scene remains bootstrap-only. Current workflow results, artifact paths and pending/failed checks are recorded in the coordinator's verification report.
 
-The cases cover 9:16 and 9:19 without cutouts, both sizes with simulated top/bottom insets, additional side insets, and returning to 9:16. Each case checks all 25 button hit targets, button/text bounds, safe-centered dialogs, fixed control proportions and idempotent initialization. Runtime interactions also check slot clearing/rebinding, forge resource costs, locks, automatic forging and navigation. These are Editor simulations, not physical-device tests.
+The original main-screen capture cases cover 9:16 and 9:19 without cutouts, both sizes with simulated top/bottom insets, additional side insets, and returning to 9:16. Each case checks all 25 button hit targets, button/text bounds, safe-centered dialogs, fixed control proportions and idempotent initialization. Runtime interactions also check slot clearing/rebinding, forge resource costs, locks, automatic forging and navigation. These are Editor simulations, not physical-device tests.
 
 ## Reference fidelity revision
 
 The main reward entries use dedicated transparent sprites: ProgressPassIcon-v1 (blue sword/pass pennant) and OfflineRewardIcon-v1 (clock/reward chest), following the user's explicit subject change. Their timer text and invisible hit surfaces remain separate. Generation prompts: Documentation/UI/MainRewardIcons-v1-prompts.md.
 
-Event buttons are frameless. Navigation uses five large icons on one shared stone panel without individual boxes or labels. Currency icons use a round crown coin and tall diamond ruby; the shop uses a striped awning. Chat includes a speech balloon and live text with a 99 badge. Forge management and auto use silver-beveled cobalt blue backplates; auto shows a circular-arrow icon that rotates while active. The anvil has its own clickable silhouette and press feedback. All decorative layers ignore raycasts. Verify also checks actual pointer hit targets for the anvil, forge management, auto, events, chat and navigation.
+Event buttons are frameless. Navigation uses four evenly spaced large icons (arena, dungeons, collections, shop) on one shared stone panel without individual boxes or labels. Currency icons use a round crown coin and tall diamond ruby; the shop uses a striped awning. Chat includes a speech balloon and live text with a 99 badge. Forge management and auto use silver-beveled cobalt blue backplates; auto shows a circular-arrow icon that rotates while active. The anvil has its own clickable silhouette and press feedback. All decorative layers ignore raycasts. Verify also checks actual pointer hit targets for the anvil, forge management, auto, events, chat and navigation.

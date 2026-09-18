@@ -177,8 +177,9 @@ namespace Moonlit.UI
             float textScale=largeCollection?size/158f:1f;
             var button=Ui.ArtButton("Skill "+entry.Name,parent,x,y,size,compact?size+12:size+68*textScale);
             if(click!=null) button.onClick.AddListener(()=>click());
-            if(entry.category==0){
-                var icon=Ui.ArtImage("Icon",button.transform,size*.17f,size*.17f,size*.66f,size*.66f,SkillIcon(entry.grade,entry.variant));
+            var illustratedIcon=entry.category==0?SkillIcon(entry.grade,entry.variant):CompanionRigCatalog.Icon(entry.category,entry.grade,entry.variant);
+            if(illustratedIcon){
+                var icon=Ui.ArtImage("Icon",button.transform,size*.17f,size*.17f,size*.66f,size*.66f,illustratedIcon);
                 Ui.CenterAspect(icon);
             } else Ui.Text("Art pending",button.transform,size*.1f,
                 size*(largeCollection ? .18f : compact ? .1f : probability ? .35f : .62f),size*.8f,size*(largeCollection ? .16f : .12f),
@@ -201,7 +202,7 @@ namespace Moonlit.UI
                 badgeRibbon.type=Image.Type.Sliced;badgeRibbon.pixelsPerUnitMultiplier=22;
                 badge=Ui.Text("Equipped badge",button.transform,0,size*.44f,size,30*textScale,"",Mathf.RoundToInt(size*.13f),font,Ui.Gold);
             }
-            Ui.Text("Grade",button.transform,0,size+2*textScale,size,28*textScale,EquipmentRules.TierNames[entry.grade],Mathf.RoundToInt(size*.12f),font,Ui.Gold);
+            Ui.Text("Grade",button.transform,0,size+2*textScale,size,28*textScale,entry.category!=0&&illustratedIcon?entry.Name:EquipmentRules.TierNames[entry.grade],Mathf.RoundToInt(size*.12f),font,Ui.Gold);
             RectTransform fill=null;
             if(!compact && !probability){
                 Progress(button.transform,8,size+34*textScale,size-16,28*textScale,0,"",font);
@@ -220,7 +221,8 @@ namespace Moonlit.UI
         }
         static string Description(CollectionEntry entry)
         {
-            if(entry.category!=0) return "장착 효과\n체력 +"+Number(entry.EquippedHealth)+"\n공격력 +"+Number(entry.EquippedAttack)+"\n외형 아트 제작 보류";
+            if(entry.category!=0) return "장착 효과\n체력 +"+Number(entry.EquippedHealth)+"\n공격력 +"+Number(entry.EquippedAttack)+
+                (CompanionRigCatalog.Icon(entry.category,entry.grade,entry.variant)?"":"\n외형 아트 제작 보류");
             string theme=SkillCatalog.Description(entry.grade,entry.variant)+"\n";
             if(entry.variant==0) return theme+"매 3턴 · 평타 전에 발동\n체력 "+Number(entry.FixedHeal)+" 회복\n공격력 +"+Number(entry.FixedAttackBoost);
             return theme+"매 "+entry.Cooldown+"턴 · 평타와 추가타 후 발동\n고정 피해 "+Number(entry.FixedDamage);

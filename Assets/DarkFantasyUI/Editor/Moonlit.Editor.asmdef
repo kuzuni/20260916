@@ -1,7 +1,18 @@
 {
-    "name": "Moonlit.Editor",
-    "rootNamespace": "Moonlit.Editor",
-    "references": ["Moonlit.UI", "UnityEngine.UI", "Unity.InputSystem", "Unity.2D.Sprite.Editor", "UnityEditor.TestRunner", "UnityEngine.TestRunner"],
-    "includePlatforms": ["Editor"],
-    "autoReferenced": true
+  "name": "Moonlit.Editor",
+  "rootNamespace": "Moonlit.Editor",
+  "references": [
+    "Moonlit.UI",
+    "UnityEngine.UI",
+    "Unity.InputSystem",
+    "Unity.2D.Sprite.Editor",
+    "UnityEditor.TestRunner",
+    "UnityEngine.TestRunner",
+    "Unity.2D.Animation.Runtime",
+    "Unity.Collections"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "autoReferenced": true
 }

@@ -35,9 +35,6 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           import re, shutil
-          invalid = [str(p) for p in Path("Assets/DarkFantasyUI").rglob("*.meta") if not re.search(r"(?m)^guid: [0-9a-f]{32}$", p.read_text(encoding="utf-8"))]
-          if invalid:
-              raise SystemExit("Invalid Unity GUID: " + ", ".join(invalid))
           artifacts = Path("Artifacts")
           for pattern in ("Runtime-*.png", "Verification.txt", "CloudCapture.log"):
               for path in artifacts.glob(pattern):
@@ -45,6 +42,9 @@ jobs:
           results = artifacts / "TestResults"
           if results.is_dir():
               shutil.rmtree(results)
+          invalid = [str(p) for p in Path("Assets/DarkFantasyUI").rglob("*.meta") if not re.search(r"(?m)^guid: [0-9a-f]{32}$", p.read_text(encoding="utf-8"))]
+          if invalid:
+              raise SystemExit("Invalid Unity GUID: " + ", ".join(invalid))
           PY
       - name: Require configured Unity credentials
         env:
@@ -83,6 +83,8 @@ jobs:
           name: combat-runtime-assets
           path: |
             Assets/DarkFantasyUI/Resources/Moonlit/Combat*
+            Assets/DarkFantasyUI/Resources/Moonlit/Companions*
+            Assets/DarkFantasyUI/Resources/Moonlit/CompanionParts*
             Assets/DarkFantasyUI/Resources/Moonlit/Forge/CelestialThumbnails*
           if-no-files-found: warn
 
@@ -102,9 +104,6 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           import re, shutil
-          invalid = [str(p) for p in Path("Assets/DarkFantasyUI").rglob("*.meta") if not re.search(r"(?m)^guid: [0-9a-f]{32}$", p.read_text(encoding="utf-8"))]
-          if invalid:
-              raise SystemExit("Invalid Unity GUID: " + ", ".join(invalid))
           artifacts = Path("Artifacts")
           for pattern in ("Runtime-*.png", "Verification.txt", "CloudCapture.log"):
               for path in artifacts.glob(pattern):
@@ -112,6 +111,9 @@ jobs:
           results = artifacts / "TestResults"
           if results.is_dir():
               shutil.rmtree(results)
+          invalid = [str(p) for p in Path("Assets/DarkFantasyUI").rglob("*.meta") if not re.search(r"(?m)^guid: [0-9a-f]{32}$", p.read_text(encoding="utf-8"))]
+          if invalid:
+              raise SystemExit("Invalid Unity GUID: " + ", ".join(invalid))
           PY
       - name: Require configured Unity credentials
         env:

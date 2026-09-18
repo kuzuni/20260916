@@ -121,6 +121,7 @@ namespace Moonlit.UI
             enemyFlash = enemy.AddComponent<CombatHitFlash>();
             PlayerHud = CombatWorldHud.Create(stageRoot.transform, player, renderCamera, main.font, true);
             EnemyHud = CombatWorldHud.Create(stageRoot.transform, enemy, renderCamera, main.font, false);
+            stageRoot.AddComponent<CompanionBattleRuntime>().Initialize(player.transform, renderCamera);
         }
         GameObject CreateActor(string name, float x, bool mirror, out Animator animator, out CombatAnimationRelay relay)
         {

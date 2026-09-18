@@ -15,7 +15,8 @@ namespace Moonlit.UI
         public IReadOnlyList<CanvasGroup> Targets => targets;
         public static UiScreenMotion Play(RectTransform root,bool sequential)
         {
-            var motion=root.GetComponent<UiScreenMotion>()??root.gameObject.AddComponent<UiScreenMotion>();
+            var motion=root.GetComponent<UiScreenMotion>();
+            if(!motion)motion=root.gameObject.AddComponent<UiScreenMotion>();
             motion.Begin(root,sequential);return motion;
         }
         void Begin(RectTransform root,bool sequential)
@@ -41,7 +42,11 @@ namespace Moonlit.UI
             if(targets.Count==0)Complete();
         }
         static CanvasGroup Group(RectTransform rect)
-            => rect.GetComponent<CanvasGroup>()??rect.gameObject.AddComponent<CanvasGroup>();
+        {
+            var group=rect.GetComponent<CanvasGroup>();
+            if(!group)group=rect.gameObject.AddComponent<CanvasGroup>();
+            return group;
+        }
         static void Collect(RectTransform node,List<RectTransform> result,bool include)
         {
             if(!node || !node.gameObject.activeInHierarchy)return;
