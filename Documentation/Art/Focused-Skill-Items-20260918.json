@@ -1,0 +1,120 @@
+{
+  "date": "2026-09-18",
+  "generator": "Built-in image_gen (one call per asset)",
+  "reference": {
+    "path": "Assets/Art/ChihuahuaEquipmentThemes/Reference/character_base.png",
+    "role": "Style only; thick smooth black outlines, simple cel shading."
+  },
+  "otherReferencesInspected": [
+    "Assets/DarkFantasyUI/Resources/Moonlit/Combat/Skills/Tier00/Buff.png",
+    "Assets/DarkFantasyUI/Resources/Moonlit/Combat/Skills/Tier00/Weak.png",
+    "Assets/DarkFantasyUI/Resources/Moonlit/Combat/Skills/Tier00/Strong.png",
+    "Assets/DarkFantasyUI/Resources/Moonlit/Combat/Skills/Tier01/Strong.png"
+  ],
+  "pixelProcessing": "None: original generated PNG bytes uploaded unchanged. Read-only alpha inspection.",
+  "runtimeVerification": "Not run; requires cloud skill integration and both-aspect visual capture.",
+  "assets": [
+    {
+      "path": "C:/Users/user/.codex/generated_images/01a0b1a7-bfdf-73f1-b6ef-0d4cfd3eb3c2/exec-0edf6aa2-d57b-4a48-9b4e-3133c1e9452c.png",
+      "size": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "alphaZero": 1164604,
+      "alphaOpaque": 1393,
+      "visibleBounds": [
+        76,
+        193,
+        1715,
+        699
+      ],
+      "sha256": "88d9e31af492ebaa4219b3e8e4f84346ccfe4a6fc448bbd7b1119ca23571770b",
+      "guid": "57554f7677c0486b85285ad633b42148",
+      "spriteID": "cf47c0b440d8409eb17ac3a41e0e5da6",
+      "repositoryPath": "Assets/DarkFantasyUI/Resources/Moonlit/Combat/Skills/Focused/Bone-v1.png",
+      "prompt": "Use case: stylized-concept. Asset type: individual Unity 2D game sprite, a SINGLE isolated item.\nUse attached character_base.png as STYLE REFERENCE ONLY: match its thick smooth black outlines, simplified rounded shapes, flat saturated colors, minimal clean cel shading, restrained broad highlight. Do not reproduce the dog, body parts or layout. NOT realistic, NOT painterly, NOT detailed textures or 3D.\nGenuinely transparent alpha background. One object centered in the canvas, clean transparent padding on every side. Entire object fully visible. No scene, ground shadow, text, border, background rectangle, UI, multiple objects, sparkles, VFX, trails, particles, motion blur, arcs, fire, glow, or action lines. Do not include effects within the sprite. Crisp black outside contour readable at mobile icon size.\nSubject: ONE long ivory cartoon bone used as a primitive bone club. Fully HORIZONTAL major axis left-to-right, nearly straight shaft, thick rounded knobby double lobes at both ends, larger rounded club head at RIGHT and smaller double knob at LEFT. Pale warm ivory fill, simple cream shadow stripe, tiny broad pale highlight. Clearly a BONE, not a rock, not wooden club, no meat, no handle wrapping. Use wide landscape composition, bone fills about 80% of canvas width.",
+      "axis": "Horizontal +X; larger bone club head right",
+      "unityAlphaBounds": {
+        "x": 76,
+        "y": 188,
+        "width": 1639,
+        "height": 506
+      },
+      "ppu": 128,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "visualReview": "One distinct item; complete silhouette and transparent padding; no baked VFX/trails/particles."
+    },
+    {
+      "path": "C:/Users/user/.codex/generated_images/01a0b1a7-bfdf-73f1-b6ef-0d4cfd3eb3c2/exec-008ad855-e54d-42db-be98-1adb2b5fbed1.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "alphaZero": 931128,
+      "alphaOpaque": 1205,
+      "visibleBounds": [
+        190,
+        125,
+        1064,
+        1123
+      ],
+      "sha256": "45caa5fb25a545f67fc35d3636e5ba7b284ae8e09a4d7d4433433c6ab4491490",
+      "guid": "e93826a4405a48fab9f3f342244db8e9",
+      "spriteID": "00c4ee697ce846eb97f8c6d65c0ed1d7",
+      "repositoryPath": "Assets/DarkFantasyUI/Resources/Moonlit/Combat/Skills/Focused/Apple-v1.png",
+      "prompt": "Use case: stylized-concept. Asset type: individual Unity 2D game sprite, a SINGLE isolated item.\nUse attached character_base.png as STYLE REFERENCE ONLY: match its thick smooth black outlines, simplified rounded shapes, flat saturated colors, minimal clean cel shading, restrained broad highlight. Do not reproduce the dog, body parts or layout. NOT realistic, NOT painterly, NOT detailed textures or 3D.\nGenuinely transparent alpha background. One object centered in the canvas, clean transparent padding on every side. Entire object fully visible. No scene, ground shadow, text, border, background rectangle, UI, multiple objects, sparkles, VFX, trails, particles, motion blur, arcs, fire, glow, or action lines. Do not include effects within the sprite. Crisp black outside contour readable at mobile icon size.\nSubject: ONE bright red cartoon APPLE, plump rounded apple body, short brown stem and ONE small green leaf at its top. Symmetric upright readable icon silhouette, broad red flat fill, one darker red cel-shaded side and one simple pale highlight. A complete apple, no bite, no slice, no face, no basket, no other fruit. Centered square composition, apple and leaf together fill about 75% of canvas height.",
+      "axis": "Upright +Y; stem and leaf at top",
+      "unityAlphaBounds": {
+        "x": 190,
+        "y": 131,
+        "width": 874,
+        "height": 998
+      },
+      "ppu": 128,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "visualReview": "One distinct item; complete silhouette and transparent padding; no baked VFX/trails/particles."
+    },
+    {
+      "path": "C:/Users/user/.codex/generated_images/01a0b1a7-bfdf-73f1-b6ef-0d4cfd3eb3c2/exec-9d418a6c-7f18-4a08-9c8a-65fe79876093.png",
+      "size": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "alphaZero": 1314554,
+      "alphaOpaque": 475,
+      "visibleBounds": [
+        45,
+        244,
+        1729,
+        647
+      ],
+      "sha256": "88dc656bddc147133da78c165622a90a338bb6016a10bc39c7b875f6579d0d7b",
+      "guid": "13c353ecbee544ac99fc6ae2b7da6fca",
+      "spriteID": "6d7130705ceb4b9d938901cd715ecdc5",
+      "repositoryPath": "Assets/DarkFantasyUI/Resources/Moonlit/Combat/Skills/Focused/Sword-v1.png",
+      "prompt": "Use case: stylized-concept. Asset type: individual Unity 2D game sprite, a SINGLE isolated item.\nUse attached character_base.png as STYLE REFERENCE ONLY: match its thick smooth black outlines, simplified rounded shapes, flat saturated colors, minimal clean cel shading, restrained broad highlight. Do not reproduce the dog, body parts or layout. NOT realistic, NOT painterly, NOT detailed textures or 3D.\nGenuinely transparent alpha background. One object centered in the canvas, clean transparent padding on every side. Entire object fully visible. No scene, ground shadow, text, border, background rectangle, UI, multiple objects, sparkles, VFX, trails, particles, motion blur, arcs, fire, glow, or action lines. Do not include effects within the sprite. Crisp black outside contour readable at mobile icon size.\nSubject: ONE simple MEDIEVAL SWORD. Perfectly HORIZONTAL major axis: pommel and brown grip at LEFT, silver straight blade extending to a sharp point at RIGHT. Small gold crossguard, gold round pommel, plain brown leather grip. Silver blade has only two clean cel-shaded gray-blue faces and a crisp black outline. No decorative gems or inscriptions. Whole sword side-on, not foreshortened and not diagonal. No slash arc baked into art. Wide landscape composition, sword fills about 85% of canvas width.",
+      "axis": "Horizontal +X; blade tip right; hilt left",
+      "unityAlphaBounds": {
+        "x": 45,
+        "y": 240,
+        "width": 1684,
+        "height": 403
+      },
+      "ppu": 128,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "visualReview": "One distinct item; complete silhouette and transparent padding; no baked VFX/trails/particles."
+    }
+  ]
+}
