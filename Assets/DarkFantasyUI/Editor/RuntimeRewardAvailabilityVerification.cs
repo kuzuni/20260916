@@ -49,6 +49,8 @@ namespace Moonlit.Editor
                 SaveCamera(camera,"Artifacts/Runtime-wallet-icons-"+aspect+".png",1080,height);
                 screen.screens.CloseTop();
                 screen.screens.Open("shop");yield return null;Canvas.ForceUpdateCanvases();
+                var shopScroll=GameObject.Find("Page — shop").GetComponentInChildren<ScrollRect>();
+                shopScroll.verticalNormalizedPosition=0;Canvas.ForceUpdateCanvases();
                 SaveCamera(camera,"Artifacts/Runtime-shop-daily-diamonds-"+aspect+".png",1080,height);
                 var claim=UnityEngine.Object.FindObjectsByType<Button>(FindObjectsSortMode.None).FirstOrDefault(b=>b.name=="Claim daily diamonds");
                 if(!claim){report.Add("FAIL daily diamond shop claim is missing");fail();yield break;}
