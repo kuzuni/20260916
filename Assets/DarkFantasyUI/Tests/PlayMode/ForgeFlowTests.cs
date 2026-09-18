@@ -30,6 +30,8 @@ namespace Moonlit.UI.Tests
             main.powerText=Label("power");main.stageText=Label("stage");main.autoText=Label("auto");
             main.equipment=new EquipmentSlot[0];main.ore=1000;main.gold=0;
             main.forgeButton=Child("anvil").gameObject.AddComponent<Button>();
+            main.goldButton=Child("gold wallet").gameObject.AddComponent<Button>();
+            Ui.Image("Crown coin",main.goldButton.transform,0,0,60,60,PopupSkin.CloseArt);
             host=root.AddComponent<UiScreenHost>();host.Initialize(assets,main,popup,pages,mainGroup,navGroup);
             host.SetPreviewMetrics(new Vector2Int(1080,1920),new Rect(36,84,1008,1752));
             main.screens=host.Registry;ForgeScreenModule.Register(host.Registry);
@@ -89,12 +91,36 @@ namespace Moonlit.UI.Tests
             yield return new WaitForSecondsRealtime(1.08f);
             var hand=GameObject.Find("Forged equipment hand");
             Assert.IsNotNull(hand);Assert.AreEqual(22,hand.GetComponentsInChildren<Image>().Count(i=>i.name.StartsWith("Forged card ")));
+            var cards=hand.GetComponentsInChildren<Image>().Where(i=>i.name.StartsWith("Forged card ")).Select(i=>i.rectTransform).ToArray();
+            Assert.That(cards[1].anchoredPosition.x-cards[0].anchoredPosition.x,Is.EqualTo(cards[0].rect.width*.5f).Within(.01f));
+            Assert.That(cards[0].anchoredPosition.y,Is.EqualTo(cards[10].anchoredPosition.y).Within(.01f));
+            Assert.Less(cards[11].anchoredPosition.y,cards[0].anchoredPosition.y,"22 cards appear as two half-overlapped hands");
             Assert.AreEqual(0,main.gold);Assert.AreEqual(0,host.ModalDepth);
             yield return new WaitForSecondsRealtime(.52f);
             Assert.IsNotNull(GameObject.Find("Gold sale effect"));Assert.AreEqual(expected,main.gold);
+            var burst=GameObject.Find("Gold coin burst");Assert.IsNotNull(burst);
+            var coins=burst.GetComponentsInChildren<Image>();Assert.AreEqual(8,coins.Length);
+            Assert.IsTrue(coins.All(i=>i.sprite==main.goldButton.transform.Find("Crown coin").GetComponent<Image>().sprite && !i.raycastTarget));
             yield return new WaitForSecondsRealtime(.65f);
             Assert.IsFalse(state.autoEnabled);Assert.IsFalse(runtime.Busy);Assert.IsNull(state.Pending);
             Assert.AreEqual(0,host.ModalDepth);Assert.IsNull(GameObject.Find("Gold sale effect"));
         }
+        [UnityTest] public IEnumerator StopDuringAutoAnimationDefersComparisonUntilRevealCompletes()
+        {
+            var state=ForgeState.Current;state.batchSize=22;
+            var runtime=ForgeRuntime.Ensure(main);runtime.StartAuto();yield return null;
+            Assert.IsTrue(runtime.Busy);Assert.AreEqual(22,state.pending.Count);
+            host.Registry.Open("auto-forge");yield return null;
+            GameObject.Find("정지").GetComponent<Button>().onClick.Invoke();yield return null;
+            Assert.IsFalse(state.autoEnabled);Assert.IsTrue(runtime.Busy);
+            Assert.AreEqual(0,host.ModalDepth,"Stopping must not expose an in-flight batch to equip or sale actions");
+            Assert.IsNull(GameObject.Find("Popup Layer forge-comparison"));
+            yield return new WaitForSecondsRealtime(1.6f);
+            Assert.IsFalse(runtime.Busy);Assert.AreEqual(1,host.ModalDepth);
+            Assert.IsNotNull(GameObject.Find("Popup Layer forge-comparison"));
+            Assert.AreEqual(22,state.pending.Count);Assert.AreEqual(0,main.gold);
+            Assert.AreEqual(978,main.ore);
+        }
+
     }
 }

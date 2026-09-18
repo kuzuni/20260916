@@ -64,7 +64,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: combat-runtime-assets
-          path: Assets/DarkFantasyUI/Resources/Moonlit/Combat*
+          path: |
+            Assets/DarkFantasyUI/Resources/Moonlit/Combat*
+            Assets/DarkFantasyUI/Resources/Moonlit/Forge/CelestialThumbnails*
           if-no-files-found: warn
 
   screenshots:

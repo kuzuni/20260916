@@ -42,6 +42,7 @@ namespace Moonlit.UI
                     }
                 } catch(Exception e) { Debug.LogWarning("게임 저장을 불러오지 못했습니다: "+e.GetType().Name); }
             }
+            ForgeState.Current.NormalizeAfterLoad();
             if(RewardState.Current.passClaimed==null || RewardState.Current.passClaimed.Length!=100)
                 RewardState.Current.passClaimed=new bool[100];
             RewardState.Current.Advance(DateTimeOffset.UtcNow.ToUnixTimeSeconds());

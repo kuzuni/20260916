@@ -372,6 +372,8 @@ namespace Moonlit.UI
                 if(!accepted){DungeonProgression.CancelEntry();main.Refresh();main.Toast("전투 준비 중입니다. 열쇠를 반환했습니다.");}
             },Blue,34);
             Close(panel,385,h-48,font,ctx.Close);refresh();
+            // The dialog can stay open across the daily reset; update its disabled actions with the key count.
+            var ticker=panel.gameObject.AddComponent<ProgressionTick>();ticker.tick=refresh;
         }
         static Sprite dungeonHammer;
         static Sprite DungeonHammer()

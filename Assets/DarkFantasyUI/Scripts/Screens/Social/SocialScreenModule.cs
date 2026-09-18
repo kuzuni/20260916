@@ -259,14 +259,14 @@ namespace Moonlit.UI
         {
             var payload = c.Payload as Dictionary<string, object>;
             string player = Get(payload, "name", profileName);
-            string power = Get(payload, "power", "65.5b");
-            int rank = GetInt(payload, "rank", 11);
+            string power = Get(payload, "power", c.Main.powerText ? c.Main.powerText.text : "0");
+            int rank = GetInt(payload, "rank", RewardRules.ArenaRank(RewardState.Current.arenaPoints));
             float w, h; var frame = Frame(c, "플레이어 정보", 1370, out w, out h);
             Avatar(c, frame, 52, 120, 146, GetInt(payload, "avatarIndex", profileAvatar));
             Ui.Text("Player", frame, 220, 116, w - 270, 48, player + (payload == null ? (profileFemale ? "  여성" : "  남성") : ""), 34, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
             Ui.Image("Power icon", frame, 220, 169, 36, 36, Icon(c, 12)).preserveAspect = true;
             Ui.Text("Power", frame, 266, 166, w - 316, 44, power + "     서버 순위 " + rank, 29, Font(c), Ui.Gold, TextAnchor.MiddleLeft);
-            bool local=payload==null || rank==RewardRules.ArenaRank(RewardState.Current.arenaPoints) || player=="moonzsanf" || player==profileName;
+            bool local=payload==null || player==profileName;
             var stats=ForgeState.Current.TotalStats;
             Ui.Text("Stats",frame,w-380,210,330,100,local ? "Lv."+ForgeState.Current.level+" 대장간\n공격력 "+MainScreen.Compact(stats.attack+CollectionProgression.OwnedAttack+CollectionProgression.EquippedAttack)+"\n체력 "+MainScreen.Compact(stats.health+CollectionProgression.OwnedHealth+CollectionProgression.EquippedHealth) : "더미 상대",22,Font(c),Ui.Ivory,TextAnchor.UpperRight);
             var scene = Ui.Panel("Companion scene", frame, 52, 288, w - 104, 210, new Color(.015f,.16f,.22f));
@@ -280,10 +280,13 @@ namespace Moonlit.UI
                 Ui.Image("Icon",slot.transform,13,9,sw-38,79,roll!=null?EquipmentArt.Icon(roll):null).preserveAspect=true;
                 Ui.Text("Level",slot.transform,4,88,sw-20,34,i<6?(roll==null?EquipmentRules.PartNames[i]:"Lv."+roll.level):new[]{"엠블렘","날개","정령"}[i-6],20,Font(c));
             }
-            for (int i = 0; i < 6; i++)
+            var equippedSkills = CollectionProgression.EquippedSkills;
+            for (int i = 0; i < 3; i++)
             {
-                Ui.Image("Skill icon " + i, frame, 98 + i * 126, 806, 48, 48, Icon(c, (i + 3) % 16)).preserveAspect = true;
-                Ui.Text("Skill level " + i, frame, 78 + i * 126, 850, 88, 30, "Lv." + new[] { 20, 17, 19, 78, 3, 3 }[i], 18, Font(c), Ui.Gold);
+                var entry = local && i < equippedSkills.Count ? equippedSkills[i] : null;
+                Ui.Text("Equipped skill " + i, frame, 65 + i * 262, 798, 250, 72,
+                    entry == null ? "스킬 " + (i + 1) + "\n비어 있음" : entry.Name + "\nLv." + entry.level,
+                    22, Font(c), entry == null ? Ui.Ivory : EquipmentRules.TierColor(entry.grade));
             }
             Ui.Image("Stats rule", frame, 60, 872, w - 120, 2, null, Ui.Gold);
             string bonuses="";
@@ -490,9 +493,9 @@ namespace Moonlit.UI
             Ui.Image("Ribbon",card.transform,0,10,430,52,PopupSkin.RibbonArt,new Color(1,.22f,.16f));
             Ui.Text("Title", card.transform, 20, 2, 390, 56, title, 31, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
             var ticket=Resources.Load<Sprite>("Moonlit/Skills/SummonTicket-v1");
-            Sprite[] icons = artIndex==0 ? new[]{Icon(c,0),PopupSkin.RewardIcon(0),ticket,ticket,ticket,Icon(c,1)}
-                : artIndex==1 ? new[]{ticket,PopupSkin.RewardIcon(0),Icon(c,1)}
-                : new[]{PopupSkin.RewardIcon(5),PopupSkin.RewardIcon(3),PopupSkin.RewardIcon(2),PopupSkin.RewardIcon(4)};
+            Sprite[] icons = artIndex==0 ? new[]{Icon(c,0),RewardsScreenModule.HammerArt,ticket,ticket,ticket,Icon(c,1)}
+                : artIndex==1 ? new[]{ticket,RewardsScreenModule.HammerArt,Icon(c,1)}
+                : new[]{PopupSkin.RewardIcon(5),PopupSkin.RewardIcon(2),PopupSkin.RewardIcon(4),PopupSkin.RewardIcon(3)};
             string[] values=artIndex==0 ? new[]{"골드 1,000","망치 50","스킬권 200","펫권 50","탈것권 50","다이아 62"}
                 : artIndex==1 ? new[]{"펫권 660","망치 200","다이아 20"} : new[]{"망치 키 2","유령 키 2","침략 키 2","좀비 키 2"};
             for(int i=0;i<icons.Length;i++)
@@ -554,11 +557,10 @@ namespace Moonlit.UI
             rewards.onClick.AddListener(() => c.Open("pvp-rewards"));
             string[] names = { "tewtee", "CreeGuy", "MenoT", profileName, "Guest 86680", "mrmaingo1868", "Epsylon" };
             string[] powers = { "212m", "12.9m", "16b", "65.5b", "5.52m", "2.57m", "821b" };
-            int[] stars = { 15, 14, 13, 11, 4, 2, 0 };
             float actionY = h - NavigationReserve - 112;
             float stickyY = actionY - 132;
             float listHeight = Mathf.Max(380, stickyY - 310 - 18);
-            // Reference identities at ranks 8–14 remain intact; other standings are local demo data.
+            // Local standings reflect the same points and rank used by challenge rewards.
             Scroll(c, root, 90, 290, w - 180, listHeight, 100 * 130, out var content);
             for (int rank = 1; rank <= 100; rank++)
             {
@@ -618,7 +620,7 @@ namespace Moonlit.UI
                     c.Main.StartArena(Mathf.Max(1,c.Main.stage+index-2),won=>RewardRules.FinishArena(c.Main,won));
                 });
                 Ui.Image("Reward star", row.transform, w - 340, 3, 30, 30, Icon(c, 15)).preserveAspect = true;
-                Ui.Text("Reward", row.transform, w - 305, 4, 175, 34, "+" + (5 - i), 23, Font(c), Ui.Gold);
+                Ui.Text("Reward", row.transform, w - 305, 4, 175, 34, "+25 승점", 23, Font(c), Ui.Gold);
             }
             Close(c, frame, w, h);
         }

@@ -38,6 +38,7 @@ namespace Moonlit.UI.Tests
             MoonlitRuntimeSettings.ResetSession();
             var restored=JsonUtility.FromJson<GameplaySave>(json);
             JsonUtility.FromJsonOverwrite(restored.forge,ForgeState.Current);
+            ForgeState.Current.NormalizeAfterLoad();
             JsonUtility.FromJsonOverwrite(restored.collections,CollectionProgression.Data);
             JsonUtility.FromJsonOverwrite(restored.dungeons,DungeonProgression.Data);
             Assert.AreEqual(1,ForgeState.Current.pending.Count);

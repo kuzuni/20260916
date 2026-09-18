@@ -1,5 +1,7 @@
 # Moonlit — dark fantasy main screen
 
+> 2026-09-18 gameplay update: [current game rules](../../Documentation/Gameplay-20260918.md) supersede screenshot/demo economy, equipment, collection, combat and reward values. The 30 reference routes and safe-area contracts remain in effect. Three primitive skill effects are implemented; higher skill and pet/mount illustrations remain deferred by user request.
+
 Unity 6000.3 / uGUI. Open `Scenes/MoonlitMain.unity` and press Play.
 
 ## Runtime generation

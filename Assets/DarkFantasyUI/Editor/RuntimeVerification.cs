@@ -368,11 +368,24 @@ namespace Moonlit.Editor
             screen.Close();
             report.Add("PASS one-hammer forge sequence, delayed comparison and persistent pending result");
             var battle=screen.GetComponent<BattleRuntime>();
-            for(int skill=0;skill<3;skill++) {
-                battle.PreviewPrimitiveSkill(skill);
-                yield return new WaitForSecondsRealtime(.38f);
-                SaveCamera(camera,"Artifacts/Runtime-primitive-skill-"+skill+".png",1080,camera.targetTexture.height);
-                yield return new WaitForSecondsRealtime(1.6f);
+            var previousTarget=camera.targetTexture;
+            var safe=Object.FindFirstObjectByType<PortraitSafeArea>();
+            var host=Object.FindFirstObjectByType<UiScreenHost>();
+            foreach(int height in new[]{1920,2280}) {
+                var previewTarget=new RenderTexture(1080,height,24);camera.targetTexture=previewTarget;
+                var area=height==1920?new Rect(0,60,1080,1740):new Rect(36,84,1008,2076);
+                safe.SetPreviewMetrics(new Vector2Int(1080,height),area);
+                host.SetPreviewMetrics(new Vector2Int(1080,height),area);
+                yield return null;yield return null;Canvas.ForceUpdateCanvases();
+                for(int skill=0;skill<3;skill++) {
+                    battle.PreviewPrimitiveSkill(skill);
+                    yield return new WaitForSecondsRealtime(.38f);
+                    SaveCamera(camera,"Artifacts/Runtime-primitive-skill-"+skill+"-"+(height==1920?"9x16":"9x19")+".png",1080,height);
+                    yield return new WaitForSecondsRealtime(.34f);
+                    SaveCamera(camera,"Artifacts/Runtime-primitive-impact-"+skill+"-"+(height==1920?"9x16":"9x19")+".png",1080,height);
+                    yield return new WaitForSecondsRealtime(1.3f);
+                }
+                camera.targetTexture=previousTarget;previewTarget.Release();Object.DestroyImmediate(previewTarget);
             }
             report.Add("CAPTURE primitive buff/weak/strong previews; final artwork approval remains user review");
         }
