@@ -27,7 +27,7 @@ namespace Moonlit.UI
                         delta=player?Mathf.Min(delta,area.xMin-gap-part.max.x):
                             Mathf.Max(delta,area.xMax+gap-part.min.x);
                     }
-            // All existing pets and the whole mount stay in view together with the rider.
+            // Keep the rider and whole mount in view; smaller trailing pets reflow separately.
             float left=float.PositiveInfinity,right=float.NegativeInfinity;
             foreach(var part in formation){left=Mathf.Min(left,part.min.x);right=Mathf.Max(right,part.max.x);}
             if(formation.Count>0)
