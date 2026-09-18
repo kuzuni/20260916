@@ -10,6 +10,7 @@ namespace Moonlit.UI
         readonly Image[] icons=new Image[3], frames=new Image[3], cooldowns=new Image[3];
         readonly Text[] labels=new Text[3];
         readonly CollectionEntry[] shown=new CollectionEntry[3];
+        readonly SkillHudFeedback[] feedback=new SkillHudFeedback[3];
 
         public void Initialize(MainScreen owner,Sprite circle)
         {
@@ -27,8 +28,12 @@ namespace Moonlit.UI
                 cooldowns[i].fillOrigin=2;cooldowns[i].fillClockwise=true;
                 frames[i]=Ui.Image("Skill frame",button.transform,0,0,116,116,ring);
                 frames[i].preserveAspect=true;
+                var flash=Ui.Image("Skill activation flash",button.transform,0,0,116,116,ring,new Color(1,1,1,0));
+                flash.preserveAspect=true;
                 labels[i]=Ui.Text("Turns until skill",button.transform,0,89,116,38,"",25,main.font,Color.white);
                 labels[i].horizontalOverflow=HorizontalWrapMode.Overflow;
+                feedback[i]=button.gameObject.AddComponent<SkillHudFeedback>();
+                feedback[i].Initialize(icons[i],cooldowns[i],flash,labels[i]);
                 button.onClick.AddListener(()=>{if(shown[slot]!=null)main.screens.Open("skill-details",shown[slot]);});
             }
             Refresh();
@@ -45,13 +50,15 @@ namespace Moonlit.UI
                 if(entry==null)continue;
                 icons[i].sprite=PrimitiveSkillEffects.SkillSprite(entry.grade,entry.variant);
                 frames[i].color=EquipmentRules.TierColor(entry.grade);
-                int remaining=entry.Cooldown;
+                int remaining=entry.Cooldown,activations=0;
                 if(battle && battle.PlayerState!=null) {
                     int actual=battle.PlayerState.skills.FindIndex(skill=>skill.tier==entry.grade && skill.variant==entry.variant);
-                    if(actual>=0)remaining=battle.PlayerSkillTurnsUntilReady(actual);
+                    if(actual>=0) {
+                        remaining=battle.PlayerSkillTurnsUntilReady(actual);
+                        activations=battle.PlayerSkillActivationCount(actual);
+                    }
                 }
-                cooldowns[i].fillAmount=Mathf.Clamp01(remaining/(float)entry.Cooldown);
-                labels[i].text=remaining==0?"발동":remaining+"턴";
+                feedback[i].Apply(entry,battle?battle.PlayerState:null,remaining,activations);
             }
         }
     }
