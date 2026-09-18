@@ -15,6 +15,35 @@ namespace Moonlit.Editor
 {
     public static partial class MainScreenBuilder
     {
+        static IEnumerator VerifyRuntimeGuarded(MainScreen screen)
+        {
+            var failures=new List<string>();
+            yield return CaptureGuarded(VerifyRuntime(screen),failures,()=>{});
+            if(failures.Count>0){
+                Directory.CreateDirectory("Artifacts");
+                File.WriteAllText("Artifacts/Verification.txt","FAIL — runtime capture exception\n"+string.Join("\n",failures));
+                EditorApplication.isPlaying=false;
+            }
+        }
+        // Unity does not propagate exceptions from nested yielded enumerators to their parent.
+        // Flatten each capture so a failed assertion writes evidence and exits rather than idling until CI timeout.
+        static IEnumerator CaptureGuarded(IEnumerator operation,List<string> report,Action fail)
+        {
+            var pending=new Stack<IEnumerator>();pending.Push(operation);
+            while(pending.Count>0){
+                var current=pending.Peek();bool moved=false;Exception error=null;
+                try{moved=current.MoveNext();}catch(Exception e){error=e;}
+                if(error!=null){
+                    report.Add("FAIL "+current.GetType().Name+": "+error);fail();
+                    while(pending.Count>0){try{(pending.Pop() as IDisposable)?.Dispose();}catch(Exception cleanup){report.Add("FAIL capture cleanup: "+cleanup.Message);}}
+                    yield break;
+                }
+                if(!moved){(pending.Pop() as IDisposable)?.Dispose();continue;}
+                if(current.Current is IEnumerator child){pending.Push(child);continue;}
+                yield return current.Current;
+            }
+        }
+
         static IEnumerator VerifyRuntime(MainScreen screen)
         {
             var report=new List<string>();
@@ -569,17 +598,17 @@ namespace Moonlit.Editor
                         safe.SetPreviewMetrics(new Vector2Int(1080,height),area);
                         host.SetPreviewMetrics(new Vector2Int(1080,height),area);
                         yield return null;yield return null;Canvas.ForceUpdateCanvases();
-                        yield return CaptureBattleOverlay(screen,camera,height,report,fail);
-                        yield return CaptureRewardAvailability(screen,camera,height,report,fail);
-                yield return CaptureInstantScreens(screen,camera,height,report,fail);
-                        yield return CaptureForgePassFeedback(screen,camera,height,report,fail);
-                        yield return CaptureSkillHudFeedback(screen,camera,height,report,fail);
-                        yield return CaptureCombatFeedback(screen,camera,height,report,fail);
-                yield return CapturePrimitiveCompanions(screen,camera,height,report,fail);
-                        yield return CaptureAscension(screen,camera,height,report,fail);
-                        yield return CaptureCollectionAscensions(screen,camera,height,report,fail);
-                        yield return CaptureDungeonClaims(screen,camera,height,report,fail);
-                        yield return CaptureSkillChoreographies(screen,camera,height,report,fail);
+                        yield return CaptureGuarded(CaptureSkillChoreographies(screen,camera,height,report,fail),report,fail);
+                        yield return CaptureGuarded(CaptureBattleOverlay(screen,camera,height,report,fail),report,fail);
+                        yield return CaptureGuarded(CaptureRewardAvailability(screen,camera,height,report,fail),report,fail);
+                yield return CaptureGuarded(CaptureInstantScreens(screen,camera,height,report,fail),report,fail);
+                        yield return CaptureGuarded(CaptureForgePassFeedback(screen,camera,height,report,fail),report,fail);
+                        yield return CaptureGuarded(CaptureSkillHudFeedback(screen,camera,height,report,fail),report,fail);
+                        yield return CaptureGuarded(CaptureCombatFeedback(screen,camera,height,report,fail),report,fail);
+                yield return CaptureGuarded(CapturePrimitiveCompanions(screen,camera,height,report,fail),report,fail);
+                        yield return CaptureGuarded(CaptureAscension(screen,camera,height,report,fail),report,fail);
+                        yield return CaptureGuarded(CaptureCollectionAscensions(screen,camera,height,report,fail),report,fail);
+                        yield return CaptureGuarded(CaptureDungeonClaims(screen,camera,height,report,fail),report,fail);
                     }
                     finally {camera.targetTexture=previousTarget;previewTarget.Release();Object.DestroyImmediate(previewTarget);}
                 }

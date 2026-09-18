@@ -176,7 +176,7 @@ namespace Moonlit.Editor
         {
             var screen=Object.FindFirstObjectByType<MainScreen>();
             if(!screen) { Directory.CreateDirectory("Artifacts"); File.WriteAllText("Artifacts/Verification.txt","FAIL: runtime bootstrap did not create MainScreen"); EditorApplication.isPlaying=false; return; }
-            screen.StartCoroutine(VerifyRuntime(screen));
+            screen.StartCoroutine(VerifyRuntimeGuarded(screen));
         }
         static void AssertRaycast(Button button)
         {
