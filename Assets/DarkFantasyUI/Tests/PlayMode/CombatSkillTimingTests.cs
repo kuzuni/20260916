@@ -48,13 +48,15 @@ namespace Moonlit.UI.Tests
                 Assert.IsTrue(relay.Pending);
                 animator.Update(0);
                 Assert.IsTrue(animator.GetCurrentAnimatorStateInfo(0).IsName(state));
-                animator.Update(PrimitiveSkillEffects.AttackFlightDuration - .01f);
+                float eventTime=AuthoredAnimationTestSupport.ImpactTime(animator,state,variant+1);
+                animator.Update(eventTime - .01f);
                 Assert.AreEqual(100, target.Health, "No damage while the attack projectile is still in flight.");
                 Assert.IsTrue(relay.Pending);
+                AuthoredAnimationTestSupport.SeekEffects(runtime,eventTime);
                 animator.Update(.02f);
-                Assert.AreEqual(100, target.Health, "The old .65 event must not hit while the new ring or lob is still preparing.");
+                Assert.AreEqual(100, target.Health, "The authored event only authorizes the skill while the ring or lob is still preparing.");
                 var combo = (CombatComboSequence)typeof(BattleRuntime).GetField("activeCombo", PrivateInstance).GetValue(runtime);
-                float delay = SkillChoreography.HitTimes(0, variant)[0] - SkillChoreography.AttackLead;
+                float delay = SkillChoreography.HitTimes(0, variant)[0] - eventTime;
                 combo.Advance(delay - .01f);
                 Assert.AreEqual(100, target.Health);
                 combo.Advance(.011f);
@@ -64,21 +66,20 @@ namespace Moonlit.UI.Tests
                 relay.OnCombatImpact(variant + 1);
                 Assert.AreEqual(afterFirstHit, target.Health, .000001, "Duplicate impact callbacks cannot repeat damage.");
                 Assert.AreEqual(0, runtime.PlayerResolvedBasicAttacks);
+                var authoredWait=(IEnumerator)motion.Current;
+                Assert.IsTrue(authoredWait.MoveNext());
+                animator.Update(AuthoredAnimationTestSupport.Clip(animator,state).length);
+                Assert.IsFalse(authoredWait.MoveNext());
                 if (combo.Pending) Assert.IsTrue(motion.MoveNext(), "The action waits for its remaining combo impacts.");
                 combo.Advance(10);
                 Assert.AreEqual(80, target.Health, .000001, "The complete combo retains its supplied fixed total.");
                 Assert.IsFalse(motion.MoveNext());
                 Assert.IsFalse(strike.MoveNext());
 
-                var clip = catalog.controller.animationClips.Single(c => c.name == state);
-                var impact = clip.events.Single(e => e.functionName == "OnCombatImpact");
-                Assert.AreEqual(PrimitiveSkillEffects.AttackFlightDuration, impact.time, .0001f,
-                    "The checked-in/generated clip authorizes playback; new contacts may occur later.");
-                foreach (var unchanged in new[] { "Basic", "Buff" })
-                {
-                    var other = catalog.controller.animationClips.Single(c => c.name == unchanged);
-                    Assert.AreEqual(.3f, other.events.Single(e => e.functionName == "OnCombatImpact").time, .0001f);
-                }
+                Assert.AreSame(catalog.playerPrefab.GetComponent<Animator>().runtimeAnimatorController, animator.runtimeAnimatorController,
+                    "The actual supplied prefab controller, with its authored timing, drives combat.");
+                Assert.AreSame(animator.runtimeAnimatorController,catalog.controller);
+
             }
             finally
             {

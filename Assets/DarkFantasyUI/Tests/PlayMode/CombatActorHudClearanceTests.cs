@@ -109,7 +109,7 @@ namespace Moonlit.UI.Tests
                             player.localPosition=new Vector3(-2.5f,0,0);enemy.localPosition=new Vector3(2.5f,0,0);
                             foreach(var actor in new[]{player,enemy})
                             {
-                                var animator=actor.GetComponent<Animator>();animator.speed=1;
+                                var animator=AuthoredAnimationTestSupport.ActorAnimator(actor);animator.speed=1;
                                 animator.Play(state,0,0);animator.Update(0);animator.Update(state=="Idle"?0:.28f);animator.speed=0;
                             }
                             yield return null;yield return null;
