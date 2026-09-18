@@ -1,0 +1,1098 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 59d390512c094c98b014d43d04a4dc0b, type: 3}
+  m_Name: CompanionRigCatalog
+  m_EditorClassIdentifier: Moonlit.UI::Moonlit.UI.CompanionRigCatalog
+  definitions:
+  - type: 0
+    bones:
+    - name: Root
+      parent: -1
+      position: {x: 0, y: 0}
+    - name: Body
+      parent: 0
+      position: {x: 0, y: 0.78}
+    - name: Head
+      parent: 1
+      position: {x: 0.08, y: 1.24}
+    - name: Tail
+      parent: 1
+      position: {x: 0.04, y: 1.12}
+    - name: TailTip
+      parent: 3
+      position: {x: -0.93, y: 0.95}
+    - name: FrontNear
+      parent: 1
+      position: {x: 0.23, y: 1.04}
+    - name: FrontNearTip
+      parent: 5
+      position: {x: 0.23, y: 0.72999996}
+    - name: FrontFar
+      parent: 1
+      position: {x: -0.35, y: 1.04}
+    - name: FrontFarTip
+      parent: 7
+      position: {x: -0.35, y: 0.72999996}
+    - name: HindNear
+      parent: 1
+      position: {x: 0.23, y: 0.55}
+    - name: HindNearTip
+      parent: 9
+      position: {x: 0.23, y: 0.24000001}
+    - name: HindFar
+      parent: 1
+      position: {x: -0.35, y: 0.55}
+    - name: HindFarTip
+      parent: 11
+      position: {x: -0.35, y: 0.24000001}
+    - name: Extra
+      parent: 1
+      position: {x: 0, y: 0.68}
+    parts:
+    - name: Body
+      cell: 0
+      bone: 1
+      tip: -1
+      order: 0
+      height: 0.82
+      pivot: {x: 0.5, y: 0.5}
+      weightAxis: {x: 0, y: -1}
+    - name: Head
+      cell: 1
+      bone: 2
+      tip: -1
+      order: 3
+      height: 0.9
+      pivot: {x: 0.5, y: 0.08}
+      weightAxis: {x: 0, y: -1}
+    - name: Tail
+      cell: 6
+      bone: 3
+      tip: -1
+      order: 6
+      height: 0.18
+      pivot: {x: 0.5, y: 0.5}
+      weightAxis: {x: -1, y: 0}
+    - name: FrontNear
+      cell: 2
+      bone: 5
+      tip: 6
+      order: 4
+      height: 0.57
+      pivot: {x: 0.65, y: 0.93}
+      weightAxis: {x: 0, y: -1}
+    - name: FrontFar
+      cell: 3
+      bone: 7
+      tip: 8
+      order: -4
+      height: 0.57
+      pivot: {x: 0.35, y: 0.93}
+      weightAxis: {x: 0, y: -1}
+    - name: HindNear
+      cell: 4
+      bone: 9
+      tip: 10
+      order: 4
+      height: 0.68
+      pivot: {x: 0.65, y: 0.93}
+      weightAxis: {x: 0, y: -1}
+    - name: HindFar
+      cell: 5
+      bone: 11
+      tip: 12
+      order: -4
+      height: 0.68
+      pivot: {x: 0.35, y: 0.93}
+      weightAxis: {x: 0, y: -1}
+    - name: Extra
+      cell: 7
+      bone: 13
+      tip: -1
+      order: 5
+      height: 0.15
+      pivot: {x: 0.5, y: 0.5}
+      weightAxis: {x: 0, y: -1}
+    saddle: {x: -0.06, y: 1.32}
+    displayScale: 0.8
+    shadowWidth: 1
+  - type: 1
+    bones:
+    - name: Root
+      parent: -1
+      position: {x: 0, y: 0}
+    - name: Body
+      parent: 0
+      position: {x: 0, y: 0.78}
+    - name: Head
+      parent: 1
+      position: {x: 0.64, y: 1.1}
+    - name: Tail
+      parent: 1
+      position: {x: -0.49, y: 0.85}
+    - name: TailTip
+      parent: 3
+      position: {x: -0.93, y: 0.95}
+    - name: FrontNear
+      parent: 1
+      position: {x: 0.49, y: 0.67}
+    - name: FrontNearTip
+      parent: 5
+      position: {x: 0.49, y: 0.36}
+    - name: FrontFar
+      parent: 1
+      position: {x: 0.36, y: 0.67}
+    - name: FrontFarTip
+      parent: 7
+      position: {x: 0.36, y: 0.36}
+    - name: HindNear
+      parent: 1
+      position: {x: -0.4, y: 0.67}
+    - name: HindNearTip
+      parent: 9
+      position: {x: -0.4, y: 0.36}
+    - name: HindFar
+      parent: 1
+      position: {x: -0.53, y: 0.67}
+    - name: HindFarTip
+      parent: 11
+      position: {x: -0.53, y: 0.36}
+    - name: Extra
+      parent: 1
+      position: {x: 0.45, y: 0.88}
+    parts:
+    - name: Body
+      cell: 0
+      bone: 1
+      tip: -1
+      order: 0
+      height: 0.8
+      pivot: {x: 0.5, y: 0.5}
+      weightAxis: {x: 0, y: -1}
+    - name: Head
+      cell: 1
+      bone: 2
+      tip: -1
+      order: 3
+      height: 0.66
+      pivot: {x: 0.5, y: 0.08}
+      weightAxis: {x: 0, y: -1}
+    - name: Tail
+      cell: 6
+      bone: 3
+      tip: 4
+      order: -3
+      height: 0.55
+      pivot: {x: 0.93, y: 0.1}
+      weightAxis: {x: -1, y: 0}
+    - name: FrontNear
+      cell: 2
+      bone: 5
+      tip: 6
+      order: 4
+      height: 0.68
+      pivot: {x: 0.65, y: 0.93}
+      weightAxis: {x: 0, y: -1}
+    - name: FrontFar
+      cell: 3
+      bone: 7
+      tip: 8
+      order: -4
+      height: 0.68
+      pivot: {x: 0.35, y: 0.93}
+      weightAxis: {x: 0, y: -1}
+    - name: HindNear
+      cell: 4
+      bone: 9
+      tip: 10
+      order: 4
+      height: 0.68
+      pivot: {x: 0.65, y: 0.93}
+      weightAxis: {x: 0, y: -1}
+    - name: HindFar
+      cell: 5
+      bone: 11
+      tip: 12
+      order: -4
+      height: 0.68
+      pivot: {x: 0.35, y: 0.93}
+      weightAxis: {x: 0, y: -1}
+    - name: Extra
+      cell: 7
+      bone: 13
+      tip: -1
+      order: 5
+      height: 0.24
+      pivot: {x: 0.5, y: 0.5}
+      weightAxis: {x: 0, y: -1}
+    saddle: {x: -0.06, y: 1.32}
+    displayScale: 0.85
+    shadowWidth: 1
+  - type: 2
+    bones:
+    - name: Root
+      parent: -1
+      position: {x: 0, y: 0}
+    - name: Body
+      parent: 0
+      position: {x: 0, y: 0.78}
+    - name: Head
+      parent: 1
+      position: {x: 0.48, y: 1.2}
+    - name: Tail
+      parent: 1
+      position: {x: -0.19, y: 0.59}
+    - name: TailTip
+      parent: 3
+      position: {x: -0.93, y: 0.95}
+    - name: WingNear
+      parent: 1
+      position: {x: 0.12, y: 0.98}
+    - name: WingNearTip
+      parent: 5
+      position: {x: -0.43, y: 0.86}
+    - name: WingFar
+      parent: 1
+      position: {x: -0.009999998, y: 0.98}
+    - name: WingFarTip
+      parent: 7
+      position: {x: -0.56, y: 0.86}
+    - name: HindNear
+      parent: 1
+      position: {x: 0.04, y: 0.53}
+    - name: HindNearTip
+      parent: 9
+      position: {x: 0.04, y: 0.21999997}
+    - name: HindFar
+      parent: 1
+      position: {x: -0.089999996, y: 0.53}
+    - name: HindFarTip
+      parent: 11
+      position: {x: -0.089999996, y: 0.21999997}
+    - name: Extra
+      parent: 1
+      position: {x: 0.06, y: 1.1}
+    parts:
+    - name: Body
+      cell: 0
+      bone: 1
+      tip: -1
+      order: 0
+      height: 0.6
+      pivot: {x: 0.5, y: 0.5}
+      weightAxis: {x: 0, y: -1}
+    - name: Head
+      cell: 1
+      bone: 2
+      tip: -1
+      order: 3
+      height: 0.76
+      pivot: {x: 0.5, y: 0.08}
+      weightAxis: {x: 0, y: -1}
+    - name: Tail
+      cell: 6
+      bone: 3
+      tip: 4
+      order: -3
+      height: 0.25
+      pivot: {x: 0.93, y: 0.52}
+      weightAxis: {x: -1, y: 0}
+    - name: WingNear
+      cell: 2
+      bone: 5
+      tip: 6
+      order: 4
+      height: 0.72
+      pivot: {x: 0.96, y: 0.9}
+      weightAxis: {x: -1, y: 0}
+    - name: WingFar
+      cell: 3
+      bone: 7
+      tip: 8
+      order: -4
+      height: 0.72
+      pivot: {x: 0.07, y: 0.91}
+      weightAxis: {x: 1, y: 0}
+    - name: HindNear
+      cell: 4
+      bone: 9
+      tip: 10
+      order: 4
+      height: 0.38
+      pivot: {x: 0.65, y: 0.93}
+      weightAxis: {x: 0, y: -1}
+    - name: HindFar
+      cell: 5
+      bone: 11
+      tip: 12
+      order: -4
+      height: 0.38
+      pivot: {x: 0.35, y: 0.93}
+      weightAxis: {x: 0, y: -1}
+    - name: Extra
+      cell: 7
+      bone: 13
+      tip: -1
+      order: 5
+      height: 0.24
+      pivot: {x: 0.5, y: 0.5}
+      weightAxis: {x: 0, y: -1}
+    saddle: {x: -0.06, y: 1.32}
+    displayScale: 0.72
+    shadowWidth: 1
+  - type: 3
+    bones:
+    - name: Root
+      parent: -1
+      position: {x: 0, y: 0}
+    - name: Body
+      parent: 0
+      position: {x: 0, y: 0.78}
+    - name: Head
+      parent: 1
+      position: {x: 0.64, y: 1.1}
+    - name: Tail
+      parent: 1
+      position: {x: -0.49, y: 0.85}
+    - name: TailTip
+      parent: 3
+      position: {x: -0.93, y: 0.95}
+    - name: Spine
+      parent: 1
+      position: {x: -0.35, y: 0.6}
+    - name: SpineEnd
+      parent: 5
+      position: {x: -0.8, y: 0.4}
+    - name: Coil
+      parent: 1
+      position: {x: 0.14, y: 0.6}
+    - name: Extra
+      parent: 1
+      position: {x: 0.45, y: 0.88}
+    parts:
+    - name: Body
+      cell: 0
+      bone: 1
+      tip: -1
+      order: 0
+      height: 0.8
+      pivot: {x: 0.5, y: 0.5}
+      weightAxis: {x: 0, y: -1}
+    - name: Head
+      cell: 1
+      bone: 2
+      tip: -1
+      order: 3
+      height: 0.66
+      pivot: {x: 0.5, y: 0.08}
+      weightAxis: {x: 0, y: -1}
+    - name: Tail
+      cell: 6
+      bone: 3
+      tip: 4
+      order: -3
+      height: 0.55
+      pivot: {x: 0.93, y: 0.1}
+      weightAxis: {x: -1, y: 0}
+    - name: Spine
+      cell: 4
+      bone: 5
+      tip: 6
+      order: 1
+      height: 0.45
+      pivot: {x: 0.9, y: 0.5}
+      weightAxis: {x: -1, y: 0}
+    - name: FinOrCoil
+      cell: 5
+      bone: 7
+      tip: -1
+      order: 2
+      height: 0.48
+      pivot: {x: 0.5, y: 0.92}
+      weightAxis: {x: 0, y: -1}
+    - name: Extra
+      cell: 7
+      bone: 8
+      tip: -1
+      order: 5
+      height: 0.24
+      pivot: {x: 0.5, y: 0.5}
+      weightAxis: {x: 0, y: -1}
+    saddle: {x: -0.06, y: 1.32}
+    displayScale: 0.85
+    shadowWidth: 1
+  - type: 4
+    bones:
+    - name: Root
+      parent: -1
+      position: {x: 0, y: 0}
+    - name: Body
+      parent: 0
+      position: {x: 0, y: 0.78}
+    - name: Head
+      parent: 1
+      position: {x: 0.64, y: 1.1}
+    - name: Tail
+      parent: 1
+      position: {x: -0.49, y: 0.85}
+    - name: TailTip
+      parent: 3
+      position: {x: -0.93, y: 0.95}
+    - name: FrontNear
+      parent: 1
+      position: {x: 0.49, y: 0.67}
+    - name: FrontNearTip
+      parent: 5
+      position: {x: 0.49, y: 0.36}
+    - name: FrontFar
+      parent: 1
+      position: {x: 0.36, y: 0.67}
+    - name: FrontFarTip
+      parent: 7
+      position: {x: 0.36, y: 0.36}
+    - name: HindNear
+      parent: 1
+      position: {x: -0.4, y: 0.67}
+    - name: HindNearTip
+      parent: 9
+      position: {x: -0.4, y: 0.36}
+    - name: HindFar
+      parent: 1
+      position: {x: -0.53, y: 0.67}
+    - name: HindFarTip
+      parent: 11
+      position: {x: -0.53, y: 0.36}
+    - name: MiddleNear
+      parent: 1
+      position: {x: 0.08, y: 0.62}
+    - name: MiddleFar
+      parent: 1
+      position: {x: -0.05, y: 0.64}
+    - name: Extra
+      parent: 1
+      position: {x: 0.45, y: 0.88}
+    parts:
+    - name: Body
+      cell: 0
+      bone: 1
+      tip: -1
+      order: 0
+      height: 0.8
+      pivot: {x: 0.5, y: 0.5}
+      weightAxis: {x: 0, y: -1}
+    - name: Head
+      cell: 1
+      bone: 2
+      tip: -1
+      order: 3
+      height: 0.66
+      pivot: {x: 0.5, y: 0.08}
+      weightAxis: {x: 0, y: -1}
+    - name: Tail
+      cell: 6
+      bone: 3
+      tip: 4
+      order: -3
+      height: 0.55
+      pivot: {x: 0.93, y: 0.1}
+      weightAxis: {x: -1, y: 0}
+    - name: FrontNear
+      cell: 2
+      bone: 5
+      tip: 6
+      order: 4
+      height: 0.68
+      pivot: {x: 0.65, y: 0.93}
+      weightAxis: {x: 0, y: -1}
+    - name: FrontFar
+      cell: 3
+      bone: 7
+      tip: 8
+      order: -4
+      height: 0.68
+      pivot: {x: 0.35, y: 0.93}
+      weightAxis: {x: 0, y: -1}
+    - name: HindNear
+      cell: 4
+      bone: 9
+      tip: 10
+      order: 4
+      height: 0.68
+      pivot: {x: 0.65, y: 0.93}
+      weightAxis: {x: 0, y: -1}
+    - name: HindFar
+      cell: 5
+      bone: 11
+      tip: 12
+      order: -4
+      height: 0.68
+      pivot: {x: 0.35, y: 0.93}
+      weightAxis: {x: 0, y: -1}
+    - name: MiddleNear
+      cell: 2
+      bone: 13
+      tip: -1
+      order: 3
+      height: 0.62
+      pivot: {x: 0.5, y: 0.92}
+      weightAxis: {x: 0, y: -1}
+    - name: MiddleFar
+      cell: 3
+      bone: 14
+      tip: -1
+      order: -3
+      height: 0.62
+      pivot: {x: 0.5, y: 0.92}
+      weightAxis: {x: 0, y: -1}
+    - name: Extra
+      cell: 7
+      bone: 15
+      tip: -1
+      order: 5
+      height: 0.24
+      pivot: {x: 0.5, y: 0.5}
+      weightAxis: {x: 0, y: -1}
+    saddle: {x: -0.06, y: 1.32}
+    displayScale: 0.85
+    shadowWidth: 1
+  - type: 5
+    bones:
+    - name: Root
+      parent: -1
+      position: {x: 0, y: 0}
+    - name: Body
+      parent: 0
+      position: {x: 0, y: 0.78}
+    - name: Head
+      parent: 1
+      position: {x: 0.64, y: 1.1}
+    - name: Tail
+      parent: 1
+      position: {x: -0.49, y: 0.85}
+    - name: TailTip
+      parent: 3
+      position: {x: -0.93, y: 0.95}
+    - name: Spine
+      parent: 1
+      position: {x: -0.35, y: 0.6}
+    - name: SpineEnd
+      parent: 5
+      position: {x: -0.8, y: 0.4}
+    - name: Fin
+      parent: 1
+      position: {x: 0.14, y: 0.6}
+    - name: Extra
+      parent: 1
+      position: {x: 0.45, y: 0.88}
+    parts:
+    - name: Body
+      cell: 0
+      bone: 1
+      tip: -1
+      order: 0
+      height: 0.8
+      pivot: {x: 0.5, y: 0.5}
+      weightAxis: {x: 0, y: -1}
+    - name: Head
+      cell: 1
+      bone: 2
+      tip: -1
+      order: 3
+      height: 0.66
+      pivot: {x: 0.5, y: 0.08}
+      weightAxis: {x: 0, y: -1}
+    - name: Tail
+      cell: 6
+      bone: 3
+      tip: 4
+      order: -3
+      height: 0.55
+      pivot: {x: 0.93, y: 0.1}
+      weightAxis: {x: -1, y: 0}
+    - name: Spine
+      cell: 4
+      bone: 5
+      tip: 6
+      order: 1
+      height: 0.45
+      pivot: {x: 0.9, y: 0.5}
+      weightAxis: {x: -1, y: 0}
+    - name: FinOrCoil
+      cell: 5
+      bone: 7
+      tip: -1
+      order: 2
+      height: 0.48
+      pivot: {x: 0.5, y: 0.92}
+      weightAxis: {x: 0, y: -1}
+    - name: Extra
+      cell: 7
+      bone: 8
+      tip: -1
+      order: 5
+      height: 0.24
+      pivot: {x: 0.5, y: 0.5}
+      weightAxis: {x: 0, y: -1}
+    saddle: {x: -0.06, y: 1.32}
+    displayScale: 0.85
+    shadowWidth: 1
+  - type: 6
+    bones:
+    - name: Root
+      parent: -1
+      position: {x: 0, y: 0}
+    - name: Body
+      parent: 0
+      position: {x: 0, y: 0.78}
+    - name: Head
+      parent: 1
+      position: {x: 0.64, y: 1.1}
+    - name: Tail
+      parent: 1
+      position: {x: -0.49, y: 0.85}
+    - name: TailTip
+      parent: 3
+      position: {x: -0.93, y: 0.95}
+    - name: AuraLeft
+      parent: 1
+      position: {x: -0.55, y: 0.8}
+    - name: AuraRight
+      parent: 1
+      position: {x: 0.55, y: 0.8}
+    - name: Extra
+      parent: 1
+      position: {x: 0.45, y: 0.88}
+    parts:
+    - name: Body
+      cell: 0
+      bone: 1
+      tip: -1
+      order: 0
+      height: 0.8
+      pivot: {x: 0.5, y: 0.5}
+      weightAxis: {x: 0, y: -1}
+    - name: Head
+      cell: 1
+      bone: 2
+      tip: -1
+      order: 3
+      height: 0.66
+      pivot: {x: 0.5, y: 0.08}
+      weightAxis: {x: 0, y: -1}
+    - name: Tail
+      cell: 6
+      bone: 3
+      tip: 4
+      order: -3
+      height: 0.55
+      pivot: {x: 0.93, y: 0.1}
+      weightAxis: {x: -1, y: 0}
+    - name: AuraLeft
+      cell: 2
+      bone: 5
+      tip: -1
+      order: 1
+      height: 0.55
+      pivot: {x: 0.5, y: 0.5}
+      weightAxis: {x: 0, y: -1}
+    - name: AuraRight
+      cell: 3
+      bone: 6
+      tip: -1
+      order: -1
+      height: 0.55
+      pivot: {x: 0.5, y: 0.5}
+      weightAxis: {x: 0, y: -1}
+    - name: Extra
+      cell: 7
+      bone: 7
+      tip: -1
+      order: 5
+      height: 0.24
+      pivot: {x: 0.5, y: 0.5}
+      weightAxis: {x: 0, y: -1}
+    saddle: {x: -0.06, y: 1.32}
+    displayScale: 0.85
+    shadowWidth: 1
+  - type: 7
+    bones:
+    - name: Root
+      parent: -1
+      position: {x: 0, y: 0}
+    - name: Body
+      parent: 0
+      position: {x: 0, y: 0.78}
+    - name: Head
+      parent: 1
+      position: {x: 0.64, y: 1.1}
+    - name: Tail
+      parent: 1
+      position: {x: -0.49, y: 0.85}
+    - name: TailTip
+      parent: 3
+      position: {x: -0.93, y: 0.95}
+    - name: FrontNear
+      parent: 1
+      position: {x: 0.53, y: 1.08}
+    - name: FrontNearTip
+      parent: 5
+      position: {x: 0.53, y: 0.77000004}
+    - name: FrontFar
+      parent: 1
+      position: {x: 0.39999998, y: 1.08}
+    - name: FrontFarTip
+      parent: 7
+      position: {x: 0.39999998, y: 0.77000004}
+    - name: HindNear
+      parent: 1
+      position: {x: -0.27, y: 0.66}
+    - name: HindNearTip
+      parent: 9
+      position: {x: -0.4, y: 0.36}
+    - name: HindFar
+      parent: 1
+      position: {x: -0.4, y: 0.66}
+    - name: HindFarTip
+      parent: 11
+      position: {x: -0.53, y: 0.36}
+    - name: Extra
+      parent: 1
+      position: {x: -0.08, y: 1.12}
+    parts:
+    - name: Body
+      cell: 0
+      bone: 1
+      tip: -1
+      order: 0
+      height: 0.8
+      pivot: {x: 0.5, y: 0.5}
+      weightAxis: {x: 0, y: -1}
+    - name: Head
+      cell: 1
+      bone: 2
+      tip: -1
+      order: 3
+      height: 0.66
+      pivot: {x: 0.5, y: 0.08}
+      weightAxis: {x: 0, y: -1}
+    - name: Tail
+      cell: 6
+      bone: 3
+      tip: 4
+      order: -3
+      height: 0.55
+      pivot: {x: 0.94, y: 0.26}
+      weightAxis: {x: -1, y: 0}
+    - name: FrontNear
+      cell: 2
+      bone: 5
+      tip: 6
+      order: 4
+      height: 0.34
+      pivot: {x: 0.2, y: 0.9}
+      weightAxis: {x: 0, y: -1}
+    - name: FrontFar
+      cell: 3
+      bone: 7
+      tip: 8
+      order: -4
+      height: 0.34
+      pivot: {x: 0.2, y: 0.9}
+      weightAxis: {x: 0, y: -1}
+    - name: HindNear
+      cell: 4
+      bone: 9
+      tip: 10
+      order: 4
+      height: 0.68
+      pivot: {x: 0.2, y: 0.92}
+      weightAxis: {x: 0, y: -1}
+    - name: HindFar
+      cell: 5
+      bone: 11
+      tip: 12
+      order: -4
+      height: 0.68
+      pivot: {x: 0.2, y: 0.92}
+      weightAxis: {x: 0, y: -1}
+    - name: Extra
+      cell: 7
+      bone: 13
+      tip: -1
+      order: 5
+      height: 0.62
+      pivot: {x: 0.5, y: 0.5}
+      weightAxis: {x: 0, y: -1}
+    saddle: {x: -0.06, y: 1.32}
+    displayScale: 1.45
+    shadowWidth: 2.1
+  - type: 8
+    bones:
+    - name: Root
+      parent: -1
+      position: {x: 0, y: 0}
+    - name: Body
+      parent: 0
+      position: {x: 0, y: 0.78}
+    - name: Head
+      parent: 1
+      position: {x: 0.44, y: 1.01}
+    - name: Tail
+      parent: 1
+      position: {x: -0.49, y: 0.85}
+    - name: TailTip
+      parent: 3
+      position: {x: -0.93, y: 0.95}
+    - name: FrontNear
+      parent: 1
+      position: {x: 0.33, y: 0.56}
+    - name: FrontNearTip
+      parent: 5
+      position: {x: 0.49, y: 0.36}
+    - name: FrontFar
+      parent: 1
+      position: {x: 0.2, y: 0.56}
+    - name: FrontFarTip
+      parent: 7
+      position: {x: 0.36, y: 0.36}
+    - name: HindNear
+      parent: 1
+      position: {x: -0.27, y: 0.56}
+    - name: HindNearTip
+      parent: 9
+      position: {x: -0.4, y: 0.36}
+    - name: HindFar
+      parent: 1
+      position: {x: -0.4, y: 0.56}
+    - name: HindFarTip
+      parent: 11
+      position: {x: -0.53, y: 0.36}
+    - name: Extra
+      parent: 1
+      position: {x: -0.08, y: 1.12}
+    parts:
+    - name: Body
+      cell: 0
+      bone: 1
+      tip: -1
+      order: 0
+      height: 0.8
+      pivot: {x: 0.5, y: 0.5}
+      weightAxis: {x: 0, y: -1}
+    - name: Head
+      cell: 1
+      bone: 2
+      tip: -1
+      order: 3
+      height: 0.66
+      pivot: {x: 0.12, y: 0.46}
+      weightAxis: {x: 0, y: -1}
+    - name: Tail
+      cell: 6
+      bone: 3
+      tip: 4
+      order: -3
+      height: 0.55
+      pivot: {x: 0.93, y: 0.1}
+      weightAxis: {x: -1, y: 0}
+    - name: FrontNear
+      cell: 2
+      bone: 5
+      tip: 6
+      order: 4
+      height: 0.68
+      pivot: {x: 0.2, y: 0.83}
+      weightAxis: {x: 0, y: -1}
+    - name: FrontFar
+      cell: 3
+      bone: 7
+      tip: 8
+      order: -4
+      height: 0.68
+      pivot: {x: 0.2, y: 0.83}
+      weightAxis: {x: 0, y: -1}
+    - name: HindNear
+      cell: 4
+      bone: 9
+      tip: 10
+      order: 4
+      height: 0.68
+      pivot: {x: 0.8, y: 0.83}
+      weightAxis: {x: 0, y: -1}
+    - name: HindFar
+      cell: 5
+      bone: 11
+      tip: 12
+      order: -4
+      height: 0.68
+      pivot: {x: 0.8, y: 0.83}
+      weightAxis: {x: 0, y: -1}
+    - name: Extra
+      cell: 7
+      bone: 13
+      tip: -1
+      order: 5
+      height: 0.62
+      pivot: {x: 0.5, y: 0.5}
+      weightAxis: {x: 0, y: -1}
+    saddle: {x: -0.06, y: 1.32}
+    displayScale: 1.45
+    shadowWidth: 2.1
+  - type: 9
+    bones:
+    - name: Root
+      parent: -1
+      position: {x: 0, y: 0}
+    - name: Body
+      parent: 0
+      position: {x: 0, y: 0.78}
+    - name: Head
+      parent: 1
+      position: {x: -0.35, y: 1.01}
+    - name: Tail
+      parent: 1
+      position: {x: 0.45, y: 0.85}
+    - name: TailTip
+      parent: 3
+      position: {x: -0.93, y: 0.95}
+    - name: FrontWheelNear
+      parent: 1
+      position: {x: 0.49, y: 0.27}
+    - name: FrontWheelNearTip
+      parent: 5
+      position: {x: 0.49, y: 0.27}
+    - name: FrontWheelFar
+      parent: 1
+      position: {x: 0.36, y: 0.27}
+    - name: FrontWheelFarTip
+      parent: 7
+      position: {x: 0.36, y: 0.27}
+    - name: RearWheelNear
+      parent: 1
+      position: {x: -0.4, y: 0.27}
+    - name: RearWheelNearTip
+      parent: 9
+      position: {x: -0.4, y: 0.27}
+    - name: RearWheelFar
+      parent: 1
+      position: {x: -0.53, y: 0.27}
+    - name: RearWheelFarTip
+      parent: 11
+      position: {x: -0.53, y: 0.27}
+    - name: Extra
+      parent: 1
+      position: {x: 0, y: 1.03}
+    parts:
+    - name: Body
+      cell: 0
+      bone: 1
+      tip: -1
+      order: 0
+      height: 0.58
+      pivot: {x: 0.5, y: 0.5}
+      weightAxis: {x: 0, y: -1}
+    - name: Head
+      cell: 1
+      bone: 2
+      tip: -1
+      order: 3
+      height: 0.55
+      pivot: {x: 0.5, y: 0.08}
+      weightAxis: {x: 0, y: -1}
+    - name: Tail
+      cell: 6
+      bone: 3
+      tip: -1
+      order: -3
+      height: 0.55
+      pivot: {x: 0.13, y: 0.11}
+      weightAxis: {x: -1, y: 0}
+    - name: FrontWheelNear
+      cell: 2
+      bone: 5
+      tip: -1
+      order: 4
+      height: 0.52
+      pivot: {x: 0.5, y: 0.5}
+      weightAxis: {x: 0, y: -1}
+    - name: FrontWheelFar
+      cell: 3
+      bone: 7
+      tip: -1
+      order: -4
+      height: 0.52
+      pivot: {x: 0.5, y: 0.5}
+      weightAxis: {x: 0, y: -1}
+    - name: RearWheelNear
+      cell: 4
+      bone: 9
+      tip: -1
+      order: 4
+      height: 0.52
+      pivot: {x: 0.5, y: 0.5}
+      weightAxis: {x: 0, y: -1}
+    - name: RearWheelFar
+      cell: 5
+      bone: 11
+      tip: -1
+      order: -4
+      height: 0.52
+      pivot: {x: 0.5, y: 0.5}
+      weightAxis: {x: 0, y: -1}
+    - name: Extra
+      cell: 7
+      bone: 13
+      tip: -1
+      order: 5
+      height: 0.22
+      pivot: {x: 0.5, y: 0.5}
+      weightAxis: {x: 0, y: -1}
+    saddle: {x: -0.06, y: 1.17}
+    displayScale: 1.45
+    shadowWidth: 2.1
+  entries:
+  - category: 1
+    variant: 0
+    displayName: "\uC6D0\uC2DC \uAF2C\uB9C8"
+    type: 0
+    icon: {fileID: 21300000, guid: 289f732235174910bedfa30fc9db8cf1, type: 3}
+    prefab: {fileID: 3161303479698878339, guid: 4ebbfbe417fcf977aad6a00cc27ba3f6, type: 3}
+  - category: 1
+    variant: 1
+    displayName: "\uAC80\uCE58\uD638 \uC0C8\uB07C"
+    type: 1
+    icon: {fileID: 21300000, guid: dcacefed938644d69bc5efbaff29fbd2, type: 3}
+    prefab: {fileID: 2533513196321434075, guid: fc6b629b9c3733354b94be45f23a9ae7, type: 3}
+  - category: 1
+    variant: 2
+    displayName: "\uC0C8\uB07C \uC775\uB8E1"
+    type: 2
+    icon: {fileID: 21300000, guid: 94c7222d808b4e7a937652e78bfd827e, type: 3}
+    prefab: {fileID: 4773859227481949196, guid: 179da9438ac5e40b6b58352f5405d762, type: 3}
+  - category: 2
+    variant: 0
+    displayName: "\uC6D0\uC2DC \uB7A9\uD130"
+    type: 7
+    icon: {fileID: 21300000, guid: 376d96b85d494a08b72d5169edeff0b1, type: 3}
+    prefab: {fileID: 8052906448039370343, guid: e32eb5cd9fff6c86598f2c8e0f134f85, type: 3}
+  - category: 2
+    variant: 1
+    displayName: "\uC57C\uC0DD \uBA67\uB3FC\uC9C0"
+    type: 8
+    icon: {fileID: 21300000, guid: 1fb822be33ce4e8db454cf90169aeb27, type: 3}
+    prefab: {fileID: 3794628966986099545, guid: 2ba169e7ae1137da9bc1eb122711acd5, type: 3}
+  - category: 2
+    variant: 2
+    displayName: "\uB3CC\uBC14\uD034 \uC218\uB808"
+    type: 9
+    icon: {fileID: 21300000, guid: 179c8c506a2b407985e70de1cda9693d, type: 3}
+    prefab: {fileID: 8682663173819097883, guid: dedcf84984c106cbca1ce9a002d64915, type: 3}
