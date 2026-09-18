@@ -20,7 +20,7 @@ namespace Moonlit.Editor
                     var routine=routines.Peek();
                     bool moved=false;Exception error=null;
                     try{moved=routine.MoveNext();}catch(Exception exception){error=exception;}
-                    if(error!=null){report.Add("FAIL primitive rig capture "+height+": "+error);fail();yield break;}
+                    if(error!=null){report.Add("FAIL whole-PNG companion capture "+height+": "+error);fail();yield break;}
                     if(!moved){(routine as IDisposable)?.Dispose();routines.Pop();continue;}
                     if(routine.Current is IEnumerator nested){routines.Push(nested);continue;}
                     yield return routine.Current;
@@ -33,7 +33,7 @@ namespace Moonlit.Editor
             var battle=screen.GetComponent<BattleRuntime>();
             var actor=battle.PlayerHud.Actor;
             var system=actor.parent.GetComponent<CompanionBattleRuntime>();
-            if(!system || !CompanionRigCatalog.Load())throw new InvalidOperationException("Missing prepared native companion rigs.");
+            if(!system)throw new InvalidOperationException("Missing whole-PNG companion runtime.");
             string saved=JsonUtility.ToJson(CollectionProgression.Data);
             bool enabled=screen.enabled,battleEnabled=battle.enabled;
             float scale=Time.timeScale;
@@ -71,12 +71,32 @@ namespace Moonlit.Editor
                             if(pet.transform.position.x>=actor.Find("Motion").position.x)
                                 throw new InvalidOperationException("Pet formation must remain behind the player.");
                         RefreshCombatCapture(battle);
+                        VerifyCompanionHudClearance(battle,system,height+" "+mount+" "+state);
                         SaveCamera(camera,"Artifacts/Runtime-companions-mount-"+mount+"-"+state.ToLowerInvariant()+"-"+aspect+".png",1080,height);
+                        if(state=="Basic")
+                        {
+                            var safe=screen.GetComponentInParent<PortraitSafeArea>();
+                            var host=screen.GetComponentInParent<UiScreenHost>();
+                            var previousPixels=safe.ScreenPixels;var previousSafe=safe.SafePixels;
+                            try {
+                                var inset=new Rect(36,84,1008,height-150);
+                                safe.SetPreviewMetrics(new Vector2Int(1080,height),inset);
+                                host.SetPreviewMetrics(new Vector2Int(1080,height),inset);
+                                yield return null;yield return null;
+                                RefreshCombatCapture(battle);
+                                VerifyCompanionHudClearance(battle,system,height+" notch "+mount);
+                                SaveCamera(camera,"Artifacts/Runtime-companions-mount-"+mount+"-basic-notch-"+aspect+".png",1080,height);
+                            } finally {
+                                safe.SetPreviewMetrics(previousPixels,previousSafe);
+                                host.SetPreviewMetrics(previousPixels,previousSafe);
+                            }
+                        }
                     }
                 }
-                foreach(var entry in CompanionRigCatalog.Load().entries)
-                    yield return CaptureCompanionAssembly(entry,height,aspect);
-                report.Add("PASS six separated-part SpriteSkin rigs, three pets behind player, all three saddles follow idle/attack and per-creature shadows "+height);
+                for(int category=1;category<=2;category++)
+                    for(int variant=0;variant<3;variant++)
+                        yield return CaptureFlatCompanionAssembly(category,variant,height,aspect);
+                report.Add("PASS six right-facing static whole PNGs, three pets, simple mounted back anchors, no live companion Animator/SpriteSkin and clear central HUD "+height);
             }
             finally
             {
@@ -86,33 +106,72 @@ namespace Moonlit.Editor
                 screen.enabled=enabled;battle.enabled=false;battle.enabled=battleEnabled;
             }
         }
-        static IEnumerator CaptureCompanionAssembly(CompanionRigEntry entry,int height,string aspect)
+        static void VerifyCompanionHudClearance(BattleRuntime battle,CompanionBattleRuntime companions,string context)
         {
-            var root=new GameObject("Companion assembly capture");
+            battle.ApplyActorHudClearance();
+            var areas=CombatCaptureField<Rect[]>(battle,"protectedHudAreas");
+            var actors=new[]{battle.PlayerHud.Actor,battle.EnemyHud.Actor};
+            foreach(var actor in actors)
+            {
+                if(Mathf.Abs(Mathf.Abs(actor.localScale.x)-2)>.001f || Mathf.Abs(actor.localScale.y-2)>.001f ||
+                    Mathf.Abs(actor.localPosition.y)>.001f)throw new InvalidOperationException("Actor size/ground changed: "+context);
+                foreach(var sprite in actor.GetComponentsInChildren<SpriteRenderer>().Where(x=>x.enabled && x.sprite))
+                foreach(var area in areas)
+                {
+                    var bounds=sprite.bounds;
+                    if(area.width>0 && area.height>0 && bounds.min.x<area.xMax-.01f && bounds.max.x>area.xMin+.01f &&
+                        bounds.min.y<area.yMax-.01f && bounds.max.y>area.yMin+.01f)
+                        throw new InvalidOperationException("Actual actor part covers stage/wave/round: "+context+" "+sprite.name);
+                }
+            }
+            if(Vector2.Distance(companions.Mount.saddle.position,companions.RiderHip.position)>.03f)
+                throw new InvalidOperationException("World layout detached rider from unchanged saddle: "+context);
+            var camera=battle.PlayerHud.WorldCanvas.worldCamera;
+            foreach(var actor in actors)
+            foreach(var sprite in actor.GetComponentsInChildren<SpriteRenderer>().Where(x=>x.enabled && x.sprite))
+                if(camera.WorldToViewportPoint(sprite.bounds.min).x<-.005f ||
+                    camera.WorldToViewportPoint(sprite.bounds.max).x>1.005f)
+                    throw new InvalidOperationException("World layout clipped an actor: "+context+" "+sprite.name);
+            foreach(var flat in companions.Pets.Concat(new[]{companions.Mount}))
+            {
+                var bounds=flat.VisibleBounds;
+                if(camera.WorldToViewportPoint(bounds.min).x<-.005f || camera.WorldToViewportPoint(bounds.max).x>1.005f)
+                    throw new InvalidOperationException("World layout clipped whole companion artwork: "+context+" "+flat.name);
+                if(flat.GetComponentsInChildren<SpriteRenderer>().Length!=1 || flat.GetComponentsInChildren<Animator>().Length!=0 ||
+                    flat.GetComponentsInChildren<UnityEngine.U2D.Animation.SpriteSkin>().Length!=0 ||
+                    flat.Illustration.flipX || flat.Illustration.transform.localScale.x<=0)
+                    throw new InvalidOperationException("Companion must remain one unmirrored, unrigged illustration: "+flat.name);
+            }
+            camera.Render();
+        }
+        static IEnumerator CaptureFlatCompanionAssembly(int category,int variant,int height,string aspect)
+        {
+            var root=new GameObject("Whole PNG companion capture");
             var target=new RenderTexture(1080,height,24);
             Camera camera=null;
             try
             {
                 root.transform.position=new Vector3(20000,20000,0);
-                var instance=UnityEngine.Object.Instantiate(entry.prefab,root.transform,false);
-                var actor=instance.GetComponent<CompanionActor>();actor.groundY=root.transform.position.y;actor.InitializeShadow(root.transform);
-                camera=new GameObject("Companion closeup camera").AddComponent<Camera>();
+                var actor=FlatCompanionCatalog.Create(category,variant,root.transform,"Flat companion "+category+" "+variant);
+                if(!actor || FlatCompanionCatalog.Bounds(category,variant)==null)
+                    throw new InvalidOperationException("Missing whole artwork/opaque bounds "+category+" "+variant);
+                Vector3 position=actor.Illustration.transform.localPosition;
+                Quaternion rotation=actor.Illustration.transform.localRotation;
+                Vector3 scale=actor.Illustration.transform.localScale;
+                camera=new GameObject("Whole companion closeup camera").AddComponent<Camera>();
                 camera.transform.SetParent(root.transform,false);camera.orthographic=true;camera.cullingMask=1<<30;
                 camera.clearFlags=CameraClearFlags.SolidColor;camera.backgroundColor=new Color(.09f,.1f,.13f);
                 camera.targetTexture=target;camera.nearClipPlane=.1f;camera.farClipPlane=30;
-                foreach(string state in new[]{"Idle","Walk"})
-                {
-                    actor.animator.speed=1;actor.animator.Play(state,0,0);actor.animator.Update(0);actor.animator.Update(state=="Walk"?.22f:0);actor.animator.speed=0;
-                    yield return null;yield return null;
-                    var sprites=instance.GetComponentsInChildren<SpriteRenderer>();
-                    if(sprites.Length!=8)throw new InvalidOperationException("Expected eight separate skinned parts in "+entry.displayName);
-                    Bounds bounds=sprites[0].bounds;foreach(var sprite in sprites)bounds.Encapsulate(sprite.bounds);
-                    camera.aspect=1080f/height;
-                    camera.orthographicSize=Mathf.Max(bounds.extents.y+.2f,(bounds.extents.x+.2f)/camera.aspect);
-                    camera.transform.position=new Vector3(bounds.center.x,bounds.center.y,-12);
-                    camera.Render();
-                    SaveCamera(camera,"Artifacts/Runtime-companion-rig-"+entry.category+"-"+entry.variant+"-"+state.ToLowerInvariant()+"-"+aspect+".png",1080,height);
-                }
+                yield return null;yield return null;
+                if(actor.Illustration.transform.localPosition!=position || actor.Illustration.transform.localRotation!=rotation ||
+                    actor.Illustration.transform.localScale!=scale)
+                    throw new InvalidOperationException("Static whole illustration changed its authored pose.");
+                var bounds=actor.VisibleBounds;
+                camera.aspect=1080f/height;
+                camera.orthographicSize=Mathf.Max(bounds.extents.y+.2f,(bounds.extents.x+.2f)/camera.aspect);
+                camera.transform.position=new Vector3(bounds.center.x,bounds.center.y,-12);
+                camera.Render();
+                SaveCamera(camera,"Artifacts/Runtime-companion-flat-"+category+"-"+variant+"-"+aspect+".png",1080,height);
             }
             finally{if(camera)camera.targetTexture=null;target.Release();UnityEngine.Object.DestroyImmediate(target);UnityEngine.Object.DestroyImmediate(root);}
         }

@@ -202,7 +202,7 @@ namespace Moonlit.UI
             if(companions)
             {
                 if(companions.Mount)AddRenderedBounds(companions.Mount.gameObject,formation);
-                foreach(var pet in companions.Pets)if(pet)AddRenderedBounds(pet.gameObject,formation);
+                // Trailing pets may reflow inside the left edge; they must not pin a tall rider under the HUD.
             }
             float shift=CombatActorHudClearance.OutwardShift(actorParts,formation,protectedHudAreas,isPlayer,left,right);
             if(shift==0)return;
@@ -213,7 +213,13 @@ namespace Moonlit.UI
             if(companions)
             {
                 if(companions.Mount)MoveCompanionWorld(companions.Mount,offset);
-                foreach(var pet in companions.Pets)if(pet)MoveCompanionWorld(pet,offset);
+                foreach(var pet in companions.Pets)if(pet)
+                {
+                    MoveCompanionWorld(pet,offset);
+                    var bounds=pet.VisibleBounds;
+                    float correction=bounds.min.x<left?left-bounds.min.x:bounds.max.x>right?right-bounds.max.x:0;
+                    if(correction!=0){pet.transform.position+=Vector3.right*correction;pet.RefreshShadow();}
+                }
             }
             if(hud)hud.transform.position+=offset;
         }
