@@ -15,6 +15,13 @@ namespace Moonlit.UI
         SpriteRenderer head;
         Font font;
         bool player;
+        readonly System.Collections.Generic.List<GameObject> numbers = new System.Collections.Generic.List<GameObject>();
+        void OnDisable()
+        {
+            StopAllCoroutines();
+            foreach (var number in numbers) if (number) Destroy(number);
+            numbers.Clear();
+        }
         public static CombatWorldHud Create(Transform parent, GameObject actor, Camera camera, Font font, bool player)
         {
             var go = new GameObject(player ? "Player world health" : "Enemy world health", typeof(RectTransform));
@@ -59,6 +66,7 @@ namespace Moonlit.UI
         {
             // Follow the hit victim initially, then drift upward in world space from the impact position.
             var go = new GameObject(player ? "Player damage number" : "Enemy damage number", typeof(RectTransform));
+            numbers.RemoveAll(number => !number); numbers.Add(go);
             go.layer = 30; go.transform.SetParent(transform.parent, false);
             var canvas = go.AddComponent<Canvas>(); canvas.renderMode = RenderMode.WorldSpace;
             canvas.worldCamera = WorldCanvas.worldCamera; canvas.sortingOrder = 240;

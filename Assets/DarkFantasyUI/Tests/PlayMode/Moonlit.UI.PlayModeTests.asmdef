@@ -1,13 +1,21 @@
 {
   "name": "Moonlit.UI.PlayModeTests",
   "rootNamespace": "Moonlit.UI.Tests",
-  "references": ["Moonlit.UI", "UnityEngine.UI"],
-  "optionalUnityReferences": ["TestAssemblies"],
+  "references": [
+    "Moonlit.UI",
+    "UnityEngine.UI"
+  ],
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ],
   "includePlatforms": [],
   "excludePlatforms": [],
   "autoReferenced": false,
-  "overrideReferences": false,
-  "precompiledReferences": [],
+  "overrideReferences": true,
+  "precompiledReferences": [
+    "nunit.framework.dll",
+    "DOTween.dll"
+  ],
   "defineConstraints": [],
   "versionDefines": [],
   "noEngineReferences": false

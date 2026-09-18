@@ -64,6 +64,9 @@ namespace Moonlit.UI.Tests
                 Assert.AreEqual(30,number.gameObject.layer);
                 StringAssert.Contains("20",number.GetComponentInChildren<Text>().text);
                 Assert.AreEqual(battle.EnemyHud.transform.position.x,number.position.x,.05f);
+                stage.gameObject.SetActive(false);
+                yield return null;
+                Assert.IsTrue(!number,"Disabling combat must clear transient numbers even when their coroutine stops early.");
             }
             finally { UnityEngine.Object.DestroyImmediate(root); UnityEngine.Object.DestroyImmediate(assets); }
         }
