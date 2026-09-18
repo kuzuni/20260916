@@ -13,7 +13,7 @@ namespace Moonlit.UI
         RectTransform visual;
         CanvasGroup group;
         Text direction, total;
-        Sequence animation;
+        Sequence feedbackSequence;
         double started;
         public int PresentationCount { get; private set; }
         public double LastPower => previousPower;
@@ -42,7 +42,7 @@ namespace Moonlit.UI
             previousPower = power;
             if (!main || (!main.toastRoot && !main.design)) return;
             Build();
-            animation?.Kill();
+            feedbackSequence?.Kill();
             visual.gameObject.SetActive(true);
             visual.SetAsLastSibling();
             visual.anchoredPosition = Vector2.zero;
@@ -55,20 +55,20 @@ namespace Moonlit.UI
             total.color = Ui.Ivory;
             PresentationCount++;
             started = Time.realtimeSinceStartupAsDouble;
-            animation = DOTween.Sequence().SetUpdate(UpdateType.Manual, true).SetTarget(this);
-            animation.Append(group.DOFade(1, .12f));
-            animation.Join(visual.DOScale(1.08f, .18f).SetEase(Ease.OutBack));
-            animation.Append(visual.DOScale(1, .12f).SetEase(Ease.OutQuad));
-            animation.AppendInterval(.85f);
-            animation.Append(group.DOFade(0, .32f));
-            animation.Join(visual.DOAnchorPosY(40, .32f).SetEase(Ease.OutQuad));
-            animation.OnComplete(() => { if (visual) visual.gameObject.SetActive(false); });
+            feedbackSequence = DOTween.Sequence().SetUpdate(UpdateType.Manual, true).SetTarget(this);
+            feedbackSequence.Append(DOTween.To(() => group.alpha, value => group.alpha = value, 1f, .12f));
+            feedbackSequence.Join(visual.DOScale(1.08f, .18f).SetEase(Ease.OutBack));
+            feedbackSequence.Append(visual.DOScale(1, .12f).SetEase(Ease.OutQuad));
+            feedbackSequence.AppendInterval(.85f);
+            feedbackSequence.Append(DOTween.To(() => group.alpha, value => group.alpha = value, 0f, .32f));
+            feedbackSequence.Join(DOTween.To(() => visual.anchoredPosition, value => visual.anchoredPosition = value, new Vector2(0, 40), .32f).SetEase(Ease.OutQuad));
+            feedbackSequence.OnComplete(() => { if (visual) visual.gameObject.SetActive(false); });
         }
 
         void Update()
         {
-            if (animation != null && animation.IsActive() && animation.IsPlaying())
-                animation.Goto((float)(Time.realtimeSinceStartupAsDouble - started), true);
+            if (feedbackSequence != null && feedbackSequence.IsActive() && feedbackSequence.IsPlaying())
+                feedbackSequence.Goto((float)(Time.realtimeSinceStartupAsDouble - started), true);
         }
 
         void Build()
@@ -87,13 +87,14 @@ namespace Moonlit.UI
 
         void OnDisable()
         {
-            animation?.Kill();
+            feedbackSequence?.Kill();
             if (visual) visual.gameObject.SetActive(false);
         }
         void OnDestroy()
         {
-            animation?.Kill();
+            feedbackSequence?.Kill();
             if (visual) Destroy(visual.gameObject);
         }
     }
 }
+
