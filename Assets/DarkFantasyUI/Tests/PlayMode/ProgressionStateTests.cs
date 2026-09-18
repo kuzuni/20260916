@@ -239,6 +239,7 @@ namespace Moonlit.UI.Tests
         [UnityTest]
         public IEnumerator DungeonRewardClaim_PaysOnlyOnButtonAndCannotRepeat()
         {
+            RewardsScreenModule.Register(host.Registry);
             var main=root.GetComponent<MainScreen>();
             for(int dungeon=0;dungeon<4;dungeon++){
                 DungeonProgression.Reset();
