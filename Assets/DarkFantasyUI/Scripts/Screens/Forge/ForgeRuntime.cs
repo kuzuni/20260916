@@ -10,7 +10,7 @@ namespace Moonlit.UI
         public MainScreen main;
         public bool Busy { get; private set; }
         public event Action HandRevealed;
-        bool awaitingComparison;
+        bool awaitingComparison, comparisonDeferred;
         readonly System.Random random=new System.Random();
         readonly Dictionary<int,ItemDefinition> definitions=new Dictionary<int,ItemDefinition>();
         public static ForgeRuntime Ensure(MainScreen main)
@@ -24,9 +24,13 @@ namespace Moonlit.UI
             if(!main)return;
             main.autoForge=ForgeState.Current.autoEnabled;
             main.forgeLevel=ForgeState.Current.level;
+            if(!Busy && comparisonDeferred && main.screens!=null && main.screens.ModalDepth==0){
+                comparisonDeferred=false;
+                if(ForgeState.Current.Pending!=null){PresentComparison();return;}
+            }
             if(!Busy && ForgeState.Current.autoEnabled && main.screens!=null && main.screens.ModalDepth==0) {
                 if(awaitingComparison && ForgeState.Current.Pending!=null)return;
-                awaitingComparison=false;
+                awaitingComparison=false;comparisonDeferred=false;
                 if(ForgeState.Current.ShouldCompare) PresentComparison();
                 else StartCoroutine(Cycle(true));
             }
@@ -41,18 +45,19 @@ namespace Moonlit.UI
         }
         void PresentComparison()
         {
-            awaitingComparison=true;
-            if(main.screens.ModalDepth==0)main.screens.Open("forge-comparison");
+            comparisonDeferred=main.screens.ModalDepth>0;
+            awaitingComparison=!comparisonDeferred;
+            if(!comparisonDeferred)main.screens.Open("forge-comparison");
         }
         public void StartAuto()
         {
-            awaitingComparison=false;
+            awaitingComparison=false;comparisonDeferred=false;
             ForgeState.Current.autoEnabled=true;main.autoForge=true;main.Refresh();
         }
         public void StopAuto()
         {
             ForgeState.Current.autoEnabled=false;main.autoForge=false;main.Refresh();
-            awaitingComparison=false;
+            awaitingComparison=false;comparisonDeferred=false;
         }
         IEnumerator Cycle(bool automatic)
         {
@@ -109,7 +114,7 @@ namespace Moonlit.UI
 
                     var effect=Ui.Text("Gold sale effect",host,220,revealY,640,80,"골드 +"+sold,44,main.font,Ui.Gold);
                     var effectGroup=effect.gameObject.AddComponent<CanvasGroup>();effectGroup.blocksRaycasts=false;
-                    var coinRoot=Ui.Rect("Gold coin burst",host,220,host.rect.height*.42f,640,130);
+                    var coinRoot=Ui.Rect("Gold coin burst",host,220,revealY,640,130);
                     var coinGroup=coinRoot.gameObject.AddComponent<CanvasGroup>();coinGroup.blocksRaycasts=false;
                     var source=main.goldButton?main.goldButton.transform.Find("Crown coin"):null;
                     var coinSprite=source?source.GetComponent<Image>().sprite:null;
