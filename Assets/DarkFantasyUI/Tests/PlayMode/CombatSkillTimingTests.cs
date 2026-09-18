@@ -51,11 +51,16 @@ namespace Moonlit.UI.Tests
                 Assert.AreEqual(100, target.Health, "No damage while the attack projectile is still in flight.");
                 Assert.IsTrue(relay.Pending);
                 animator.Update(.02f);
-                Assert.AreEqual(80, target.Health, "The real arrival AnimationEvent must apply fixed skill damage once.");
+                double afterFirstHit = 100 - 20d / (variant == 1 ? 3 : 5);
+                Assert.AreEqual(afterFirstHit, target.Health, .000001, "The arrival event authorizes the first portion, not the entire combo.");
                 Assert.IsFalse(relay.Pending);
                 relay.OnCombatImpact(variant + 1);
-                Assert.AreEqual(80, target.Health, "Duplicate impact callbacks cannot repeat damage.");
+                Assert.AreEqual(afterFirstHit, target.Health, .000001, "Duplicate impact callbacks cannot repeat damage.");
                 Assert.AreEqual(0, runtime.PlayerResolvedBasicAttacks);
+                Assert.IsTrue(motion.MoveNext(), "The action waits for its remaining combo impacts.");
+                var combo = (CombatComboSequence)typeof(BattleRuntime).GetField("activeCombo", PrivateInstance).GetValue(runtime);
+                combo.Advance(10);
+                Assert.AreEqual(80, target.Health, .000001, "The complete combo retains its supplied fixed total.");
                 Assert.IsFalse(motion.MoveNext());
                 Assert.IsFalse(strike.MoveNext());
 
