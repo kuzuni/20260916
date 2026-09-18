@@ -487,7 +487,7 @@ namespace Moonlit.UI
             CombatComboSequence sequence = null;
             ShowSkill(isPlayer, 0, skill.tier);
             yield return AnimatedAction(isPlayer, 1, "Buff", () => {
-                float eventTime = effects.PlaybackElapsed;
+                float eventTime = Mathf.Min(effects.PlaybackElapsed, SkillChoreography.BuffHealTime(skill.tier));
                 sequence = new CombatComboSequence(0,
                     CombatComboSequence.TimesAfterEvent(new[] { SkillChoreography.BuffHealTime(skill.tier) }, eventTime),
                     () => actor.Alive && ReferenceEquals(actor, isPlayer ? PlayerState : EnemyState) && isActiveAndEnabled,
@@ -524,7 +524,11 @@ namespace Moonlit.UI
                 if (isPlayer)
                     foreach (var equipped in actor.skills)
                         if (equipped.tier == tier && equipped.variant == variant) RecordPlayerSkill(equipped);
-                combo = new CombatComboSequence(damage, CombatComboSequence.TimesAfterEvent(SkillChoreography.HitTimes(tier, variant), effects.PlaybackElapsed),
+                var hitTimes = SkillChoreography.HitTimes(tier, variant);
+                // A long frame or a late authored event may pass the first visual contact.
+                // Authorize it now and retain the intervals; never throw or deal damage before the event.
+                float eventTime = Mathf.Min(effects.PlaybackElapsed, hitTimes[0]);
+                combo = new CombatComboSequence(damage, CombatComboSequence.TimesAfterEvent(hitTimes, eventTime),
                     () => actor.Alive && target.Alive && ReferenceEquals(actor, isPlayer ? PlayerState : EnemyState) &&
                         ReferenceEquals(target, isPlayer ? EnemyState : PlayerState) && isActiveAndEnabled,
                     (hitIndex, portion) => ResolveStrike(isPlayer, actor, target, portion, true, variant, tier, hitIndex),
