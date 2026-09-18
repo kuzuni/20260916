@@ -186,7 +186,7 @@ namespace Moonlit.UI.Tests
                 Assert.IsNotEmpty(SkillCatalog.Description(entry.grade,entry.variant));
                 Assert.AreEqual(entry.variant==0?3:entry.variant==1?2:5,entry.Cooldown);
             }
-            Assert.AreEqual("사냥꾼의 만찬",skills[0].Name);
+            Assert.AreEqual("치킨 만찬",skills[0].Name);
             Assert.AreEqual("전차 돌격",skills[10].Name);
             Assert.AreEqual("신의 분노",skills[29].Name);
             Assert.AreEqual("Moonlit/Combat/Skills/Tier09/Strong",SkillCatalog.IconKey(9,2));
