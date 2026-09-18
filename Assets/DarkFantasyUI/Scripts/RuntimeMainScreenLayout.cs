@@ -22,6 +22,11 @@ namespace Moonlit.UI
             Ui.Image("Diamond ruby",main.gemButton.transform,-39,-14,65,77,referenceIcons[1]).preserveAspect=true;
             main.gemText=Ui.Text("Ruby amount",main.gemButton.transform,46,-1,93,54,"21",30,font);
             Ui.Text("Add ruby",main.gemButton.transform,1,27,41,47,"+",37,font,new Color(.18f,.88f,.1f));
+            foreach(var value in new[]{main.powerText,main.goldText,main.gemText}) {
+                value.resizeTextForBestFit=true;value.resizeTextMaxSize=value.fontSize;
+                value.resizeTextMinSize=Ui.ReadableFontSize(18);
+                value.verticalOverflow=VerticalWrapMode.Truncate;
+            }
         }
         void BuildStage(MainScreen main,Transform parent)
         {
