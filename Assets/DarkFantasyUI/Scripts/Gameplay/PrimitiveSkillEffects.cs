@@ -112,6 +112,72 @@ namespace Moonlit.UI
             if (tier == 3 || tier == 4 || tier == 8 || tier == 9) return 0;
             return variant == 1 && (tier == 1 || tier == 2 || tier == 5 || tier == 7) ? 0 : t*(tier==6?-270:210);
         }
+        public const string HitDustKey = "Moonlit/Combat/BasicHitDust-v1";
+        public const string BasicSlashKey = "Moonlit/Combat/BasicSlash-v1";
+        public const float BasicSlashDuration = .24f;
+
+        // Shared victim feedback is dust, never a primitive stone skill reused as a basic hit.
+        public void PlayHitDust(Vector3 point)
+        {
+            var art = Resources.Load<Sprite>(HitDustKey);
+            if (!catalog || !art) return;
+            var puff = new GameObject("Basic hit dust puff").AddComponent<ParticleSystem>();
+            owned.RemoveAll(item => !item); owned.Add(puff.gameObject);
+            puff.gameObject.layer = 30; puff.transform.SetParent(transform, false);
+            puff.transform.position = point + Vector3.back;
+            puff.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            var main = puff.main; main.loop = false; main.duration = .4f;
+            main.startLifetime = .38f; main.startSpeed = 1.15f; main.startSize = 1.65f;
+            main.startRotation = new ParticleSystem.MinMaxCurve(-Mathf.PI, Mathf.PI);
+            main.startColor = new Color(1, .92f, .78f, .8f);
+            main.simulationSpace = ParticleSystemSimulationSpace.World; main.maxParticles = 8;
+            var emission = puff.emission; emission.rateOverTime = 0;
+            emission.SetBursts(new[] { new ParticleSystem.Burst(0, (short)6) });
+            var shape = puff.shape; shape.shapeType = ParticleSystemShapeType.Circle; shape.radius = .14f;
+            var sheet = puff.textureSheetAnimation; sheet.enabled = true;
+            sheet.mode = ParticleSystemAnimationMode.Sprites; sheet.AddSprite(art);
+            var size = puff.sizeOverLifetime; size.enabled = true;
+            size.size = new ParticleSystem.MinMaxCurve(1, AnimationCurve.Linear(0, .45f, 1, 1.2f));
+            var color = puff.colorOverLifetime; color.enabled = true;
+            var fade = new Gradient();
+            fade.SetKeys(new[] { new GradientColorKey(Color.white, 0), new GradientColorKey(Color.white, 1) },
+                new[] { new GradientAlphaKey(1, 0), new GradientAlphaKey(.6f, .35f), new GradientAlphaKey(0, 1) });
+            color.color = fade;
+            var renderer = puff.GetComponent<ParticleSystemRenderer>();
+            var material = new Material(catalog.effectMaterial); material.mainTexture = art.texture;
+            renderer.sharedMaterial = material; renderer.sortingOrder = 153;
+            puff.Play(); Destroy(material, .8f); Destroy(puff.gameObject, .8f);
+        }
+
+        // Called with the basic swing event even on evasion, including the one permitted double attack.
+        public void PlayBasicSlash(Vector3 point, bool rightward)
+        {
+            var art = Resources.Load<Sprite>(BasicSlashKey);
+            if (catalog && art) StartCoroutine(BasicSlash(art, point, rightward));
+        }
+        IEnumerator BasicSlash(Sprite art, Vector3 point, bool rightward)
+        {
+            var arc = new GameObject("Basic sword slash");
+            owned.RemoveAll(item => !item); owned.Add(arc);
+            arc.layer = 30; arc.transform.SetParent(transform, false);
+            var renderer = arc.AddComponent<SpriteRenderer>();
+            renderer.sprite = art; renderer.sharedMaterial = catalog.effectMaterial; renderer.sortingOrder = 154;
+            float direction = rightward ? 1 : -1;
+            float scale = 3.2f / Mathf.Max(.01f, art.bounds.size.y);
+            float elapsed = 0;
+            while (elapsed < BasicSlashDuration)
+            {
+                float t = elapsed / BasicSlashDuration;
+                arc.transform.position = point + new Vector3(direction * Mathf.Lerp(-.35f, .15f, t), 0, -1.1f);
+                arc.transform.localScale = new Vector3(direction * scale, scale, scale) * Mathf.Lerp(.9f, 1.15f, t);
+                arc.transform.localRotation = Quaternion.Euler(0, 0, direction * Mathf.Lerp(-24, 24, t));
+                renderer.color = new Color(1, 1, 1, 1 - t * t);
+                yield return null;
+                elapsed += Time.deltaTime;
+            }
+            Destroy(arc);
+        }
+
         // Production hits invoke this only from the consumed Animator event; previews may burst on arrival.
         public void PlayImpact(int tier, int variant, Vector3 point)
         {

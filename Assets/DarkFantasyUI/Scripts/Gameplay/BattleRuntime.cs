@@ -362,12 +362,15 @@ namespace Moonlit.UI
                 if (isPlayer && skill)
                     foreach (var equipped in actor.skills)
                         if (equipped.tier == tier && equipped.variant == variant) RecordPlayerSkill(equipped);
+                var victimMotion = (isPlayer ? enemy : player).transform.Find("Motion");
+                Vector3 impactPoint = victimMotion.position + Vector3.up * 2.4f;
+                if (!skill) effects.PlayBasicSlash(impactPoint, isPlayer);
                 var hit = CombatRules.Strike(actor, target, damage, skill, random.NextDouble);
                 if (!hit.evaded && hit.damage > 0)
                 {
                     (isPlayer ? enemyFlash : playerFlash).Play();
-                    var victimMotion = (isPlayer ? enemy : player).transform.Find("Motion");
-                    effects.PlayImpact(skill ? tier : 0, skill ? variant : 1, victimMotion.position + Vector3.up * 2.4f);
+                    effects.PlayHitDust(impactPoint);
+                    if (skill) effects.PlayImpact(tier, variant, impactPoint);
                     if (target.Alive) (isPlayer ? enemyAnimator : playerAnimator).Play("Hit", 0, 0);
                     else PlayDeathOnce(!isPlayer);
                 }

@@ -372,7 +372,8 @@ namespace Moonlit.UI.Tests
         [TestCase(true, 1, false)]
         [TestCase(true, 2, false)]
         [TestCase(true, 1, true)]
-        public void AnimatorImpactAloneFlashesVictimAndSpawnsIllustratedFragments(bool isPlayer, int variant, bool evade)
+        [TestCase(true, 0, true)]
+        public void AnimatorImpactAloneFlashesVictimAndSeparatesBasicDustFromStoneSkills(bool isPlayer, int variant, bool evade)
         {
             using (var fixture = new Fixture())
             {
@@ -390,6 +391,7 @@ namespace Moonlit.UI.Tests
                 Assert.IsTrue(strike.MoveNext());
                 var action = (IEnumerator)strike.Current; Assert.IsTrue(action.MoveNext());
                 Assert.IsFalse(flash.IsFlashing); Assert.AreEqual(0, effects.GetComponentsInChildren<ParticleSystem>().Length);
+                Assert.IsFalse(effects.GetComponentsInChildren<SpriteRenderer>().Any(x => x.name == "Basic sword slash"));
                 float impactTime = variant == 0 ? .3f : PrimitiveSkillEffects.AttackFlightDuration;
                 animator.Update(0); animator.Update(impactTime - .01f);
                 Assert.AreEqual(100, victim.Health); Assert.IsFalse(flash.IsFlashing);
@@ -397,19 +399,40 @@ namespace Moonlit.UI.Tests
                 Assert.AreEqual(evade ? 100 : 90, victim.Health);
                 Assert.AreEqual(!evade, flash.IsFlashing);
                 var fragments = effects.GetComponentsInChildren<ParticleSystem>();
-                Assert.AreEqual(evade ? 0 : 1, fragments.Length);
+                int expectedParticles = evade ? 0 : variant == 0 ? 1 : 2;
+                Assert.AreEqual(expectedParticles, fragments.Length);
+                var arcs = effects.GetComponentsInChildren<SpriteRenderer>().Where(x => x.name == "Basic sword slash").ToArray();
+                Assert.AreEqual(variant == 0 ? 1 : 0, arcs.Length);
                 if (!evade)
                 {
                     foreach (var sprite in victimActor.GetComponentsInChildren<SpriteRenderer>())
                         Assert.AreEqual("Moonlit/Combat/HitWhite", sprite.sharedMaterial.shader.name);
-                    Assert.AreEqual(2.64f, fragments[0].main.startSize.constant, .001f, "Three times the previous .88 fragment size.");
-                    var art = PrimitiveSkillEffects.SkillSprite(0, variant == 2 ? 2 : 1);
-                    Assert.AreSame(art, fragments[0].textureSheetAnimation.GetSprite(0));
-                    Assert.AreSame(art.texture, fragments[0].GetComponent<ParticleSystemRenderer>().sharedMaterial.mainTexture);
+                    var dust = fragments.Single(x => x.name == "Basic hit dust puff");
+                    var dustArt = Resources.Load<Sprite>(PrimitiveSkillEffects.HitDustKey);
+                    Assert.IsNotNull(dustArt, "Dedicated transparent dust art must be bundled.");
+                    Assert.AreSame(dustArt, dust.textureSheetAnimation.GetSprite(0));
+                    Assert.AreSame(dustArt.texture, dust.GetComponent<ParticleSystemRenderer>().sharedMaterial.mainTexture);
+                    Assert.IsTrue(dust.colorOverLifetime.enabled);
+                    Assert.Greater(dust.sizeOverLifetime.size.curve.Evaluate(1), dust.sizeOverLifetime.size.curve.Evaluate(0),
+                        "Dust expands and fades instead of falling as stone fragments.");
+                    if (variant == 0)
+                    {
+                        Assert.AreSame(Resources.Load<Sprite>(PrimitiveSkillEffects.BasicSlashKey), arcs[0].sprite);
+                        Assert.AreEqual(isPlayer ? 1 : -1, Mathf.Sign(arcs[0].transform.localScale.x), "Mirror the actual slash for the enemy.");
+                        Assert.Greater(arcs[0].bounds.size.y, 2.4f, "The basic arc must remain readable beside doubled actors.");
+                        Assert.IsFalse(fragments.Any(x => x.name.Contains("illustrated impact fragments")));
+                    }
+                    else
+                    {
+                        var stone = fragments.Single(x => x.name.Contains("illustrated impact fragments"));
+                        Assert.AreEqual(2.64f, stone.main.startSize.constant, .001f);
+                        Assert.AreSame(PrimitiveSkillEffects.SkillSprite(0, variant), stone.textureSheetAnimation.GetSprite(0));
+                    }
                 }
                 relay.OnCombatImpact(variant == 0 ? 0 : variant + 1);
                 Assert.AreEqual(evade ? 100 : 90, victim.Health);
-                Assert.AreEqual(evade ? 0 : 1, effects.GetComponentsInChildren<ParticleSystem>().Length, "Duplicate events must not spawn another impact.");
+                Assert.AreEqual(expectedParticles, effects.GetComponentsInChildren<ParticleSystem>().Length, "Duplicate events must not spawn another impact.");
+                Assert.AreEqual(arcs.Length, effects.GetComponentsInChildren<SpriteRenderer>().Count(x => x.name == "Basic sword slash"));
             }
         }
 

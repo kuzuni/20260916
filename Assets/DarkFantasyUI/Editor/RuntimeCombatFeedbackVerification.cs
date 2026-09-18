@@ -89,7 +89,7 @@ namespace Moonlit.Editor
                     var effects = CombatCaptureField<PrimitiveSkillEffects>(battle, "effects");
                     var fragments = effects.GetComponentsInChildren<ParticleSystem>();
                     if (!flash.IsFlashing || victim.Health != 180 || fragments.Length == 0)
-                        throw new InvalidOperationException("Animator event did not produce real damage, white flash and fragments.");
+                        throw new InvalidOperationException("Animator event did not produce real damage, white flash and dust.");
                     yield return null; // Let SpriteSkin update the pose; scaled time stays frozen during the white frame.
                     foreach (var particles in fragments) particles.Simulate(.04f, true, false, true);
                     RefreshCombatCapture(battle);
@@ -97,8 +97,16 @@ namespace Moonlit.Editor
                     foreach (var sprite in victimActor.GetComponentsInChildren<SpriteRenderer>())
                         if (sprite.sharedMaterial.shader.name != "Moonlit/Combat/HitWhite")
                             throw new InvalidOperationException("Victim sprite did not use alpha-preserving white flash.");
-                    if (Mathf.Abs(fragments.Last().main.startSize.constant - 2.64f) > .001f)
-                        throw new InvalidOperationException("Impact fragments are not three times their previous size.");
+                    if (fragments.Length != 1 || fragments[0].name != "Basic hit dust puff" ||
+                        fragments[0].textureSheetAnimation.GetSprite(0) != Resources.Load<Sprite>(PrimitiveSkillEffects.HitDustKey))
+                        throw new InvalidOperationException("Basic attacks must create dedicated dust, without stone fragments.");
+                    var arc = effects.GetComponentsInChildren<SpriteRenderer>().SingleOrDefault(x => x.name == "Basic sword slash");
+                    if (!arc || arc.sprite != Resources.Load<Sprite>(PrimitiveSkillEffects.BasicSlashKey) ||
+                        Mathf.Sign(arc.transform.localScale.x) != (isPlayer ? 1 : -1))
+                        throw new InvalidOperationException("Basic impact needs the correctly mirrored illustrated sword arc.");
+                    SaveCamera(camera, "Artifacts/Runtime-basic-slash-dust-" + (isPlayer ? "player" : "enemy") + "-" + aspect + ".png", 1080, height);
+                    effects.StopAllCoroutines();
+                    UnityEngine.Object.DestroyImmediate(arc.gameObject);
                     flash.enabled = false; flash.enabled = true;
                     foreach (var particles in fragments) UnityEngine.Object.DestroyImmediate(particles.gameObject);
                     for (int i=0;i<2;i++) { animators[i].Play("Idle",0,0);animators[i].Update(0); }
@@ -146,7 +154,7 @@ namespace Moonlit.Editor
                     }
                     SaveCamera(camera, "Artifacts/Runtime-shadow-feet-" + state.ToLowerInvariant() + "-" + aspect + ".png", 1080, height);
                 }
-                report.Add("PASS real Animator white hits on both victims, 3x sprite fragments, continuous wave HP/turns/position and foot shadows in idle/basic/strong " + height);
+                report.Add("PASS real Animator white hits, mirrored basic sword arcs and dedicated dust on both victims, continuous wave HP/turns/position and foot shadows in idle/basic/strong " + height);
             }
             finally
             {
