@@ -98,23 +98,30 @@ namespace Moonlit.UI
             }
             RenderCollection(view);
         }
-        static void RenderCollection(CollectionView view)
+        static void RenderCollection(CollectionView view,bool resetScroll=true)
         {
-            ClearChildren(view.grid); view.refreshCards.Clear(); var entries=CollectionProgression.Data.categories[view.tab].entries;
-            for(int i=0;i<entries.Length;i++){
-                var entry=entries[i];
-                var refresh=EntryCard(view.grid,42+(i%5)*188,16+(i/5)*235,158,entry,view.context.Assets.font,
+            float position=view.scroll.verticalNormalizedPosition;
+            ClearChildren(view.grid); view.refreshCards.Clear();
+            var entries=CollectionProgression.Data.categories[view.tab].entries;
+            int visible=0;
+            foreach(var entry in entries){
+                if(!entry.unlocked)continue;
+                int index=visible++;
+                var refresh=EntryCard(view.grid,56+(index%3)*306,16+(index/3)*390,260,entry,view.context.Assets.font,
                     ()=>view.context.Open("skill-details",new DetailPayload{entry=entry,refresh=()=>RefreshCollection(view)}));
                 view.refreshCards.Add(refresh);
             }
-            view.grid.sizeDelta=new Vector2(0,Mathf.CeilToInt(entries.Length/5f)*235+24);
-            view.scroll.verticalNormalizedPosition=1; RefreshCollection(view);
+            if(visible==0)Ui.Text("Empty collection",view.grid,52,100,880,100,
+                "보유한 "+CollectionProgression.CategoryNames[view.tab]+"이 없습니다.",30,view.context.Assets.font);
+            view.grid.sizeDelta=new Vector2(0,Mathf.Max(view.scroll.viewport.rect.height,Mathf.CeilToInt(visible/3f)*390+24));
+            view.scroll.verticalNormalizedPosition=resetScroll?1:position; RefreshCollection(view);
         }
         static void RefreshCollection(CollectionView view)
         {
             if(view==null || !view.root) return;
             var category=CollectionProgression.Data.categories[view.tab]; int owned=0; double health=0,attack=0;
             foreach(var entry in category.entries) if(entry.unlocked){owned++;health+=entry.OwnedHealth;attack+=entry.OwnedAttack;}
+            if(owned!=view.refreshCards.Count){RenderCollection(view,view.refreshCards.Count==0);return;}
             view.title.text=CollectionProgression.CategoryNames[view.tab]+" "+owned+"/"+category.entries.Length;
             view.summary.text="보유 효과  체력 +"+Number(health)+"  공격력 +"+Number(attack);
             int tickets=Tickets(view.context.Main,view.tab),use=Math.Min(tickets,view.quantity),diamonds=(view.quantity-use)*100;
