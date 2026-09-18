@@ -579,21 +579,13 @@ namespace Moonlit.Editor
                         yield return CaptureAscension(screen,camera,height,report,fail);
                         yield return CaptureCollectionAscensions(screen,camera,height,report,fail);
                         yield return CaptureDungeonClaims(screen,camera,height,report,fail);
-                        for(int tier=0;tier<10;tier++) for(int skill=0;skill<3;skill++) {
-                            battle.PreviewSkill(tier,skill);
-                            // Fixed simulation frames keep flight and impact visible even on slow hosted renderers.
-                            for(int frame=0;frame<12;frame++)yield return null;
-                            SaveCamera(camera,"Artifacts/Runtime-skill-"+tier+"-"+skill+"-flight-"+(height==1920?"9x16":"9x19")+".png",1080,height);
-                            for(int frame=0;frame<10;frame++)yield return null;
-                            SaveCamera(camera,"Artifacts/Runtime-skill-"+tier+"-"+skill+"-impact-"+(height==1920?"9x16":"9x19")+".png",1080,height);
-                            for(int frame=0;frame<39;frame++)yield return null;
-                        }
+                        yield return CaptureSkillChoreographies(screen,camera,height,report,fail);
                     }
                     finally {camera.targetTexture=previousTarget;previewTarget.Release();Object.DestroyImmediate(previewTarget);}
                 }
             }
             finally {Time.captureFramerate=previousCaptureRate;Time.timeScale=previousTimeScale;}
-            report.Add("CAPTURE all 30 themed skills in flight and at impact at both aspect ratios");
+            report.Add("CAPTURE all 30 themed skills in four choreography phases at both aspect ratios");
         }
 
         static IEnumerator CaptureBattleOverlay(MainScreen screen,Camera camera,int height,List<string> report,Action fail)
