@@ -156,7 +156,7 @@ namespace Moonlit.UI
                 if(equipped!=null)Action(c,content,32,676,360,100,"판매",()=>{
                     if(!s.SellPending(id,out int gold))return;
                     c.Main.gold=(int)Math.Min(int.MaxValue,(long)c.Main.gold+gold);c.Main.Refresh();
-                    RewardVisuals.Absorb(c.Main,RewardVisuals.Kind.Gold,gold,c.Main.forgeButton.transform.position);
+                    RewardVisuals.Absorb(c.Main,RewardVisuals.Kind.Gold,gold,c.Main.forgeButton ? c.Main.forgeButton.transform.position : candidate.position);
                     if(s.Pending==null)c.Close();else redraw();
                 },Red);
                 Action(c,content,equipped!=null?428:230,676,360,100,"장착",()=>{
