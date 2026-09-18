@@ -72,11 +72,14 @@ namespace Moonlit.UI.Tests
             state.equipped[5]=original;state.pending.Add(drop);
             main.screens.Open("forge-comparison");yield return null;
             var popup=GameObject.Find("Popup Layer forge-comparison");
+            Assert.AreEqual("New equipment",popup.GetComponentsInChildren<Text>().Single(t=>t.name=="New marker").transform.parent.name);
             popup.GetComponentsInChildren<Button>().Single(b=>b.name=="장착").onClick.Invoke();yield return null;
+            Assert.AreEqual("Current equipment",popup.GetComponentsInChildren<Text>().Single(t=>t.name=="New marker").transform.parent.name);
             Assert.AreSame(drop,state.equipped[5]);Assert.AreSame(original,state.Pending);
             Assert.AreEqual(drop.Name,popup.GetComponentsInChildren<Text>().First(t=>t.name=="Name").text,"Equipped card moves to the top");
             popup.GetComponentsInChildren<Button>().Single(b=>b.name=="장착").onClick.Invoke();yield return null;
             Assert.AreSame(original,state.equipped[5]);Assert.AreSame(drop,state.Pending);
+            Assert.AreEqual("New equipment",popup.GetComponentsInChildren<Text>().Single(t=>t.name=="New marker").transform.parent.name);
             var sale=popup.GetComponentsInChildren<Button>().Single(b=>b.name.StartsWith("판매"));
             sale.onClick.Invoke();int gold=main.gold;sale.onClick.Invoke();yield return null;
             Assert.AreEqual(EquipmentRules.SaleGold(drop),gold);Assert.AreEqual(gold,main.gold);
@@ -223,6 +226,116 @@ namespace Moonlit.UI.Tests
                 Assert.AreEqual(0,host.ModalDepth);Assert.AreEqual(initialHammers-1,main.ore);
                 runtime.StopAuto();yield return null;Assert.IsFalse(state.autoEnabled);
             }
+        }
+
+        [UnityTest] public IEnumerator AscensionClaimCancelsInFlightForgeAndClearsPendingWithoutSale()
+        {
+            var state=ForgeState.Current;state.level=35;
+            state.equipped[0]=new EquipmentRoll {id=77,tier=9,part=EquipmentPart.Armor};state.nextId=77;
+            var runtime=ForgeRuntime.Ensure(main);runtime.BeginManual();
+            Assert.IsTrue(runtime.Busy);Assert.AreEqual(999,main.ore);
+            state.filledSegments=state.Segments;state.upgradeEndsUtcTicks=System.DateTime.UtcNow.AddSeconds(-1).Ticks;
+            main.screens.Open("forge-probability");yield return null;
+            var layer=GameObject.Find("Popup Layer forge-probability");
+            var finish=layer.GetComponentsInChildren<Button>().Single(button=>button.name=="업그레이드");
+            Assert.AreEqual("승천하기",finish.GetComponentInChildren<Text>().text);
+            finish.onClick.Invoke();yield return null;
+            Assert.AreEqual(1,state.ascension);Assert.AreEqual(1,state.level);
+            Assert.IsFalse(runtime.Busy);Assert.IsFalse(state.autoEnabled);
+            Assert.IsEmpty(state.pending);Assert.IsEmpty(state.automaticSaleIds);
+            Assert.IsTrue(state.equipped.All(item=>item==null));
+            Assert.IsNull(GameObject.Find("Forging hammer"));Assert.IsNull(GameObject.Find("Forged equipment hand"));
+            Assert.IsTrue(main.forgeButton.interactable);
+            yield return new WaitForSecondsRealtime(1.7f);
+            Assert.IsNull(GameObject.Find("Popup Layer forge-comparison"));
+            Assert.AreEqual(0,main.gold);Assert.AreEqual(999,main.ore,"Ascension neither refunds nor spends more hammers.");
+            Assert.IsEmpty(state.pending);Assert.AreEqual(1,state.ascension);
+            Assert.AreEqual(1,host.ModalDepth);
+        }
+
+        [UnityTest] public IEnumerator EquipmentStarsUseSavedAscensionAndCatalogUsesSquareFrames()
+        {
+            foreach(int ascension in new[]{0,1,3}) {
+                ForgeState.Current.ascension=ascension;
+                host.Registry.Open("forge-probability-details");yield return null;
+                var layer=GameObject.Find("Popup Layer forge-probability-details");
+                var cells=layer.GetComponentsInChildren<Button>().Where(button=>button.name.StartsWith("Equipment ")).ToArray();
+                Assert.AreEqual(180,cells.Length);
+                foreach(var cell in cells) {
+                    var rect=(RectTransform)cell.transform;
+                    Assert.That(rect.rect.width,Is.EqualTo(rect.rect.height).Within(.01f));
+                    Assert.AreEqual(ascension>0,cell.GetComponentsInChildren<Text>().Any(text=>text.name=="Star"));
+                }
+                cells[0].onClick.Invoke();yield return null;
+                var info=GameObject.Find("Popup Layer forge-item-details");
+                var stars=info.GetComponentsInChildren<Text>().Where(text=>text.name=="Star").ToArray();
+                Assert.AreEqual(ascension>0?1:0,stars.Length);
+                if(ascension>0)Assert.AreEqual(EquipmentRules.AscensionStars(ascension),stars[0].text);
+                host.CloseTop();host.CloseTop();yield return null;
+                // The equipment card must use its own saved ascension, not the current forge's value.
+                ForgeState.Current.ascension=ascension+1;
+                host.Registry.Open("equipment-details",new EquipmentRoll {id=1,ascension=ascension,part=EquipmentPart.Armor});
+                yield return null;
+                var details=GameObject.Find("Popup Layer equipment-details");
+                Assert.AreEqual(ascension>0?1:0,details.GetComponentsInChildren<Text>().Count(text=>text.name=="Star"));
+                host.CloseTop();yield return null;
+            }
+        }
+
+        [UnityTest] public IEnumerator ProbabilityRestoresIconWalletHeaderAndHidesZeroAscensionStars()
+        {
+            foreach(int ascension in new[]{0,2}) {
+                ForgeState.Current.ascension=ascension;main.gold=1234;main.gems=56;
+                host.Registry.Open("forge-probability");yield return null;
+                var layer=GameObject.Find("Popup Layer forge-probability");
+                var texts=layer.GetComponentsInChildren<Text>();
+                Assert.AreEqual("제련 확률",texts.Single(text=>text.name=="Subtitle").text);
+                Assert.AreEqual(MainScreen.Compact(1234),texts.Single(text=>text.name=="Wallet value 0").text);
+                Assert.AreEqual("56",texts.Single(text=>text.name=="Wallet value 1").text);
+                Assert.IsTrue(layer.GetComponentsInChildren<Image>().Any(image=>image.name=="Wallet icon 0"));
+                Assert.IsTrue(layer.GetComponentsInChildren<Image>().Any(image=>image.name=="Wallet icon 1"));
+                Assert.IsFalse(texts.Any(text=>text.name=="Skip rate" || text.name=="Wallet"));
+                Assert.AreEqual(ascension>0?10:0,texts.Count(text=>text.name=="Rarity star"));
+                host.CloseTop();yield return null;
+            }
+        }
+
+        [Test] public void MainEquipmentSlotShowsOnlyItsItemsAscensionStars()
+        {
+            var go=new GameObject("Ascension slot",typeof(RectTransform),typeof(Button));
+            go.transform.SetParent(root.transform,false);go.SetActive(false);
+            var slot=go.AddComponent<EquipmentSlot>();
+            slot.frame=Ui.Image("Frame",go.transform,0,0,148,148,null);
+            slot.icon=Ui.Image("Icon",go.transform,0,0,148,148,null);
+            slot.levelLabel=Ui.Text("Level",go.transform,0,100,148,40,"",24,assets.font);
+            slot.starLabel=Ui.Text("Star",go.transform,0,138,148,28,"",24,assets.font);
+            slot.lockedBadge=Ui.Rect("Locked",go.transform,0,0,20,20).gameObject;
+            slot.notificationBadge=Ui.Rect("Notification",go.transform,0,0,20,20).gameObject;
+            var definition=ScriptableObject.CreateInstance<ItemDefinition>();
+            try {
+                ForgeState.Current.ascension=3;
+                foreach(int ascension in new[]{0,1,3}) {
+                    slot.roll=new EquipmentRoll {id=1,ascension=ascension};
+                    slot.Bind(definition,1);
+                    Assert.AreEqual(ascension>0,slot.starLabel.gameObject.activeSelf);
+                    Assert.AreEqual(ascension>0?EquipmentRules.AscensionStars(ascension):"",slot.starLabel.text);
+                }
+                slot.Bind(null);
+                Assert.IsFalse(slot.starLabel.gameObject.activeSelf);Assert.AreEqual("",slot.starLabel.text);
+            } finally {Object.DestroyImmediate(definition);}
+        }
+
+        [UnityTest] public IEnumerator MaxAscensionShowsDisabledMaxLevelButton()
+        {
+            ForgeState.Current.ascension=3;ForgeState.Current.level=35;main.gold=1000000;
+            host.Registry.Open("forge-probability");yield return null;
+            var layer=GameObject.Find("Popup Layer forge-probability");
+            var primary=layer.GetComponentsInChildren<Button>().Single(button=>button.name=="업그레이드");
+            Assert.AreEqual("만렙",primary.GetComponentInChildren<Text>().text);
+            Assert.IsFalse(primary.interactable);
+            primary.onClick.Invoke();yield return null;
+            Assert.AreEqual(1000000,main.gold);Assert.AreEqual(3,ForgeState.Current.ascension);
+            Assert.AreEqual(35,ForgeState.Current.level);
         }
 
     }

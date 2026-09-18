@@ -22,7 +22,7 @@ namespace Moonlit.UI
                 close.gameObject.SetActive(false);
                 button.targetGraphic=icon; button.transition=Selectable.Transition.ColorTint;
                 var feedback=button.gameObject.AddComponent<ButtonFeedback>(); feedback.artwork=icon.rectTransform;
-                if(i<3) Badge(button.transform,174.5f,23,27);
+                Badge(button.transform,174.5f,23,27).SetActive(false);
                 if(i>0) {
                     Ui.Image("Bronze divider",background.transform,i*270-1,30,2,110,null,new Color(.32f,.25f,.17f));
                     var diamond=Ui.Image("Divider tip",background.transform,i*270-4,28,8,8,null,new Color(.32f,.25f,.17f)); diamond.rectTransform.localRotation=Quaternion.Euler(0,0,45);

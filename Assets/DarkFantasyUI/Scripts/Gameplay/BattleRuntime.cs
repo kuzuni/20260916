@@ -49,6 +49,7 @@ namespace Moonlit.UI
         Action<bool> externalCallback;
         readonly System.Random random = new System.Random();
         bool initialized, failedAnimation;
+        bool playerDeathStarted, enemyDeathStarted;
         int externalDifficulty, externalWaves, arenaRating;
         string externalName;
 
@@ -222,6 +223,7 @@ namespace Moonlit.UI
                     stats.speed = Math.Max(1, stats.speed * scale);
                 }
                 EnemyState = new CombatActorState(stats);
+                playerDeathStarted = enemyDeathStarted = false;
                 playerAnimator.Play("Idle", 0, 0); enemyAnimator.Play("Idle", 0, 0);
                 yield return Entrance();
                 bool playerFirst = CombatRules.PlayerFirst(PlayerState.stats.speed, EnemyState.stats.speed, random.NextDouble());
@@ -234,7 +236,8 @@ namespace Moonlit.UI
                     if (!PlayerState.Alive || !EnemyState.Alive || CombatRules.RoundLimitLost(Round, EnemyState.Alive)) break;
                 }
                 bool wonWave = PlayerState.Alive && !EnemyState.Alive;
-                (wonWave ? enemyAnimator : playerAnimator).Play("Death", 0, 0);
+                // Lethal impacts already started Death. Only a round-limit loss still needs to start it.
+                PlayDeathOnce(!wonWave);
                 yield return new WaitForSeconds(.85f);
                 if (!wonWave) { complete(false); yield break; }
             }
@@ -294,12 +297,23 @@ namespace Moonlit.UI
                     foreach (var equipped in actor.skills)
                         if (equipped.tier == tier && equipped.variant == variant) playerSkillsUsedThisTurn.Add(equipped);
                 var hit = CombatRules.Strike(actor, target, damage, skill, random.NextDouble);
-                if (!hit.evaded) (isPlayer ? enemyAnimator : playerAnimator).Play(target.Alive ? "Hit" : "Death", 0, 0);
+                if (!hit.evaded)
+                {
+                    if (target.Alive) (isPlayer ? enemyAnimator : playerAnimator).Play("Hit", 0, 0);
+                    else PlayDeathOnce(!isPlayer);
+                }
                 (isPlayer ? EnemyHud : PlayerHud).Float(hit.evaded ? "회피" :
                     Format(hit.damage),
                     hit.critical ? new Color(1, .16f, .12f) : Color.white);
                 if (hit.healing > 0) (isPlayer ? PlayerHud : EnemyHud).Float("+" + Format(hit.healing), new Color(.4f, 1, .55f));
             });
+        }
+        void PlayDeathOnce(bool isPlayer)
+        {
+            if (isPlayer ? playerDeathStarted : enemyDeathStarted) return;
+            if (isPlayer) playerDeathStarted = true; else enemyDeathStarted = true;
+            (isPlayer ? playerRelay : enemyRelay).Cancel();
+            (isPlayer ? playerAnimator : enemyAnimator).Play("Death", 0, 0);
         }
         IEnumerator AnimatedAction(bool isPlayer, int kind, string state, Action impact)
         {

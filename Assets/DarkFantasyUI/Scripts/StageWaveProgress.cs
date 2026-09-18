@@ -57,11 +57,11 @@ namespace Moonlit.UI
             float targetWidth=widths[lineIndex];
             transition=DOTween.Sequence().SetUpdate(true).SetTarget(this);
             transition.Append(DOTween.To(()=>line.rect.width,
-                value=>line.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal,value),
+                value=>{
+                    line.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal,value);
+                    if(nodes[nodeIndex])nodes[nodeIndex].color=value>=targetWidth-.01f?Ui.Cyan:new Color(0,.24f,.34f);
+                },
                 targetWidth,.4f).SetEase(Ease.OutQuad));
-            transition.AppendCallback(()=> {
-                if(nodes[nodeIndex])nodes[nodeIndex].color=Ui.Cyan;
-            });
             if(nodeIndex<pulses.Length && pulses[nodeIndex]) {
                 var pulse=pulses[nodeIndex];var original=scales[nodeIndex];
                 transition.Append(DOTween.To(()=>pulse.localScale,value=>pulse.localScale=value,

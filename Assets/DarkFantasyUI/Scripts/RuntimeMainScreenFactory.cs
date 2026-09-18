@@ -57,7 +57,7 @@ namespace Moonlit.UI
                 slot.levelLabel.fontSize=Ui.ReadableFontSize(32);
                 slot.levelLabel.rectTransform.anchorMax=new Vector2(1,.38f);
                 slot.SetEmptyIcon(EquipmentPictograms.Icon(i));
-                slot.Bind(null); slots.Add(slot);
+                slot.Bind(null);NotificationPulse.Ensure(slot.notificationBadge); slots.Add(slot);
                 slot.name=i<6 ? new[]{"갑옷","귀걸이","모자","목걸이","반지","무기"}[i]+" Slot" : new[]{"엠블렘","날개","정령"}[i-6]+" Slot";
             }
             main.equipment=slots.ToArray();
@@ -88,6 +88,7 @@ namespace Moonlit.UI
             SocialScreenModule.Register(host.Registry);
             RewardsScreenModule.Register(host.Registry);
             main.InitializeGameplay(assets);
+            main.gameObject.AddComponent<RewardNotificationDots>().Initialize(main,circle);
             if(!Object.FindFirstObjectByType<EventSystem>()) {
                 var events=new GameObject("Runtime EventSystem",typeof(EventSystem),typeof(InputSystemUIInputModule)); events.transform.SetParent(root,false);
             }
@@ -102,7 +103,7 @@ namespace Moonlit.UI
         GameObject Badge(Transform parent,float x,float y,float size)
         {
             var rim=Ui.Image("Notification",parent,x,y,size,size,circle,Ui.Ivory);
-            Ui.Image("Red dot",rim.transform,2,2,size-4,size-4,circle,new Color(1,.08f,.08f)); return rim.gameObject;
+            Ui.Image("Red dot",rim.transform,2,2,size-4,size-4,circle,new Color(1,.08f,.08f)); NotificationPulse.Ensure(rim.gameObject);return rim.gameObject;
         }
     }
 }

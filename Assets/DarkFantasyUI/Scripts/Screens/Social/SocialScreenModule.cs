@@ -402,33 +402,58 @@ namespace Moonlit.UI
             PageWallet(c,root,"Gold wallet",54,44,0,c.Main ? (c.Main.gold/1000000f).ToString("0.00")+"m" : "1.59m");
             PageWallet(c,root,"Ruby wallet",w-324,44,1,c.Main ? c.Main.gems.ToString() : "21");
             const float shopContentTop = 180;
-            Scroll(c, root, 38, shopContentTop, w - 76, Mathf.Max(360, h - shopContentTop - NavigationReserve), 1740, out var content);
+            Scroll(c, root, 38, shopContentTop, w - 76, Mathf.Max(360, h - shopContentTop - NavigationReserve), 1920, out var content);
             var special = PopupSkin.Panel("Daily specials header", content, 18, 0, w - 112, 110);
             Ui.Text("Daily specials title", special.transform, 24, 12, w - 160, 76, "오늘의 특가", 42, Font(c), Ui.Gold);
             Ui.Text("Daily specials hint", content, 40, 116, w - 156, 52, "버튼을 누르면 상품이 지급됩니다", 25, Font(c), Ui.Ivory);
-            Deal(c, content, 170, "자원 거래", "₩2,800", w - 76, 0);
-            Deal(c, content, 450, "펫 거래", "₩9,500", w - 76, 1);
-            Deal(c, content, 730, "던전 거래", "₩27,500", w - 76, 2);
-            PopupSkin.Panel("Gem section frame",content,150,1010,w-376,70);
-            Ui.Text("Gem title", content, 20, 1010, w - 116, 70, "다이아", 42, Font(c), Ui.Gold);
+            DailyDiamonds(c,content,w-112);
+            Deal(c, content, 350, "자원 거래", "₩2,800", w - 76, 0);
+            Deal(c, content, 630, "펫 거래", "₩9,500", w - 76, 1);
+            Deal(c, content, 910, "던전 거래", "₩27,500", w - 76, 2);
+            PopupSkin.Panel("Gem section frame",content,150,1190,w-376,70);
+            Ui.Text("Gem title", content, 20, 1190, w - 116, 70, "다이아", 42, Font(c), Ui.Gold);
             int[] gems = { 600, 2200, 8000, 15000, 33000 };
             string[] prices = { "₩2,800", "₩9,500", "₩34,500", "₩60,000", "₩110,000" };
             for (int i = 0; i < gems.Length; i++)
             {
                 int col = i % 3, row = i / 3;
                 float cardW = (w - 124) / 3f;
-                var card = PopupSkin.IllustratedCard("Gem offer " + gems[i], content, 20 + col * (cardW + 14), 1090 + row * 320, cardW, 300, ShopCardScenery, new Color(.65f,.75f,.85f));
+                var card = PopupSkin.IllustratedCard("Gem offer " + gems[i], content, 20 + col * (cardW + 14), 1270 + row * 320, cardW, 300, ShopCardScenery, new Color(.65f,.75f,.85f));
                 card.Find("Card rim").GetComponent<Image>().pixelsPerUnitMultiplier=18;
                 Ui.Image("Ruby amount icon", card.transform, 20, 12, 48, 48, Icon(c, 1)).preserveAspect = true;
                 Ui.Text("Amount", card.transform, 72, 8, cardW - 82, 54, gems[i].ToString(), 29, Font(c), new Color(1,.75f,.78f), TextAnchor.MiddleLeft);
                 var ruby = Ui.ArtImage("Ruby artwork", card.transform, 10, 44, cardW - 20, 190, ShopIllustration(3 + i)); Ui.CenterAspect(ruby);
                 string price = prices[i]; int amount=gems[i]; int lastPurchaseFrame=-1;
                 Action(c, card.transform, 12, 222, cardW - 24, 66, price, () => {
-                    if(lastPurchaseFrame==Time.frameCount || !c.Main)return;
-                    lastPurchaseFrame=Time.frameCount;c.Main.gems=RewardRules.Add(c.Main.gems,amount);
-                    c.Main.Refresh();c.Main.SaveGame();RewardVisuals.Absorb(c.Main,RewardVisuals.Kind.Diamond,amount);
+                    if(lastPurchaseFrame==Time.frameCount || !c.Main || !card || !card.gameObject.activeInHierarchy)return;
+                    lastPurchaseFrame=Time.frameCount;int before=c.Main.gems;c.Main.gems=RewardRules.Add(before,amount);
+                    c.Main.Refresh();c.Main.SaveGame();
+                    RewardVisuals.Absorb(c.Main,RewardVisuals.Kind.Diamond,c.Main.gems-before,ruby.rectTransform.TransformPoint(ruby.rectTransform.rect.center));
                 });
             }
+        }
+
+        static void DailyDiamonds(ScreenContext c,Transform parent,float width)
+        {
+            var card=PopupSkin.Panel("Daily diamond offer",parent,18,170,width,140).rectTransform;
+            Ui.Text("Daily diamond title",card,24,12,500,46,"매일 무료 다이아",30,Font(c),Ui.Gold,TextAnchor.MiddleLeft);
+            var icon=Ui.Image("Daily diamond icon",card,28,71,46,46,Icon(c,1));icon.preserveAspect=true;
+            Ui.Text("Daily diamond amount",card,86,64,220,58,"100",34,Font(c),Ui.Ivory,TextAnchor.MiddleLeft);
+            Button claim=null;GameObject claimDot=null;
+            System.Action refresh=()=>{
+                if(!claim)return;
+                bool available=RewardState.Current.CanClaimDailyDiamonds;
+                claim.interactable=available;if(claimDot)claimDot.SetActive(available);
+                claim.GetComponentInChildren<Text>().text=available?"무료 받기":"수령 완료";
+            };
+            claim=Action(c,card,width-306,38,280,68,"무료 받기",()=>{
+                if(!card || !card.gameObject.activeInHierarchy)return;
+                RewardState.Current.ClaimDailyDiamonds(c.Main,icon.rectTransform.TransformPoint(icon.rectTransform.rect.center));
+                refresh();
+            });
+            claim.name="Claim daily diamonds";
+            claimDot=RewardNotificationDots.Create(claim.transform,252,-8,27,RewardNotificationDots.Circle(c.Main));
+            card.gameObject.AddComponent<LiveUiRefresh>().RefreshView=refresh;refresh();
         }
 
         static void PageWallet(ScreenContext c, Transform root, string name, float x, float y, int icon, string value)
@@ -468,18 +493,32 @@ namespace Moonlit.UI
             }
             int lastFrame=-1;
             Action(c, card.transform, width - 330, 180, 280, 68, price, () => {
-                if(!c.Main||lastFrame==Time.frameCount)return;lastFrame=Time.frameCount;
+                if(!c.Main || !card || !card.gameObject.activeInHierarchy || lastFrame==Time.frameCount)return;
+                lastFrame=Time.frameCount;
+                int[] before={c.Main.gold,c.Main.ore,c.Main.skillTickets,c.Main.petTickets,c.Main.mountTickets,c.Main.gems};
+                if(artIndex==2)DungeonProgression.RefreshDay(DateTime.UtcNow);
+                int[] keysBefore=(int[])DungeonProgression.Data.keys.Clone();
                 if(artIndex==0) {
                     c.Main.gold=RewardRules.Add(c.Main.gold,1000);c.Main.ore=RewardRules.Add(c.Main.ore,50);
                     c.Main.skillTickets=RewardRules.Add(c.Main.skillTickets,200);c.Main.petTickets=RewardRules.Add(c.Main.petTickets,50);
                     c.Main.mountTickets=RewardRules.Add(c.Main.mountTickets,50);c.Main.gems=RewardRules.Add(c.Main.gems,62);
                 } else if(artIndex==1) {
                     c.Main.petTickets=RewardRules.Add(c.Main.petTickets,660);c.Main.ore=RewardRules.Add(c.Main.ore,200);c.Main.gems=RewardRules.Add(c.Main.gems,20);
-                } else c.Main.AddDungeonKeys(2);
+                } else {
+                    // Keep every key quantity within the serializable integer wallet.
+                    for(int i=0;i<4;i++)DungeonProgression.Data.keys[i]=RewardRules.Add(DungeonProgression.Data.keys[i],2);
+                }
                 c.Main.Refresh();c.Main.SaveGame();
-                if(artIndex==0) { RewardVisuals.Absorb(c.Main,RewardVisuals.Kind.Gold,1000);RewardVisuals.Absorb(c.Main,RewardVisuals.Kind.Hammer,50);RewardVisuals.Absorb(c.Main,RewardVisuals.Kind.SkillTicket,200);RewardVisuals.Absorb(c.Main,RewardVisuals.Kind.PetTicket,50);RewardVisuals.Absorb(c.Main,RewardVisuals.Kind.MountTicket,50);RewardVisuals.Absorb(c.Main,RewardVisuals.Kind.Diamond,62); }
-                else if(artIndex==1) { RewardVisuals.Absorb(c.Main,RewardVisuals.Kind.PetTicket,660);RewardVisuals.Absorb(c.Main,RewardVisuals.Kind.Hammer,200);RewardVisuals.Absorb(c.Main,RewardVisuals.Kind.Diamond,20); }
-                else c.Toast("던전 열쇠 +2");
+                int[] after={c.Main.gold,c.Main.ore,c.Main.skillTickets,c.Main.petTickets,c.Main.mountTickets,c.Main.gems};
+                var kinds=new[]{RewardVisuals.Kind.Gold,RewardVisuals.Kind.Hammer,RewardVisuals.Kind.SkillTicket,
+                    RewardVisuals.Kind.PetTicket,RewardVisuals.Kind.MountTicket,RewardVisuals.Kind.Diamond};
+                int[] rewardIndices=artIndex==0?new[]{0,1,2,3,4,5}:new[]{3,1,5};
+                for(int i=0;i<icons.Length;i++){
+                    var reward=(RectTransform)card.Find("Reward cell "+i);
+                    Vector3 origin=reward.TransformPoint(reward.rect.center);
+                    if(artIndex==2)RewardVisuals.Absorb(c.Main,(RewardVisuals.Kind)((int)RewardVisuals.Kind.HammerKey+i),DungeonProgression.Data.keys[i]-keysBefore[i],origin);
+                    else {int index=rewardIndices[i];RewardVisuals.Absorb(c.Main,kinds[index],after[index]-before[index],origin);}
+                }
             });
         }
 
@@ -538,7 +577,14 @@ namespace Moonlit.UI
             }
             PvpRow(c, root, "My sticky rank", 90, stickyY, w - 180,
                 RewardRules.ArenaRank(RewardState.Current.arenaPoints), names[3], (c.Main.powerText?c.Main.powerText.text:"0"), RewardState.Current.arenaPoints, profileAvatar, true);
-            Action(c, root, 330, actionY, 420, 90, "도전", () => c.Open("pvp-opponents"));
+            var challenge=Action(c, root, 330, actionY, 420, 90, "도전", () => c.Open("pvp-opponents"));
+            var challengeDot=RewardNotificationDots.Create(challenge.transform,392,-8,27,RewardNotificationDots.Circle(c.Main));
+            void RefreshChallenge() {
+                int remaining=RewardState.Current.ArenaRemaining(DateTime.UtcNow);
+                challenge.interactable=remaining>0;challengeDot.SetActive(remaining>0);
+                challenge.GetComponentInChildren<Text>().text="도전 "+remaining+"/5";
+            }
+            root.gameObject.AddComponent<LiveUiRefresh>().RefreshView=RefreshChallenge;RefreshChallenge();
             PopupSkin.Back("Return to main",root,40,actionY,88,Font(c),c.Close);
         }
 
@@ -565,7 +611,8 @@ namespace Moonlit.UI
         static void BuildOpponents(ScreenContext c)
         {
             float w, h; var frame = Frame(c, "상대 선택", 1260, out w, out h);
-            Ui.Text("Ticket note", frame, 50, 94, w - 100, 70, "더미 상대와 1대1 전투 · 도전마다 보상\n승리 +25 승점 / 패배 -10 승점", 24, Font(c));
+            var remainingNote=Ui.Text("Ticket note", frame, 50, 94, w - 100, 70, "", 24, Font(c));
+            var challengeButtons=new List<Button>();var challengeDots=new List<GameObject>();
             string[] names = { "tewtee", "CreeGuy", "MenoT", "Guest 86680", "mrmaingo1868" };
             string[] powers = { "212m", "12.9m", "16b", "5.52m", "2.57m" };
             Scroll(c, frame, 42, 180, w - 84, h - 310, names.Length * 164, out var content);
@@ -579,13 +626,21 @@ namespace Moonlit.UI
                 Ui.Text("Name", row.transform, 154, 18, 330, 44, names[i], 29, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
                 Ui.Image("Power icon", row.transform, 154, 72, 32, 32, Icon(c, 12)).preserveAspect = true;
                 Ui.Text("Power", row.transform, 194, 68, 290, 40, powers[i], 25, Font(c), Green, TextAnchor.MiddleLeft);
-                Action(c, row.transform, w - 350, 36, 230, 80, "도전", () => {
+                var challenge=Action(c, row.transform, w - 350, 36, 230, 80, "도전", () => {
                     if(!c.Main)return;
                     c.Main.StartArena(Mathf.Max(1,c.Main.stage+index-2),won=>RewardRules.FinishArena(c.Main,won));
                 });
+                challengeButtons.Add(challenge);
+                challengeDots.Add(RewardNotificationDots.Create(challenge.transform,203,-8,27,RewardNotificationDots.Circle(c.Main)));
                 Ui.Image("Reward star", row.transform, w - 340, 3, 30, 30, Icon(c, 15)).preserveAspect = true;
                 Ui.Text("Reward", row.transform, w - 305, 4, 175, 34, "+25 승점", 23, Font(c), Ui.Gold);
             }
+            void RefreshChallenges() {
+                int remaining=RewardState.Current.ArenaRemaining(DateTime.UtcNow);
+                remainingNote.text="오늘 남은 도전 "+remaining+"/5\n승리 +25 승점 / 패배 -10 승점";
+                for(int i=0;i<challengeButtons.Count;i++){challengeButtons[i].interactable=remaining>0;challengeDots[i].SetActive(remaining>0);}
+            }
+            frame.gameObject.AddComponent<LiveUiRefresh>().RefreshView=RefreshChallenges;RefreshChallenges();
             Close(c, frame, w, h);
         }
 
