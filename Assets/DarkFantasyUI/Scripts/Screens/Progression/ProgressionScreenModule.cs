@@ -77,8 +77,13 @@ namespace Moonlit.UI
             equippedLabel.GetComponent<Outline>().effectColor=new Color(1,1,1,.2f);
             view.equipped=Ui.Rect("Equipped skills",equipped,350,8,540,126);
             var upgradeAll=PopupSkin.Button("Upgrade all",ctx.Root,240,equippedY+162,285,86,"모두 업그레이드",font,()=>{
-                int count=0; foreach(var entry in CollectionProgression.Data.categories[view.tab].entries) if(entry.Upgrade()) count++;
-                RefreshCollection(view); ctx.Main.Refresh(); ctx.Toast(count>0?count+"개 업그레이드":"조각이 부족하거나 최대 레벨입니다.");
+                int count=0;
+                foreach(var entry in CollectionProgression.Data.categories[view.tab].entries) {
+                    bool upgraded=false;
+                    while(entry.Upgrade())upgraded=true;
+                    if(upgraded)count++;
+                }
+                RefreshCollection(view); ctx.Main.Refresh(); ctx.Main.SaveGame(); ctx.Toast(count>0?count+"개 업그레이드":"조각이 부족하거나 최대 레벨입니다.");
             },Blue,25);
             var quickEquip=PopupSkin.Button("Quick equip",ctx.Root,550,equippedY+162,285,86,"빠른 장착",font,()=>{
                 CollectionProgression.QuickEquip(view.tab); RefreshCollection(view); ctx.Main.Refresh(); ctx.Toast("보유한 "+CollectionProgression.CategoryNames[view.tab]+" 편성을 갱신했습니다.");

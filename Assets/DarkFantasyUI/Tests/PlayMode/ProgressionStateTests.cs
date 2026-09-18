@@ -358,6 +358,33 @@ namespace Moonlit.UI.Tests
         }
 
         [UnityTest]
+        public IEnumerator UpgradeAll_ReachesAffordableLevelInOneClickForEachCategory()
+        {
+            host.Registry.Open("skills-pets-heroes");yield return null;
+            for(int category=0;category<3;category++) {
+                var data=CollectionProgression.Data.categories[category];
+                var entry=data.entries[0];entry.unlocked=true;entry.fragments=16;
+                var capped=data.entries[1];capped.unlocked=true;capped.level=98;capped.fragments=100;
+                var locked=data.entries[2];locked.fragments=100;
+                data.equipped[0]=0;
+                GameObject.Find("Tab "+CollectionProgression.CategoryNames[category]).GetComponent<Button>().onClick.Invoke();
+                yield return null;
+                var button=GameObject.Find("Upgrade all").GetComponent<Button>();
+                button.onClick.Invoke();yield return null;
+                Assert.AreEqual(5,entry.level,"One click must spend 2+3+4+5 fragments to reach level five.");
+                Assert.AreEqual(2,entry.fragments,"Unaffordable next-level fragments remain.");
+                Assert.IsTrue(entry.unlocked);Assert.AreEqual(0,data.equipped[0]);
+                Assert.AreEqual(100,capped.level);Assert.AreEqual(60,capped.fragments);
+                Assert.IsFalse(locked.unlocked);Assert.AreEqual(1,locked.level);Assert.AreEqual(100,locked.fragments);
+                Assert.IsFalse(button.transform.Find("Notification").gameObject.activeSelf);
+                for(int untouched=category+1;untouched<3;untouched++)
+                    Assert.AreEqual(1,CollectionProgression.Data.categories[untouched].entries[0].level);
+                button.onClick.Invoke();yield return null;
+                Assert.AreEqual(5,entry.level);Assert.AreEqual(2,entry.fragments);
+            }
+        }
+
+        [UnityTest]
         public IEnumerator UpgradeAll_RespectsOwnershipAndLevelCap_PreservesScrollAndEquippedStars()
         {
 
