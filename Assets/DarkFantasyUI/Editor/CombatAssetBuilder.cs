@@ -113,7 +113,8 @@ namespace Moonlit.Editor
                     AnimationUtility.SetAnimationClipSettings(clip, settings);
                     int kind = name == "Basic" ? 0 : name == "Buff" ? 1 : name == "Weak" ? 2 : name == "Strong" ? 3 : -1;
                     AnimationUtility.SetAnimationEvents(clip, kind < 0 ? Array.Empty<AnimationEvent>() : new[] {
-                        new AnimationEvent { time = .3f, functionName = "OnCombatImpact", intParameter = kind }
+                        new AnimationEvent { time = kind >= 2 ? PrimitiveSkillEffects.AttackFlightDuration : .3f,
+                            functionName = "OnCombatImpact", intParameter = kind }
                     });
                     var state = machine.AddState(name); state.motion = clip;
                     state.writeDefaultValues = true;
