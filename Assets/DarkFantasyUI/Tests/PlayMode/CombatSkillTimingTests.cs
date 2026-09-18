@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Moonlit.UI.Tests
 {
@@ -86,5 +87,45 @@ namespace Moonlit.UI.Tests
                 UnityEngine.Object.DestroyImmediate(uiAssets);
             }
         }
+        [UnityTest]
+        public IEnumerator AbsoluteCaptureSampleWaitsForRealEffectPoseAndFoodVanishesBeforeAura()
+        {
+            var root=new GameObject("Absolute skill sample regression");
+            var effects=root.AddComponent<PrimitiveSkillEffects>();
+            effects.Initialize(Resources.Load<BattleAssetCatalog>("Moonlit/Combat/BattleAssets"));
+            var source=new Vector3(-2,0,0);var target=new Vector3(2,0,0);
+            try {
+                for(int tier=0;tier<2;tier++)for(int variant=0;variant<3;variant++) {
+                    effects.enabled=false;effects.enabled=true;yield return null;
+                    effects.Play(tier,variant,source,target,null,null,false);
+                    float sample=variant==0?1.24f:variant==1?.55f:.75f;
+                    effects.EarlyPlaybackTimeOverride=sample;
+                    Assert.AreNotEqual(sample,effects.PlaybackElapsed,
+                        "Setting a requested capture time must not be mistaken for the coroutine having sampled it.");
+                    int frames=0;
+                    while(Mathf.Abs(effects.PlaybackElapsed-sample)>.001f&&frames++<10)yield return null;
+                    Assert.AreEqual(sample,effects.PlaybackElapsed,.001f);
+                    var sprites=effects.GetComponentsInChildren<SpriteRenderer>();
+                    if(variant==0) {
+                        Assert.IsFalse(sprites.Single(r=>r.name=="Overhead food").enabled);
+                        Assert.IsTrue(sprites.Any(r=>r.name=="Healing body glow"&&r.enabled&&r.color.a>.02f),
+                            "A heal snapshot must contain the green body aura, not time-zero food.");
+                    } else {
+                        string name=variant==1?(tier==0?"Orbit bone 0":"Curved arrow 0"):tier==0?"Single rock":"Single sword";
+                        var sprite=sprites.Single(r=>r.name==name);
+                        var pose=variant==1?(tier==0?SixSkillChoreography.Bone(source,target,0,sample):SixSkillChoreography.Arrow(source,target,0,sample)):
+                            tier==0?SixSkillChoreography.Rock(source,target,sample):SixSkillChoreography.Sword(source,target,sample);
+                        Assert.Less(Vector3.Distance(sprite.transform.position,pose.position),.005f);
+                        Assert.Less(Mathf.Abs(Mathf.DeltaAngle(sprite.transform.eulerAngles.z,pose.rotation)),.1f);
+                        if(tier==0&&variant==1) {
+                            var opposite=sprites.Single(r=>r.name=="Orbit bone 4");
+                            Assert.Greater(Vector3.Distance(sprite.transform.position,opposite.transform.position),2.4f,
+                                "Eight bones must form a ring, never remain collapsed at the launch point.");
+                        }
+                    }
+                }
+            } finally {UnityEngine.Object.DestroyImmediate(root);}
+        }
+
     }
 }
