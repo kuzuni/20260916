@@ -465,7 +465,7 @@ namespace Moonlit.UI.Tests
         }
 
         [UnityTest]
-        public IEnumerator AutoForge_FilterSwitchPreservesNineChoices_AndTenGradesAndQuantity()
+        public IEnumerator AutoForge_HidesDisabledChoices_AndOnlyShowsAvailableGradesAndQuantity()
         {
             ForgeScreenModule.Register(host.Registry);
             var screen=root.GetComponent<MainScreen>();
@@ -473,7 +473,8 @@ namespace Moonlit.UI.Tests
             host.Registry.Open("auto-forge");yield return null;
             var layer=GameObject.Find("Popup Layer auto-forge");
             var rows=layer.GetComponentsInChildren<Image>().Where(i=>i.name.StartsWith("Keep grade ")).ToArray();
-            Assert.AreEqual(10,rows.Length);Assert.IsTrue(rows.All(i=>i.sprite && i.type==Image.Type.Sliced));
+            Assert.AreEqual(1,rows.Length);Assert.AreEqual("Keep grade 0",rows[0].name);Assert.IsTrue(rows.All(i=>i.sprite && i.type==Image.Type.Sliced));
+            Assert.IsFalse(layer.GetComponentsInChildren<Toggle>().Any(t=>t.name.StartsWith("Affix filter ")));
             foreach(var row in rows) {
                 Assert.IsNotNull(row.transform.Find("Tier icon").GetComponent<Image>().sprite);
                 Assert.IsNotNull(row.transform.Find("Checkbox").GetComponent<Image>().sprite);
@@ -486,14 +487,14 @@ namespace Moonlit.UI.Tests
             foreach(var filter in filters)filter.isOn=false;
             var dodge=GameObject.Find("Affix filter Dodge").GetComponent<Toggle>();dodge.isOn=true;
             master.isOn=false;
-            Assert.IsTrue(dodge.isOn);Assert.IsTrue(filters.All(t=>!t.interactable));
+            Assert.IsTrue(dodge.isOn);Assert.IsTrue(filters.All(t=>!t.gameObject.activeInHierarchy));
             Assert.IsFalse(state.filterEnabled);Assert.AreEqual(1<<(int)EquipmentAffixKind.Dodge,state.affixMask);
             host.CloseTop();yield return null;
             host.SetPreviewMetrics(new Vector2Int(1080,2280),new Rect(36,84,1008,2076));
             host.Registry.Open("auto-forge");yield return null;
             master=GameObject.Find("Enable affix filter toggle").GetComponent<Toggle>();
             Assert.IsFalse(master.isOn);
-            dodge=GameObject.Find("Affix filter Dodge").GetComponent<Toggle>();Assert.IsTrue(dodge.isOn);Assert.IsFalse(dodge.interactable);
+            dodge=GameObject.Find("Popup Layer auto-forge").GetComponentsInChildren<Toggle>(true).Single(t=>t.name=="Affix filter Dodge");Assert.IsTrue(dodge.isOn);Assert.IsFalse(dodge.gameObject.activeInHierarchy);
             var up=GameObject.Find("+").GetComponent<Button>();var down=GameObject.Find("−").GetComponent<Button>();
             for(int i=0;i<105;i++)up.onClick.Invoke();Assert.AreEqual("99",GameObject.Find("Batch size").GetComponent<Text>().text);
             for(int i=0;i<105;i++)down.onClick.Invoke();Assert.AreEqual("1",GameObject.Find("Batch size").GetComponent<Text>().text);
@@ -502,7 +503,7 @@ namespace Moonlit.UI.Tests
             // Open settings synchronously before the next Update starts a batch; animation is separately exercised by ForgeFlowTests.
             host.Registry.Open("auto-forge");yield return null;
             Assert.IsTrue(screen.autoForge);Assert.IsTrue(state.autoEnabled);Assert.AreEqual(3,state.batchSize);
-            Assert.IsTrue(state.keepTiers[0]);Assert.IsTrue(state.keepTiers.Skip(1).All(value=>!value));
+            Assert.IsTrue(state.keepTiers[0]);Assert.IsTrue(state.keepTiers.Skip(1).All(value=>value),"Unavailable grades keep their preference but are not shown or required");
             master=GameObject.Find("Enable affix filter toggle").GetComponent<Toggle>();master.isOn=true;
             Assert.IsTrue(GameObject.Find("Affix filter Dodge").GetComponent<Toggle>().interactable);
             Assert.IsTrue(GameObject.Find("Affix filter Dodge").GetComponent<Toggle>().isOn);
