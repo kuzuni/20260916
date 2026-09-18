@@ -49,7 +49,7 @@ namespace Moonlit.UI
             sprite.sharedMaterial = catalog.effectMaterial; sprite.sortingOrder = 150;
             Color color = Colors[tier];
             var trail = root.AddComponent<TrailRenderer>(); trail.sharedMaterial = catalog.effectMaterial;
-            trail.time = tier == 6 ? .4f : .22f; trail.startWidth = (variant == 2 ? .28f : .12f) * VisualScale; trail.endWidth = 0;
+            trail.time = tier == 6 ? .55f : .50f; trail.startWidth = (variant == 2 ? .28f : .12f) * VisualScale * 2; trail.endWidth = 0;
             trail.startColor = color; trail.endColor = new Color(color.r,color.g,color.b,0);
             trail.sortingOrder = 148; trail.minVertexDistance = .025f;
             trail.emitting = variant != 0 || tier >= 4;
@@ -120,7 +120,7 @@ namespace Moonlit.UI
             dust.Stop(true,ParticleSystemStopBehavior.StopEmittingAndClear);
             var main = dust.main; main.loop = false; main.duration = .65f; main.startLifetime = .55f;
             main.startSpeed = (variant == 0 ? .6f : variant == 2 ? 2.6f : 1.6f) * VisualScale;
-            main.startSize = (variant == 0 ? .14f : tier <= 3 ? .22f : .15f) * VisualScale;
+            main.startSize = (variant == 0 ? .14f : tier <= 3 ? .22f : .15f) * VisualScale * 2;
             main.startRotation = new ParticleSystem.MinMaxCurve(-Mathf.PI,Mathf.PI);
             main.startColor = Color.white; main.gravityModifier = (variant == 0 ? -.1f : tier <= 3 ? .8f : .05f) * VisualScale;
             main.simulationSpace = ParticleSystemSimulationSpace.World; main.maxParticles = 50;

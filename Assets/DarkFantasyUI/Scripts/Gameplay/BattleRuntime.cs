@@ -19,6 +19,19 @@ namespace Moonlit.UI
         public int EnemyResolvedBasicAttacks { get; private set; }
         public CombatActorState PlayerState { get; private set; }
         public CombatActorState EnemyState { get; private set; }
+        public const float SkillHudReservedHeight = 130;
+        public int PlayerTurnCount => PlayerState == null ? 0 : PlayerState.Turns;
+        readonly HashSet<CombatSkill> playerSkillsUsedThisTurn = new HashSet<CombatSkill>();
+        // Zero means due during this actor turn; after the impact, show the full next cooldown.
+        public int PlayerSkillTurnsUntilReady(int skillIndex)
+        {
+            if (PlayerState == null || skillIndex < 0 || skillIndex >= PlayerState.skills.Count) return -1;
+            var skill = PlayerState.skills[skillIndex];
+            int cooldown = Math.Max(1, skill.cooldown);
+            int remainder = PlayerTurnCount % cooldown;
+            if (PlayerTurnCount > 0 && remainder == 0 && !playerSkillsUsedThisTurn.Contains(skill)) return 0;
+            return cooldown - remainder;
+        }
         public string LastResult { get; private set; }
         MainScreen main;
         BattleAssetCatalog assets;
@@ -121,6 +134,7 @@ namespace Moonlit.UI
             animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
             relay = actor.AddComponent<CombatAnimationRelay>();
             animator.Play("Idle", 0, 0);
+            CombatGroundShadow.Create(stageRoot.transform, actor.transform);
             return actor;
         }
         void LateUpdate()
@@ -130,8 +144,8 @@ namespace Moonlit.UI
             // Preserve the old pixels-per-world-unit exactly; expanding the viewport must not undo the 2x actor scale.
             float oldHeight = Mathf.Max(110, design.rect.height - PortraitSafeArea.BottomHeight - 495);
             float density = oldHeight / (2 * Mathf.Max(2, oldHeight / 200f));
-            float bottom = design.rect.height - PortraitSafeArea.BottomHeight;
-            float height = Mathf.Max(bottom - 405, 7.1f * density);
+            float bottom = design.rect.height - PortraitSafeArea.BottomHeight - SkillHudReservedHeight;
+            float height = Mathf.Max(bottom - 405, 9f * density);
             view.anchoredPosition = new Vector2(0, -(bottom - height));
             view.sizeDelta = new Vector2(1080, height);
             if (renderCamera)
@@ -199,7 +213,7 @@ namespace Moonlit.UI
             for (Wave = 1; Wave <= waves; Wave++)
             {
                 PlayerResolvedBasicAttacks = EnemyResolvedBasicAttacks = 0;
-                PlayerState = BuildPlayer();
+                PlayerState = BuildPlayer(); playerSkillsUsedThisTurn.Clear();
                 var stats = CombatRules.StageEnemy(difficulty, Wave);
                 if (arenaRating >= 0 && IsExternalBattle && externalName == "아레나")
                 {
@@ -245,6 +259,7 @@ namespace Moonlit.UI
             var actor = isPlayer ? PlayerState : EnemyState;
             var target = isPlayer ? EnemyState : PlayerState;
             if (!actor.Alive || !target.Alive || failedAnimation) yield break;
+            if (isPlayer) playerSkillsUsedThisTurn.Clear();
             foreach (var action in CombatRules.PlanTurn(actor, random.NextDouble))
             {
                 if (!actor.Alive || !target.Alive || failedAnimation) yield break;
@@ -253,12 +268,15 @@ namespace Moonlit.UI
                     yield return Strike(isPlayer, actor.stats.attack + actor.AttackBoost, false, 0);
                 else if (skill.variant == 0)
                     yield return AnimatedAction(isPlayer, 1, "Buff", () => {
-                        actor.Heal(skill.heal); actor.SetAttackBoost(Math.Max(actor.AttackBoost, skill.attackBoost));
+                        if (isPlayer) playerSkillsUsedThisTurn.Add(skill);
+                        double healing = actor.Heal(skill.heal); actor.SetAttackBoost(Math.Max(actor.AttackBoost, skill.attackBoost));
                         ShowSkill(isPlayer, 0, skill.tier);
-                        (isPlayer ? PlayerHud : EnemyHud).Float("+" + Format(skill.heal), new Color(.4f, 1, .55f));
+                        (isPlayer ? PlayerHud : EnemyHud).Float("+" + Format(healing), new Color(.4f, 1, .55f));
                     });
                 else
+                {
                     yield return StrikeTier(isPlayer, skill.damage, true, skill.variant, skill.tier);
+                }
             }
         }
 
@@ -272,11 +290,15 @@ namespace Moonlit.UI
             if (skill) ShowSkill(isPlayer, variant, tier);
             yield return AnimatedAction(isPlayer, skill ? variant + 1 : 0, skill ? (variant == 1 ? "Weak" : "Strong") : "Basic", () => {
                 if (!skill) { if (isPlayer) PlayerResolvedBasicAttacks++; else EnemyResolvedBasicAttacks++; }
+                if (isPlayer && skill)
+                    foreach (var equipped in actor.skills)
+                        if (equipped.tier == tier && equipped.variant == variant) playerSkillsUsedThisTurn.Add(equipped);
                 var hit = CombatRules.Strike(actor, target, damage, skill, random.NextDouble);
                 if (!hit.evaded) (isPlayer ? enemyAnimator : playerAnimator).Play(target.Alive ? "Hit" : "Death", 0, 0);
                 (isPlayer ? EnemyHud : PlayerHud).Float(hit.evaded ? "회피" :
-                    (hit.critical ? "치명타 " : "") + Format(hit.damage),
-                    hit.evaded ? Color.white : hit.critical ? new Color(1, .8f, .15f) : new Color(1, .4f, .3f));
+                    Format(hit.damage),
+                    hit.critical ? new Color(1, .16f, .12f) : Color.white);
+                if (hit.healing > 0) (isPlayer ? PlayerHud : EnemyHud).Float("+" + Format(hit.healing), new Color(.4f, 1, .55f));
             });
         }
         IEnumerator AnimatedAction(bool isPlayer, int kind, string state, Action impact)
@@ -358,7 +380,7 @@ namespace Moonlit.UI
             if (PlayerState == null || EnemyState == null) return;
             PlayerHud.Bind(PlayerState); EnemyHud.Bind(EnemyState);
         }
-        static string Format(double value) => value >= 1e9 ? value.ToString("0.##E+0") : Math.Ceiling(value).ToString("N0");
+        static string Format(double value) => MainScreen.Compact(Math.Ceiling(value));
         void OnDestroy()
         {
             externalCallback = null;
