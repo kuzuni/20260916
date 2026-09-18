@@ -7,6 +7,7 @@ namespace Moonlit.UI
     public sealed class PrimitiveSkillEffects : MonoBehaviour
     {
         public const float AttackFlightDuration = .65f;
+        const float VisualScale = 2f;
         BattleAssetCatalog catalog;
         readonly System.Collections.Generic.List<GameObject> owned = new System.Collections.Generic.List<GameObject>();
         void OnDisable()
@@ -48,13 +49,13 @@ namespace Moonlit.UI
             sprite.sharedMaterial = catalog.effectMaterial; sprite.sortingOrder = 150;
             Color color = Colors[tier];
             var trail = root.AddComponent<TrailRenderer>(); trail.sharedMaterial = catalog.effectMaterial;
-            trail.time = tier == 6 ? .4f : .22f; trail.startWidth = variant == 2 ? .28f : .12f; trail.endWidth = 0;
+            trail.time = tier == 6 ? .4f : .22f; trail.startWidth = (variant == 2 ? .28f : .12f) * VisualScale; trail.endWidth = 0;
             trail.startColor = color; trail.endColor = new Color(color.r,color.g,color.b,0);
             trail.sortingOrder = 148; trail.minVertexDistance = .025f;
             trail.emitting = variant != 0 || tier >= 4;
             float size = variant == 0 ? 1.2f : variant == 1 ? .9f : 1.65f;
             if (tier == 3 && variant == 1) size = 2.2f; // tank drives across the ground
-            float normalize = size / Mathf.Max(.01f, Mathf.Max(art.bounds.size.x, art.bounds.size.y));
+            float normalize = size * VisualScale / Mathf.Max(.01f, Mathf.Max(art.bounds.size.x, art.bounds.size.y));
             float duration = AttackFlightDuration;
             for (float time = 0; time < duration; time += Time.deltaTime)
             {
@@ -118,12 +119,12 @@ namespace Moonlit.UI
             dust.gameObject.layer = 30; dust.transform.SetParent(transform,false); dust.transform.position = point;
             dust.Stop(true,ParticleSystemStopBehavior.StopEmittingAndClear);
             var main = dust.main; main.loop = false; main.duration = .65f; main.startLifetime = .55f;
-            main.startSpeed = variant == 0 ? .6f : variant == 2 ? 2.6f : 1.6f;
-            main.startSize = variant == 0 ? .14f : tier <= 3 ? .22f : .15f;
+            main.startSpeed = (variant == 0 ? .6f : variant == 2 ? 2.6f : 1.6f) * VisualScale;
+            main.startSize = (variant == 0 ? .14f : tier <= 3 ? .22f : .15f) * VisualScale;
             main.startRotation = new ParticleSystem.MinMaxCurve(-Mathf.PI,Mathf.PI);
-            main.startColor = Color.white; main.gravityModifier = variant == 0 ? -.1f : tier <= 3 ? .8f : .05f;
+            main.startColor = Color.white; main.gravityModifier = (variant == 0 ? -.1f : tier <= 3 ? .8f : .05f) * VisualScale;
             main.simulationSpace = ParticleSystemSimulationSpace.World; main.maxParticles = 50;
-            var shape = dust.shape; shape.shapeType = ParticleSystemShapeType.Sphere; shape.radius = .1f;
+            var shape = dust.shape; shape.shapeType = ParticleSystemShapeType.Sphere; shape.radius = .1f * VisualScale;
             var emission = dust.emission; emission.rateOverTime = 0;
             emission.SetBursts(new[] { new ParticleSystem.Burst(0,(short)(variant==2?22:12)) });
             var sheet = dust.textureSheetAnimation; sheet.enabled = true;
