@@ -497,13 +497,13 @@ namespace Moonlit.UI.Tests
             Canvas.ForceUpdateCanvases();scroll.verticalNormalizedPosition=.41f;
             var slot=scroll.content.GetComponentsInChildren<Button>()[0];slot.onClick.Invoke();yield return null;
             GameObject.Find("Upgrade").GetComponent<Button>().onClick.Invoke();
-            GameObject.Find("Equip slot 2").GetComponent<Button>().onClick.Invoke();
+            GameObject.Find("Equip").GetComponent<Button>().onClick.Invoke();
             host.CloseTop();yield return null;
             Assert.AreSame(scroll,GameObject.Find("Tab content").GetComponentInChildren<ScrollRect>());
             Assert.That(scroll.verticalNormalizedPosition,Is.EqualTo(.41f).Within(.01f));
             Assert.AreEqual("Lv.2",ChildText(slot.transform,"Level").text);
             Assert.AreEqual(0,entry.fragments);Assert.IsTrue(CollectionProgression.IsEquipped(entry));
-            Assert.AreEqual(0,CollectionProgression.Data.categories[0].equipped[1]);
+            Assert.AreEqual(0,CollectionProgression.Data.categories[0].equipped[0]);
             Assert.AreSame(PopupSkin.ActionArt,((Image)skillTab.targetGraphic).sprite);
             Assert.AreSame(PopupSkin.PanelArt,((Image)mountTab.targetGraphic).sprite);
         }

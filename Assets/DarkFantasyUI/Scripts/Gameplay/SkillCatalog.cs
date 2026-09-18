@@ -4,8 +4,8 @@ namespace Moonlit.UI
     public static class SkillCatalog
     {
         static readonly string[,] names = {
-            { "사냥꾼의 만찬", "돌팔매", "태고의 거석" },
-            { "성배의 축복", "삼연 쇠뇌", "공성 투석" },
+            { "치킨 만찬", "뼈 회오리", "돌팔매" },
+            { "회복의 사과", "다섯 화살", "중세검 일격" },
             { "연금술 영약", "화승총 사격", "화약 포격" },
             { "전장의 보급", "전차 돌격", "고폭탄 투하" },
             { "생명 유지장", "궤도 레이저", "운석 충돌" },
@@ -16,8 +16,8 @@ namespace Moonlit.UI
             { "신의 축복", "천상의 창", "신의 분노" }
         };
         static readonly string[,] descriptions = {
-            { "구운 고기를 한입씩 먹으면 온기가 피어오르고 사냥의 힘을 얻습니다.", "돌을 빠르게 올려 잠시 띄운 뒤 떨어뜨려 세 번 튕깁니다.", "거석을 높이 띄워 멈춘 뒤 내리꽂고 다섯 번 충격을 퍼뜨립니다." },
-            { "성배가 떠올라 빛기둥을 펼치고 천천히 내려앉습니다.", "준비한 쇠뇌 화살 세 발을 높이가 다른 부채꼴로 쏩니다.", "불붙은 바위가 크게 회전해 솟고 정점에서 멈춘 뒤 다섯 번 강타합니다." },
+            { "머리 위의 치킨이 세 번 커졌다 작아진 뒤 사라지고, 몸에 초록 오라가 피어나 체력을 회복합니다.", "주위를 둘러싼 뼈 여덟 개가 원을 그리며 돌다가 차례로 날아가 적의 머리를 휘둘러 때립니다.", "돌 한 개를 포물선으로 던져 적에게 부딪히면 돌조각이 사방으로 흩어집니다." },
+            { "머리 위의 사과가 세 번 커졌다 작아진 뒤 사라지고, 몸에 초록 오라가 피어나 체력을 회복합니다.", "화살 다섯 발이 차례로 곡선을 그리며 날아가 적을 맞힙니다.", "중세검이 나타나 적을 향해 한 번 크게 휘둘러지고 검기가 뒤따릅니다." },
             { "영약을 흔들어 기포를 일으킨 뒤 기울여 생명과 힘을 되찾습니다.", "화승총을 뒤로 젖힌 반동으로 불규칙한 세 발을 쏩니다.", "짧게 뜬 포탄의 도화선이 떨리다 다섯 겹 폭발로 퍼집니다." },
             { "보급품이 급강하해 튀어 오른 뒤 회복의 힘을 펼칩니다.", "전차가 궤도를 흔들며 가속해 세 번 들이받습니다.", "흔들리며 멈춘 고폭탄이 급강하해 다섯 번 연쇄 폭발합니다." },
             { "생명 유지 장치가 주위를 돌며 네 방향 보호막을 닫습니다.", "조준광을 모은 뒤 궤도에서 세 번 레이저를 내려칩니다.", "대각선 운석이 가속하며 다섯 번 충돌해 파편을 뿜습니다." },
@@ -29,7 +29,12 @@ namespace Moonlit.UI
         };
         public static string Name(int tier, int variant) => names[tier, variant];
         public static string Description(int tier, int variant) => descriptions[tier, variant];
-        public static string IconKey(int tier, int variant) =>
-            "Moonlit/Combat/Skills/Tier" + tier.ToString("D2") + "/" + new[] { "Buff", "Weak", "Strong" }[variant];
+        public static string IconKey(int tier, int variant)
+        {
+            if(tier==0 && variant==1)return "Moonlit/Combat/Skills/Focused/Bone-v1";
+            if(tier==0 && variant==2)return "Moonlit/Combat/Skills/Tier00/Weak";
+            if(tier==1)return "Moonlit/Combat/Skills/Focused/"+new[]{"Apple","Arrow","Sword"}[variant]+"-v1";
+            return "Moonlit/Combat/Skills/Tier"+tier.ToString("D2")+"/"+new[]{"Buff","Weak","Strong"}[variant];
+        }
     }
 }

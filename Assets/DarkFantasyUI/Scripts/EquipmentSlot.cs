@@ -45,7 +45,7 @@ namespace Moonlit.UI
             Refresh();
         }
 
-        public void SetSelected(bool selected) { if (selection) selection.SetActive(selected); }
+        public void SetSelected(bool selected) { if (selection) selection.SetActive(false); }
         public void SetLocked(bool value) { isLocked = item != null && value; Refresh(); }
         public void SetNotification(bool value) { hasNotification = item != null && value; Refresh(); }
         public void Refresh()

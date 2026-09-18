@@ -627,7 +627,7 @@ namespace Moonlit.UI.Tests
                 if (route == "skill-details")
                 {
                     var upgrade = layer.GetComponentsInChildren<Button>().Single(b => b.name == "Upgrade");
-                    var equip = layer.GetComponentsInChildren<Button>().Single(b => b.name == "Equip slot 1");
+                    var equip = layer.GetComponentsInChildren<Button>().Single(b => b.name == "Equip");
                     Assert.IsNotNull(((Image)upgrade.targetGraphic).sprite);
                     Assert.AreSame(PopupSkin.ActionArt, ((Image)equip.targetGraphic).sprite);
                 }

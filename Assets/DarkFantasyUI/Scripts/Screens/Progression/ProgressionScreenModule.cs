@@ -225,7 +225,8 @@ namespace Moonlit.UI
                 (FlatCompanionCatalog.Icon(entry.category,entry.grade,entry.variant)?"":"\n외형 아트 제작 보류");
             string theme=SkillCatalog.Description(entry.grade,entry.variant)+"\n";
             if(entry.variant==0) return theme+"매 3턴 · 평타 전에 발동\n체력 "+Number(entry.FixedHeal)+" 회복\n공격력 +"+Number(entry.FixedAttackBoost);
-            return theme+"매 "+entry.Cooldown+"턴 · "+(entry.variant==1?"3타":"5타")+" 연속공격\n총 고정 피해 "+Number(entry.FixedDamage);
+            int hits=SkillChoreography.HitTimes(entry.grade,entry.variant).Length;
+            return theme+"매 "+entry.Cooldown+"턴 · "+(hits==1?"단일공격":hits+"타 연속공격")+"\n총 고정 피해 "+Number(entry.FixedDamage);
         }
         static void BuildSkillDetails(ScreenContext ctx)
         {
@@ -250,15 +251,10 @@ namespace Moonlit.UI
             upgrade=PopupSkin.Button("Upgrade",panel,55,h-185,370,86,"업그레이드",font,()=>{
                 if(entry.Upgrade()){refresh();ctx.Main.Refresh();} else ctx.Toast("조각이 부족하거나 최대 레벨입니다.");
             },Blue,28);
-            int capacity=CollectionProgression.Capacity(entry.category);
-            for(int i=0;i<capacity;i++){
-                int slot=i;
-                PopupSkin.Button("Equip slot "+(i+1),panel,455+i*(400f/capacity),h-185,390f/capacity,86,
-                    capacity==1?"장착":(i+1)+"번 장착",font,()=>{
-                        if(!CollectionProgression.Equip(entry,slot)){ctx.Toast("먼저 획득해야 장착할 수 있습니다.");return;}
-                        refresh();ctx.Main.Refresh();ctx.Toast(entry.Name+" 장착");
-                    },Blue,capacity==1?28:22);
-            }
+            PopupSkin.Button("Equip",panel,455,h-185,390,86,"장착",font,()=>{
+                if(!CollectionProgression.Equip(entry)){ctx.Toast("먼저 획득해야 장착할 수 있습니다.");return;}
+                refresh();ctx.Main.Refresh();ctx.Toast(entry.Name+" 장착");
+            },Blue,28);
             if(entry.category==0) PopupSkin.Button("Preview skill",panel,280,566,360,72,"스킬 연출 보기",font,()=>{
                 ctx.Main.screens.ShowMainPage();ctx.Main.PreviewSkill(entry.grade,entry.variant);
             },Blue,25);
