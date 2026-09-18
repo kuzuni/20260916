@@ -31,75 +31,218 @@ namespace Moonlit.UI
             PopupSkin.Close("Close",panel,418,h-96,84,c.Assets.font,c.Close);
             return panel;
         }
+        static readonly Color Blue = new Color(.015f,.23f,.43f);
+        static readonly Color Red = new Color(.38f,.035f,.035f);
+        static Sprite passStone;
+        static Sprite[] passChests;
+        static Font Font(ScreenContext c) => c.Assets.font;
+        static Sprite CurrencyIcon(ScreenContext c,int index)
+            => c.Assets.interfaceIcons != null && c.Assets.interfaceIcons.Length > index ? c.Assets.interfaceIcons[index] : null;
+        static Button Action(ScreenContext c,Transform p,float x,float y,float w,float h,string label,UnityEngine.Events.UnityAction click,Color? color=null,int size=30)
+            => PopupSkin.Button(label,p,x,y,w,h,label,Font(c),click,color??Blue,size);
+
         static void Offline(ScreenContext c)
         {
-            var p=Panel(c,"오프라인 보상",1040);
-            var time=Ui.Text("Accumulation time",p,70,124,780,70,"",30,c.Assets.font,Ui.Cyan);
-            var coin=c.Assets.interfaceIcons[0];
-            Ui.ArtImage("Offline gold illustration",p,198,220,180,180,coin).preserveAspect=true;
-            Ui.ArtImage("Offline hammer illustration",p,542,220,180,180,HammerArt).preserveAspect=true;
-            Ui.Text("Gold rate",p,125,412,320,52,"골드 1 / 초",31,c.Assets.font,Ui.Gold);
-            Ui.Text("Hammer rate",p,475,412,320,52,"망치 1 / 분",31,c.Assets.font,Ui.Gold);
-            var totals=PopupSkin.Panel("Accrued rewards",p,96,502,728,160);
-            var gold=Ui.Text("Gold total",totals.transform,30,20,324,110,"0",36,c.Assets.font);
-            var hammer=Ui.Text("Forge total",totals.transform,374,20,324,110,"0",36,c.Assets.font);
-            Ui.Text("Continuous accrual",p,75,681,770,62,"접속 중에도, 게임을 꺼도 계속 쌓입니다.",25,c.Assets.font);
-            var claim=PopupSkin.Button("Claim",p,235,774,450,100,"수집",c.Assets.font,()=>{
-                if(RewardState.Current.Claim(c.Main)) c.Toast("쌓인 골드와 망치를 받았습니다.");
-            });
-            void Refresh()
-            {
-                var s=RewardState.Current; s.Advance(DateTimeOffset.UtcNow.ToUnixTimeSeconds());
-                time.text="누적 시간 "+TimeSpan.FromSeconds(s.accruedSeconds).ToString(@"dd\일\ hh\시\ mm\분\ ss\초");
-                gold.text="골드 "+s.GoldAvailable.ToString("N0"); hammer.text="망치 "+s.HammersAvailable.ToString("N0");
-                claim.interactable=s.GoldAvailable>0||s.HammersAvailable>0;
+            Frame(c,"오프라인 보상",740,900,out var b);
+            var elapsed=Ui.Text("Elapsed",b,0,8,b.rect.width,54,"",30,Font(c));
+            RewardRule(b,80,b.rect.width);
+            float left=(b.rect.width-420)*.5f;
+            RewardIcon(c,b,left,118,"Gold reward",CurrencyIcon(c,0),"1/초");
+            RewardIcon(c,b,left+250,118,"Forge reward",HammerArt,"1/분");
+            RewardRule(b,366,b.rect.width);
+            var totals=PopupSkin.Panel("Reward totals",b,60,416,b.rect.width-120,86);
+            var goldIcon=Ui.Image("Gold total icon",totals.transform,18,12,62,62,CurrencyIcon(c,0));goldIcon.preserveAspect=true;
+            var gold=Ui.Text("Gold total",totals.transform,88,8,136,70,"0",35,Font(c),Ui.Ivory,TextAnchor.MiddleLeft);
+            var hammerIcon=Ui.Image("Forge total icon",totals.transform,298,12,62,62,HammerArt);hammerIcon.preserveAspect=true;
+            var ore=Ui.Text("Forge total",totals.transform,370,8,116,70,"0",35,Font(c),Ui.Ivory,TextAnchor.MiddleLeft);
+            foreach(var value in new[]{gold,ore}) {
+                value.resizeTextForBestFit=true;value.resizeTextMinSize=18;value.resizeTextMaxSize=value.fontSize;
+                value.verticalOverflow=VerticalWrapMode.Truncate;
             }
-            p.gameObject.AddComponent<LiveUiRefresh>().RefreshView=Refresh; Refresh();
+            var claim=Action(c,b,(b.rect.width-360)*.5f,570,360,124,"수집",()=>{
+                int beforeGold=c.Main.gold,beforeOre=c.Main.ore;
+                if(!RewardState.Current.Claim(c.Main))return;
+                RewardVisuals.Absorb(c.Main,RewardVisuals.Kind.Gold,c.Main.gold-beforeGold,goldIcon.transform.position);
+                RewardVisuals.Absorb(c.Main,RewardVisuals.Kind.Hammer,c.Main.ore-beforeOre,hammerIcon.transform.position);
+            });
+            claim.name="Claim";
+            claim.GetComponentInChildren<Text>().fontSize=Ui.ReadableFontSize(42);
+            void Refresh() {
+                var state=RewardState.Current;state.Advance(DateTimeOffset.UtcNow.ToUnixTimeSeconds());
+                var span=TimeSpan.FromSeconds(state.accruedSeconds);
+                string time=(span.Days>0?span.Days+"일 ":"")+(span.Hours>0?span.Hours+"시 ":"")+span.Minutes+"분 "+span.Seconds+"초";
+                elapsed.text="수집 시간: <color=#35FF35>"+time+"</color>";
+                gold.text=state.GoldAvailable.ToString("N0");ore.text=state.HammersAvailable.ToString("N0");
+                claim.interactable=state.GoldAvailable>0||state.HammersAvailable>0;
+            }
+            b.gameObject.AddComponent<LiveUiRefresh>().RefreshView=Refresh;Refresh();
         }
+
         static void Pass(ScreenContext c)
         {
-            float height=Mathf.Min(1540,c.Height-180);
-            var p=Ui.Rect("진행 패스 frame",c.Root,80,(c.Height-height)/2,920,height);
-            var stone=c.Assets.panels!=null&&c.Assets.panels.Length>4?c.Assets.panels[4]:PopupSkin.PanelArt;
-            var backing=Ui.Image("Pass stone backing",p,6,6,908,height-12,stone);backing.type=Image.Type.Tiled;backing.raycastTarget=true;
-            var rim=Ui.Image("Pass stone frame",p,0,0,920,height,PopupSkin.PanelArt);rim.type=Image.Type.Sliced;rim.fillCenter=false;rim.pixelsPerUnitMultiplier=3;rim.raycastTarget=true;
-            Ui.ArtImage("Pass sword header",p,30,-125,860,330,PopupSkin.PassHeaderArt).preserveAspect=true;
-            Ui.Text("Title",p,70,22,780,76,"진행 패스",46,c.Assets.font);
-            PopupSkin.Close("Close",p,418,height-96,84,c.Assets.font,c.Close);
-            Ui.Text("Pass description",p,65,112,790,90,"5스테이지마다 보상을 받으세요!\n최종 보상: 스테이지 500",29,c.Assets.font);
-            var progress=Ui.Text("Best stage",p,65,205,790,54,"",28,c.Assets.font,Ui.Cyan);
-            var viewport=Ui.Rect("Pass viewport",p,45,285,830,p.rect.height-405);
-            var image=viewport.gameObject.AddComponent<Image>(); image.color=new Color(0,0,0,.12f); image.raycastTarget=true;
-            viewport.gameObject.AddComponent<RectMask2D>();
-            var content=Ui.Rect("Pass content",viewport,0,0,830,100*178);
-            var scroll=viewport.gameObject.AddComponent<ScrollRect>(); scroll.viewport=viewport;scroll.content=content;scroll.horizontal=false;scroll.movementType=ScrollRect.MovementType.Clamped;
-            var claimButtons=new Button[100];
-            string[] labels={"스킬소환권","펫소환권","탈것소환권"};
-            for(int i=0;i<100;i++)
-            {
-                int index=i;float y=i*178;
-                Ui.Text("Stage milestone "+i,content,295,y,240,40,"스테이지 "+((i+1)*5),25,c.Assets.font,Ui.Gold);
-                var left=PopupSkin.IllustratedCard("Hammer reward "+i,content,8,y+42,332,126,Resources.Load<Sprite>("Moonlit/Social/ProfileRuins-v1"),new Color(.5f,.65f,.8f));
-                Ui.ArtImage("Hammer",left,18,14,86,86,HammerArt).preserveAspect=true;
-                Ui.Text("Amount",left,112,24,200,65,"망치 100",29,c.Assets.font);
-                var right=PopupSkin.IllustratedCard("Ticket reward "+i,content,356,y+42,332,126,Resources.Load<Sprite>("Moonlit/Social/ProfileRuins-v1"),new Color(.5f,.65f,.8f));
-                Ui.ArtImage("Ticket",right,10,23,70,70,Resources.Load<Sprite>("Moonlit/Skills/SummonTicket-v1")).preserveAspect=true;
-                Ui.Text("Amount",right,82,14,236,92,labels[i%3]+"\n10개",24,c.Assets.font);
-                claimButtons[i]=PopupSkin.Button("Claim milestone "+i,content,703,y+55,119,96,"받기",c.Assets.font,()=>{
-                    if(RewardState.Current.ClaimPass(c.Main,index)) c.Toast("망치 100 · "+labels[index%3]+" 10");
-                });
-            }
-            void Refresh()
-            {
-                progress.text="최고 클리어: 스테이지 "+c.Main.highestClearedStage;
+            float h=Mathf.Min(1360,c.Height-240),w=940;
+            var root=Ui.Rect("진행 패스 Dialog",c.Root,(c.Width-w)/2,(c.Height-h)/2+25,w,h);
+            var backing=Ui.Image("Pass stone backing",root,6,6,w-12,h-12,PassStone(c.Assets),Color.white);
+            backing.type=Image.Type.Tiled;backing.pixelsPerUnitMultiplier=.45f;backing.raycastTarget=true;
+            var rim=Ui.Image("Pass stone frame",root,0,0,w,h,PopupSkin.PanelArt);
+            rim.type=Image.Type.Sliced;rim.fillCenter=false;rim.pixelsPerUnitMultiplier=3;rim.raycastTarget=true;
+            Ui.ArtImage("Pass sword header",root,20,-162,900,381,PopupSkin.PassHeaderArt).preserveAspect=true;
+            Ui.Text("Title",root,90,46,760,100,"진행 패스",52,Font(c));
+            var b=Ui.Rect("Live content",root,30,155,880,h-215);
+            Ui.Text("Prompt",b,20,0,390,110,"전투를 진행하여 보상을\n받으세요!",30,Font(c));
+            var purchase=Ui.ArtButton("₩13,900",b,465,4,375,100,PopupSkin.GoldActionArt,true,8);
+            Ui.Text("Price",purchase.transform,18,0,258,100,"₩13,900",36,Font(c));
+            purchase.onClick.AddListener(()=>c.Toast("프리미엄 구매는 데모에서 연결되지 않습니다."));
+            Ui.Image("Premium ruby",purchase.transform,288,20,65,65,CurrencyIcon(c,1)).preserveAspect=true;
+            var freeTab=Ui.Image("Free tab",b,0,126,422,74,PopupSkin.ActionArt);freeTab.type=Image.Type.Sliced;freeTab.pixelsPerUnitMultiplier=8;
+            Ui.Text("Free",b,0,126,422,74,"무료",34,Font(c));
+            var premiumTab=Ui.Image("Premium tab",b,458,126,422,74,PopupSkin.GoldActionArt);premiumTab.type=Image.Type.Sliced;premiumTab.pixelsPerUnitMultiplier=8;
+            Ui.Text("Premium",b,458,126,422,74,"프리미엄",34,Font(c));
+            Scroll(c,b,0,212,894,b.rect.height-212,100*216,out var content);
+            var claims=new Button[100];var checks=new Image[100];
+            for(int i=0;i<100;i++) PassRow(c,content,i,i*216,claims,checks);
+            void Refresh() {
                 for(int i=0;i<100;i++) {
                     bool claimed=RewardState.Current.passClaimed[i];
-                    claimButtons[i].interactable=!claimed && c.Main.highestClearedStage>=(i+1)*5;
-                    claimButtons[i].GetComponentInChildren<Text>().text=claimed?"완료":"받기";
+                    claims[i].interactable=!claimed&&c.Main.highestClearedStage>=(i+1)*5;
+                    claims[i].gameObject.SetActive(!claimed);checks[i].gameObject.SetActive(claimed);
                 }
             }
-            p.gameObject.AddComponent<LiveUiRefresh>().RefreshView=Refresh;Refresh();
+            b.gameObject.AddComponent<LiveUiRefresh>().RefreshView=Refresh;Refresh();
+            PopupSkin.Close("Close",root,w/2-50,h-50,100,Font(c),c.Close,64);
         }
+        static void PassRow(ScreenContext c,Transform p,int index,float y,Button[] claims,Image[] checks)
+        {
+            var frame=Ui.Image("Stage frame",p,305,y,270,48,PopupSkin.ActionArt);frame.type=Image.Type.Sliced;frame.pixelsPerUnitMultiplier=9;
+            Ui.Text("Stage milestone "+index,p,305,y,270,48,"스테이지 "+((index+1)*5),26,Font(c),Ui.Ivory);
+            Ui.Image("Timeline glow",p,435,y+48,10,168,null,new Color(.1f,.65f,1f));
+            Ui.Image("Timeline",p,439,y+48,2,168,null,Color.white);
+            var node=Ui.Image("Node",p,430,y+112,20,20,null,Ui.Gold);node.rectTransform.localRotation=Quaternion.Euler(0,0,45);
+            var free=PassCard("Free reward "+index,p,8,y+52,new Color(.65f,.85f,1f));
+            var ticket=RewardVisuals.Ticket(index%3);
+            PassReward(c,free,20,14,ticket,"10");
+            PassReward(c,free,20,77,HammerArt,"100");
+            checks[index]=Ui.ArtImage("Claimed reward check",free,312,58,84,78,Resources.Load<Sprite>("Moonlit/Forge/ClaimedCheck-v1"));
+            checks[index].preserveAspect=true;
+            claims[index]=Action(c,free,310,74,82,54,"받기",()=>{
+                if(!RewardState.Current.ClaimPass(c.Main,index))return;
+                RewardVisuals.Absorb(c.Main,RewardVisuals.Kind.Hammer,100,free.position);
+                var kind=index%3==0?RewardVisuals.Kind.SkillTicket:index%3==1?RewardVisuals.Kind.PetTicket:RewardVisuals.Kind.MountTicket;
+                RewardVisuals.Absorb(c.Main,kind,10,free.position);
+                claims[index].gameObject.SetActive(false);checks[index].gameObject.SetActive(true);
+            },Blue,18);
+            claims[index].name="Claim milestone "+index;
+            // Preserve the reference's locked premium demonstration; no new purchase/reward policy is introduced.
+            int demo=index%6;
+            var premium=PassCard("Premium reward "+index,p,462,y+52,new Color(.7f,.5f,.3f));
+            Ui.ArtImage("Premium chest",premium,222,16,182,124,PassChest(demo)).preserveAspect=true;
+            var original=demo%3==0?RewardVisuals.Ticket(0):PopupSkin.RewardIcon(demo%3==1?0:4);
+            string amount=demo%3==0?"220":demo%3==1?"200":"500";
+            PassReward(c,premium,20,14,demo==3?CurrencyIcon(c,0):original,demo==3?"40k":amount);
+            if(demo!=3)PassReward(c,premium,20,77,CurrencyIcon(c,1),"5");
+            Ui.ArtImage("Premium lock",premium,340,4,55,55,PopupSkin.RewardIcon(6)).preserveAspect=true;
+        }
+
+        static RectTransform Frame(ScreenContext c, string title, float width, float height, out RectTransform body, bool close = true)
+        {
+            width = Mathf.Min(width, c.Width - 36);
+            height = Mathf.Min(height, c.Height - 36);
+            var root = Ui.Rect(title + " Dialog", c.Root, (c.Width - width) * .5f, (c.Height - height) * .5f, width, height);
+            var shadow = PopupSkin.Panel("Ornate stone frame", root, 0, 0, width, height);
+            shadow.raycastTarget = true;
+            Ui.Text("Title", root, 44, 20, width - 88, 72, title, 44, Font(c), Ui.Ivory);
+            Ui.Image("Title rule", root, 70, 94, width - 140, 3, null, Ui.Gold);
+            body = Ui.Rect("Live content", root, 30, 112, width - 60, height - 150);
+            if (close)
+            {
+                var b = PopupSkin.Button("Close", root, width * .5f - 42, height - 46, 84, 84, "×", Font(c), c.Close, Red, 58);
+                b.transform.SetAsLastSibling();
+            }
+            return root;
+        }
+
+        static ScrollRect Scroll(ScreenContext c, Transform parent, float x, float y, float w, float h, float contentHeight, out RectTransform content)
+        {
+            var viewport = Ui.Rect("Scroll viewport", parent, x, y, w, h);
+            var maskImage = viewport.gameObject.AddComponent<Image>();
+            maskImage.color = new Color(0,0,0,.04f); maskImage.raycastTarget = true;
+            viewport.gameObject.AddComponent<RectMask2D>();
+            content = Ui.Rect("Scrollable content", viewport, 0, 0, w - 14, contentHeight);
+            content.anchorMin = new Vector2(0, 1); content.anchorMax = new Vector2(1, 1);
+            content.pivot = new Vector2(.5f, 1); content.sizeDelta = new Vector2(-14, contentHeight);
+            var scroll = viewport.gameObject.AddComponent<ScrollRect>();
+            scroll.viewport = viewport; scroll.content = content; scroll.horizontal = false; scroll.vertical = true;
+            scroll.movementType = ScrollRect.MovementType.Clamped; scroll.scrollSensitivity = 36;
+            var rail = Ui.Image("Scrollbar", viewport, w - 9, 0, 7, h, null, new Color(.1f,.1f,.1f,.8f));
+            var sb = rail.gameObject.AddComponent<Scrollbar>(); sb.direction = Scrollbar.Direction.BottomToTop;
+            var handle = Ui.Image("Handle", rail.transform, 0, 0, 7, Mathf.Max(60, h * h / contentHeight), null, Ui.Gold);
+            handle.raycastTarget = true; sb.handleRect = handle.rectTransform; sb.targetGraphic = handle; scroll.verticalScrollbar = sb;
+            return scroll;
+        }
+
+        static void RewardRule(Transform parent, float y, float width)
+        {
+            Ui.Image("Reward divider", parent, 52, y, width - 104, 2, null, Ui.Gold);
+            Ui.Image("Divider ornament", parent, width * .5f - 30, y - 11, 60, 24,
+                PopupSkin.CrestArt).preserveAspect = true;
+        }
+
+        static void RewardIcon(ScreenContext c, Transform p, float x, float y, string name, Sprite icon, string rate)
+        {
+            var frameArt = c.Assets != null && c.Assets.equipmentSlotPrefab
+                ? c.Assets.equipmentSlotPrefab.equipmentFrame : PopupSkin.PanelArt;
+            var frame = Ui.Image(name, p, x, y, 170, 170, frameArt);
+            frame.type = Image.Type.Sliced; frame.pixelsPerUnitMultiplier = 7;
+            Ui.Image("Reward illustration", frame.transform, 24, 22, 122, 126, icon).preserveAspect = true;
+            Ui.Text("Rate", frame.transform, -10, 176, 190, 48, rate, 30, Font(c), new Color(.1f,1f,.2f));
+        }
+
+        static Sprite PassStone(MainScreenAssets assets)
+        {
+            if(passStone) return passStone;
+            if(assets.panels==null || assets.panels.Length<3 || !assets.panels[2]) return PopupSkin.PanelArt;
+            var source=assets.panels[2];
+            var r=source.rect; var border=source.border;
+            // Use the entire cracked face, excluding the independently rendered gold frame.
+            passStone=Sprite.Create(source.texture,
+                new Rect(r.x+border.x,r.y+border.y,r.width-border.x-border.z,r.height-border.y-border.w),
+                new Vector2(.5f,.5f),source.pixelsPerUnit,0,SpriteMeshType.FullRect);
+            passStone.name="Pass cracked stone face";
+            return passStone;
+        }
+
+        static Sprite PassChest(int index)
+        {
+            if(passChests==null || !passChests[0]) {
+                var atlas=Resources.Load<Texture2D>("Moonlit/Forge/PassChests-v1");
+                if(!atlas) return null;
+                passChests=new Sprite[4];
+                float w=atlas.width/2f,h=atlas.height/2f;
+                for(int i=0;i<4;i++) {
+                    passChests[i]=Sprite.Create(atlas,new Rect(i%2*w,(1-i/2)*h,w,h),
+                        new Vector2(.5f,.5f),100,0,SpriteMeshType.FullRect);
+                    passChests[i].name="Pass chest "+i;
+                }
+            }
+            return passChests[Mathf.Clamp(index,0,3)];
+        }
+
+        static RectTransform PassCard(string name,Transform parent,float x,float y,Color tint)
+        {
+            var card=PopupSkin.IllustratedCard(name,parent,x,y,410,144,
+                Resources.Load<Sprite>("Moonlit/Social/ProfileRuins-v1"),tint);
+            // This compact card needs a thin empty rim, leaving its scenery visible edge to edge.
+            card.Find("Card rim").GetComponent<Image>().pixelsPerUnitMultiplier=22;
+            return card;
+        }
+
+        static void PassReward(ScreenContext c,Transform parent,float x,float y,Sprite icon,string amount)
+        {
+            Ui.Image("Reward contrast",parent,x-4,y,218,48,null,new Color(.015f,.025f,.04f,.62f));
+            Ui.Image("Reward icon",parent,x,y,48,48,icon).preserveAspect=true;
+            Ui.Text("Reward amount",parent,x+58,y,150,48,amount,29,Font(c),Ui.Ivory,TextAnchor.MiddleLeft);
+        }
+
         static void Wallet(ScreenContext c)
         {
             var p=Panel(c,"재화",960);
