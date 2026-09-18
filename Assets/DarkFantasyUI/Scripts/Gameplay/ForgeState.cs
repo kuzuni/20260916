@@ -20,7 +20,7 @@ namespace Moonlit.UI
         public int Segments => 3+(level-1)%4;
         public int SegmentCost => 20*level*level;
         public double UpgradeSeconds => 10*Math.Pow(1.3,level-1);
-        public int UpgradePhase(DateTime now) => upgradeEndsUtcTicks>0 ? (now.Ticks>=upgradeEndsUtcTicks ? 3 : 2) : filledSegments>=Segments ? 1 : 0;
+        public int UpgradePhase(DateTime now) => level>=EquipmentRules.MaxForgeLevel && ascension>=EquipmentRules.MaxAscension ? 4 : upgradeEndsUtcTicks>0 ? (now.Ticks>=upgradeEndsUtcTicks ? 3 : 2) : filledSegments>=Segments ? 1 : 0;
         public double RemainingSeconds(DateTime now) => Math.Max(0,(upgradeEndsUtcTicks-now.Ticks)/(double)TimeSpan.TicksPerSecond);
         public int DiamondSkipCost(DateTime now) => (int)Math.Ceiling(RemainingSeconds(now)/6.0);
         public bool FillSegment(ref int gold)
@@ -37,7 +37,7 @@ namespace Moonlit.UI
         {
             if(UpgradePhase(now)!=3) return false;
             if(level>=EquipmentRules.MaxForgeLevel) {
-                ascension=ascension<int.MaxValue?ascension+1:int.MaxValue;
+                ascension=Math.Min(EquipmentRules.MaxAscension,ascension+1);
                 level=1;draws=new int[10];equipped=new EquipmentRoll[6];
                 pending.Clear();automaticSaleIds.Clear();comparisonNewId=0;autoEnabled=false;
             } else level++;
@@ -105,9 +105,10 @@ namespace Moonlit.UI
         }
         public void NormalizeAfterLoad()
         {
-            level=Math.Max(1,Math.Min(35,level));ascension=Math.Max(0,ascension);
+            level=Math.Max(1,Math.Min(35,level));ascension=Math.Max(0,Math.Min(EquipmentRules.MaxAscension,ascension));
             filledSegments=Math.Max(0,Math.Min(Segments,filledSegments));
             upgradeEndsUtcTicks=Math.Max(0,upgradeEndsUtcTicks);
+            if(level>=EquipmentRules.MaxForgeLevel && ascension>=EquipmentRules.MaxAscension){filledSegments=0;upgradeEndsUtcTicks=0;}
             freeSkipsUsed=Math.Max(0,Math.Min(4,freeSkipsUsed));
             batchSize=Math.Max(1,Math.Min(99,batchSize));affixMask&=511;
             autoEnabled=false; // A restored queue is reviewed before new hammers are spent.
@@ -134,7 +135,7 @@ namespace Moonlit.UI
         void NormalizeItem(EquipmentRoll item)
         {
             item.level=Math.Max(1,Math.Min(100,item.level));item.variant=Math.Max(0,Math.Min(2,item.variant));
-            item.ascension=Math.Max(0,item.ascension);
+            item.ascension=Math.Max(0,Math.Min(EquipmentRules.MaxAscension,item.ascension));
             nextId=Math.Max(nextId,item.id);
             if(item.ascension==ascension)draws[item.tier]=Math.Max(draws[item.tier],item.level);
             var affixes=new List<EquipmentAffix>();var kinds=new HashSet<EquipmentAffixKind>();

@@ -86,22 +86,22 @@ namespace Moonlit.UI
             Watch(b,()=>{
                 var s=ForgeState.Current;var now=DateTime.UtcNow;s.ResetDaily(now);int phase=s.UpgradePhase(now);
                 bool ascending=s.level>=EquipmentRules.MaxForgeLevel;
-                levels.text="레벨 "+s.level+"  ▶  "+(ascending?"승천 "+((long)s.ascension+1):"레벨 "+(s.level+1));
+                levels.text=phase==4?"레벨 35 · 만렙":"레벨 "+s.level+"  ▶  "+(ascending?"승천 "+(s.ascension+1):"레벨 "+(s.level+1));
                 goldValue.text=MainScreen.Compact(c.Main.gold);diamondValue.text=MainScreen.Compact(c.Main.gems);
-                var rates=EquipmentRules.TierProbabilities(s.level);var future=EquipmentRules.TierProbabilities(ascending?1:s.level+1);
+                var rates=EquipmentRules.TierProbabilities(s.level);var future=EquipmentRules.TierProbabilities(phase==4?s.level:ascending?1:s.level+1);
                 for(int i=0;i<10;i++){
                     current[i].text=(rates[i]*100).ToString("0.##")+"%";next[i].text=(future[i]*100).ToString("0.##")+"%";
                     stars[i].text=EquipmentRules.AscensionStars(s.ascension);stars[i].gameObject.SetActive(s.ascension>0);
                 }
                 for(int i=0;i<6;i++){
-                    segments[i].gameObject.SetActive(i<s.Segments);
+                    segments[i].gameObject.SetActive(i<s.Segments && phase!=4);
                     float width=(668f-(s.Segments-1)*12f)/s.Segments;
                     segments[i].rectTransform.sizeDelta=new Vector2(width,40);
                     segments[i].rectTransform.anchoredPosition=new Vector2(26+i*(width+12),-936);
                     segments[i].color=i<s.filledSegments?Ui.Cyan:new Color(.18f,.22f,.28f);
                 }
-                status.text=phase==0?"골드 업그레이드 "+s.filledSegments+" / "+s.Segments:phase==1?"게이지 완료 · 시간 업그레이드를 시작하세요":phase==2?"업그레이드 중 "+TimeSpan.FromSeconds(s.RemainingSeconds(now)).ToString(@"hh\:mm\:ss"):"시간 업그레이드 완료";
-                primary.GetComponentInChildren<Text>().text=phase==0?"골드 업그레이드 · "+s.SegmentCost:phase==1?"시간 업그레이드 시작":phase==2?"업그레이드 중":ascending?"승천하기":"업그레이드 완료";
+                status.text=phase==0?"골드 업그레이드 "+s.filledSegments+" / "+s.Segments:phase==1?"게이지 완료 · 시간 업그레이드를 시작하세요":phase==2?"업그레이드 중 "+TimeSpan.FromSeconds(s.RemainingSeconds(now)).ToString(@"hh\:mm\:ss"):phase==3?"시간 업그레이드 완료":"대장간 만렙";
+                primary.GetComponentInChildren<Text>().text=phase==0?"골드 업그레이드 · "+s.SegmentCost:phase==1?"시간 업그레이드 시작":phase==2?"업그레이드 중":phase==4?"만렙":ascending?"승천하기":"업그레이드 완료";
                 primary.interactable=phase==0 || phase==1 || phase==3;
                 diamond.gameObject.SetActive(phase==2);free.gameObject.SetActive(phase==2);
                 diamond.GetComponentInChildren<Text>().text="건너뛰기\n다이아 "+s.DiamondSkipCost(now);

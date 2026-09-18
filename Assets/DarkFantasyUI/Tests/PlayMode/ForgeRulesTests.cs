@@ -244,7 +244,7 @@ namespace Moonlit.UI.Tests
 
         [Test] public void EveryAscensionContinuesAfterCelestialAndEquipmentRetainsItsOwnEra()
         {
-            for(int ascension=1;ascension<=4;ascension++) {
+            for(int ascension=1;ascension<=EquipmentRules.MaxAscension;ascension++) {
                 var previous=EquipmentRules.FullSetStats(9,100,ascension-1);
                 var next=EquipmentRules.FullSetStats(0,1,ascension);
                 Assert.That(next.health/previous.health,Is.EqualTo(2).Within(1e-10));
@@ -277,6 +277,24 @@ namespace Moonlit.UI.Tests
             Assert.IsTrue(restored.ToggleEquip(1));Assert.AreEqual(2,restored.ComparisonNewId);
             Assert.IsTrue(restored.SellPending(2,out _));Assert.AreEqual(3,restored.ComparisonNewId);
             Assert.IsTrue(restored.ToggleEquip(3));Assert.AreEqual(0,restored.ComparisonNewId);
+        }
+
+        [Test] public void ThirdAscensionAtLevelThirtyFiveIsFinalAndSavedOvershootsAreClamped()
+        {
+            var state=new ForgeState {level=35,ascension=3,filledSegments=5,
+                upgradeEndsUtcTicks=DateTime.UtcNow.AddSeconds(-1).Ticks};
+            int gold=1000000;
+            Assert.AreEqual(4,state.UpgradePhase(DateTime.UtcNow));
+            Assert.IsFalse(state.FillSegment(ref gold));Assert.AreEqual(1000000,gold);
+            Assert.IsFalse(state.StartUpgrade(DateTime.UtcNow));Assert.IsFalse(state.ClaimUpgrade(DateTime.UtcNow));
+            state.ascension=99;state.pending.Add(new EquipmentRoll {id=1,ascension=99});
+            state.NormalizeAfterLoad();
+            Assert.AreEqual(3,state.ascension);Assert.AreEqual(3,state.Pending.ascension);
+            Assert.AreEqual(0,state.upgradeEndsUtcTicks);Assert.AreEqual(0,state.filledSegments);
+            Assert.AreEqual("",EquipmentRules.AscensionStars(0));
+            Assert.AreEqual("★",EquipmentRules.AscensionStars(1));
+            Assert.AreEqual("★★",EquipmentRules.AscensionStars(2));
+            Assert.AreEqual("★★★",EquipmentRules.AscensionStars(3));
         }
 
     }

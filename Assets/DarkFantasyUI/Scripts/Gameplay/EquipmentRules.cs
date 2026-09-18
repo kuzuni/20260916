@@ -16,7 +16,7 @@ namespace Moonlit.UI
     }
     public static class EquipmentRules
     {
-        public const int TierCount = 10, MaxEquipmentLevel = 100, MaxForgeLevel = 35;
+        public const int TierCount = 10, MaxEquipmentLevel = 100, MaxForgeLevel = 35, MaxAscension = 3;
         public static double baseHealth = 80, baseAttack = 10;
         public static readonly string[] TierNames = { "원시적", "중세의", "근대 초기", "현대의", "우주", "항성간", "다중 우주", "양자", "지하 세계", "천상" };
         public static readonly string[] PartNames = { "갑옷", "귀걸이", "모자", "목걸이", "반지", "무기" };
@@ -39,7 +39,7 @@ namespace Moonlit.UI
             // Exact user anchors: primitive HP 80 at lv1, 880 at lv100; medieval lv1 1760.
             // Linear interpolation spans 99 intervals, hence 10/99 of lv1 per level (not compound growth).
             // Each ascension continues after celestial lv100: the next primitive lv1 is twice as strong.
-            double era=tier+Math.Max(0,ascension)*10.0;
+            double era=tier+Math.Max(0,Math.Min(MaxAscension,ascension))*10.0;
             double scale = Math.Pow(22, era) * (1 + 10.0 * (level-1) / 99);
             double speedBase = 199*Math.Pow(2,era)-198;
             return IsHealthPart(part) ? new EquipmentStats { health=FiniteStat(baseHealth*scale), speed=FiniteStat(speedBase+level-1) }
@@ -52,7 +52,7 @@ namespace Moonlit.UI
         }
         // Leave ample headroom for six-piece totals, percentage bonuses and combat power arithmetic.
         static double FiniteStat(double value) => double.IsNaN(value)?0:Math.Min(double.MaxValue/1024,Math.Max(0,value));
-        public static string AscensionStars(int ascension) => ascension>0?"★ "+ascension:"";
+        public static string AscensionStars(int ascension) => new string('★',Math.Max(0,Math.Min(MaxAscension,ascension)));
         public static int AffixCount(int tier) => tier < 2 ? 0 : tier < 4 ? 1 : 2;
         public static EquipmentAffix[] RollAffixes(int tier, System.Random random)
         {

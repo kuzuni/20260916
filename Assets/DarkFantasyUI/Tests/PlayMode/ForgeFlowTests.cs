@@ -255,7 +255,7 @@ namespace Moonlit.UI.Tests
 
         [UnityTest] public IEnumerator EquipmentStarsUseSavedAscensionAndCatalogUsesSquareFrames()
         {
-            foreach(int ascension in new[]{0,1,12}) {
+            foreach(int ascension in new[]{0,1,3}) {
                 ForgeState.Current.ascension=ascension;
                 host.Registry.Open("forge-probability-details");yield return null;
                 var layer=GameObject.Find("Popup Layer forge-probability-details");
@@ -270,7 +270,7 @@ namespace Moonlit.UI.Tests
                 var info=GameObject.Find("Popup Layer forge-item-details");
                 var stars=info.GetComponentsInChildren<Text>().Where(text=>text.name=="Star").ToArray();
                 Assert.AreEqual(ascension>0?1:0,stars.Length);
-                if(ascension>0)Assert.AreEqual("★ "+ascension,stars[0].text);
+                if(ascension>0)Assert.AreEqual(EquipmentRules.AscensionStars(ascension),stars[0].text);
                 host.CloseTop();host.CloseTop();yield return null;
                 // The equipment card must use its own saved ascension, not the current forge's value.
                 ForgeState.Current.ascension=ascension+1;
@@ -313,16 +313,29 @@ namespace Moonlit.UI.Tests
             slot.notificationBadge=Ui.Rect("Notification",go.transform,0,0,20,20).gameObject;
             var definition=ScriptableObject.CreateInstance<ItemDefinition>();
             try {
-                ForgeState.Current.ascension=50;
-                foreach(int ascension in new[]{0,1,12}) {
+                ForgeState.Current.ascension=3;
+                foreach(int ascension in new[]{0,1,3}) {
                     slot.roll=new EquipmentRoll {id=1,ascension=ascension};
                     slot.Bind(definition,1);
                     Assert.AreEqual(ascension>0,slot.starLabel.gameObject.activeSelf);
-                    Assert.AreEqual(ascension>0?"★ "+ascension:"",slot.starLabel.text);
+                    Assert.AreEqual(ascension>0?EquipmentRules.AscensionStars(ascension):"",slot.starLabel.text);
                 }
                 slot.Bind(null);
                 Assert.IsFalse(slot.starLabel.gameObject.activeSelf);Assert.AreEqual("",slot.starLabel.text);
             } finally {Object.DestroyImmediate(definition);}
+        }
+
+        [UnityTest] public IEnumerator MaxAscensionShowsDisabledMaxLevelButton()
+        {
+            ForgeState.Current.ascension=3;ForgeState.Current.level=35;main.gold=1000000;
+            host.Registry.Open("forge-probability");yield return null;
+            var layer=GameObject.Find("Popup Layer forge-probability");
+            var primary=layer.GetComponentsInChildren<Button>().Single(button=>button.name=="업그레이드");
+            Assert.AreEqual("만렙",primary.GetComponentInChildren<Text>().text);
+            Assert.IsFalse(primary.interactable);
+            primary.onClick.Invoke();yield return null;
+            Assert.AreEqual(1000000,main.gold);Assert.AreEqual(3,ForgeState.Current.ascension);
+            Assert.AreEqual(35,ForgeState.Current.level);
         }
 
     }
