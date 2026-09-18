@@ -39,7 +39,7 @@ namespace Moonlit.UI
         Text toast;
         Coroutine toastRoutine;
         float autoClock;
-        static readonly string[] NavigationRoutes = { "pvp", "dungeons", "skills-pets-heroes", "quests", "shop" };
+        static readonly string[] NavigationRoutes = { "pvp", "dungeons", "skills-pets-heroes", "shop" };
         EquipmentSlot inspected;
 
         void Start()
@@ -195,14 +195,6 @@ namespace Moonlit.UI
             if (screens == null || index < 0 || index >= NavigationRoutes.Length || screens.ModalDepth > 0) return;
             string route = NavigationRoutes[index];
             if (screens.ActivePageKey == route) { screens.ShowMainPage(); return; }
-            if (index == 3) screens.Register("quests", ScreenPresentation.Page, context => {
-                Ui.Image("Quest page shade",context.Root,0,0,context.Width,context.Height,null,new Color(0,.015f,.025f,.65f)).raycastTarget=true;
-                var panel=PopupSkin.Panel("Quest panel",context.Root,150,(context.Height-210-620)/2,780,620).rectTransform;
-                Ui.Text("Quest title",panel,40,42,700,70,"모험 퀘스트",40,font,Ui.Gold);
-                Ui.Text("Quest progress",panel,60,155,660,230,"장비 강화  "+successfulForges+" / 10\n\n대장간에서 장비를 강화해 보세요.\n퀘스트 보상 : 다이아 10개",29,font);
-                PopupSkin.Button("Quest reward",panel,200,428,380,88,"보상 받기",font,ClaimQuest);
-                PopupSkin.Close("Close",panel,348,548,84,font,context.Close);
-            },false);
             screens.Open(route);
         }
 
