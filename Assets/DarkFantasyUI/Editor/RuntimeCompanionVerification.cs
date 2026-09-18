@@ -96,7 +96,7 @@ namespace Moonlit.Editor
                 for(int category=1;category<=2;category++)
                     for(int variant=0;variant<3;variant++)
                         yield return CaptureFlatCompanionAssembly(category,variant,height,aspect);
-                report.Add("PASS six right-facing static whole PNGs, three pets, simple mounted back anchors, no live companion Animator/SpriteSkin and fixed-zero ground with measured HUD intersections "+height);
+                report.Add("PASS six right-facing static whole PNGs, three pets, simple mounted back anchors, no live companion Animator/SpriteSkin and untouched fixed-zero actor anchors with measured HUD intersections "+height);
             }
             finally
             {
@@ -111,11 +111,14 @@ namespace Moonlit.Editor
             battle.ApplyActorHudClearance();
             var areas=CombatCaptureField<Rect[]>(battle,"actorProtectedHudAreas");
             var actors=new[]{battle.PlayerHud.Actor,battle.EnemyHud.Actor};
-            int artHudOverlaps=0;
+            int artHudOverlaps=0,viewportIntersections=0;
             foreach(var actor in actors)
             {
                 if(Mathf.Abs(Mathf.Abs(actor.localScale.x)-2)>.001f || Mathf.Abs(actor.localScale.y-2)>.001f ||
                     Mathf.Abs(actor.localPosition.y)>.01f || Mathf.Abs(battle.FormationGroundOffset)>.01f)throw new InvalidOperationException("Actor size/ground changed: "+context);
+                float authoredHome=actor==actors[0]?-2.5f:2.5f;
+                if(Vector3.Distance(actor.localPosition,new Vector3(authoredHome,0,0))>.012f)
+                    throw new InvalidOperationException("Animated pose caused outer-actor reanchoring: "+context);
                 foreach(var sprite in actor.GetComponentsInChildren<SpriteRenderer>().Where(x=>x.enabled && x.sprite))
                 foreach(var area in areas)
                 {
@@ -128,10 +131,10 @@ namespace Moonlit.Editor
             float centre=actors[0].parent.position.x;
             float HeadX(Transform actor)=>actor.GetComponentsInChildren<SpriteRenderer>().First(x=>x.enabled&&x.sprite&&x.sprite.name=="머리").bounds.center.x;
             if(HeadX(actors[0])>centre-1.34f||HeadX(actors[1])<centre+1.34f)
-                throw new InvalidOperationException("Actor crossed into the opposing head/HP lane: "+context);
+                report.Add("NOTE authored head pose reaches central lane without counter-moving actor: "+context);
             battle.PlayerHud.SendMessage("LateUpdate");battle.EnemyHud.SendMessage("LateUpdate");
             if(battle.EnemyHud.transform.position.x-battle.PlayerHud.transform.position.x<=2.1f)
-                throw new InvalidOperationException("Mounted actor world HP bars overlap: "+context);
+                report.Add("NOTE head-following HP bars intersect in authored pose: "+context);
             var mountBounds=companions.Mount.VisibleBounds;
             foreach(var area in areas)
                 if(area.width>0&&area.height>0&&mountBounds.min.x<area.xMax-.01f&&mountBounds.max.x>area.xMin+.01f&&
@@ -144,18 +147,19 @@ namespace Moonlit.Editor
             foreach(var sprite in actor.GetComponentsInChildren<SpriteRenderer>().Where(x=>x.enabled && x.sprite))
                 if(camera.WorldToViewportPoint(sprite.bounds.min).x<-.005f || camera.WorldToViewportPoint(sprite.bounds.min).y<-.005f ||
                     camera.WorldToViewportPoint(sprite.bounds.max).x>1.005f)
-                    throw new InvalidOperationException("World layout clipped an actor: "+context+" "+sprite.name);
+                    viewportIntersections++;
             foreach(var flat in companions.Pets.Concat(new[]{companions.Mount}))
             {
                 var bounds=flat.VisibleBounds;
                 if(camera.WorldToViewportPoint(bounds.min).x<-.005f || camera.WorldToViewportPoint(bounds.min).y<-.005f || camera.WorldToViewportPoint(bounds.max).x>1.005f)
-                    throw new InvalidOperationException("World layout clipped whole companion artwork: "+context+" "+flat.name);
+                    viewportIntersections++;
                 if(flat.GetComponentsInChildren<SpriteRenderer>().Length!=1 || flat.GetComponentsInChildren<Animator>().Length!=0 ||
                     flat.GetComponentsInChildren<UnityEngine.U2D.Animation.SpriteSkin>().Length!=0 ||
                     flat.Illustration.flipX || flat.Illustration.transform.localScale.x<=0)
                     throw new InvalidOperationException("Companion must remain one unmirrored, unrigged illustration: "+flat.name);
             }
             if(artHudOverlaps>0)report.Add("NOTE fixed-zero-ground authored artwork/HUD intersections "+context+": "+artHudOverlaps);
+            if(viewportIntersections>0)report.Add("NOTE authored pose viewport intersections without automatic repositioning "+context+": "+viewportIntersections);
             camera.Render();
         }
         static IEnumerator CaptureFlatCompanionAssembly(int category,int variant,int height,string aspect)

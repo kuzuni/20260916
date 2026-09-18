@@ -55,10 +55,9 @@ namespace Moonlit.UI
         RenderTexture texture;
         readonly Rect[] protectedHudAreas = new Rect[3];
         readonly Rect[] actorProtectedHudAreas = new Rect[8];
-        readonly List<Bounds> playerLayoutParts=new List<Bounds>(),enemyLayoutParts=new List<Bounds>();
-        readonly List<Bounds> playerLayoutFormation=new List<Bounds>(),enemyLayoutFormation=new List<Bounds>();
+        readonly List<Bounds> formationDiagnosticParts = new List<Bounds>();
         RectTransform skillStrip;
-        // User-authored animation can move bones, but the battle formation always uses ground Y = 0.
+        // Y = 0 is assigned on creation/entry only. Native visual motion is never counteracted by reanchoring.
         public float FormationGroundOffset => 0;
         public bool IsEnteringFormation { get; private set; }
         public bool IsEntrancePrepared { get; private set; }
@@ -203,76 +202,19 @@ namespace Moonlit.UI
         }
         public void ApplyActorHudClearance()
         {
-            if(!renderCamera||!player||!enemy||IsEnteringFormation)return;
-            // A visible entry and every subsequent combat pose share this same outer-actor ground.
-            // Never compensate an authored bone animation by lowering or raising its actor.
-            var playerPosition=player.transform.localPosition;playerPosition.y=0;player.transform.localPosition=playerPosition;
-            var enemyPosition=enemy.transform.localPosition;enemyPosition.y=0;enemy.transform.localPosition=enemyPosition;
-            if(!PlayerHud.WorldCanvas.enabled||!EnemyHud.WorldCanvas.enabled)return;
-            float left=renderCamera.ViewportToWorldPoint(new Vector3(.025f,0,12)).x;
-            float right=renderCamera.ViewportToWorldPoint(new Vector3(.975f,0,12)).x;
+            // Compatibility entry point for the post-skinning diagnostic pass and capture assertions.
+            // It must not write actor, rig, companion, shadow or HUD transforms.
+            if(!renderCamera||!player||!enemy)return;
+            formationDiagnosticParts.Clear();
+            AddRenderedBounds(player,formationDiagnosticParts);
+            AddRenderedBounds(enemy,formationDiagnosticParts);
             var companions=stageRoot.GetComponent<CompanionBattleRuntime>();
-            PrepareLayoutBounds(player,companions,true,playerLayoutParts,playerLayoutFormation);
-            PrepareLayoutBounds(enemy,null,false,enemyLayoutParts,enemyLayoutFormation);
-            float centre=stageRoot.transform.position.x;
-            float playerMaximum=centre-1.35f-LayoutHeadX(player,true);
-            float enemyMinimum=centre+1.35f-LayoutHeadX(enemy,false);
-            bool p=CombatActorHudClearance.TrySafeShift(playerLayoutParts,playerLayoutFormation,actorProtectedHudAreas,
-                true,left,right,float.NegativeInfinity,playerMaximum,out float playerX);
-            bool e=CombatActorHudClearance.TrySafeShift(enemyLayoutParts,enemyLayoutFormation,actorProtectedHudAreas,
-                false,left,right,enemyMinimum,float.PositiveInfinity,out float enemyX);
-            IsFormationClear=p&&e;
-            // The latest explicit fixed-height rule takes priority when the compact HUD leaves no interval.
-            // Still retain own-side heads and horizontal screen bounds; report the overlap rather than changing Y.
-            if(!p)CombatActorHudClearance.TrySafeShift(playerLayoutParts,playerLayoutFormation,Array.Empty<Rect>(),
-                true,left,right,float.NegativeInfinity,playerMaximum,out playerX);
-            if(!e)CombatActorHudClearance.TrySafeShift(enemyLayoutParts,enemyLayoutFormation,Array.Empty<Rect>(),
-                false,left,right,enemyMinimum,float.PositiveInfinity,out enemyX);
-            MoveFormationTo(player,true,PlayerHud,companions,playerX,0,left,right);
-            MoveFormationTo(enemy,false,EnemyHud,null,enemyX,0,left,right);
-        }
-        void PrepareLayoutBounds(GameObject actor,CompanionBattleRuntime companions,bool isPlayer,List<Bounds> parts,List<Bounds> formation)
-        {
-            parts.Clear();AddRenderedBounds(actor,parts);
-            if(companions&&companions.Mount)AddRenderedBounds(companions.Mount.gameObject,parts);
-            formation.Clear();formation.AddRange(parts);
-            var home=stageRoot.transform.position+new Vector3(isPlayer?-2.5f:2.5f,0,0);
-            var offset=home-actor.transform.position;offset.z=0;
-            TranslateBounds(parts,offset);TranslateBounds(formation,offset);
-        }
-        static void TranslateBounds(List<Bounds> parts,Vector3 offset)
-        {
-            for(int i=0;i<parts.Count;i++){var part=parts[i];part.center+=offset;parts[i]=part;}
-        }
-        float LayoutHeadX(GameObject actor,bool isPlayer)
-        {
-            float x=actor.transform.position.x;
-            foreach(var sprite in actor.GetComponentsInChildren<SpriteRenderer>())
-                if(sprite.enabled&&sprite.sprite&&sprite.sprite.name=="머리"){x=sprite.bounds.center.x;break;}
-            return x-actor.transform.position.x+stageRoot.transform.position.x+(isPlayer?-2.5f:2.5f);
-        }
-        void MoveFormationTo(GameObject actor,bool isPlayer,CombatWorldHud hud,CompanionBattleRuntime companions,
-            float shift,float ground,float left,float right)
-        {
-            var destination=stageRoot.transform.position+new Vector3((isPlayer?-2.5f:2.5f)+shift,ground,0);
-            var offset=destination-actor.transform.position;offset.z=0;
-            actor.transform.position+=offset;
-            if(companions) {
-                if(companions.Mount)MoveCompanionWorld(companions.Mount,offset);
-                foreach(var pet in companions.Pets)if(pet) {
-                    MoveCompanionWorld(pet,offset);
-                    var bounds=pet.VisibleBounds;
-                    float correction=bounds.min.x<left?left-bounds.min.x:bounds.max.x>right?right-bounds.max.x:0;
-                    if(correction!=0){pet.transform.position+=Vector3.right*correction;pet.RefreshShadow();}
-                }
-            }
-            if(hud)hud.RefreshPosition();
-        }
-        void MoveCompanionWorld(FlatCompanionActor companion,Vector3 offset)
-        {
-            companion.transform.position+=offset;
-            companion.groundY+=offset.y;
-            companion.RefreshShadow();
+            if(companions&&companions.Mount)AddRenderedBounds(companions.Mount.gameObject,formationDiagnosticParts);
+            IsFormationClear=true;
+            foreach(var part in formationDiagnosticParts)
+            foreach(var area in actorProtectedHudAreas)
+                if(area.width>0&&area.height>0&&part.min.x<area.xMax&&part.max.x>area.xMin&&
+                    part.min.y<area.yMax&&part.max.y>area.yMin)IsFormationClear=false;
         }
         void AddRenderedBounds(GameObject actor,List<Bounds> result)
         {

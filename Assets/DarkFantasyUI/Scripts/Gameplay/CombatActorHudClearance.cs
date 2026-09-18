@@ -4,7 +4,8 @@ using UnityEngine;
 namespace Moonlit.UI
 {
     // Read current SpriteSkin bounds after 2D Animation's order-10 deformation pass.
-    // This changes world formation only: never bones, saddle poses, actor scale or camera density.
+    // Runtime diagnostics only: never reanchor actors to compensate for authored animation.
+    // The pure interval helpers below remain available for historical geometry tests, not actor placement.
     [DefaultExecutionOrder(20)]
     public sealed class CombatActorHudClearance : MonoBehaviour
     {

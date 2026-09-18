@@ -261,6 +261,7 @@ namespace Moonlit.Editor
                             throw new InvalidOperationException("Arrival snapped to a different combat height.");
                     RefreshCombatCapture(battle);
                     SaveCamera(camera,"Artifacts/Runtime-entrance-ground-"+tag+"-arrived-"+aspect+".png",1080,height);
+                    var settledPositions=actors.Select(actor=>actor.localPosition).ToArray();
                     int beforeHits=battle.PlayerResolvedBasicAttacks;
                     var action=CombatCaptureRoutine(battle,"Strike",true,20d,false,0);
                     pending.Push(action);animators[0].speed=1;
@@ -270,9 +271,9 @@ namespace Moonlit.Editor
                         if(!routine.MoveNext()){(pending.Pop() as IDisposable)?.Dispose();continue;}
                         if(routine.Current is IEnumerator child){pending.Push(child);continue;}
                         yield return routine.Current;
-                        foreach(var actor in actors)
-                            if(Mathf.Abs(actor.localPosition.y-ground)>.012f)
-                                throw new InvalidOperationException("First real combat action changed formation height.");
+                        for(int actorIndex=0;actorIndex<actors.Length;actorIndex++)
+                            if(Vector3.Distance(actors[actorIndex].localPosition,settledPositions[actorIndex])>.012f)
+                                throw new InvalidOperationException("Combat layout counteracted the authored animation by repositioning its outer actor.");
                         actionFrames++;
                         if(!combatCaptured && (actionFrames>=8 || battle.PlayerResolvedBasicAttacks>beforeHits)) {
                             combatCaptured=true;
@@ -283,7 +284,7 @@ namespace Moonlit.Editor
                     }
                     if(!combatCaptured || battle.PlayerResolvedBasicAttacks!=beforeHits+1 || battle.EnemyState.Health!=180)
                         throw new InvalidOperationException("Actual authored impact must resolve once before certifying combat height.");
-                    report.Add("PASS actual entrance and first Animator-event attack remain at ground zero "+tag+" "+aspect);
+                    report.Add("PASS actual entrance at ground zero and first Animator-event attack with untouched outer actor anchors "+tag+" "+aspect);
                 }
             }
             finally {
