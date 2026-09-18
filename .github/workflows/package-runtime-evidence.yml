@@ -1,0 +1,55 @@
+name: Package runtime capture evidence
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: Completed Unity cloud validation run
+        required: true
+        default: "35315371447"
+  pull_request:
+    paths:
+      - ".github/workflows/package-runtime-evidence.yml"
+  workflow_run:
+    workflows: ["Unity cloud validation"]
+    types: [completed]
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  package:
+    name: Split original captures into downloadable evidence
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Download original evidence without changing images
+        uses: actions/download-artifact@v4
+        with:
+          name: moonlit-runtime-captures
+          path: evidence
+          github-token: ${{ github.token }}
+          run-id: ${{ github.event.workflow_run.id || inputs.run_id || '35315371447' }}
+      - name: Upload 9 by 16 original captures
+        uses: actions/upload-artifact@v4
+        with:
+          name: moonlit-evidence-9x16
+          path: evidence/**/*9x16*.png
+          if-no-files-found: error
+      - name: Upload 9 by 19 original captures
+        uses: actions/upload-artifact@v4
+        with:
+          name: moonlit-evidence-9x19
+          path: evidence/**/*9x19*.png
+          if-no-files-found: error
+      - name: Upload reports and remaining original captures
+        uses: actions/upload-artifact@v4
+        with:
+          name: moonlit-evidence-reports
+          path: |
+            evidence/**
+            !evidence/**/*9x16*.png
+            !evidence/**/*9x19*.png
+          if-no-files-found: error
