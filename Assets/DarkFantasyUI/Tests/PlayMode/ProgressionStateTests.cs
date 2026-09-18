@@ -889,10 +889,11 @@ namespace Moonlit.UI.Tests
             master=GameObject.Find("Enable affix filter toggle").GetComponent<Toggle>();
             Assert.IsFalse(master.isOn);
             dodge=GameObject.Find("Popup Layer auto-forge").GetComponentsInChildren<Toggle>(true).Single(t=>t.name=="Affix filter Dodge");Assert.IsTrue(dodge.isOn);Assert.IsFalse(dodge.gameObject.activeInHierarchy);
-            var up=GameObject.Find("+").GetComponent<Button>();var down=GameObject.Find("−").GetComponent<Button>();
-            for(int i=0;i<105;i++)up.onClick.Invoke();Assert.AreEqual("99",GameObject.Find("Batch size").GetComponent<Text>().text);
-            for(int i=0;i<105;i++)down.onClick.Invoke();Assert.AreEqual("1",GameObject.Find("Batch size").GetComponent<Text>().text);
-            up.onClick.Invoke();up.onClick.Invoke();
+            var quantity=GameObject.Find("Batch dropdown").GetComponent<Dropdown>();
+            Assert.AreEqual(99,quantity.options.Count);
+            quantity.value=98;Assert.AreEqual("99",GameObject.Find("Batch size").GetComponent<Text>().text);
+            quantity.value=0;Assert.AreEqual("1",GameObject.Find("Batch size").GetComponent<Text>().text);
+            quantity.value=2;
             GameObject.Find("시작").GetComponent<Button>().onClick.Invoke();
             // Open settings synchronously before the next Update starts a batch; animation is separately exercised by ForgeFlowTests.
             host.Registry.Open("auto-forge");yield return null;
