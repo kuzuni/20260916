@@ -108,6 +108,7 @@ namespace Moonlit.UI.Tests
                     var entries=CollectionProgression.Data.categories[category].entries;
                     int[] owned={0,2,4,6,8,10,12};
                     foreach(int index in owned){entries[index].unlocked=true;entries[index].fragments=0;}
+                    entries[owned[0]].fragments=entries[owned[0]].Required;
                     tab.onClick.Invoke();yield return null;Canvas.ForceUpdateCanvases();
                     var cards=scroll.content.GetComponentsInChildren<Button>();
                     Assert.AreEqual(7,cards.Length,"Zero fragments still counts as permanently owned.");
@@ -120,10 +121,25 @@ namespace Moonlit.UI.Tests
                         Assert.That(-rect.anchoredPosition.y,Is.EqualTo(16+(i/3)*390).Within(.1f));
                         Assert.IsFalse(cards[i].transform.Find("Ownership lock").gameObject.activeSelf);
                         Assert.IsNotNull(cards[i].GetComponentsInChildren<Image>().Single(image=>image.name=="Progress frame").sprite);
+                        var level=cards[i].transform.Find("Level").GetComponent<RectTransform>();
+                        var grade=cards[i].transform.Find("Grade").GetComponent<RectTransform>();
+                        var progress=cards[i].transform.Find("Progress").GetComponent<RectTransform>();
+                        var badge=cards[i].transform.Find("Equipped badge").GetComponent<RectTransform>();
+                        Assert.Less(-badge.anchoredPosition.y+badge.rect.height,-level.anchoredPosition.y);
+                        Assert.Less(-level.anchoredPosition.y+level.rect.height,-grade.anchoredPosition.y);
+                        Assert.Less(-grade.anchoredPosition.y+grade.rect.height,-progress.anchoredPosition.y);
+                        Assert.LessOrEqual(-progress.anchoredPosition.y+progress.rect.height,rect.rect.height);
+                        if(i==0)Assert.That(progress.Find("Fill").GetComponent<RectTransform>().rect.width,
+                            Is.EqualTo(progress.rect.width-progress.rect.height).Within(.1f),"A full scaled gauge stays inside its bevel.");
+                        foreach(var label in new[]{level,grade,badge,progress.Find("Value").GetComponent<RectTransform>()}){
+                            var text=label.GetComponent<Text>();
+                            if(string.IsNullOrEmpty(text.text))text.text="장착됨";
+                            Assert.LessOrEqual(text.preferredHeight,label.rect.height+1,"Scaled text must fit its own line box.");
+                        }
                         if(category>0){
                             var pending=cards[i].transform.Find("Art pending").GetComponent<RectTransform>();
-                            var level=cards[i].transform.Find("Level").GetComponent<RectTransform>();
-                            Assert.Less(-pending.anchoredPosition.y+pending.rect.height,-level.anchoredPosition.y);
+                            Assert.Less(-pending.anchoredPosition.y+pending.rect.height,-badge.anchoredPosition.y);
+                            Assert.LessOrEqual(pending.GetComponent<Text>().preferredHeight,pending.rect.height+1);
                         }
                     }
                     scroll.verticalNormalizedPosition=0;Canvas.ForceUpdateCanvases();yield return null;

@@ -142,31 +142,33 @@ namespace Moonlit.UI
         }
         static Action EntryCard(Transform parent,float x,float y,float size,CollectionEntry entry,Font font,Action click,bool compact=false,bool probability=false)
         {
-            var button=Ui.ArtButton("Skill "+entry.Name,parent,x,y,size,compact?size+12:size+68);
+            bool largeCollection=!compact&&!probability&&size>205;
+            float textScale=largeCollection?size/158f:1f;
+            var button=Ui.ArtButton("Skill "+entry.Name,parent,x,y,size,compact?size+12:size+68*textScale);
             if(click!=null) button.onClick.AddListener(()=>click());
             if(entry.category==0){
                 var icon=Ui.ArtImage("Icon",button.transform,size*.17f,size*.17f,size*.66f,size*.66f,SkillIcon(entry.grade,entry.variant));
                 Ui.CenterAspect(icon);
             } else Ui.Text("Art pending",button.transform,size*.1f,
-                size*(compact ? .1f : probability ? .35f : .62f),size*.8f,size*.12f,
+                size*(largeCollection ? .18f : compact ? .1f : probability ? .35f : .62f),size*.8f,size*(largeCollection ? .16f : .12f),
                 "아트 보류",Mathf.RoundToInt(size*.11f),font);
             var frame=Ui.ArtImage("Slot frame",button.transform,0,0,size,size,SkillRing);
             frame.color=EquipmentRules.TierColor(entry.grade); frame.preserveAspect=true; button.targetGraphic=frame;
             Text level=null,owned=null,fragments=null,badge=null;
             Image ownershipLock=null,badgeRibbon=null;
             if(!probability){
-                level=Ui.Text("Level",button.transform,4,size-40,size-8,34,"",Mathf.RoundToInt(size*.16f),font);
+                level=Ui.Text("Level",button.transform,4,size-40*textScale,size-8,34*textScale,"",Mathf.RoundToInt(size*.16f),font);
                 ownershipLock=Ui.ArtImage("Ownership lock",button.transform,size*.4f,size*.23f,size*.2f,size*.2f,PopupSkin.RewardIcon(6));
                 ownershipLock.preserveAspect=true;
-                owned=Ui.Text("Ownership",button.transform,4,size*.43f,size-8,28,"",Mathf.RoundToInt(size*.12f),font);
-                badgeRibbon=Ui.Image("Equipped badge ribbon",button.transform,0,size*.44f,size,30,PopupSkin.PanelArt);
+                owned=Ui.Text("Ownership",button.transform,4,size*.43f,size-8,28*textScale,"",Mathf.RoundToInt(size*.12f),font);
+                badgeRibbon=Ui.Image("Equipped badge ribbon",button.transform,0,size*.44f,size,30*textScale,PopupSkin.PanelArt);
                 badgeRibbon.type=Image.Type.Sliced;badgeRibbon.pixelsPerUnitMultiplier=22;
-                badge=Ui.Text("Equipped badge",button.transform,0,size*.44f,size,30,"",Mathf.RoundToInt(size*.13f),font,Ui.Gold);
+                badge=Ui.Text("Equipped badge",button.transform,0,size*.44f,size,30*textScale,"",Mathf.RoundToInt(size*.13f),font,Ui.Gold);
             }
-            Ui.Text("Grade",button.transform,0,size+2,size,28,EquipmentRules.TierNames[entry.grade],Mathf.RoundToInt(size*.12f),font,Ui.Gold);
+            Ui.Text("Grade",button.transform,0,size+2*textScale,size,28*textScale,EquipmentRules.TierNames[entry.grade],Mathf.RoundToInt(size*.12f),font,Ui.Gold);
             RectTransform fill=null;
             if(!compact && !probability){
-                Progress(button.transform,8,size+34,size-16,28,0,"",font);
+                Progress(button.transform,8,size+34*textScale,size-16,28*textScale,0,"",font);
                 var track=button.transform.Find("Progress"); fragments=track.Find("Value").GetComponent<Text>(); fill=track.Find("Fill").GetComponent<RectTransform>();
             }
             Action refresh=()=>{
@@ -177,7 +179,7 @@ namespace Moonlit.UI
                 if(badgeRibbon) badgeRibbon.gameObject.SetActive(CollectionProgression.IsEquipped(entry));
                 if(badge) badge.text=CollectionProgression.IsEquipped(entry)?"장착됨":"";
                 if(fragments) fragments.text=entry.level>=100?"최대":entry.fragments+"/"+entry.Required;
-                if(fill) fill.sizeDelta=new Vector2((size-44)*Mathf.Clamp01(entry.fragments/(float)entry.Required),fill.sizeDelta.y);
+                if(fill) fill.sizeDelta=new Vector2((size-16-28*textScale)*Mathf.Clamp01(entry.fragments/(float)entry.Required),fill.sizeDelta.y);
             }; refresh(); return refresh;
         }
         static string Description(CollectionEntry entry)
