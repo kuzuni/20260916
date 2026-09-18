@@ -42,11 +42,9 @@ namespace Moonlit.Editor
                             Math.Abs(shown[pixel].b-hidden[pixel].b)>36)changed++;
                     SaveCamera(camera,"Artifacts/Runtime-anvil-strike-"+strike+"-"+aspect+".png",1080,height);
                     if(changed<400) {
-                        var mesh=new Mesh();sparks.canvasRenderer.GetMesh(mesh);
-                        int vertices=mesh.vertexCount;UnityEngine.Object.DestroyImmediate(mesh);
                         var viewport=camera.WorldToViewportPoint(sparks.rectTransform.position);
                         throw new InvalidOperationException("Forge strike "+strike+" burst exists but is not visibly rendered: "+
-                            changed+" changed pixels, vertices="+vertices+", depth="+sparks.depth+
+                            changed+" changed pixels, depth="+sparks.depth+
                             ", culled="+sparks.canvasRenderer.cull+", alpha="+sparks.canvasRenderer.GetInheritedAlpha()+
                             ", viewport="+viewport+", layer="+sparks.gameObject.layer);
                     }
