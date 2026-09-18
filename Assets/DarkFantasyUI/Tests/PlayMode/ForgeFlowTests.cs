@@ -122,5 +122,29 @@ namespace Moonlit.UI.Tests
             Assert.AreEqual(978,main.ore);
         }
 
+        [UnityTest] public IEnumerator ExitDuringAnvilPersistsAutoSalesAndDoesNotSpendAgainOnRestore()
+        {
+            var state=ForgeState.Current;state.batchSize=22;state.keepTiers=new bool[10];state.keepTiers[9]=true;
+            main.ore=22;main.gold=37;
+            var runtime=ForgeRuntime.Ensure(main);runtime.StartAuto();yield return null;
+            Assert.IsTrue(runtime.Busy);Assert.AreEqual(0,main.ore);
+            Assert.AreEqual(22,state.automaticSaleIds.Count,"Sale decisions must exist before the first animation frame is saved");
+            Assert.IsNull(GameObject.Find("Forged equipment hand"));
+            int expected=state.pending.Sum(EquipmentRules.SaleGold);
+            var save=new GameplaySave {gold=main.gold,hammers=main.ore,successfulForges=main.successfulForges,forge=JsonUtility.ToJson(state)};
+            string snapshot=JsonUtility.ToJson(save);
+            Object.DestroyImmediate(runtime);
+            var restored=JsonUtility.FromJson<GameplaySave>(snapshot);
+            ForgeState.Current=JsonUtility.FromJson<ForgeState>(restored.forge);
+            ForgeState.Current.NormalizeAfterLoad();
+            ForgeState.Current.SettleAutoBatch(ref restored.gold);
+            Assert.AreEqual(37+expected,restored.gold);Assert.AreEqual(0,restored.hammers);
+            Assert.AreEqual(22,restored.successfulForges);Assert.IsNull(ForgeState.Current.Pending);
+            Assert.IsFalse(ForgeState.Current.autoEnabled);Assert.AreEqual(0,host.ModalDepth);
+            Assert.AreEqual(0,ForgeState.Current.SettleAutoBatch(ref restored.gold));
+            Assert.AreEqual(37+expected,restored.gold);
+            yield return null;
+        }
+
     }
 }

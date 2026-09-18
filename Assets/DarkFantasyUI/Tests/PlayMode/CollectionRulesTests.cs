@@ -47,6 +47,30 @@ namespace Moonlit.UI.Tests
             Assert.AreEqual(100,category.ExperienceRequired);category.experience=99;category.AddExperience();
             Assert.AreEqual(61,category.summonLevel);Assert.AreEqual(0,category.experience);
         }
+        [TestCase(99)]
+        [TestCase(100)]
+        [TestCase(101)]
+        [TestCase(1000)]
+        public void SummonsKeepEarningAndSpendingExperiencePastLevelHundred(int startingLevel)
+        {
+            var category=CollectionProgression.Data.categories[2];
+            category.summonLevel=startingLevel;category.experience=98;
+            var random=new Random(12);
+            Assert.AreEqual(100,category.ExperienceRequired);
+            CollectionProgression.Summon(2,1,random);
+            Assert.AreEqual(startingLevel,category.summonLevel);
+            Assert.AreEqual(99,category.experience);
+            CollectionProgression.Summon(2,1,random);
+            Assert.AreEqual(startingLevel+1,category.summonLevel);
+            Assert.AreEqual(0,category.experience,"Level-up must spend precisely 100 XP.");
+            CollectionProgression.Summon(2,1,random);
+            Assert.AreEqual(1,category.experience,"The next summon must earn XP at every new level.");
+            Assert.AreEqual(3,category.entries.Sum(entry=>entry.fragments));
+            Assert.AreEqual(1,CollectionProgression.Data.categories[0].summonLevel);
+            CollectionAssert.AreEqual(CollectionProgression.Probabilities(100),
+                CollectionProgression.Probabilities(category.summonLevel),
+                "Levels beyond 100 retain the highest configured probability distribution.");
+        }
         [Test] public void StatRatiosUseSharedEquipmentBalanceAndScaleAtLevelHundred()
         {
             for(int category=0;category<3;category++)

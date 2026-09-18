@@ -250,10 +250,11 @@ namespace Moonlit.UI
         {
             var actor = isPlayer ? PlayerState : EnemyState;
             var target = isPlayer ? EnemyState : PlayerState;
+            // Launch with the motion; the clip's arrival event remains the only damage authority.
+            if (skill) ShowSkill(isPlayer, variant);
             yield return AnimatedAction(isPlayer, skill ? variant + 1 : 0, skill ? (variant == 1 ? "Weak" : "Strong") : "Basic", () => {
                 if (!skill) { if (isPlayer) PlayerResolvedBasicAttacks++; else EnemyResolvedBasicAttacks++; }
                 var hit = CombatRules.Strike(actor, target, damage, skill, random.NextDouble);
-                if (skill) ShowSkill(isPlayer, variant);
                 if (!hit.evaded) (isPlayer ? enemyAnimator : playerAnimator).Play(target.Alive ? "Hit" : "Death", 0, 0);
                 actionText.text = (isPlayer ? "플레이어" : "적") + " · " +
                     (hit.evaded ? "회피" : (hit.critical ? "치명타 " : "") + Format(hit.damage) + (skill ? " 스킬 피해" : " 피해"));

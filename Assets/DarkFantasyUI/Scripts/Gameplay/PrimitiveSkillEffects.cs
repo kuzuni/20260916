@@ -7,6 +7,7 @@ namespace Moonlit.UI
     // All use a distinct 2D sprite, a ParticleSystem, and a moving TrailRenderer.
     public sealed class PrimitiveSkillEffects : MonoBehaviour
     {
+        public const float AttackFlightDuration = .65f;
         BattleAssetCatalog catalog;
         public void Initialize(BattleAssetCatalog assets) { catalog = assets; }
         public void Play(int variant, Vector3 source, Vector3 target)
@@ -40,7 +41,7 @@ namespace Moonlit.UI
             var emission = dust.emission; emission.rateOverTime = 0;
             emission.SetBursts(new[] { new ParticleSystem.Burst(0, (short)(variant == 2 ? 36 : 22)) });
             var render = dust.GetComponent<ParticleSystemRenderer>(); render.sharedMaterial = catalog.effectMaterial; render.sortingOrder = 149;
-            float duration = .65f;
+            float duration = AttackFlightDuration;
             for (float time = 0; time < duration; time += Time.deltaTime)
             {
                 float t = time / duration;
@@ -57,6 +58,8 @@ namespace Moonlit.UI
                 sprite.color = new Color(1, 1, 1, 1 - Mathf.Max(0, t - .8f) * 5);
                 yield return null;
             }
+            if (variant > 0) root.transform.position = target + Vector3.back;
+            sprite.color = new Color(1, 1, 1, 0);
             dust.Play();
             Destroy(root, .35f); Destroy(dust.gameObject, 1);
         }
