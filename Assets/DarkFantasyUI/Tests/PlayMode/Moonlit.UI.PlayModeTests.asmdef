@@ -3,7 +3,9 @@
   "rootNamespace": "Moonlit.UI.Tests",
   "references": [
     "Moonlit.UI",
-    "UnityEngine.UI"
+    "UnityEngine.UI",
+    "Unity.2D.Animation.Runtime",
+    "Unity.Collections"
   ],
   "optionalUnityReferences": [
     "TestAssemblies"

@@ -1,6 +1,11 @@
 {
-    "name": "Moonlit.UI",
-    "rootNamespace": "Moonlit.UI",
-    "references": ["UnityEngine.UI", "Unity.InputSystem"],
-    "autoReferenced": true
+  "name": "Moonlit.UI",
+  "rootNamespace": "Moonlit.UI",
+  "references": [
+    "UnityEngine.UI",
+    "Unity.InputSystem",
+    "Unity.2D.Animation.Runtime",
+    "Unity.Collections"
+  ],
+  "autoReferenced": true
 }
