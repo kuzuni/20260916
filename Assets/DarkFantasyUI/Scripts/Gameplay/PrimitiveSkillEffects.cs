@@ -26,15 +26,17 @@ namespace Moonlit.UI
                 new[] { "Buff", "Weak", "Strong" }[Mathf.Clamp(variant, 0, 2)];
         public static Sprite SkillSprite(int tier, int variant) => Resources.Load<Sprite>(ResourceKey(tier, variant));
         public void Play(int variant, Vector3 source, Vector3 target) => Play(0, variant, source, target);
-        public void Play(int tier, int variant, Vector3 source, Vector3 target)
+        public void Play(int tier, int variant, Vector3 source, Vector3 target, Transform sourceAnchor = null, Transform targetAnchor = null)
         {
-            if (catalog) StartCoroutine(Animate(Mathf.Clamp(tier, 0, 9), Mathf.Clamp(variant, 0, 2), source, target));
+            if (catalog) StartCoroutine(Animate(Mathf.Clamp(tier, 0, 9), Mathf.Clamp(variant, 0, 2), source, target, sourceAnchor, targetAnchor));
         }
         static string EffectName(int tier, int variant)
             => tier == 0 ? new[] { "Primitive ancestral blessing", "Primitive stone crescent", "Primitive falling boulder" }[variant]
                 : "Era " + tier + " skill " + variant;
-        IEnumerator Animate(int tier, int variant, Vector3 source, Vector3 target)
+        IEnumerator Animate(int tier, int variant, Vector3 source, Vector3 target, Transform sourceAnchor, Transform targetAnchor)
         {
+            Vector3 sourceOffset = sourceAnchor ? source - sourceAnchor.position : Vector3.zero;
+            Vector3 targetOffset = targetAnchor ? target - targetAnchor.position : Vector3.zero;
             Sprite art = SkillSprite(tier, variant);
             // Legacy primitive sprites only support old asset-only fixtures. Production cloud acceptance requires all thirty.
             if (!art && tier == 0) art = variant == 0 ? catalog.buffSprite : variant == 1 ? catalog.weakSprite : catalog.strongSprite;
@@ -56,6 +58,9 @@ namespace Moonlit.UI
             float duration = AttackFlightDuration;
             for (float time = 0; time < duration; time += Time.deltaTime)
             {
+                // Preview can start during an entrance or a lunge; keep the effect attached to the real moving actors.
+                if (sourceAnchor) source = sourceAnchor.position + sourceOffset;
+                if (targetAnchor) target = targetAnchor.position + targetOffset;
                 float t = Mathf.Clamp01(time / duration);
                 root.transform.position = Position(tier, variant, source, target, t);
                 float rotation = Rotation(tier, variant, t);
@@ -65,6 +70,8 @@ namespace Moonlit.UI
                 sprite.color = new Color(1,1,1,1);
                 yield return null;
             }
+            if (sourceAnchor) source = sourceAnchor.position + sourceOffset;
+            if (targetAnchor) target = targetAnchor.position + targetOffset;
             root.transform.position = Position(tier, variant, source, target, 1);
             Burst(art, tier, variant, root.transform.position, color);
             sprite.enabled = false; trail.emitting = false;
