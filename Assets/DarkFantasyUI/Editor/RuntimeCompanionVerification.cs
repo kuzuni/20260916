@@ -96,7 +96,7 @@ namespace Moonlit.Editor
                 for(int category=1;category<=2;category++)
                     for(int variant=0;variant<3;variant++)
                         yield return CaptureFlatCompanionAssembly(category,variant,height,aspect);
-                report.Add("PASS six right-facing static whole PNGs, three pets, simple mounted back anchors, no live companion Animator/SpriteSkin and clear central HUD "+height);
+                report.Add("PASS six right-facing static whole PNGs, three pets, simple mounted back anchors, no live companion Animator/SpriteSkin and clear stage and fixed reward/pass HUD "+height);
             }
             finally
             {
@@ -109,7 +109,7 @@ namespace Moonlit.Editor
         static void VerifyCompanionHudClearance(BattleRuntime battle,CompanionBattleRuntime companions,string context)
         {
             battle.ApplyActorHudClearance();
-            var areas=CombatCaptureField<Rect[]>(battle,"protectedHudAreas");
+            var areas=CombatCaptureField<Rect[]>(battle,"actorProtectedHudAreas");
             var actors=new[]{battle.PlayerHud.Actor,battle.EnemyHud.Actor};
             foreach(var actor in actors)
             {
@@ -121,7 +121,7 @@ namespace Moonlit.Editor
                     var bounds=sprite.bounds;
                     if(area.width>0 && area.height>0 && bounds.min.x<area.xMax-.01f && bounds.max.x>area.xMin+.01f &&
                         bounds.min.y<area.yMax-.01f && bounds.max.y>area.yMin+.01f)
-                        throw new InvalidOperationException("Actual actor part covers stage/wave/round: "+context+" "+sprite.name);
+                        throw new InvalidOperationException("Actual actor part covers stage/wave/round/pass/rewards: "+context+" "+sprite.name);
                 }
             }
             if(Vector2.Distance(companions.Mount.saddle.position,companions.RiderHip.position)>.03f)

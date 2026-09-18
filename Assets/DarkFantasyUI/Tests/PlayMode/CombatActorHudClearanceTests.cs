@@ -28,8 +28,25 @@ namespace Moonlit.UI.Tests
             Assert.AreEqual(4,part.center.y);Assert.AreEqual(new Vector3(2,3,0),part.size);
         }
 
+        [Test]
+        public void RightPassCanRequireInwardMovementWithoutEnteringCentralHudOrDrifting()
+        {
+            var head=new Bounds(new Vector3(3.2f,5,0),new Vector3(1.6f,1.5f,0));
+            var body=new Bounds(new Vector3(3.4f,3.5f,0),new Vector3(1.4f,1.6f,0));
+            var parts=new[]{head,body};
+            var areas=new[]{new Rect(-1,4.7f,2,1),new Rect(3.7f,2.5f,1,2)};
+            float shift=CombatActorHudClearance.SafeShift(parts,parts,areas,false,-5,5);
+            Assert.Less(shift,0,"A right-side pass must move the enemy left, not push it into the screen edge.");
+            for(int i=0;i<parts.Length;i++){var item=parts[i];item.center+=Vector3.right*shift;parts[i]=item;}
+            for(int repeat=0;repeat<100;repeat++)
+                Assert.AreEqual(0,CombatActorHudClearance.SafeShift(parts,parts,areas,false,-5,5),
+                    "The chosen safe interval must stay stable across frames.");
+            foreach(var item in parts)foreach(var area in areas)
+                Assert.IsFalse(item.min.x<area.xMax&&item.max.x>area.xMin&&item.min.y<area.yMax&&item.max.y>area.yMin);
+        }
+
         [UnityTest]
-        public IEnumerator ActualMountedPosesClearCentralHudAtBothRatiosAndNotchWithoutShrinking()
+        public IEnumerator ActualMountedPosesClearCentralAndFixedPassHudAtBothRatiosAndNotchWithoutShrinking()
         {
 #if UNITY_EDITOR
             var savedForge=ForgeState.Current;var savedCollections=CollectionProgression.Data;
@@ -77,7 +94,7 @@ namespace Moonlit.UI.Tests
                             }
                             yield return null;yield return null;
                             battle.ApplyActorHudClearance();
-                            var areas=(Rect[])typeof(BattleRuntime).GetField("protectedHudAreas",BindingFlags.NonPublic|BindingFlags.Instance).GetValue(battle);
+                            var areas=(Rect[])typeof(BattleRuntime).GetField("actorProtectedHudAreas",BindingFlags.NonPublic|BindingFlags.Instance).GetValue(battle);
                             foreach(var actor in new[]{player,enemy})
                             {
                                 Assert.AreEqual(2,Mathf.Abs(actor.localScale.x));Assert.AreEqual(2,actor.localScale.y);
@@ -88,7 +105,7 @@ namespace Moonlit.UI.Tests
                                     var bounds=sprite.bounds;
                                     bool overlaps=area.width>0 && area.height>0 && bounds.min.x<area.xMax-.01f &&
                                         bounds.max.x>area.xMin+.01f && bounds.min.y<area.yMax-.01f && bounds.max.y>area.yMin+.01f;
-                                    Assert.IsFalse(overlaps,height+" notch="+notch+" mount="+mount+" "+state+" "+sprite.name+" overlaps central HUD");
+                                    Assert.IsFalse(overlaps,height+" notch="+notch+" mount="+mount+" "+state+" "+sprite.name+" overlaps central/fixed reward HUD");
                                 }
                             }
                             Assert.Less(Vector2.Distance(companions.Mount.saddle.position,companions.RiderHip.position),.03f);
