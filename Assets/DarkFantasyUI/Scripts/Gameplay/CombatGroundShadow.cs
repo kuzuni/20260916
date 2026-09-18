@@ -3,6 +3,9 @@ using UnityEngine;
 namespace Moonlit.UI
 {
     // Project the two rendered feet onto the ground, including rig offsets, mirroring and attack movement.
+    // 2D Animation 13 applies SpriteSkin deformation at LateUpdate order 10.
+    // Read the current skinned bounds after that pass, rather than the previous frame's feet.
+    [DefaultExecutionOrder(30)]
     public sealed class CombatGroundShadow : MonoBehaviour
     {
         Transform actor, motion;

@@ -359,9 +359,20 @@ namespace Moonlit.UI.Tests
         [UnityTest]
         public IEnumerator Shop_HasExactlyTheFiveRequiredOffers_AndCanReturnToMain()
         {
+#if UNITY_EDITOR
+            var authored=UnityEditor.AssetDatabase.LoadAssetAtPath<MainScreenAssets>("Assets/DarkFantasyUI/Data/MainScreenAssets.asset");
+            Assert.IsNotNull(authored,"The shop fixture must use the same authored currency artwork as the runtime factory.");
+            Assert.IsNotNull(authored.interfaceIcons);Assert.Greater(authored.interfaceIcons.Length,1);
+            assets.interfaceIcons=authored.interfaceIcons;
+            Assert.IsNotNull(assets.interfaceIcons[1],"The authored diamond sprite must be imported.");
+#else
+            Assert.Ignore("The authored runtime catalog fixture requires the cloud Editor.");
+            yield break;
+#endif
             PrepareMainLabels();
             SocialScreenModule.Register(host.Registry);
             host.Registry.Open("shop"); yield return null;
+            Assert.AreSame(assets.interfaceIcons[1],GameObject.Find("Daily diamond icon").GetComponent<Image>().sprite);
             var expected = new[] { 600, 2200, 8000, 15000, 33000 };
             foreach (var amount in expected) Assert.IsNotNull(GameObject.Find("Gem offer " + amount));
             var scroll = Object.FindObjectsByType<ScrollRect>(FindObjectsSortMode.None).Single();
