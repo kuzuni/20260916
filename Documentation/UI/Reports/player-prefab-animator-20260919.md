@@ -1,3 +1,5 @@
+> Current status: [run121 validation and remaining visual limitations](runtime-validation-20260919.md). The historical findings below describe their named revisions.
+
 # Player prefab Animator delivery — 2026-09-19
 
 The Player reference prefab now contains a serialized Animator, its native-bone controller and CombatAnimationRelay. The seven states are Idle, Basic, Hit, Buff, Weak, Strong and Death. The four attacking/support animation events authorize their armed callbacks once. Existing sprite and bone offsets are preserved; the battle wrapper disables the nested Animator to avoid duplicate playback/events.

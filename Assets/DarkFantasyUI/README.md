@@ -1,5 +1,5 @@
 
-> Latest companion direction: live pets/mounts use complete generated PNGs, all quadrupeds standing calmly and facing right, matching the Player's thick-outline cartoon style. No live companion rigging, part separation, Animator or bobbing. Previous rig assets remain archived unchanged; further rigging is stopped. New whole-image runtime validation is pending. See the current game rules and Flat-Primitive art provenance files.
+> Latest companion direction: live pets/mounts use complete generated PNGs, all quadrupeds standing calmly and facing right, matching the Player's thick-outline cartoon style. No live companion rigging, part separation, Animator or bobbing. Previous rig assets remain archived unchanged; further rigging is stopped. Hosted run121 passed285 tests; actual whole-image placement was reviewed at both ratios. Remaining visual limitations are recorded in Documentation/UI/Reports/runtime-validation-20260919.md. See the current game rules and Flat-Primitive art provenance files.
 
 # Moonlit — dark fantasy main screen
 
@@ -101,9 +101,9 @@ Noto Sans KR and Noto Sans CJK KR Bold are bundled under the SIL Open Font Licen
 
 PR88 introduces six primitive samples: 원시 꼬마, 검치호 새끼, 새끼 익룡, 원시 랩터, 야생 멧돼지 and 돌바퀴 수레. Collection illustrations live under `Resources/Moonlit/Companions`; their separate transparent part sheets live under `Resources/Moonlit/CompanionParts`. Each sample has eight parts (48 parts across six samples).
 
-`CompanionRigTemplates` defines ten anatomical templates: humanoid, quadruped, bird, serpentine, insect, aquatic, floating, biped mount, quadruped mount and vehicle. Six templates have primitive samples; ten templates do not mean ten finished companions. The cloud editor builder creates a bone hierarchy, per-part SpriteRenderer/SpriteSkin meshes and native Animator clips (Idle/Walk/Attack/Hit/Death), rather than moving one whole illustration as a fake rig. Runtime integration provides equipped-pet following and player saddle/leg positioning for a mount. Higher-era companion art remains deferred.
+`CompanionRigTemplates` defines ten anatomical templates: humanoid, quadruped, bird, serpentine, insect, aquatic, floating, biped mount, quadruped mount and vehicle. Six templates have primitive samples; ten templates do not mean ten finished companions. The cloud editor builder creates a bone hierarchy, per-part SpriteRenderer/SpriteSkin meshes and native Animator clips (Idle/Walk/Attack/Hit/Death), rather than moving one whole illustration as a fake rig. This archived integration is not used by live companions; current whole-PNG companions use a simple back anchor. Higher-era companion art remains deferred.
 
-PR94 commits hosted run109's six prefabs,48native sprite assets,30animation clips,six controllers and catalog. Run109 passed210PlayMode tests including221-vertex/UV persistence, real deformation and saddle attachment. Final assembled visual review and latest-source validation remain pending; the coordinator records those outcomes separately.
+PR94 commits hosted run109's six prefabs,48native sprite assets,30animation clips,six controllers and catalog. Run109 passed210PlayMode tests including221-vertex/UV persistence, real deformation and saddle attachment. Actual assembled review found visible seams; the user stopped further rigging. These archived assets are retained without a claim of visual approval. Live whole-PNG companions and their placement are covered by the current validation report.
 
 ## Verification
 
