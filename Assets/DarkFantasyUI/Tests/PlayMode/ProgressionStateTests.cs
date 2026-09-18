@@ -137,9 +137,19 @@ namespace Moonlit.UI.Tests
                             Assert.LessOrEqual(text.preferredHeight,label.rect.height+1,"Scaled text must fit its own line box.");
                         }
                         if(category>0){
-                            var pending=cards[i].transform.Find("Art pending").GetComponent<RectTransform>();
-                            Assert.Less(-pending.anchoredPosition.y+pending.rect.height,-badge.anchoredPosition.y);
-                            Assert.LessOrEqual(pending.GetComponent<Text>().preferredHeight,pending.rect.height+1);
+                            var entry=entries[owned[i]];
+                            if(entry.grade==0){
+                                var icon=cards[i].transform.Find("Icon");
+                                Assert.IsNotNull(icon,"Primitive companions have authored artwork rather than a pending-art label.");
+                                Assert.AreSame(CompanionRigCatalog.Icon(category,entry.grade,entry.variant),icon.GetComponent<Image>().sprite);
+                                Assert.IsNotNull(icon.GetComponent<Image>().sprite);
+                                Assert.IsNull(cards[i].transform.Find("Art pending"));
+                                Assert.AreEqual(entry.Name,grade.GetComponent<Text>().text);
+                            } else {
+                                var pending=cards[i].transform.Find("Art pending").GetComponent<RectTransform>();
+                                Assert.Less(-pending.anchoredPosition.y+pending.rect.height,-badge.anchoredPosition.y);
+                                Assert.LessOrEqual(pending.GetComponent<Text>().preferredHeight,pending.rect.height+1);
+                            }
                         }
                     }
                     scroll.verticalNormalizedPosition=0;Canvas.ForceUpdateCanvases();yield return null;
