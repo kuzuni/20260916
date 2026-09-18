@@ -1,0 +1,21 @@
+{
+  "generator": "built-in image_gen",
+  "date": "2026-09-18",
+  "purpose": "Normal melee dust impact and directional sword slash; replace reused stone skill hit particles.",
+  "assets": [
+    {
+      "name": "BasicHitDust-v1",
+      "path": "Assets/DarkFantasyUI/Resources/Moonlit/Combat/BasicHitDust-v1.png",
+      "source": "C:/Users/user/.codex/generated_images/01a0b1a5-dba9-7ea0-9853-ffb90a4b9f17/exec-81f6b9d7-4cae-4fd3-a3a7-2856d853f4e5.png",
+      "blob": "11835a3e2e8e251eff1ad1af0020a3839b52dd1c",
+      "prompt": "Use case: stylized-concept. Asset type: production Unity 2D particle sprite for a normal melee hit in a dark-fantasy chibi game. One centered soft dust puff, pale warm ivory beige and muted warm gray, with 5-7 overlapping wispy rounded lobes, fine powdery edges and semi-transparent dissipating perimeter. Diffuse soft center, readable when small. Square 1024 composition with generous clear transparent padding. Genuine alpha transparent background. No stones, no pebbles, no rock shards, no solid chunks, no debris, no explosive fire, no starburst, no ground, no character, no text, no border, no colored backdrop. This is a single smoke/dust cloud particle texture, not a scene or spritesheet. Polished painted 2D game VFX sprite."
+    },
+    {
+      "name": "BasicSlash-v1",
+      "path": "Assets/DarkFantasyUI/Resources/Moonlit/Combat/BasicSlash-v1.png",
+      "source": "C:/Users/user/.codex/generated_images/01a0b1a5-dba9-7ea0-9853-ffb90a4b9f17/exec-6c551c39-2d94-4d3b-9448-d7490b2a711d.png",
+      "blob": "023eb14cf1b7c9221601878be42efa6246215114",
+      "prompt": "Use case: stylized-concept. Asset type: production Unity 2D melee sword-swing slash VFX sprite. One clean curved crescent-shaped sweeping slash, bright ivory-white blade of light with pale warm silver translucent trailing wisps, strong thick central arc tapering sharply at both tips. The crescent bulges/convex edge faces RIGHT, opening faces LEFT, like a right parenthesis ). Single dominant arc, a couple subtle parallel trailing filaments only. Energetic hand-painted metroidvania combat effect, readable at small scale, suitable over dark-fantasy chibi characters. Square 1024 composition, full effect contained with generous transparent margin. Genuine alpha transparent background including the open inner crescent. No sword object, no character, no scene, no rock fragments, no dust cloud, no circle/ring, no text, no border, no dark backdrop. Standalone VFX sprite ready for transparent SpriteRenderer."
+    }
+  ]
+}
