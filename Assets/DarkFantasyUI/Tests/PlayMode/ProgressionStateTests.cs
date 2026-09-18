@@ -511,7 +511,9 @@ namespace Moonlit.UI.Tests
             var cards=GameObject.Find("Summon result cards").GetComponentsInChildren<Button>();
             foreach(var card in cards){Assert.IsNull(card.transform.Find("Level"));Assert.IsNull(card.transform.Find("Progress"));}
             Assert.AreEqual(1,host.ModalDepth);
-            GameObject.Find("Continue").GetComponent<Button>().onClick.Invoke();yield return null;
+            GameObject.Find("Summon result cards").GetComponent<SummonRevealAnimation>().Complete();
+            GameObject.Find("Popup Layer summon-result").GetComponentInChildren<SummonResultTap>()
+                .OnPointerClick(new PointerEventData(EventSystem.current));yield return null;
             var visible=GameObject.Find("Tab content").GetComponentInChildren<ScrollRect>().content.GetComponentsInChildren<Button>();
             Assert.AreEqual(CollectionProgression.Data.categories[0].entries.Count(entry=>entry.unlocked),visible.Length);
             Assert.Greater(visible.Length,0);Assert.IsNull(GameObject.Find("Empty collection"));
