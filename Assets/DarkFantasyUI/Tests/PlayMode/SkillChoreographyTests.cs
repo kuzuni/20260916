@@ -74,8 +74,9 @@ namespace Moonlit.UI.Tests
             var apex=SixSkillChoreography.Rock(Source,Target,.57f).position;
             var end=SixSkillChoreography.Rock(Source,Target,1.02f).position;
             Assert.AreEqual(Source.x,start.x,.001f);Assert.AreEqual(Target.x,end.x,.001f);
-            Assert.AreEqual((Source.x+Target.x)/2,apex.x,.001f);
-            Assert.AreEqual(2.6f,apex.y-(start.y+end.y)/2,.001f);
+            float q=(apex.x-start.x)/(end.x-start.x);
+            Assert.AreEqual(4*2.6f*q*(1-q),apex.y-Mathf.Lerp(start.y,end.y,q),.001f);
+            Assert.Greater(q,.48f);Assert.Less(q,.54f);
             Assert.AreEqual(1,SkillChoreography.HitTimes(0,2).Length);
         }
         [Test]

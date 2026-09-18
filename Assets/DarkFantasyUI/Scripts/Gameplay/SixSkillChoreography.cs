@@ -60,9 +60,16 @@ namespace Moonlit.UI
             float angle=Mathf.Atan2(tangent.y,tangent.x)*Mathf.Rad2Deg;
             return new SkillVisualPose(p,angle,1,1,seconds>=launch&&seconds<=arrival?1:0);
         }
+        public static float LobProgress(float normalizedTime)
+        {
+            float t=Mathf.Clamp01(normalizedTime);
+            if(t<=.32f)return .48f*SkillChoreography.Out(t/.32f);
+            if(t<=.58f)return Mathf.Lerp(.48f,.54f,(t-.32f)/.26f);
+            return .54f+.46f*SkillChoreography.In((t-.58f)/.42f);
+        }
         public static SkillVisualPose Rock(Vector3 source,Vector3 target,float seconds)
         {
-            float t=SkillChoreography.Window(seconds,.12f,1.02f),q=t*t*(3-2*t);
+            float t=SkillChoreography.Window(seconds,.12f,1.02f),q=LobProgress(t);
             var p=Vector3.Lerp(source,Head(target),q)+Vector3.up*(4*2.6f*q*(1-q))+Vector3.back;
             return new SkillVisualPose(p,t*95,1,1,seconds<=1.02f?1:0);
         }
