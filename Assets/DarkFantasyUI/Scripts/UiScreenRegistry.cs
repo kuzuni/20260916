@@ -127,6 +127,7 @@ namespace Moonlit.UI
             SetInputState();
             ApplySafeArea(true);
             route.build(new ScreenContext(this, entry.id, entry.safeRoot, assets, main, payload));
+            if(entry.safeRoot)UiScreenMotion.Play(entry.safeRoot,key=="chat");
         }
 
         void OpenPage(string key, UiScreenRegistry.Route route, object payload)
@@ -138,6 +139,7 @@ namespace Moonlit.UI
             SetInputState();
             ApplySafeArea(true);
             route.build(new ScreenContext(this, page.id, page.safeRoot, assets, main, payload));
+            if(page!=null && page.safeRoot)UiScreenMotion.Play(page.safeRoot,true);
         }
 
         Entry CreateEntry(string key, int order, RectTransform parent, bool modal)
