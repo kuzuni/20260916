@@ -405,7 +405,7 @@ namespace Moonlit.UI
             Scroll(c, root, 38, shopContentTop, w - 76, Mathf.Max(360, h - shopContentTop - NavigationReserve), 1740, out var content);
             var special = PopupSkin.Panel("Daily specials header", content, 18, 0, w - 112, 110);
             Ui.Text("Daily specials title", special.transform, 24, 12, w - 160, 76, "오늘의 특가", 42, Font(c), Ui.Gold);
-            Ui.Text("Daily specials hint", content, 40, 116, w - 156, 52, "버튼을 누르면 상품이 지급됩니다 · 로컬 구매", 25, Font(c), Ui.Ivory);
+            Ui.Text("Daily specials hint", content, 40, 116, w - 156, 52, "버튼을 누르면 상품이 지급됩니다", 25, Font(c), Ui.Ivory);
             Deal(c, content, 170, "자원 거래", "₩2,800", w - 76, 0);
             Deal(c, content, 450, "펫 거래", "₩9,500", w - 76, 1);
             Deal(c, content, 730, "던전 거래", "₩27,500", w - 76, 2);

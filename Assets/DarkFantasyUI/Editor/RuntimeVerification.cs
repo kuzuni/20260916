@@ -136,6 +136,21 @@ namespace Moonlit.Editor
                 var routeRoot=layer ? layer.transform.Find("SafeArea") as RectTransform : null;
                 if(!layer || !routeRoot || routeRoot.rect.height<=0 || (host.ActivePageKey!=route && host.ModalDepth!=expectedDepth))
                 { report.Add("FAIL route "+route+" did not build in a resized safe layer"); fail(); yield break; }
+                if(route=="summon-result") {
+                    SaveCamera(camera,"Artifacts/Runtime-summon-result-revealing-"+(aspect==0?"9x16":"9x19")+".png",1080,heights[aspect]);
+                    var reveal=layer.GetComponentInChildren<SummonRevealAnimation>();
+                    float deadline=Time.realtimeSinceStartup+20f;
+                    while(reveal && reveal.IsRevealing && Time.realtimeSinceStartup<deadline) yield return null;
+                    Canvas.ForceUpdateCanvases();
+                    var cards=reveal?reveal.GetComponentsInChildren<CanvasGroup>():new CanvasGroup[0];
+                    int expectedCards=aspect==0?5:10;
+                    if(!reveal || reveal.IsRevealing || cards.Length!=expectedCards ||
+                        cards.Any(card=>card.alpha<.999f || !card.interactable)) {
+                        report.Add("FAIL summon result completion "+heights[aspect]+" expected="+expectedCards+" actual="+cards.Length);
+                        fail();yield break;
+                    }
+                    report.Add("PASS summon result completed "+expectedCards+" cards "+heights[aspect]);
+                }
                 SaveCamera(camera,"Artifacts/Runtime-"+route+"-"+(aspect==0?"9x16":"9x19")+".png",1080,heights[aspect]);
                 foreach(var label in layer.GetComponentsInChildren<Text>()) {
                     if(string.IsNullOrWhiteSpace(label.text) || !label.text.Any(char.IsLetterOrDigit)) continue;
@@ -182,9 +197,116 @@ namespace Moonlit.Editor
                     yield return null;Canvas.ForceUpdateCanvases();
                     SaveCamera(camera,"Artifacts/Runtime-auto-forge-bottom-"+(aspect==0?"9x16":"9x19")+".png",1080,heights[aspect]);
                 }
+                bool extraFailed=false;
+                if(route=="skills-pets-heroes")
+                    yield return CaptureCollectionPaymentStates(screen,camera,heights[aspect],report,()=>{extraFailed=true;fail();});
+                if(route=="auto-forge")
+                    yield return CaptureAutoForgeFilterStates(layer,camera,heights[aspect],report,()=>{extraFailed=true;fail();});
+                if(extraFailed)yield break;
                 host.Registry.ShowMainPage();
             }
         }
+
+        static IEnumerator CaptureCollectionPaymentStates(MainScreen screen,Camera camera,int height,
+            List<string> report,Action fail)
+        {
+            int skill=screen.skillTickets,pet=screen.petTickets,mount=screen.mountTickets,gems=screen.gems;
+            var wallet=GameObject.Find("Summon currency icon").GetComponent<Image>();
+            int originalCategory=Array.FindIndex(new[]{0,1,2},category=>RewardVisuals.Ticket(category)==wallet.sprite);
+            string[] categories={"skill","pet","mount"},modes={"ticket-only","diamond-only","mixed"};
+            try
+            {
+                for(int category=0;category<3;category++)for(int mode=0;mode<3;mode++)
+                {
+                    int tickets=mode==0?10:mode==1?0:2;
+                    if(category==0)screen.skillTickets=tickets;
+                    else if(category==1)screen.petTickets=tickets;
+                    else screen.mountTickets=tickets;
+                    screen.gems=1000;
+                    GameObject.Find("Tab "+CollectionProgression.CategoryNames[category]).GetComponent<Button>().onClick.Invoke();
+                    screen.Refresh();
+                    yield return null;Canvas.ForceUpdateCanvases();
+                    bool failed=false;
+                    try
+                    {
+                        var row=GameObject.Find("Summon cost row");
+                        var labels=row.GetComponentsInChildren<Text>();
+                        var icons=row.GetComponentsInChildren<Image>();
+                        string primary=mode==0?"5":mode==1?"500":"2";
+                        if(labels.First(label=>label.name=="Summon cost").text!=primary ||
+                            icons.Length!=(mode==2?2:1) || labels.Length!=(mode==2?3:1))
+                            throw new Exception("Wrong cost quantities or extra zero-cost elements");
+                        var ticketIcon=RewardVisuals.Ticket(category);
+                        var primaryIcon=icons.First(icon=>icon.name=="Summon cost icon");
+                        var diamondIcon=RewardVisuals.Icon(screen,RewardVisuals.Kind.Diamond);
+                        if(!ticketIcon || !diamondIcon || wallet.sprite!=ticketIcon ||
+                            primaryIcon.sprite!=(mode==1?diamondIcon:ticketIcon))
+                            throw new Exception("Wrong category or primary cost sprite");
+                        if(mode==2 && (labels.First(label=>label.name=="Cost plus").text!="+" ||
+                            labels.First(label=>label.name=="Summon diamond cost").text!="300" ||
+                            icons.First(icon=>icon.name=="Summon diamond icon").sprite!=diamondIcon))
+                            throw new Exception("Mixed payment did not show ticket + diamond costs");
+                        SaveCamera(camera,"Artifacts/Runtime-collection-"+categories[category]+"-"+modes[mode]+"-"+(height==1920?"9x16":"9x19")+".png",1080,height);
+                        report.Add("PASS collection cost "+categories[category]+" "+modes[mode]+" "+height);
+                    }
+                    catch(Exception e){report.Add("FAIL collection cost "+categories[category]+" "+modes[mode]+": "+e);fail();failed=true;}
+                    if(failed)yield break;
+                }
+            }
+            finally
+            {
+                screen.skillTickets=skill;screen.petTickets=pet;screen.mountTickets=mount;screen.gems=gems;
+                var originalTab=GameObject.Find("Tab "+CollectionProgression.CategoryNames[Math.Max(0,originalCategory)]);
+                if(originalTab)originalTab.GetComponent<Button>().onClick.Invoke();
+                screen.Refresh();
+            }
+        }
+
+        static IEnumerator CaptureAutoForgeFilterStates(GameObject layer,Camera camera,int height,
+            List<string> report,Action fail)
+        {
+            var state=ForgeState.Current;
+            bool originalEnabled=state.filterEnabled;
+            int originalMask=state.affixMask,originalLevel=state.level;
+            var originalTiers=(bool[])state.keepTiers.Clone();
+            var scroll=layer.GetComponentInChildren<ScrollRect>();
+            float originalScroll=scroll.verticalNormalizedPosition;
+            var toggles=layer.GetComponentsInChildren<Toggle>(true);
+            var master=toggles.First(toggle=>toggle.name=="Enable affix filter toggle");
+            var affixes=toggles.Where(toggle=>toggle.name.StartsWith("Affix filter ")).ToArray();
+            try
+            {
+                foreach(bool enabled in new[]{false,true})
+                {
+                    master.isOn=enabled;scroll.verticalNormalizedPosition=1;
+                    yield return null;Canvas.ForceUpdateCanvases();
+                    bool failed=false;
+                    try
+                    {
+                        var rates=EquipmentRules.TierProbabilities(state.level);
+                        var grades=layer.GetComponentsInChildren<Image>().Where(image=>image.name.StartsWith("Keep grade ")).ToArray();
+                        if(state.filterEnabled!=enabled || affixes.Length!=9 ||
+                            affixes.Any(toggle=>toggle.gameObject.activeInHierarchy!=enabled))
+                            throw new Exception("Affix filter visibility does not match switch");
+                        if(state.level!=originalLevel || state.affixMask!=originalMask || !state.keepTiers.SequenceEqual(originalTiers))
+                            throw new Exception("Toggling filter changed retained selections or forge level");
+                        if(grades.Length!=rates.Count(rate=>rate>0) ||
+                            grades.Any(grade=>rates[int.Parse(grade.name.Substring("Keep grade ".Length))]<=0))
+                            throw new Exception("Forge displayed an unavailable grade");
+                        SaveCamera(camera,"Artifacts/Runtime-auto-forge-filter-"+(enabled?"on":"off")+"-"+(height==1920?"9x16":"9x19")+".png",1080,height);
+                        report.Add("PASS auto forge filter "+(enabled?"on":"off")+" "+height+" retained selections, available grades only");
+                    }
+                    catch(Exception e){report.Add("FAIL auto forge filter "+height+": "+e);fail();failed=true;}
+                    if(failed)yield break;
+                }
+            }
+            finally
+            {
+                if(master)master.isOn=originalEnabled;
+                if(scroll)scroll.verticalNormalizedPosition=originalScroll;
+            }
+        }
+
         static string[] CaptureParents(string route)
         {
             if(route.StartsWith("profile-")) return new[]{"profile"};

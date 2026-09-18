@@ -229,6 +229,7 @@ namespace Moonlit.UI
         }
         IEnumerator Entrance()
         {
+            PlayerHud.SetVisible(false); EnemyHud.SetVisible(false);
             for (float t = 0; t < .45f; t += Time.deltaTime)
             {
                 player.transform.localPosition = new Vector3(Mathf.Lerp(-5.5f, -2.5f, t / .45f), 0, 0);
@@ -237,6 +238,7 @@ namespace Moonlit.UI
             }
             player.transform.localPosition = new Vector3(-2.5f, 0, 0);
             enemy.transform.localPosition = new Vector3(2.5f, 0, 0);
+            PlayerHud.SetVisible(true); EnemyHud.SetVisible(true);
         }
         IEnumerator ActorTurn(bool isPlayer)
         {
@@ -295,9 +297,11 @@ namespace Moonlit.UI
         }
         void ShowSkill(bool isPlayer, int variant, int tier = 0)
         {
-            Vector3 source = (isPlayer ? player : enemy).transform.position + Vector3.up * 2.4f;
-            Vector3 target = (isPlayer ? enemy : player).transform.position + Vector3.up * 2.4f;
-            effects.Play(tier, variant, source, target);
+            Transform sourceMotion = (isPlayer ? player : enemy).transform.Find("Motion");
+            Transform targetMotion = (isPlayer ? enemy : player).transform.Find("Motion");
+            Vector3 source = sourceMotion.position + Vector3.up * 2.4f;
+            Vector3 target = targetMotion.position + Vector3.up * 2.4f;
+            effects.Play(tier, variant, source, target, sourceMotion, targetMotion);
         }
         public void PreviewPrimitiveSkill(int variant) => PreviewSkill(0, variant);
         public void PreviewSkill(int tier, int variant)
