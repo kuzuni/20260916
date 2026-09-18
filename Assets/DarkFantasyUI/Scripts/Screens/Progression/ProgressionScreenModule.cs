@@ -237,7 +237,7 @@ namespace Moonlit.UI
                     var entry=session.results[i];int col=i%5,row=i/5;
                     EntryCard(root,14+col*198,row*255,170,entry,font,
                         ()=>ctx.Open("skill-details",new DetailPayload{entry=entry,refresh=()=>RefreshCollection(session.parent)}),false,true);
-                    Ui.Text("Summon status "+i,root,14+col*198,row*255+202,170,44,session.fresh[i]?"신규 · 조각 +1":"조각 +1",23,font,session.fresh[i]?Green:Ui.Gold);
+                    Ui.Text("Summon status "+i,root,14+col*198,row*255+202,170,44,session.fresh[i]?"신규 +1":"조각 +1",23,font,session.fresh[i]?Green:Ui.Gold);
                 }
             }
             PopupSkin.Button("Continue",ctx.Root,330,ctx.Height-300,420,96,"확인",font,ctx.Close,Blue,33);
