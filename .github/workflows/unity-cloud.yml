@@ -84,6 +84,7 @@ jobs:
           path: |
             Assets/DarkFantasyUI/Resources/Moonlit/Combat*
             Assets/DarkFantasyUI/Resources/Moonlit/Companions*
+            Assets/DarkFantasyUI/Resources/Moonlit/CompanionParts*
             Assets/DarkFantasyUI/Resources/Moonlit/Forge/CelestialThumbnails*
           if-no-files-found: warn
 

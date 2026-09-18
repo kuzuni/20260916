@@ -11,14 +11,22 @@ namespace Moonlit.Editor
     {
         static IEnumerator CapturePrimitiveCompanions(MainScreen screen,Camera camera,int height,List<string> report,Action fail)
         {
-            var routine=CapturePrimitiveCompanionFrames(screen,camera,height,report);
-            while(true)
+            var routines=new Stack<IEnumerator>();
+            routines.Push(CapturePrimitiveCompanionFrames(screen,camera,height,report));
+            try
             {
-                bool moved=false;Exception error=null;
-                try{moved=routine.MoveNext();}catch(Exception exception){error=exception;}
-                if(error!=null){report.Add("FAIL primitive rig capture "+height+": "+error);fail();yield break;}
-                if(!moved)yield break;yield return routine.Current;
+                while(routines.Count>0)
+                {
+                    var routine=routines.Peek();
+                    bool moved=false;Exception error=null;
+                    try{moved=routine.MoveNext();}catch(Exception exception){error=exception;}
+                    if(error!=null){report.Add("FAIL primitive rig capture "+height+": "+error);fail();yield break;}
+                    if(!moved){(routine as IDisposable)?.Dispose();routines.Pop();continue;}
+                    if(routine.Current is IEnumerator nested){routines.Push(nested);continue;}
+                    yield return routine.Current;
+                }
             }
+            finally{while(routines.Count>0)(routines.Pop() as IDisposable)?.Dispose();}
         }
         static IEnumerator CapturePrimitiveCompanionFrames(MainScreen screen,Camera camera,int height,List<string> report)
         {
