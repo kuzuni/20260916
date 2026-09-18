@@ -15,11 +15,13 @@ namespace Moonlit.UI.Tests
             var root=new GameObject("Motion fixture",typeof(RectTransform));
             try {
                 var rect=(RectTransform)root.transform;rect.sizeDelta=new Vector2(1080,1920);
-                var first=Ui.Button("First",rect,50,100,400,90,"",null);
-                var last=Ui.Button("Last",rect,50,700,400,90,"",null);
+                var panel=Ui.Image("Decorative page frame",rect,0,0,1080,1920,null);
+                var first=Ui.Button("First",panel.transform,50,100,400,90,"",null);
+                var last=Ui.Button("Last",panel.transform,50,700,400,90,"",null);
                 var before=((RectTransform)first.transform).anchoredPosition;
                 var motion=UiScreenMotion.Play(rect,true);
                 Assert.IsNull(root.GetComponent<CanvasGroup>(),"The page itself must not fade.");
+                Assert.IsNull(panel.GetComponent<CanvasGroup>(),"Decorative frame must not fade all contents as one group.");
                 Assert.AreEqual(2,motion.Targets.Count);Assert.AreEqual(Vector3.one,rect.localScale);
                 DOTween.Goto(motion,.06f,false);
                 Assert.Greater(motion.Targets[0].alpha,motion.Targets[1].alpha);
@@ -48,3 +50,4 @@ namespace Moonlit.UI.Tests
         }
     }
 }
+
