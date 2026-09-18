@@ -396,17 +396,46 @@ namespace Moonlit.UI
                 if (action.IsBasic)
                     yield return Strike(isPlayer, actor.stats.attack + actor.AttackBoost, false, 0);
                 else if (skill.variant == 0)
-                    yield return AnimatedAction(isPlayer, 1, "Buff", () => {
-                        if (isPlayer) RecordPlayerSkill(skill);
-                        double healing = actor.Heal(skill.heal); actor.SetAttackBoost(Math.Max(actor.AttackBoost, skill.attackBoost));
-                        ShowSkill(isPlayer, 0, skill.tier);
-                        (isPlayer ? PlayerHud : EnemyHud).Float("+" + Format(healing), new Color(.4f, 1, .55f));
-                    });
+                    yield return BuffAction(isPlayer, skill);
                 else
                 {
                     yield return StrikeTier(isPlayer, skill.damage, true, skill.variant, skill.tier);
                 }
             }
+        }
+
+        IEnumerator BuffAction(bool isPlayer, CombatSkill skill)
+        {
+            var actor = isPlayer ? PlayerState : EnemyState;
+            if (skill.tier >= 2)
+            {
+                yield return AnimatedAction(isPlayer, 1, "Buff", () => {
+                    if (isPlayer) RecordPlayerSkill(skill);
+                    double healing = actor.Heal(skill.heal);
+                    actor.SetAttackBoost(Math.Max(actor.AttackBoost, skill.attackBoost));
+                    ShowSkill(isPlayer, 0, skill.tier);
+                    (isPlayer ? PlayerHud : EnemyHud).Float("+" + Format(healing), new Color(.4f, 1, .55f));
+                });
+                yield break;
+            }
+            CombatComboSequence sequence = null;
+            ShowSkill(isPlayer, 0, skill.tier);
+            yield return AnimatedAction(isPlayer, 1, "Buff", () => {
+                sequence = new CombatComboSequence(0,
+                    CombatComboSequence.TimesAfterEvent(new[] { SkillChoreography.BuffHealTime(skill.tier) }, .3f),
+                    () => actor.Alive && ReferenceEquals(actor, isPlayer ? PlayerState : EnemyState) && isActiveAndEnabled,
+                    (_, __) => {
+                        if (isPlayer) RecordPlayerSkill(skill);
+                        double healing = actor.Heal(skill.heal);
+                        actor.SetAttackBoost(Math.Max(actor.AttackBoost, skill.attackBoost));
+                        (isPlayer ? PlayerHud : EnemyHud).Float("+" + Format(healing), new Color(.4f, 1, .55f));
+                    },
+                    cancelled => { if (cancelled && effects) effects.CancelSkillPlayback(); },
+                    Mathf.Max(SkillChoreography.BuffHealTime(skill.tier), SkillChoreography.BuffDuration(skill.tier)) - .3f);
+                activeCombo = sequence;
+                sequence.Advance(0);
+                if (sequence.Pending) StartCoroutine(AdvanceSkillCombo(sequence));
+            }, () => sequence != null && sequence.Pending);
         }
 
         IEnumerator Strike(bool isPlayer, double damage, bool skill, int variant)
@@ -428,13 +457,13 @@ namespace Moonlit.UI
                 if (isPlayer)
                     foreach (var equipped in actor.skills)
                         if (equipped.tier == tier && equipped.variant == variant) RecordPlayerSkill(equipped);
-                combo = new CombatComboSequence(damage, SkillChoreography.HitTimes(tier, variant),
+                combo = new CombatComboSequence(damage, CombatComboSequence.TimesAfterEvent(SkillChoreography.HitTimes(tier, variant), SkillChoreography.AttackLead),
                     () => actor.Alive && target.Alive && ReferenceEquals(actor, isPlayer ? PlayerState : EnemyState) &&
                         ReferenceEquals(target, isPlayer ? EnemyState : PlayerState) && isActiveAndEnabled,
                     (hitIndex, portion) => ResolveStrike(isPlayer, actor, target, portion, true, variant, tier, hitIndex),
                     cancelled => { if (cancelled && effects) effects.CancelSkillPlayback(); });
                 activeCombo = combo;
-                combo.Advance(0); // The first real hit is synchronous with this Animator event.
+                combo.Advance(0); // An early event only arms delayed contacts; it never deals guessed damage.
                 if (combo.Pending) StartCoroutine(AdvanceSkillCombo(combo));
             }, () => combo != null && combo.Pending);
         }
