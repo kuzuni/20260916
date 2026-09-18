@@ -606,6 +606,7 @@ namespace Moonlit.Editor
                 yield return CaptureGuarded(CaptureInstantScreens(screen,camera,height,report,fail),report,fail);
                         yield return CaptureGuarded(CaptureForgePassFeedback(screen,camera,height,report,fail),report,fail);
                         yield return CaptureGuarded(CaptureSkillHudFeedback(screen,camera,height,report,fail),report,fail);
+                        yield return CaptureGuarded(CaptureEntranceGround(screen,camera,height,report),report,fail);
                         yield return CaptureGuarded(CaptureCombatFeedback(screen,camera,height,report,fail),report,fail);
                 yield return CaptureGuarded(CapturePrimitiveCompanions(screen,camera,height,report,fail),report,fail);
                         yield return CaptureGuarded(CaptureAscension(screen,camera,height,report,fail),report,fail);
