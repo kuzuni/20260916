@@ -390,17 +390,18 @@ namespace Moonlit.UI.Tests
                     .Invoke(fixture.battle, new object[] { isPlayer, 10d, variant > 0, variant });
                 Assert.IsTrue(strike.MoveNext());
                 var action = (IEnumerator)strike.Current; Assert.IsTrue(action.MoveNext());
-                Assert.IsFalse(flash.IsFlashing); Assert.AreEqual(0, effects.GetComponentsInChildren<ParticleSystem>().Length);
+                Assert.IsFalse(flash.IsFlashing);
+                Assert.AreEqual(0, effects.GetComponentsInChildren<ParticleSystem>().Count(x => x.name == "Basic hit dust puff"));
                 Assert.IsFalse(effects.GetComponentsInChildren<SpriteRenderer>().Any(x => x.name == "Basic sword slash"));
                 float impactTime = variant == 0 ? .3f : PrimitiveSkillEffects.AttackFlightDuration;
                 animator.Update(0); animator.Update(impactTime - .01f);
                 Assert.AreEqual(100, victim.Health); Assert.IsFalse(flash.IsFlashing);
                 animator.Update(.02f);
-                Assert.AreEqual(evade ? 100 : 90, victim.Health);
+                double afterFirstHit = evade ? 100 : 100 - (variant == 0 ? 10 : 10d / (variant == 1 ? 3 : 5));
+                Assert.AreEqual(afterFirstHit, victim.Health, .000001);
                 Assert.AreEqual(!evade, flash.IsFlashing);
                 var fragments = effects.GetComponentsInChildren<ParticleSystem>();
-                int expectedParticles = evade ? 0 : variant == 0 ? 1 : 2;
-                Assert.AreEqual(expectedParticles, fragments.Length);
+                Assert.AreEqual(evade ? 0 : 1, fragments.Count(x => x.name == "Basic hit dust puff"));
                 var arcs = effects.GetComponentsInChildren<SpriteRenderer>().Where(x => x.name == "Basic sword slash").ToArray();
                 Assert.AreEqual(variant == 0 ? 1 : 0, arcs.Length);
                 if (!evade)
@@ -422,17 +423,141 @@ namespace Moonlit.UI.Tests
                         Assert.Greater(arcs[0].bounds.size.y, 2.4f, "The basic arc must remain readable beside doubled actors.");
                         Assert.IsFalse(fragments.Any(x => x.name.Contains("illustrated impact fragments")));
                     }
-                    else
-                    {
-                        var stone = fragments.Single(x => x.name.Contains("illustrated impact fragments"));
-                        Assert.AreEqual(2.64f, stone.main.startSize.constant, .001f);
-                        Assert.AreSame(PrimitiveSkillEffects.SkillSprite(0, variant), stone.textureSheetAnimation.GetSprite(0));
-                    }
+
                 }
                 relay.OnCombatImpact(variant == 0 ? 0 : variant + 1);
-                Assert.AreEqual(evade ? 100 : 90, victim.Health);
-                Assert.AreEqual(expectedParticles, effects.GetComponentsInChildren<ParticleSystem>().Length, "Duplicate events must not spawn another impact.");
+                Assert.AreEqual(afterFirstHit, victim.Health, .000001);
+                Assert.AreEqual(fragments.Length, effects.GetComponentsInChildren<ParticleSystem>().Length, "Duplicate events must not spawn another impact.");
                 Assert.AreEqual(arcs.Length, effects.GetComponentsInChildren<SpriteRenderer>().Count(x => x.name == "Basic sword slash"));
+            }
+        }
+
+
+        static System.Collections.Generic.IEnumerable<object[]> AllAttackChoreographies()
+        {
+            for (int tier = 0; tier < 10; tier++)
+                for (int variant = 1; variant <= 2; variant++)
+                    yield return new object[] { tier, variant };
+        }
+        [TestCaseSource(nameof(AllAttackChoreographies))]
+        public void RealAnimatorStartsOneComboAndAwaitsAllThreeOrFiveHits(int tier, int variant)
+        {
+            using (var fixture = new Fixture())
+            {
+                var skill = new CombatSkill { tier = tier, variant = variant, cooldown = variant == 1 ? 2 : 5 };
+                var attacker = new CombatActorState(new CombatStats { health = 1000, lifeSteal = 30, skillDamage = 15 },
+                    new System.Collections.Generic.List<CombatSkill> { skill });
+                attacker.Damage(500);
+                var target = new CombatActorState(new CombatStats { health = 1000 });
+                typeof(BattleRuntime).GetProperty("PlayerState").SetValue(fixture.battle, attacker);
+                typeof(BattleRuntime).GetProperty("EnemyState").SetValue(fixture.battle, target);
+                var animator = (Animator)typeof(BattleRuntime).GetField("playerAnimator", PrivateInstance).GetValue(fixture.battle);
+                var relay = (CombatAnimationRelay)typeof(BattleRuntime).GetField("playerRelay", PrivateInstance).GetValue(fixture.battle);
+                double total = variant == 1 ? 101 : 97.2;
+                int count = variant == 1 ? 3 : 5;
+                var strike = (IEnumerator)typeof(BattleRuntime).GetMethod("StrikeTier", PrivateInstance)
+                    .Invoke(fixture.battle, new object[] { true, total, true, variant, tier });
+                Assert.IsTrue(strike.MoveNext());
+                var animation = (IEnumerator)strike.Current; Assert.IsTrue(animation.MoveNext());
+                Assert.IsFalse(fixture.battle.IsSkillComboRunning);
+                animator.Update(0); animator.Update(PrimitiveSkillEffects.AttackFlightDuration - .01f);
+                Assert.AreEqual(1000, target.Health, "No damage before the real Animator event.");
+                animator.Update(.02f);
+                var combo = (CombatComboSequence)typeof(BattleRuntime).GetField("activeCombo", PrivateInstance).GetValue(fixture.battle);
+                Assert.AreEqual(count, combo.HitCount);
+                Assert.AreEqual(1, combo.ResolvedHits);
+                Assert.AreEqual(1000 - total / count * 1.15, target.Health, .000001);
+                Assert.AreEqual(1, fixture.battle.PlayerSkillActivationCount(0));
+                Assert.IsTrue(animation.MoveNext(), "The action must wait beyond its clip while later hits remain.");
+                var times = SkillChoreography.HitTimes(tier, variant);
+                float previous = 0;
+                for (int hit = 1; hit < count; hit++)
+                {
+                    double health = target.Health;
+                    relay.OnCombatImpact(variant + 1);
+                    Assert.AreEqual(health, target.Health, "A duplicate clip event cannot create another combo or hit.");
+                    float gap = times[hit] - previous;
+                    combo.Advance(gap * .5f);
+                    Assert.AreEqual(hit, combo.ResolvedHits, "No damage during the authored anticipation interval.");
+                    combo.Advance(gap * .5f + .000001f);
+                    Assert.AreEqual(hit + 1, combo.ResolvedHits);
+                    previous = times[hit];
+                }
+                Assert.IsFalse(combo.Pending); Assert.IsFalse(combo.Cancelled);
+                Assert.AreEqual(1000 - total * 1.15, target.Health, .000001, "All portions conserve the supplied fixed total.");
+                Assert.AreEqual(500 + total * 1.15 * .3, attacker.Health, .000001, "Life steal uses actual per-hit damage.");
+                Assert.AreEqual(1, fixture.battle.PlayerSkillActivationCount(0));
+                Assert.IsFalse(animation.MoveNext(), "The next action may proceed only after the final impact.");
+                Assert.IsFalse(strike.MoveNext());
+                relay.OnCombatImpact(variant + 1); combo.Advance(10);
+                Assert.AreEqual(count, combo.ResolvedHits);
+                Assert.AreEqual(1000 - total * 1.15, target.Health, .000001);
+            }
+        }
+
+        [TestCase(1)]
+        [TestCase(2)]
+        public void DeathCancelsRemainingRealSkillHitsWithoutHittingTheNextWave(int variant)
+        {
+            using (var fixture = new Fixture())
+            {
+                var attacker = new CombatActorState(new CombatStats { health = 100, lifeSteal = 100 });
+                attacker.Damage(50);
+                var victim = new CombatActorState(new CombatStats { health = 1 });
+                typeof(BattleRuntime).GetProperty("PlayerState").SetValue(fixture.battle, attacker);
+                typeof(BattleRuntime).GetProperty("EnemyState").SetValue(fixture.battle, victim);
+                var strike = (IEnumerator)typeof(BattleRuntime).GetMethod("Strike", PrivateInstance)
+                    .Invoke(fixture.battle, new object[] { true, 100d, true, variant });
+                strike.MoveNext(); var animation = (IEnumerator)strike.Current; animation.MoveNext();
+                var animator = (Animator)typeof(BattleRuntime).GetField("playerAnimator", PrivateInstance).GetValue(fixture.battle);
+                animator.Update(0); animator.Update(PrimitiveSkillEffects.AttackFlightDuration + .01f);
+                var combo = (CombatComboSequence)typeof(BattleRuntime).GetField("activeCombo", PrivateInstance).GetValue(fixture.battle);
+                Assert.AreEqual(1, combo.ResolvedHits);
+                Assert.IsTrue(combo.Cancelled); Assert.IsFalse(combo.Pending);
+                Assert.AreEqual(0, victim.Health); Assert.AreEqual(51, attacker.Health, "Overkill cannot grant excess healing.");
+                var nextEnemy = new CombatActorState(new CombatStats { health = 200 });
+                typeof(BattleRuntime).GetProperty("EnemyState").SetValue(fixture.battle, nextEnemy);
+                combo.Advance(10);
+                Assert.AreEqual(200, nextEnemy.Health);
+                Assert.AreEqual(1, combo.ResolvedHits);
+            }
+        }
+
+        [Test]
+        public void ComboCancellationAndDodgePreserveDamageAndNeverResumeStaleActions()
+        {
+            var attacker = new CombatActorState(new CombatStats { health = 100, lifeSteal = 100 });
+            attacker.Damage(50);
+            var target = new CombatActorState(new CombatStats { health = 100, dodge = 100 });
+            bool valid = true; int callbacks = 0;
+            var combo = new CombatComboSequence(77, new[] { 0f, .13f, .47f }, () => valid,
+                (index, portion) => { callbacks++; CombatRules.Strike(attacker, target, portion, true, () => .2); });
+            combo.Advance(0); combo.Advance(1);
+            Assert.AreEqual(3, callbacks); Assert.AreEqual(100, target.Health); Assert.AreEqual(50, attacker.Health);
+            combo = new CombatComboSequence(77, new[] { 0f, .13f, .47f }, () => valid,
+                (index, portion) => callbacks++);
+            combo.Advance(0); valid = false; combo.Advance(1); valid = true; combo.Advance(10);
+            Assert.IsTrue(combo.Cancelled); Assert.AreEqual(4, callbacks);
+        }
+
+        [Test]
+        public void DisablingBattleCancelsAnArmedLiveCombo()
+        {
+            using (var fixture = new Fixture())
+            {
+                var attacker = new CombatActorState(new CombatStats { health = 100 });
+                var target = new CombatActorState(new CombatStats { health = 100 });
+                typeof(BattleRuntime).GetProperty("PlayerState").SetValue(fixture.battle, attacker);
+                typeof(BattleRuntime).GetProperty("EnemyState").SetValue(fixture.battle, target);
+                var strike = (IEnumerator)typeof(BattleRuntime).GetMethod("Strike", PrivateInstance)
+                    .Invoke(fixture.battle, new object[] { true, 30d, true, 1 });
+                strike.MoveNext(); ((IEnumerator)strike.Current).MoveNext();
+                var animator = (Animator)typeof(BattleRuntime).GetField("playerAnimator", PrivateInstance).GetValue(fixture.battle);
+                animator.Update(0); animator.Update(PrimitiveSkillEffects.AttackFlightDuration + .01f);
+                var combo = (CombatComboSequence)typeof(BattleRuntime).GetField("activeCombo", PrivateInstance).GetValue(fixture.battle);
+                Assert.IsTrue(combo.Pending); Assert.AreEqual(90, target.Health);
+                fixture.battle.enabled = false; combo.Advance(10);
+                Assert.IsTrue(combo.Cancelled); Assert.AreEqual(90, target.Health);
             }
         }
 
