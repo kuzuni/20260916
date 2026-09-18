@@ -114,6 +114,43 @@ namespace Moonlit.UI.Tests
             }
             LogAssert.NoUnexpectedReceived();
         }
+        [UnityTest]
+        public IEnumerator CollectionDescriptionsFitTheirMeasuredSpaceBeforeTheOwnedEffectAndActions()
+        {
+            foreach(int height in new[]{1920,2280}) {
+                host.SetPreviewMetrics(new Vector2Int(1080,height),new Rect(0,0,1080,height));
+                for(int category=0;category<3;category++) {
+                    var entries=CollectionProgression.Data.categories[category].entries;
+                    int cases=category==0?6:1;
+                    for(int i=0;i<cases;i++) {
+                        entries[i].unlocked=true;
+                        host.Registry.Open("skill-details",entries[i]);
+                        yield return new WaitForSeconds(.7f);
+                        Canvas.ForceUpdateCanvases();
+                        var detail=GameObject.Find("Popup Layer skill-details");
+                        var description=detail.GetComponentsInChildren<Text>().Single(x=>x.name=="Description");
+                        var passive=detail.GetComponentsInChildren<Text>().Single(x=>x.name=="Passive");
+                        Assert.LessOrEqual(description.preferredHeight,description.rectTransform.rect.height+1,
+                            "Long skill descriptions must fit their actual font and wrapped line count.");
+                        var descriptionCorners=new Vector3[4];var passiveCorners=new Vector3[4];
+                        description.rectTransform.GetWorldCorners(descriptionCorners);passive.rectTransform.GetWorldCorners(passiveCorners);
+                        Assert.Greater(descriptionCorners[0].y,passiveCorners[1].y+4,
+                            "Description and owned-effect heading must have a visible gap.");
+                        var buttons=detail.GetComponentsInChildren<Button>();
+                        Assert.AreEqual(1,buttons.Count(button=>button.name=="Equip"));
+                        Assert.IsFalse(buttons.Any(button=>button.name.StartsWith("Equip slot ")));
+                        var action=buttons.Single(button=>button.name=="Unequip");
+                        var upgrade=buttons.Single(button=>button.name=="Upgrade");
+                        var actionCorners=new Vector3[4];var upgradeCorners=new Vector3[4];
+                        ((RectTransform)action.transform).GetWorldCorners(actionCorners);
+                        ((RectTransform)upgrade.transform).GetWorldCorners(upgradeCorners);
+                        Assert.Greater(actionCorners[0].y,upgradeCorners[1].y+4,
+                            "Expanded description must not push secondary actions into the upgrade/equip row.");
+                        host.CloseTop();yield return null;
+                    }
+                }
+            }
+        }
         Text Label(string name)
         {
             var go=new GameObject(name,typeof(RectTransform),typeof(Text));

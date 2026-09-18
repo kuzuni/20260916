@@ -91,7 +91,14 @@ namespace Moonlit.Editor
                 if(screen.gems!=before+100 || state.CanClaimDailyDiamonds || RewardNotificationDots.NavigationAvailable(screen,3)) {
                     report.Add("FAIL daily diamond claim did not settle exactly once");fail();
                 } else report.Add("PASS reward availability markers, pass claim markers and daily shop absorption "+height);
-                yield return new WaitForSecondsRealtime(1.3f);
+                // The effect intentionally advances by displayed frames, not stalled wall time.
+                // Finish this captured claim explicitly so slow hosted rendering cannot carry its
+                // diamonds/+100 into the following pass or anvil captures.
+                foreach(var life in particles)if(life){life.Resume();life.SampleAge(2f);}
+                yield return null; // OnComplete destroys the layer at the end of this frame.
+                if(particles.Any(life=>life)) {
+                    report.Add("FAIL shop reward capture did not clean up its completed effects");fail();yield break;
+                }
             } finally {
                 while(screen.screens.ModalDepth>0)screen.screens.CloseTop();screen.screens.ShowMainPage();
                 RewardState.Current=savedRewards;DungeonProgression.Data=savedDungeons;

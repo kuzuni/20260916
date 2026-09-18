@@ -32,3 +32,7 @@
 
 - 스킬·펫·탈것 상세창은 **장착** 버튼 하나로 장착합니다. 번호별 장착 버튼은 없습니다. 장비를 클릭해도 초록 선택 테두리가 생기지 않고 등급 색을 유지합니다.
 
+
+## Player 프리팹의 Animator
+
+`Assets/Art/ChihuahuaEquipmentThemes/Reference/Player.prefab` 자체에 Animator와 애니메이션 이벤트 수신기를 직렬화합니다. `Combat/PlayerReference/PlayerReference.controller`는 프리팹 내부 본에 직접 연결된 Idle·Basic·Hit·Buff·Weak·Strong·Death 7개 상태를 가집니다. 로컬 에디터에서 빌더를 실행할 필요가 없도록 클라우드 생성 결과를 저장소에 포함합니다. 게임 전투에서는 기존 이동용 래퍼 Animator를 유지하여 이벤트가 중복 발생하지 않도록 합니다.

@@ -130,7 +130,8 @@ namespace Moonlit.Editor
                 safe.SetPreviewMetrics(new Vector2Int(1080,heights[aspect]),areas[aspect]);
                 host.SetPreviewMetrics(new Vector2Int(1080,heights[aspect]),areas[aspect]);
                 host.Registry.ShowMainPage();
-                yield return null; yield return null; Canvas.ForceUpdateCanvases();
+                yield return WaitForBattleCaptureReady(screen);
+                Canvas.ForceUpdateCanvases();
                 bool pageRoute = route == "skills-pets-heroes" || route == "dungeons" || route == "shop" || route == "pvp";
                 // The selected entry intentionally renders a close icon. Build its unobscured
                 // reference on main, then let the host independently apply that state on open.
@@ -601,6 +602,7 @@ namespace Moonlit.Editor
                         yield return CaptureGuarded(CaptureSkillChoreographies(screen,camera,height,report,fail),report,fail);
                         yield return CaptureGuarded(CaptureBattleOverlay(screen,camera,height,report,fail),report,fail);
                         yield return CaptureGuarded(CaptureRewardAvailability(screen,camera,height,report,fail),report,fail);
+                    yield return CaptureGuarded(CaptureCollectionDetails(screen,camera,height,report,fail),report,fail);
                 yield return CaptureGuarded(CaptureInstantScreens(screen,camera,height,report,fail),report,fail);
                         yield return CaptureGuarded(CaptureForgePassFeedback(screen,camera,height,report,fail),report,fail);
                         yield return CaptureGuarded(CaptureSkillHudFeedback(screen,camera,height,report,fail),report,fail);

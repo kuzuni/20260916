@@ -54,6 +54,7 @@ namespace Moonlit.UI
         Camera renderCamera;
         RenderTexture texture;
         readonly Rect[] protectedHudAreas = new Rect[3];
+        readonly Rect[] actorProtectedHudAreas = new Rect[5];
         readonly List<Bounds> clearanceParts = new List<Bounds>();
         readonly List<Bounds> clearanceFormation = new List<Bounds>();
         readonly List<SpriteRenderer> clearanceSprites = new List<SpriteRenderer>();
@@ -204,7 +205,7 @@ namespace Moonlit.UI
                 if(companions.Mount)AddRenderedBounds(companions.Mount.gameObject,formation);
                 // Trailing pets may reflow inside the left edge; they must not pin a tall rider under the HUD.
             }
-            float shift=CombatActorHudClearance.OutwardShift(actorParts,formation,protectedHudAreas,isPlayer,left,right);
+            float shift=CombatActorHudClearance.SafeShift(actorParts,formation,actorProtectedHudAreas,isPlayer,left,right);
             if(shift==0)return;
             Vector3 offset=Vector3.right*shift;
             actor.transform.position+=offset;
@@ -261,6 +262,11 @@ namespace Moonlit.UI
                     }
                 }
             }
+            Array.Copy(protectedHudAreas,actorProtectedHudAreas,protectedHudAreas.Length);
+            actorProtectedHudAreas[3]=HudWorldRect(main.fairyButton ? main.fairyButton.transform as RectTransform : null,
+                null,design,density,bottom);
+            actorProtectedHudAreas[4]=HudWorldRect(main.eventButton ? main.eventButton.transform as RectTransform : null,
+                null,design,density,bottom);
             if (PlayerHud) PlayerHud.SetProtectedAreas(protectedHudAreas);
             if (EnemyHud) EnemyHud.SetProtectedAreas(protectedHudAreas);
         }
