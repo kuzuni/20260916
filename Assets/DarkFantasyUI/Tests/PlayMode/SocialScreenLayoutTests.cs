@@ -272,13 +272,20 @@ namespace Moonlit.UI.Tests
         }
 
         [UnityTest]
-        public IEnumerator ShopDailyDiamonds_RemainSeparateFromPaidOfferAndRestoreClaimAcrossReopening()
+        public IEnumerator ShopDailyDiamonds_FirstGridCellClaimsOnceAndRestoresAcrossReopening()
         {
             var main=PrepareRewardHud();main.gems=0;
             host.Registry.Open("shop");yield return null;
             var claim=GameObject.Find("Claim daily diamonds").GetComponent<Button>();
             Assert.IsTrue(claim.interactable);Assert.IsNotNull(GameObject.Find("Gem offer 600"));
+            Assert.AreEqual("무료 다이아 100",GameObject.Find("Daily diamond title").GetComponent<Text>().text);
+            Assert.IsTrue(claim.transform.Find("Notification").gameObject.activeSelf);
+            Assert.IsNotNull(claim.transform.Find("Notification").GetComponent<NotificationPulse>());
+            var source=GameObject.Find("Daily diamond icon").GetComponent<RectTransform>();
             claim.onClick.Invoke();claim.onClick.Invoke();
+            var particle=root.GetComponentInChildren<RewardVisualLifetime>().transform.Find("Reward particle 0").GetComponent<RectTransform>();
+            Assert.Less(Vector3.Distance(source.TransformPoint(source.rect.center),particle.TransformPoint(particle.rect.center)),.1f);
+            Assert.IsFalse(claim.transform.Find("Notification").gameObject.activeSelf);
             Assert.AreEqual(100,main.gems);Assert.IsFalse(RewardState.Current.CanClaimDailyDiamonds);
             Assert.IsFalse(claim.interactable);Assert.AreEqual("수령 완료",claim.GetComponentInChildren<Text>().text);
             Assert.AreEqual(1,root.GetComponentsInChildren<RewardVisualLifetime>().Length);
@@ -295,6 +302,37 @@ namespace Moonlit.UI.Tests
             Assert.IsTrue(claim.interactable,"An open shop refreshes the daily claim without reopening.");
             claim.onClick.Invoke();Assert.AreEqual(200,main.gems);
             Assert.AreEqual(1,root.GetComponentsInChildren<RewardVisualLifetime>().Length);
+        }
+
+
+        [UnityTest]
+        public IEnumerator ShopDiamondGridHasExactThreeByTwoOrderAtBothAspectRatios()
+        {
+            foreach(int height in new[]{1920,2280}) {
+                host.SetPreviewMetrics(new Vector2Int(1080,height),new Rect(0,0,1080,height));
+                host.Registry.Open("shop");yield return null;
+                var shop=GameObject.Find("Shop page");
+                var scroll=shop.GetComponentInChildren<ScrollRect>();
+                string[] names={"Daily diamond offer","Gem offer 600","Gem offer 2200","Gem offer 8000","Gem offer 15000","Gem offer 33000"};
+                var cards=names.Select(name=>(RectTransform)scroll.content.Find(name)).ToArray();
+                Assert.IsTrue(cards.All(card=>card!=null));
+                Assert.AreEqual(1,shop.GetComponentsInChildren<Transform>().Count(t=>t.name=="Daily diamond offer"),"No separate wide daily row remains.");
+                for(int i=0;i<cards.Length;i++) {
+                    Assert.That(cards[i].rect.width,Is.EqualTo(cards[0].rect.width).Within(.01f));
+                    Assert.That(cards[i].rect.height,Is.EqualTo(300).Within(.01f));
+                    Assert.That(cards[i].anchoredPosition.x,Is.EqualTo(20+(i%3)*(cards[0].rect.width+14)).Within(.01f));
+                    Assert.That(cards[i].anchoredPosition.y,Is.EqualTo(-1090-(i/3)*320).Within(.01f));
+                    Assert.IsNotNull(cards[i].Find("Card painting crop/Card painting").GetComponent<Image>().sprite);
+                    Assert.IsFalse(cards[i].Find("Card rim").GetComponent<Image>().fillCenter);
+                }
+                scroll.verticalNormalizedPosition=0;yield return null;Canvas.ForceUpdateCanvases();
+                foreach(var card in cards) {
+                    var button=(RectTransform)card.GetComponentInChildren<Button>().transform;
+                    var corners=new Vector3[4];button.GetWorldCorners(corners);
+                    foreach(var corner in corners)Assert.IsTrue(scroll.viewport.rect.Contains(scroll.viewport.InverseTransformPoint(corner)),"All six controls remain reachable above the navigation.");
+                }
+                host.CloseTop();yield return null;
+            }
         }
 
         MainScreen PrepareRewardHud()

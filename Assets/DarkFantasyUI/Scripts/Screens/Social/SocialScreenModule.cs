@@ -402,23 +402,23 @@ namespace Moonlit.UI
             PageWallet(c,root,"Gold wallet",54,44,0,c.Main ? (c.Main.gold/1000000f).ToString("0.00")+"m" : "1.59m");
             PageWallet(c,root,"Ruby wallet",w-324,44,1,c.Main ? c.Main.gems.ToString() : "21");
             const float shopContentTop = 180;
-            Scroll(c, root, 38, shopContentTop, w - 76, Mathf.Max(360, h - shopContentTop - NavigationReserve), 1920, out var content);
+            Scroll(c, root, 38, shopContentTop, w - 76, Mathf.Max(360, h - shopContentTop - NavigationReserve), 1740, out var content);
             var special = PopupSkin.Panel("Daily specials header", content, 18, 0, w - 112, 110);
             Ui.Text("Daily specials title", special.transform, 24, 12, w - 160, 76, "오늘의 특가", 42, Font(c), Ui.Gold);
             Ui.Text("Daily specials hint", content, 40, 116, w - 156, 52, "버튼을 누르면 상품이 지급됩니다", 25, Font(c), Ui.Ivory);
-            DailyDiamonds(c,content,w-112);
-            Deal(c, content, 350, "자원 거래", "₩2,800", w - 76, 0);
-            Deal(c, content, 630, "펫 거래", "₩9,500", w - 76, 1);
-            Deal(c, content, 910, "던전 거래", "₩27,500", w - 76, 2);
-            PopupSkin.Panel("Gem section frame",content,150,1190,w-376,70);
-            Ui.Text("Gem title", content, 20, 1190, w - 116, 70, "다이아", 42, Font(c), Ui.Gold);
+            Deal(c, content, 170, "자원 거래", "₩2,800", w - 76, 0);
+            Deal(c, content, 450, "펫 거래", "₩9,500", w - 76, 1);
+            Deal(c, content, 730, "던전 거래", "₩27,500", w - 76, 2);
+            PopupSkin.Panel("Gem section frame",content,150,1010,w-376,70);
+            Ui.Text("Gem title", content, 20, 1010, w - 116, 70, "다이아", 42, Font(c), Ui.Gold);
             int[] gems = { 600, 2200, 8000, 15000, 33000 };
             string[] prices = { "₩2,800", "₩9,500", "₩34,500", "₩60,000", "₩110,000" };
+            float cardW = (w - 124) / 3f;
+            DailyDiamonds(c,content,20,1090,cardW);
             for (int i = 0; i < gems.Length; i++)
             {
-                int col = i % 3, row = i / 3;
-                float cardW = (w - 124) / 3f;
-                var card = PopupSkin.IllustratedCard("Gem offer " + gems[i], content, 20 + col * (cardW + 14), 1270 + row * 320, cardW, 300, ShopCardScenery, new Color(.65f,.75f,.85f));
+                int cell=i+1,col=cell%3,row=cell/3;
+                var card = PopupSkin.IllustratedCard("Gem offer " + gems[i], content, 20 + col * (cardW + 14), 1090 + row * 320, cardW, 300, ShopCardScenery, new Color(.65f,.75f,.85f));
                 card.Find("Card rim").GetComponent<Image>().pixelsPerUnitMultiplier=18;
                 Ui.Image("Ruby amount icon", card.transform, 20, 12, 48, 48, Icon(c, 1)).preserveAspect = true;
                 Ui.Text("Amount", card.transform, 72, 8, cardW - 82, 54, gems[i].ToString(), 29, Font(c), new Color(1,.75f,.78f), TextAnchor.MiddleLeft);
@@ -433,12 +433,13 @@ namespace Moonlit.UI
             }
         }
 
-        static void DailyDiamonds(ScreenContext c,Transform parent,float width)
+        static void DailyDiamonds(ScreenContext c,Transform parent,float x,float y,float width)
         {
-            var card=PopupSkin.Panel("Daily diamond offer",parent,18,170,width,140).rectTransform;
-            Ui.Text("Daily diamond title",card,24,12,500,46,"매일 무료 다이아",30,Font(c),Ui.Gold,TextAnchor.MiddleLeft);
-            var icon=Ui.Image("Daily diamond icon",card,28,71,46,46,Icon(c,1));icon.preserveAspect=true;
-            Ui.Text("Daily diamond amount",card,86,64,220,58,"100",34,Font(c),Ui.Ivory,TextAnchor.MiddleLeft);
+            var card=PopupSkin.IllustratedCard("Daily diamond offer",parent,x,y,width,300,ShopCardScenery,new Color(.65f,.75f,.85f));
+            card.Find("Card rim").GetComponent<Image>().pixelsPerUnitMultiplier=18;
+            var title=Ui.Text("Daily diamond title",card,16,8,width-32,54,"무료 다이아 100",26,Font(c),new Color(1,.75f,.78f));
+            title.horizontalOverflow=HorizontalWrapMode.Overflow;
+            var icon=Ui.ArtImage("Daily diamond icon",card,10,44,width-20,190,Icon(c,1));Ui.CenterAspect(icon);
             Button claim=null;GameObject claimDot=null;
             System.Action refresh=()=>{
                 if(!claim)return;
@@ -446,13 +447,13 @@ namespace Moonlit.UI
                 claim.interactable=available;if(claimDot)claimDot.SetActive(available);
                 claim.GetComponentInChildren<Text>().text=available?"무료 받기":"수령 완료";
             };
-            claim=Action(c,card,width-306,38,280,68,"무료 받기",()=>{
+            claim=Action(c,card,12,222,width-24,66,"무료 받기",()=>{
                 if(!card || !card.gameObject.activeInHierarchy)return;
                 RewardState.Current.ClaimDailyDiamonds(c.Main,icon.rectTransform.TransformPoint(icon.rectTransform.rect.center));
                 refresh();
             });
             claim.name="Claim daily diamonds";
-            claimDot=RewardNotificationDots.Create(claim.transform,252,-8,27,RewardNotificationDots.Circle(c.Main));
+            claimDot=RewardNotificationDots.Create(claim.transform,width-52,-8,27,RewardNotificationDots.Circle(c.Main));
             card.gameObject.AddComponent<LiveUiRefresh>().RefreshView=refresh;refresh();
         }
 
@@ -561,16 +562,16 @@ namespace Moonlit.UI
             string[] names = { "tewtee", "CreeGuy", "MenoT", profileName, "Guest 86680", "mrmaingo1868", "Epsylon" };
             string[] powers = { "212m", "12.9m", "16b", "65.5b", "5.52m", "2.57m", "821b" };
             float actionY = h - NavigationReserve - 112;
-            float stickyY = actionY - 132;
+            float stickyY = actionY - 178;
             float listHeight = Mathf.Max(380, stickyY - 310 - 18);
             // Local standings reflect the same points and rank used by challenge rewards.
-            Scroll(c, root, 90, 290, w - 180, listHeight, 100 * 130, out var content);
+            Scroll(c, root, 90, 290, w - 180, listHeight, 100 * 176, out var content);
             for (int rank = 1; rank <= 100; rank++)
             {
                 int myRank=RewardRules.ArenaRank(RewardState.Current.arenaPoints);
                 bool own=rank==myRank;int dummyIndex=rank-1-(rank>myRank?1:0);
                 int points=own?RewardState.Current.arenaPoints:4900-dummyIndex*50;
-                PvpRow(c,content,"PvP rank "+rank,0,(rank-1)*130,w-180,rank,
+                PvpRow(c,content,"PvP rank "+rank,0,(rank-1)*176,w-180,rank,
                     own?profileName:"도전자 "+(dummyIndex+1).ToString("000"),
                     own?(c.Main.powerText?c.Main.powerText.text:"0"):(100-dummyIndex).ToString(),
                     points,own?profileAvatar:dummyIndex%20,own);
@@ -591,15 +592,15 @@ namespace Moonlit.UI
         static void PvpRow(ScreenContext c, Transform parent, string objectName, float x, float y, float width,
             int rank, string player, string power, int stars, int avatarIndex, bool selected)
         {
-            var row = SpritePanel(c, objectName, parent, x, y, width, 118, selected ? 0 : 1, Color.white);
-            Ui.Text("Rank", row.transform, 10, 12, 90, 90, rank.ToString(), 35, Font(c));
-            Avatar(c, row.transform, 105, 10, 96, avatarIndex);
-            Ui.Text("Player", row.transform, 220, 7, width - 440, 48, player, 29, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
-            Ui.Image("Power icon", row.transform, 220, 62, 32, 32, Icon(c, 12)).preserveAspect = true;
-            Ui.Text("Power", row.transform, 260, 57, 310, 44, power, 25, Font(c), Ui.Gold, TextAnchor.MiddleLeft);
-            Ui.Image("Star icon", row.transform, width - 210, 20, 38, 38, Icon(c, 15)).preserveAspect = true;
-            Ui.Text("Stars", row.transform, width - 165, 12, 145, 54, stars.ToString(), 29, Font(c), Ui.Gold);
-            Ui.Text("Server", row.transform, width - 216, 78, 190, 28, "서버 5", 21, Font(c),
+            var row = SpritePanel(c, objectName, parent, x, y, width, 164, selected ? 0 : 1, Color.white);
+            Ui.Text("Rank", row.transform, 10, 35, 90, 90, rank.ToString(), 35, Font(c));
+            Avatar(c, row.transform, 105, 10, 96, avatarIndex).rectTransform.localScale=Vector3.one*1.5f;
+            Ui.Text("Player", row.transform, 268, 30, width - 488, 48, player, 29, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
+            Ui.Image("Power icon", row.transform, 268, 85, 32, 32, Icon(c, 12)).preserveAspect = true;
+            Ui.Text("Power", row.transform, 308, 80, 310, 44, power, 25, Font(c), Ui.Gold, TextAnchor.MiddleLeft);
+            Ui.Image("Star icon", row.transform, width - 210, 43, 38, 38, Icon(c, 15)).preserveAspect = true;
+            Ui.Text("Stars", row.transform, width - 165, 35, 145, 54, stars.ToString(), 29, Font(c), Ui.Gold);
+            Ui.Text("Server", row.transform, width - 216, 101, 190, 28, "서버 5", 21, Font(c),
                 new Color(.7f, .72f, .74f), TextAnchor.MiddleRight);
             var payload = new Dictionary<string, object> { { "name", player }, { "power", power },
                 { "rank", rank }, { "avatarIndex", avatarIndex } };
@@ -615,25 +616,25 @@ namespace Moonlit.UI
             var challengeButtons=new List<Button>();var challengeDots=new List<GameObject>();
             string[] names = { "tewtee", "CreeGuy", "MenoT", "Guest 86680", "mrmaingo1868" };
             string[] powers = { "212m", "12.9m", "16b", "5.52m", "2.57m" };
-            Scroll(c, frame, 42, 180, w - 84, h - 310, names.Length * 164, out var content);
+            Scroll(c, frame, 42, 180, w - 84, h - 310, names.Length * 218, out var content);
             for (int i = 0; i < names.Length; i++)
             {
-                int index = i; var row = Ui.Panel("Opponent " + names[i], content, 0, i * 164, w - 84, 150, Stone);
-                Avatar(c, row.transform, 18, 18, 112, i);
+                int index = i; var row = Ui.Panel("Opponent " + names[i], content, 0, i * 218, w - 84, 204, Stone);
+                Avatar(c, row.transform, 18, 18, 112, i).rectTransform.localScale=Vector3.one*1.5f;
                 var payload = new Dictionary<string, object> { { "name", names[i] }, { "power", powers[i] }, { "rank", 8 + i }, { "avatarIndex", i } };
                 var avatarButton = row.gameObject.AddComponent<Button>(); avatarButton.targetGraphic = row; avatarButton.onClick.AddListener(() => c.Open("player-details", payload));
                 row.raycastTarget = true;
-                Ui.Text("Name", row.transform, 154, 18, 330, 44, names[i], 29, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
-                Ui.Image("Power icon", row.transform, 154, 72, 32, 32, Icon(c, 12)).preserveAspect = true;
-                Ui.Text("Power", row.transform, 194, 68, 290, 40, powers[i], 25, Font(c), Green, TextAnchor.MiddleLeft);
-                var challenge=Action(c, row.transform, w - 350, 36, 230, 80, "도전", () => {
+                Ui.Text("Name", row.transform, 210, 44, 274, 44, names[i], 29, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
+                Ui.Image("Power icon", row.transform, 210, 98, 32, 32, Icon(c, 12)).preserveAspect = true;
+                Ui.Text("Power", row.transform, 250, 94, 234, 40, powers[i], 25, Font(c), Green, TextAnchor.MiddleLeft);
+                var challenge=Action(c, row.transform, w - 350, 62, 230, 80, "도전", () => {
                     if(!c.Main)return;
                     c.Main.StartArena(Mathf.Max(1,c.Main.stage+index-2),won=>RewardRules.FinishArena(c.Main,won));
                 });
                 challengeButtons.Add(challenge);
                 challengeDots.Add(RewardNotificationDots.Create(challenge.transform,203,-8,27,RewardNotificationDots.Circle(c.Main)));
-                Ui.Image("Reward star", row.transform, w - 340, 3, 30, 30, Icon(c, 15)).preserveAspect = true;
-                Ui.Text("Reward", row.transform, w - 305, 4, 175, 34, "+25 승점", 23, Font(c), Ui.Gold);
+                Ui.Image("Reward star", row.transform, w - 340, 29, 30, 30, Icon(c, 15)).preserveAspect = true;
+                Ui.Text("Reward", row.transform, w - 305, 30, 175, 34, "+25 승점", 23, Font(c), Ui.Gold);
             }
             void RefreshChallenges() {
                 int remaining=RewardState.Current.ArenaRemaining(DateTime.UtcNow);

@@ -227,9 +227,7 @@ namespace Moonlit.UI
                 Ui.Text("Affix",choices,x+70,y-2,272,52,EquipmentRules.AffixNames[i],23,Font(c),Ui.Ivory,TextAnchor.MiddleLeft);
             }
             Ui.Text("Batch label",controls,12,0,424,65,"한 번에 사용할 망치 수",26,Font(c),Ui.Ivory,TextAnchor.MiddleLeft);
-            var amount=Ui.Text("Batch size",controls,498,0,112,65,s.batchSize.ToString(),34,Font(c));
-            Action(c,controls,436,0,60,65,"−",()=>{s.batchSize=Math.Max(1,s.batchSize-1);amount.text=s.batchSize.ToString();});
-            Action(c,controls,612,0,60,65,"+",()=>{s.batchSize=Math.Min(99,s.batchSize+1);amount.text=s.batchSize.ToString();});
+            ForgeBatchDropdown.Create(controls,c.Main,Font(c),s);
             var continuing=Check(c,controls,650,92,s.continueAfterMatch);
             continuing.onValueChanged.AddListener(value=>s.continueAfterMatch=value);
             Ui.Text("Continue label",controls,10,80,624,70,"목표 장비를 찾아도 제련 계속하기",24,Font(c),Ui.Ivory,TextAnchor.MiddleLeft);

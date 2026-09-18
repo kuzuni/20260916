@@ -573,6 +573,8 @@ namespace Moonlit.Editor
                         yield return CaptureRewardAvailability(screen,camera,height,report,fail);
                 yield return CaptureScreenMotions(screen,camera,height,report,fail);
                         yield return CaptureForgePassFeedback(screen,camera,height,report,fail);
+                        yield return CaptureSkillHudFeedback(screen,camera,height,report,fail);
+                        yield return CaptureCombatFeedback(screen,camera,height,report,fail);
                         yield return CaptureAscension(screen,camera,height,report,fail);
                         yield return CaptureCollectionAscensions(screen,camera,height,report,fail);
                         yield return CaptureDungeonClaims(screen,camera,height,report,fail);

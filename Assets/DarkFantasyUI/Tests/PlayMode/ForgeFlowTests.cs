@@ -64,6 +64,39 @@ namespace Moonlit.UI.Tests
             Assert.IsNull(ForgeState.Current.Pending);Assert.AreEqual(0,host.ModalDepth);
             Assert.IsTrue(mainGroup.blocksRaycasts);
         }
+
+        [UnityTest] public IEnumerator BatchDropdownChoosesTwentyTwoPersistsAndSpendsTwentyTwoHammers()
+        {
+            main.screens.Open("auto-forge");yield return null;
+            var dropdown=GameObject.Find("Batch dropdown").GetComponent<Dropdown>();
+            Assert.AreEqual(99,dropdown.options.Count);
+            dropdown.Show();yield return null;
+            var list=dropdown.transform.Find("Dropdown List");
+            Assert.IsNotNull(list,"The batch selector must open an actual scrollable dropdown.");
+            Assert.IsNotNull(list.GetComponent<ScrollRect>());
+            var choice=list.GetComponentsInChildren<Toggle>().Single(toggle=>
+                toggle.GetComponentsInChildren<Text>().Any(label=>label.text=="22"));
+            var choicesScroll=list.GetComponent<ScrollRect>();
+            Canvas.ForceUpdateCanvases();
+            choicesScroll.verticalNormalizedPosition=1-(21*58f)/(choicesScroll.content.rect.height-choicesScroll.viewport.rect.height);
+            Canvas.ForceUpdateCanvases();
+            choice.OnPointerClick(new PointerEventData(EventSystem.current){button=PointerEventData.InputButton.Left});
+            Assert.AreEqual(22,ForgeState.Current.batchSize);
+            Assert.AreEqual("22",dropdown.captionText.text);
+            yield return new WaitForSecondsRealtime(.2f);
+            host.CloseTop();yield return null;
+            ForgeState.Current=JsonUtility.FromJson<ForgeState>(JsonUtility.ToJson(ForgeState.Current));
+            main.screens.Open("auto-forge");yield return null;
+            dropdown=GameObject.Find("Batch dropdown").GetComponent<Dropdown>();
+            Assert.AreEqual(21,dropdown.value);Assert.AreEqual("22",dropdown.captionText.text);
+            main.ore=50;
+            GameObject.Find("시작").GetComponent<Button>().onClick.Invoke();
+            yield return null;yield return null;
+            Assert.IsTrue(ForgeRuntime.Ensure(main).Busy);
+            Assert.AreEqual(28,main.ore);Assert.AreEqual(22,ForgeState.Current.pending.Count);
+            ForgeRuntime.Ensure(main).StopAuto();
+        }
+
         [UnityTest] public IEnumerator CompareSwapsCardsTwiceAndSellsOnlyTheUnequippedItem()
         {
             var state=ForgeState.Current;
@@ -95,6 +128,13 @@ namespace Moonlit.UI.Tests
             var hand=GameObject.Find("Forged equipment hand");
             Assert.IsNotNull(hand);Assert.AreEqual(22,hand.GetComponentsInChildren<Image>().Count(i=>i.name.StartsWith("Forged card ")));
             var cards=hand.GetComponentsInChildren<Image>().Where(i=>i.name.StartsWith("Forged card ")).Select(i=>i.rectTransform).ToArray();
+            foreach(var card in cards) {
+                Assert.That(card.rect.width,Is.EqualTo(card.rect.height).Within(.01f),"Reveal frames must be square, including a 22-item hand.");
+                var thumbnail=card.Find("Equipment thumbnail").GetComponent<Image>();
+                Assert.IsNotNull(thumbnail.sprite);Assert.IsTrue(thumbnail.preserveAspect);
+                var level=(RectTransform)card.Find("Level");
+                Assert.GreaterOrEqual(level.anchoredPosition.y-level.rect.height,-card.rect.height-1);
+            }
             Assert.That(cards[1].anchoredPosition.x-cards[0].anchoredPosition.x,Is.EqualTo(cards[0].rect.width*.5f).Within(.01f));
             Assert.That(cards[0].anchoredPosition.y,Is.EqualTo(cards[10].anchoredPosition.y).Within(.01f));
             Assert.Less(cards[11].anchoredPosition.y,cards[0].anchoredPosition.y,"22 cards appear as two half-overlapped hands");

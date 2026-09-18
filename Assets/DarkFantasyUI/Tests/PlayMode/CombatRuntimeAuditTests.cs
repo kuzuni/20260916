@@ -218,16 +218,62 @@ namespace Moonlit.UI.Tests
                 float bottom= -view.anchoredPosition.y+view.rect.height;
                 float footY=bottom-camera.WorldToViewportPoint(actor.position).y*view.rect.height;
                 Assert.LessOrEqual(footY,height-PortraitSafeArea.BottomHeight-BattleRuntime.SkillHudReservedHeight,
-                    "Feet must stay above the 130-unit skill strip at "+height);
+                    "Feet must stay above the expanded skill strip at "+height);
                 Assert.AreEqual(2,actor.localScale.y,.001f,"Do not reduce the doubled actor.");
                 var ground=actor.parent.Find(actor.name+" ground shadow");
                 Assert.IsNotNull(ground);
                 Assert.That(ground.GetComponent<MeshFilter>().sharedMesh.bounds.size.x,Is.GreaterThan(2));
                 var motion=actor.Find("Motion");
+                actor.GetComponent<Animator>().speed=0;
+                var feet=actor.GetComponentsInChildren<SpriteRenderer>().Where(part=>part.sprite &&
+                    (part.sprite.name=="다리1" || part.sprite.name=="다리2")).ToArray();
+                Assert.AreEqual(2,feet.Length,"Measure actual prefab foot renderers, not the weapon-centered actor pivot.");
+                float floor=ground.position.y;
                 motion.position+=new Vector3(.8f,.5f,0);
                 yield return null;
-                Assert.AreEqual(motion.position.x,ground.position.x,.01f);
-                Assert.AreEqual(actor.position.y+.03f,ground.position.y,.01f,"A jumping actor must leave its shadow on the floor.");
+                Assert.AreEqual(feet.Average(part=>part.bounds.center.x),ground.position.x,.01f);
+                Assert.AreEqual(floor,ground.position.y,.02f,"A jumping actor must leave its shadow on the ground.");
+                // An asymmetric rig offset/foot pose must move the shadow even while the Motion pivot stays fixed.
+                float before=ground.position.x;
+                actor.Find("Motion/PlayerRig").position+=Vector3.right*.6f;
+                yield return null;
+                Assert.AreEqual(feet.Average(part=>part.bounds.center.x),ground.position.x,.01f);
+                Assert.Greater(ground.position.x,before+.1f);
+            }
+        }
+
+
+        [UnityTest]
+        public IEnumerator GroundShadowsTrackBothMirroredFeetThroughAttackAndEquipmentChanges()
+        {
+            using (var fixture = new Fixture())
+            {
+                ForgeState.Current.equipped[(int)EquipmentPart.Armor] = new EquipmentRoll {
+                    id=991, part=EquipmentPart.Armor, tier=4, variant=1, level=1
+                };
+                yield return null;
+                bool pivotMismatch = false;
+                foreach (var actor in new[] { fixture.battle.PlayerHud.Actor, fixture.battle.EnemyHud.Actor })
+                {
+                    var feet = actor.GetComponentsInChildren<SpriteRenderer>().Where(part => part.sprite &&
+                        (part.sprite.name == "다리1" || part.sprite.name == "다리2")).ToArray();
+                    Assert.AreEqual(2, feet.Length);
+                    var animator = actor.GetComponent<Animator>();
+                    var motion = actor.Find("Motion");
+                    var shadow = actor.parent.Find(actor.name + " ground shadow");
+                    foreach (string pose in new[] { "Idle", "Basic", "Strong", "Hit" })
+                    {
+                        animator.speed=1; animator.Play(pose,0,0); animator.Update(0); animator.Update(.28f); animator.speed=0;
+                        yield return null;
+                        typeof(CombatGroundShadow).GetMethod("LateUpdate",PrivateInstance).Invoke(shadow.GetComponent<CombatGroundShadow>(),null);
+                        float feetX=feet.Average(foot=>foot.bounds.center.x);
+                        float ground=feet.Min(foot=>foot.bounds.min.y)-(motion.position.y-actor.position.y)+.03f;
+                        pivotMismatch |= Mathf.Abs(feetX-motion.position.x)>.03f || Mathf.Abs(ground-actor.position.y-.03f)>.03f;
+                        Assert.AreEqual(feetX,shadow.position.x,.02f,actor.name+" "+pose+" horizontal foot anchor");
+                        Assert.AreEqual(ground,shadow.position.y,.02f,actor.name+" "+pose+" ground projection");
+                    }
+                }
+                Assert.IsTrue(pivotMismatch,"Actual rig feet must expose the old pivot-based shadow error.");
             }
         }
 
@@ -392,7 +438,7 @@ namespace Moonlit.UI.Tests
         public IEnumerator CompactHeadBarsAndLargeAmountsAvoidStageRoundAndWaveNodes()
         {
             bool reproducedOldOverlap=false;
-            foreach(float height in new[]{1720f,1920f,2280f})
+            foreach(float height in new[]{1600f,1660f,1720f,1920f,2280f})
             using(var fixture=new Fixture(height))
             {
                 fixture.main.stageText=Ui.Text("Stage title",fixture.root.transform,290,146,500,58,"스테이지 2",45,fixture.main.font);

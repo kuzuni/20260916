@@ -85,7 +85,7 @@ namespace Moonlit.UI
             var host=(RectTransform)main.design;
             int columns=count<=12?count:count<=24?Mathf.CeilToInt(count/2f):22;
             int rows=Mathf.CeilToInt(count/(float)columns);
-            float size=Mathf.Min(118,940/(1+(columns-1)*.5f)),cardHeight=size*1.4f,pitch=cardHeight*.75f;
+            float size=Mathf.Min(118,940/(1+(columns-1)*.5f)),cardHeight=size,pitch=cardHeight*.75f;
             float handHeight=(rows-1)*pitch+cardHeight;
             var anvilRect=(RectTransform)main.forgeButton.transform;
             var corners=new Vector3[4];anvilRect.GetWorldCorners(corners);
@@ -100,7 +100,8 @@ namespace Moonlit.UI
                 EquipmentPictograms.TintFrame(card,EquipmentRules.TierColor(item.tier));
                 card.type=Image.Type.Sliced;card.pixelsPerUnitMultiplier=8;
                 Ui.Image("Equipment thumbnail",card.transform,8,8,size-16,size-16,EquipmentArt.Icon(item)).preserveAspect=true;
-                Ui.Text("Level",card.transform,2,size,size-4,cardHeight-size,"Lv."+item.level+(item.ascension>0?"\n"+EquipmentRules.AscensionStars(item.ascension):""),Mathf.RoundToInt(size*.19f),main.font);
+                Ui.Text("Level",card.transform,2,size*.73f,size-4,size*.25f,"Lv."+item.level,Mathf.RoundToInt(size*.19f),main.font);
+                if(item.ascension>0)Ui.Text("Star",card.transform,2,0,size-4,size*.24f,EquipmentRules.AscensionStars(item.ascension),Mathf.RoundToInt(size*.18f),main.font,Ui.Gold);
             }
 
             HandRevealed?.Invoke();

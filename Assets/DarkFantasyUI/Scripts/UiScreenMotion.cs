@@ -50,7 +50,8 @@ namespace Moonlit.UI
                 foreach(Transform child in scroll.content)Collect(child as RectTransform,result,true);
                 return;
             }
-            if(include && (node.GetComponent<Graphic>() || node.GetComponent<Selectable>())) {
+            // Buttons reveal atomically; decorative parent frames stay still while their contents reveal.
+            if(include && (node.GetComponent<Selectable>() || (node.GetComponent<Graphic>() && node.childCount==0))) {
                 result.Add(node);return;
             }
             foreach(Transform child in node)Collect(child as RectTransform,result,true);
