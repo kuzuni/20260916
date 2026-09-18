@@ -41,6 +41,7 @@ namespace Moonlit.UI
         GameObject stageRoot, player, enemy;
         Camera renderCamera;
         RenderTexture texture;
+        readonly Rect[] protectedHudAreas = new Rect[3];
         Animator playerAnimator, enemyAnimator;
         CombatAnimationRelay playerRelay, enemyRelay;
         CombatAppearance appearance;
@@ -156,8 +157,50 @@ namespace Moonlit.UI
                 renderCamera.aspect = 1080 / height;
                 renderCamera.transform.localPosition = new Vector3(0, renderCamera.orthographicSize - .28f, -12);
             }
+            UpdateProtectedHudAreas(design, density, bottom);
             if (appearance) appearance.Refresh(ForgeState.Current.equipped);
             RefreshHealth();
+        }
+        void UpdateProtectedHudAreas(RectTransform design, float density, float bottom)
+        {
+            protectedHudAreas[0] = HudWorldRect(main.stageText ? main.stageText.rectTransform : null,
+                main.stageText, design, density, bottom);
+            protectedHudAreas[1] = HudWorldRect(main.roundText ? main.roundText.rectTransform : null,
+                main.roundText, design, density, bottom);
+            protectedHudAreas[2] = default;
+            if (main.waveNodes != null && main.waveNodes.Length > 0)
+            {
+                bool found = false;
+                foreach (var node in main.waveNodes)
+                {
+                    if (!node) continue;
+                    var rect = HudWorldRect(node.rectTransform, null, design, density, bottom);
+                    // Include the decorative rim and node punch outside its fill.
+                    rect = Rect.MinMaxRect(rect.xMin-.12f,rect.yMin-.12f,rect.xMax+.12f,rect.yMax+.12f);
+                    if (!found) { protectedHudAreas[2] = rect; found = true; }
+                    else
+                    {
+                        var previous = protectedHudAreas[2];
+                        protectedHudAreas[2] = Rect.MinMaxRect(Mathf.Min(previous.xMin,rect.xMin),
+                            Mathf.Min(previous.yMin,rect.yMin),Mathf.Max(previous.xMax,rect.xMax),Mathf.Max(previous.yMax,rect.yMax));
+                    }
+                }
+            }
+            if (PlayerHud) PlayerHud.SetProtectedAreas(protectedHudAreas);
+            if (EnemyHud) EnemyHud.SetProtectedAreas(protectedHudAreas);
+        }
+        Rect HudWorldRect(RectTransform ui, Text text, RectTransform design, float density, float bottom)
+        {
+            if (!ui) return default;
+            var bounds = RectTransformUtility.CalculateRelativeRectTransformBounds(design, ui);
+            float width = text ? Mathf.Min(bounds.size.x, text.preferredWidth) : bounds.size.x;
+            float left = bounds.center.x - design.rect.xMin - width / 2 - 10;
+            float top = design.rect.yMax - bounds.max.y - 8;
+            float height = bounds.size.y + 16;
+            // Same logical-to-world mapping as the transparent battle viewport, including Safe Area.
+            return new Rect(stageRoot.transform.position.x + (left - 540) / density,
+                stageRoot.transform.position.y + (bottom - top - height) / density - .28f,
+                (width + 20) / density, height / density);
         }
         void ResizeRenderTexture(float height)
         {
