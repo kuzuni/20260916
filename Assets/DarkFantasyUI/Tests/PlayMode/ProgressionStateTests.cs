@@ -497,15 +497,50 @@ namespace Moonlit.UI.Tests
             Canvas.ForceUpdateCanvases();scroll.verticalNormalizedPosition=.41f;
             var slot=scroll.content.GetComponentsInChildren<Button>()[0];slot.onClick.Invoke();yield return null;
             GameObject.Find("Upgrade").GetComponent<Button>().onClick.Invoke();
-            GameObject.Find("Equip slot 2").GetComponent<Button>().onClick.Invoke();
+            GameObject.Find("Equip").GetComponent<Button>().onClick.Invoke();
             host.CloseTop();yield return null;
             Assert.AreSame(scroll,GameObject.Find("Tab content").GetComponentInChildren<ScrollRect>());
             Assert.That(scroll.verticalNormalizedPosition,Is.EqualTo(.41f).Within(.01f));
             Assert.AreEqual("Lv.2",ChildText(slot.transform,"Level").text);
             Assert.AreEqual(0,entry.fragments);Assert.IsTrue(CollectionProgression.IsEquipped(entry));
-            Assert.AreEqual(0,CollectionProgression.Data.categories[0].equipped[1]);
+            Assert.AreEqual(0,CollectionProgression.Data.categories[0].equipped[0]);
             Assert.AreSame(PopupSkin.ActionArt,((Image)skillTab.targetGraphic).sprite);
             Assert.AreSame(PopupSkin.PanelArt,((Image)mountTab.targetGraphic).sprite);
+        }
+
+        [UnityTest]
+        public IEnumerator CollectionDetailsUseOneEquipActionForAllThreeCategories()
+        {
+            for(int category=0;category<3;category++){
+                var data=CollectionProgression.Data.categories[category];
+                foreach(var entry in data.entries)entry.unlocked=true;
+                for(int i=0;i<data.equipped.Length;i++)data.equipped[i]=-1;
+                host.Registry.Open("skills-pets-heroes");yield return null;
+                GameObject.Find("Tab "+CollectionProgression.CategoryNames[category]).GetComponent<Button>().onClick.Invoke();
+                int capacity=CollectionProgression.Capacity(category);
+                for(int i=0;i<capacity;i++){
+                    host.Registry.Open("skill-details",data.entries[i]);yield return null;
+                    var detail=GameObject.Find("Popup Layer skill-details");
+                    var buttons=detail.GetComponentsInChildren<Button>();
+                    Assert.IsFalse(buttons.Any(b=>b.name.StartsWith("Equip slot ")));
+                    var equip=buttons.Single(b=>b.name=="Equip");
+                    Assert.AreEqual("장착",equip.GetComponentInChildren<Text>().text);
+                    equip.onClick.Invoke();
+                    Assert.AreEqual(i,data.equipped[i],"Empty slots are filled without a numbered choice.");
+                    var before=(int[])data.equipped.Clone();equip.onClick.Invoke();
+                    CollectionAssert.AreEqual(before,data.equipped,"Re-equipping an owned slot must not displace another entry.");
+                    host.CloseTop();yield return null;
+                }
+                // A full collection has a deterministic replacement through the same single button.
+                var replacement=data.entries[3];host.Registry.Open("skill-details",replacement);yield return null;
+                GameObject.Find("Equip").GetComponent<Button>().onClick.Invoke();
+                Assert.IsTrue(CollectionProgression.IsEquipped(replacement));
+                Assert.AreEqual(capacity,CollectionProgression.Equipped(category).Count);
+                host.CloseTop();yield return null;
+                Assert.IsFalse(CollectionProgression.IsEquipped(data.entries[0]));
+                data.entries[4].unlocked=false;
+                Assert.IsFalse(CollectionProgression.Equip(data.entries[4]));
+            }
         }
 
         [UnityTest]

@@ -51,14 +51,19 @@ namespace Moonlit.UI.Tests
                 Assert.AreEqual(100, target.Health, "No damage while the attack projectile is still in flight.");
                 Assert.IsTrue(relay.Pending);
                 animator.Update(.02f);
-                double afterFirstHit = 100 - 20d / (variant == 1 ? 3 : 5);
-                Assert.AreEqual(afterFirstHit, target.Health, .000001, "The arrival event authorizes the first portion, not the entire combo.");
+                Assert.AreEqual(100, target.Health, "The old .65 event must not hit while the new ring or lob is still preparing.");
+                var combo = (CombatComboSequence)typeof(BattleRuntime).GetField("activeCombo", PrivateInstance).GetValue(runtime);
+                float delay = SkillChoreography.HitTimes(0, variant)[0] - SkillChoreography.AttackLead;
+                combo.Advance(delay - .01f);
+                Assert.AreEqual(100, target.Health);
+                combo.Advance(.011f);
+                double afterFirstHit = 100 - 20d / SkillChoreography.HitTimes(0, variant).Length;
+                Assert.AreEqual(afterFirstHit, target.Health, .000001, "Only the authored contact resolves its first portion.");
                 Assert.IsFalse(relay.Pending);
                 relay.OnCombatImpact(variant + 1);
                 Assert.AreEqual(afterFirstHit, target.Health, .000001, "Duplicate impact callbacks cannot repeat damage.");
                 Assert.AreEqual(0, runtime.PlayerResolvedBasicAttacks);
-                Assert.IsTrue(motion.MoveNext(), "The action waits for its remaining combo impacts.");
-                var combo = (CombatComboSequence)typeof(BattleRuntime).GetField("activeCombo", PrivateInstance).GetValue(runtime);
+                if (combo.Pending) Assert.IsTrue(motion.MoveNext(), "The action waits for its remaining combo impacts.");
                 combo.Advance(10);
                 Assert.AreEqual(80, target.Health, .000001, "The complete combo retains its supplied fixed total.");
                 Assert.IsFalse(motion.MoveNext());
@@ -67,7 +72,7 @@ namespace Moonlit.UI.Tests
                 var clip = catalog.controller.animationClips.Single(c => c.name == state);
                 var impact = clip.events.Single(e => e.functionName == "OnCombatImpact");
                 Assert.AreEqual(PrimitiveSkillEffects.AttackFlightDuration, impact.time, .0001f,
-                    "The checked-in/generated clip and projectile must share the same arrival time.");
+                    "The checked-in/generated clip authorizes playback; new contacts may occur later.");
                 foreach (var unchanged in new[] { "Basic", "Buff" })
                 {
                     var other = catalog.controller.animationClips.Single(c => c.name == unchanged);

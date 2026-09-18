@@ -22,6 +22,35 @@ namespace Moonlit.UI.Tests
         }
         [TearDown] public void TearDown(){if(root)Object.DestroyImmediate(root);}
 
+        [Test]
+        public void RewardOwnsAnUnmaskedSortingCanvasAboveAnAlreadyVisibleShop()
+        {
+            var main=CreateReward();
+            var rootCanvas=root.GetComponent<Canvas>();
+            var page=Ui.Rect("Opaque shop page",root.transform,0,0,1080,1920);
+            var pageCanvas=page.gameObject.AddComponent<Canvas>();
+            pageCanvas.overrideSorting=true;pageCanvas.sortingOrder=10;
+            var backing=Ui.Image("Opaque shop backing",page,0,0,1080,1920,null,Color.black);
+            var life=root.GetComponentInChildren<RewardVisualLifetime>();
+            var overlay=life.GetComponent<Canvas>();
+            Assert.IsNotNull(overlay,"A dynamic reward must own a canvas sorting boundary.");
+            Assert.AreSame(rootCanvas,overlay.rootCanvas);
+            Assert.IsTrue(overlay.overrideSorting);
+            Assert.Greater(overlay.sortingOrder,pageCanvas.sortingOrder);
+            Assert.IsTrue(life.GetComponent<CanvasGroup>().ignoreParentGroups);
+            Assert.IsFalse(life.GetComponent<CanvasGroup>().blocksRaycasts);
+            Assert.IsNull(life.GetComponent<GraphicRaycaster>(),"Feedback must not intercept modal input.");
+            foreach(var graphic in life.GetComponentsInChildren<MaskableGraphic>())
+            {
+                Assert.IsFalse(graphic.maskable,"A scroll mask must not clip the reward flight.");
+                Assert.AreEqual(overlay.gameObject.layer,graphic.gameObject.layer);
+                Assert.IsFalse(graphic.raycastTarget);
+            }
+            life.HoldAt(.16f);
+            Assert.AreEqual(12,life.GetComponentsInChildren<Image>().Length);
+            Assert.AreEqual("+100",life.GetComponentInChildren<Text>().text);
+        }
+
         [UnityTest]
         public IEnumerator SlowFrameAfterCreationCannotExpireRewardBeforeItsFirstVisibleFrames()
         {

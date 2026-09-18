@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Moonlit.UI
 {
     // Authored thirty-motion choreography. Combat alone decides actual damage and contact feedback.
-    public sealed class PrimitiveSkillEffects : MonoBehaviour
+    public sealed partial class PrimitiveSkillEffects : MonoBehaviour
     {
         public const float AttackFlightDuration=SkillChoreography.AttackLead;
         const float VisualScale=2f;
@@ -39,7 +39,7 @@ namespace Moonlit.UI
         {
             generation++;IsPlaying=false;StopAllCoroutines();
             foreach(var item in owned)if(item)Destroy(item);
-            owned.Clear();playbacks.Clear();
+            owned.Clear();playbacks.Clear();ClearFocusedAssets();
         }
         public void CancelSkillPlayback()
         {
@@ -50,7 +50,9 @@ namespace Moonlit.UI
         public void Play(int variant,Vector3 source,Vector3 target)=>Play(0,variant,source,target);
         public void Play(int tier,int variant,Vector3 source,Vector3 target,Transform sourceAnchor=null,Transform targetAnchor=null,bool burstOnArrival=true)
         {
-            if(catalog)StartCoroutine(Animate(Mathf.Clamp(tier,0,9),Mathf.Clamp(variant,0,2),source,target,sourceAnchor,targetAnchor,burstOnArrival));
+            tier=Mathf.Clamp(tier,0,9);variant=Mathf.Clamp(variant,0,2);
+            if(catalog)StartCoroutine(tier<=1?AnimateEarly(tier,variant,source,target,sourceAnchor,targetAnchor,burstOnArrival):
+                Animate(tier,variant,source,target,sourceAnchor,targetAnchor,burstOnArrival));
         }
         static string EffectName(int tier,int variant)=>tier==0?new[]{"Primitive ancestral blessing","Primitive stone crescent","Primitive falling boulder"}[variant]:"Era "+tier+" skill "+variant;
         GameObject NewRoot(string name,bool playback=false)
@@ -91,7 +93,7 @@ namespace Moonlit.UI
             var accents=new List<SpriteRenderer>();
             if(variant==0)for(int i=0;i<4;i++)accents.Add(Render(root.transform,AccentArt(tier,art),"Buff accent "+i,149));
             float[] hits=SkillChoreography.HitTimes(tier,variant);
-            float duration=variant==0?SkillChoreography.BuffDuration(tier):AttackFlightDuration+hits[hits.Length-1];
+            float duration=variant==0?SkillChoreography.BuffDuration(tier):hits[hits.Length-1];
             float time=0;int nextHit=0,previousFlight=-1;
             while(time<=duration&&version==generation&&root)
             {
@@ -106,13 +108,13 @@ namespace Moonlit.UI
                         if(tier<=3)Tint(accents[i],Colors[tier]);
                     }
                 } else {
-                    while(nextHit<hits.Length&&time>=AttackFlightDuration+hits[nextHit]) {
+                    while(nextHit<hits.Length&&time>=hits[nextHit]) {
                         if(preview)PlaySkillHit(tier,variant,nextHit,source,target,true);
                         nextHit++;
                     }
                     int flight=Mathf.Min(nextHit,hits.Length-1);
-                    float from=flight==0?0:AttackFlightDuration+hits[flight-1];
-                    float to=AttackFlightDuration+hits[flight];
+                    float from=flight==0?0:hits[flight-1];
+                    float to=hits[flight];
                     float t=Mathf.Clamp01((time-from)/Mathf.Max(.001f,to-from));
                     if(previousFlight!=flight){trail.Clear();previousFlight=flight;}
                     float size=(variant==1?.9f:1.65f)*VisualScale;
@@ -133,10 +135,13 @@ namespace Moonlit.UI
             if(!catalog||!landed)return;
             tier=Mathf.Clamp(tier,0,9);variant=Mathf.Clamp(variant,1,2);
             var art=Art(tier,variant);if(!art)return;
+            if(tier<=1) {
+                if(tier==0&&variant==2)StartCoroutine(RockExplosion(art,target));
+                else StartCoroutine(FocusedContact(tier,variant,hitIndex,target));
+                return;
+            }
             StartCoroutine(Contact(ContactArt(tier,variant,art),tier,variant,hitIndex,target));
-            // Real stones splinter. This remains the only skill using the original stone-fragment burst.
-            if(tier==0)Burst(art,tier,variant,target+Vector3.back,Colors[tier]);
-            else if(tier==2||tier==3)ContactSmoke(tier,variant,target);
+            if(tier==2||tier==3)ContactSmoke(tier,variant,target);
         }
         public void PlayImpact(int tier,int variant,Vector3 point)=>PlaySkillHit(tier,variant,0,point-Vector3.right,point,true);
         IEnumerator Contact(Sprite art,int tier,int variant,int hit,Vector3 point)
@@ -242,30 +247,5 @@ namespace Moonlit.UI
             Destroy(arc);
         }
 
-        void Burst(Sprite art, int tier, int variant, Vector3 point, Color color)
-        {
-            var dust = new GameObject("Era " + tier + " illustrated impact fragments").AddComponent<ParticleSystem>();
-            owned.RemoveAll(item => !item); owned.Add(dust.gameObject);
-            dust.gameObject.layer = 30; dust.transform.SetParent(transform,false); dust.transform.position = point;
-            dust.Stop(true,ParticleSystemStopBehavior.StopEmittingAndClear);
-            var main = dust.main; main.loop = false; main.duration = .65f; main.startLifetime = .55f;
-            main.startSpeed = (variant == 0 ? .6f : variant == 2 ? 2.6f : 1.6f) * VisualScale;
-            main.startSize = (variant == 0 ? .14f : tier <= 3 ? .22f : .15f) * VisualScale * 2 * 3;
-            main.startRotation = new ParticleSystem.MinMaxCurve(-Mathf.PI,Mathf.PI);
-            main.startColor = Color.white; main.gravityModifier = (variant == 0 ? -.1f : tier <= 3 ? .8f : .05f) * VisualScale;
-            main.simulationSpace = ParticleSystemSimulationSpace.World; main.maxParticles = 50;
-            var shape = dust.shape; shape.shapeType = ParticleSystemShapeType.Sphere; shape.radius = .1f * VisualScale;
-            var emission = dust.emission; emission.rateOverTime = 0;
-            emission.SetBursts(new[] { new ParticleSystem.Burst(0,(short)(variant==2?22:12)) });
-            var sheet = dust.textureSheetAnimation; sheet.enabled = true;
-            sheet.mode = ParticleSystemAnimationMode.Sprites; sheet.AddSprite(art);
-            var size = dust.sizeOverLifetime; size.enabled = true;
-            size.size = new ParticleSystem.MinMaxCurve(1,new AnimationCurve(new Keyframe(0,1),new Keyframe(1,0)));
-            var renderer = dust.GetComponent<ParticleSystemRenderer>();
-            // Explicitly bind the real transparent sprite texture: default white material would make square particles.
-            var material = new Material(catalog.effectMaterial); material.mainTexture = art.texture;
-            renderer.sharedMaterial = material; renderer.sortingOrder = 151;
-            dust.Play(); Destroy(material,1.1f); Destroy(dust.gameObject,1.1f);
-        }
     }
 }

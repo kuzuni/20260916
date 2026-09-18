@@ -173,6 +173,24 @@ namespace Moonlit.UI
             }
             return results;
         }
+        // One detail action: retain existing placement, fill an empty slot, then replace the weakest equipped entry.
+        public static bool Equip(CollectionEntry entry)
+        {
+            if(entry==null || !entry.unlocked || entry.category<0 || entry.category>=Data.categories.Length)return false;
+            var data=Data.categories[entry.category];
+            if(entry.Id<0 || entry.Id>=data.entries.Length || !ReferenceEquals(data.entries[entry.Id],entry))return false;
+            if(IsEquipped(entry))return true;
+            int capacity=Capacity(entry.category),replace=0;
+            double lowest=double.MaxValue;
+            for(int i=0;i<capacity;i++){
+                int id=data.equipped[i];
+                if(id<0 || id>=data.entries.Length || !data.entries[id].unlocked)return Equip(entry,i);
+                var current=data.entries[id];
+                double score=current.OwnedHealth+current.OwnedAttack;
+                if(score<lowest){lowest=score;replace=i;}
+            }
+            return Equip(entry,replace);
+        }
         public static bool Equip(CollectionEntry entry, int slot)
         {
             if (entry == null || !entry.unlocked || slot < 0 || slot >= Capacity(entry.category)) return false;

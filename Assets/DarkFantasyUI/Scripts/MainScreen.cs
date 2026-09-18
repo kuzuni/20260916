@@ -153,7 +153,7 @@ namespace Moonlit.UI
             int index=System.Array.IndexOf(equipment,slot);
             if(index>=6){Toast(new[]{"엠블렘","날개","정령"}[index-6]+" · 기능 준비 중");return;}
             if(slot.item == null) { Toast("아직 장착한 장비가 없습니다. 모루를 눌러 제작하세요."); return; }
-            inspected=slot; slot.SetSelected(true); slot.SetNotification(false);
+            inspected=slot; slot.SetSelected(false); slot.SetNotification(false);
             screens.Open("equipment-details", slot);
         }
 
@@ -167,7 +167,7 @@ namespace Moonlit.UI
         // Retained for the unsupplied quest route only.
         void InspectLegacy(EquipmentSlot slot)
         {
-            Close(); inspected=slot; slot.SetSelected(true); slot.SetNotification(false);
+            Close(); inspected=slot; slot.SetSelected(false); slot.SetNotification(false);
             var p=Modal(slot.item.displayName,680);
             Ui.Text("Rarity",p,36,84,668,42,slot.item.rarity==ItemRarity.Companion ? "동료  ·  달빛의 수호자" : "전설  ·  장착 중",24,font,Ui.Gold);
             var frame=Ui.Image("Preview frame",p,270,145,200,200,slot.frame.sprite,slot.frame.color);

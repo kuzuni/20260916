@@ -284,12 +284,13 @@ namespace Moonlit.UI.Tests
             }
         }
 
-        [UnityTest]
-        public IEnumerator SkillCooldownCountdownResetsOnlyWhenTheDueSkillImpacts()
+        [TestCase(0)]
+        [TestCase(1)]
+        public void SkillCooldownCountdownResetsOnlyWhenFoodPulsesFinish(int tier)
         {
             using(var fixture=new Fixture())
             {
-                var skill=new CombatSkill {tier=0,variant=0,cooldown=3,heal=20};
+                var skill=new CombatSkill {tier=tier,variant=0,cooldown=3,heal=20};
                 var state=new CombatActorState(new CombatStats(),new System.Collections.Generic.List<CombatSkill>{skill});
                 typeof(BattleRuntime).GetProperty("PlayerState").SetValue(fixture.battle,state);
                 Assert.AreEqual(3,fixture.battle.PlayerSkillTurnsUntilReady(0));
@@ -301,10 +302,19 @@ namespace Moonlit.UI.Tests
                     .Invoke(fixture.battle,new object[]{true});
                 Assert.IsTrue(turn.MoveNext());
                 Assert.AreEqual(0,fixture.battle.PlayerSkillTurnsUntilReady(0),"Buff is due while its animation is pending.");
-                var action=(IEnumerator)turn.Current; Assert.IsTrue(action.MoveNext());
+                var buff=(IEnumerator)turn.Current; Assert.IsTrue(buff.MoveNext());
+                var action=(IEnumerator)buff.Current; Assert.IsTrue(action.MoveNext());
                 var animator=(Animator)typeof(BattleRuntime).GetField("playerAnimator",PrivateInstance).GetValue(fixture.battle);
                 animator.Update(0);animator.Update(.31f);
-                Assert.AreEqual(60,state.Health,"The Animator event healed once.");
+                Assert.AreEqual(40,state.Health,"The early Animator event only arms healing after three food pulses.");
+                var healingSequence=(CombatComboSequence)typeof(BattleRuntime).GetField("activeCombo",PrivateInstance).GetValue(fixture.battle);
+                healingSequence.Advance(SkillChoreography.BuffHealTime(tier)-.3f-.01f);
+                Assert.AreEqual(40,state.Health); Assert.AreEqual(0,fixture.battle.PlayerSkillActivationCount(0));
+                healingSequence.Advance(.011f);
+                Assert.AreEqual(60,state.Health,"The completed food pulses heal once when the green aura appears.");
+                Assert.IsTrue(healingSequence.Pending,"Hold the actor until its body aura finishes.");
+                healingSequence.Advance(SkillChoreography.BuffDuration(tier));
+                Assert.IsFalse(healingSequence.Pending);
                 var amount=fixture.battle.PlayerHud.transform.parent.Find("Player damage number").GetComponentInChildren<UnityEngine.UI.Text>();
                 Assert.AreEqual("+20",amount.text);
                 Assert.AreEqual(new Color(.4f,1,.55f),amount.color);
@@ -316,9 +326,35 @@ namespace Moonlit.UI.Tests
                 Assert.AreEqual(3,fixture.battle.PlayerSkillTurnsUntilReady(0));
                 Assert.AreEqual(-1,fixture.battle.PlayerSkillTurnsUntilReady(1));
             }
-            yield return null;
         }
 
+
+        [TestCase(0)]
+        [TestCase(1)]
+        public void FoodBuffCannotHealOrBoostADeadOrReplacedActor(int tier)
+        {
+            using (var fixture = new Fixture())
+            {
+                var actor = new CombatActorState(new CombatStats { health = 100 });
+                actor.Damage(40);
+                typeof(BattleRuntime).GetProperty("PlayerState").SetValue(fixture.battle, actor);
+                var buff = (IEnumerator)typeof(BattleRuntime).GetMethod("BuffAction", PrivateInstance)
+                    .Invoke(fixture.battle, new object[] { true, new CombatSkill { tier = tier, variant = 0, heal = 25, attackBoost = 30 } });
+                buff.MoveNext(); ((IEnumerator)buff.Current).MoveNext();
+                var animator = (Animator)typeof(BattleRuntime).GetField("playerAnimator", PrivateInstance).GetValue(fixture.battle);
+                animator.Update(0); animator.Update(.31f);
+                var sequence = (CombatComboSequence)typeof(BattleRuntime).GetField("activeCombo", PrivateInstance).GetValue(fixture.battle);
+                Assert.AreEqual(0, sequence.ResolvedHits);
+                actor.Damage(100);
+                sequence.Advance(10);
+                Assert.IsTrue(sequence.Cancelled); Assert.AreEqual(0, sequence.ResolvedHits);
+                Assert.AreEqual(0, actor.Health); Assert.AreEqual(0, actor.AttackBoost);
+                var replacement = new CombatActorState(new CombatStats { health = 100 });
+                typeof(BattleRuntime).GetProperty("PlayerState").SetValue(fixture.battle, replacement);
+                sequence.Advance(10);
+                Assert.AreEqual(100, replacement.Health); Assert.AreEqual(0, replacement.AttackBoost);
+            }
+        }
 
         [Test]
         public void WaveTransitionsPreserveHealthPositionBuffAndSkillPhaseUntilStageReset()
@@ -397,7 +433,13 @@ namespace Moonlit.UI.Tests
                 animator.Update(0); animator.Update(impactTime - .01f);
                 Assert.AreEqual(100, victim.Health); Assert.IsFalse(flash.IsFlashing);
                 animator.Update(.02f);
-                double afterFirstHit = evade ? 100 : 100 - (variant == 0 ? 10 : 10d / (variant == 1 ? 3 : 5));
+                if (variant > 0)
+                {
+                    Assert.AreEqual(100, victim.Health, "The early event must not hit during ring formation or the lob.");
+                    var sequence = (CombatComboSequence)typeof(BattleRuntime).GetField("activeCombo", PrivateInstance).GetValue(fixture.battle);
+                    sequence.Advance(SkillChoreography.HitTimes(0, variant)[0] - SkillChoreography.AttackLead + .000001f);
+                }
+                double afterFirstHit = evade ? 100 : 100 - (variant == 0 ? 10 : 10d / SkillChoreography.HitTimes(0, variant).Length);
                 Assert.AreEqual(afterFirstHit, victim.Health, .000001);
                 Assert.AreEqual(!evade, flash.IsFlashing);
                 var fragments = effects.GetComponentsInChildren<ParticleSystem>();
@@ -433,6 +475,40 @@ namespace Moonlit.UI.Tests
         }
 
 
+        [TestCase(0)]
+        [TestCase(1)]
+        public void EarlyWeakSkillActualContactUsesTheDoubledVictimsHead(int tier)
+        {
+            using (var fixture = new Fixture())
+            {
+                typeof(BattleRuntime).GetProperty("PlayerState").SetValue(fixture.battle,
+                    new CombatActorState(new CombatStats { health = 100 }));
+                typeof(BattleRuntime).GetProperty("EnemyState").SetValue(fixture.battle,
+                    new CombatActorState(new CombatStats { health = 100 }));
+                var motion = fixture.battle.EnemyHud.Actor.Find("Motion");
+                var head = motion.GetComponentsInChildren<SpriteRenderer>().First(r => r.sprite && r.sprite.name == "머리");
+                Vector3 legacyPoint = motion.position + Vector3.up * 2.4f;
+                Vector3 resolvedTarget = PrimitiveSkillEffects.FocusedTarget(motion, legacyPoint);
+                Assert.AreEqual(head.bounds.center.y, resolvedTarget.y + .5f, .0001f);
+                Assert.AreEqual(head.bounds.center.x, resolvedTarget.x, .0001f);
+                var strike = (IEnumerator)typeof(BattleRuntime).GetMethod("StrikeTier", PrivateInstance)
+                    .Invoke(fixture.battle, new object[] { true, 16d, true, 1, tier });
+                strike.MoveNext(); ((IEnumerator)strike.Current).MoveNext();
+                var animator = (Animator)typeof(BattleRuntime).GetField("playerAnimator", PrivateInstance).GetValue(fixture.battle);
+                animator.Update(0); animator.Update(SkillChoreography.AttackLead + .001f);
+                var combo = (CombatComboSequence)typeof(BattleRuntime).GetField("activeCombo", PrivateInstance).GetValue(fixture.battle);
+                combo.Advance(SkillChoreography.HitTimes(tier, 1)[0] - SkillChoreography.AttackLead + .000001f);
+                var effects = (PrimitiveSkillEffects)typeof(BattleRuntime).GetField("effects", PrivateInstance).GetValue(fixture.battle);
+                var contact = effects.transform.Find("Skill contact " + tier + " 1 hit 0");
+                Assert.IsNotNull(contact);
+                var spark = contact.GetComponentInChildren<SpriteRenderer>();
+                Assert.AreEqual(head.bounds.center.x, spark.transform.position.x, .0001f);
+                Assert.AreEqual(head.bounds.center.y, spark.transform.position.y, .0001f,
+                    "The real damage contact must reach the actual doubled head, not the old body-height point.");
+                Assert.AreEqual(1, combo.ResolvedHits);
+            }
+        }
+
         static System.Collections.Generic.IEnumerable<object[]> AllAttackChoreographies()
         {
             for (int tier = 0; tier < 10; tier++)
@@ -440,7 +516,7 @@ namespace Moonlit.UI.Tests
                     yield return new object[] { tier, variant };
         }
         [TestCaseSource(nameof(AllAttackChoreographies))]
-        public void RealAnimatorStartsOneComboAndAwaitsAllThreeOrFiveHits(int tier, int variant)
+        public void RealAnimatorArmsAuthoredHitCountAndWaitsForEveryActualContact(int tier, int variant)
         {
             using (var fixture = new Fixture())
             {
@@ -454,7 +530,8 @@ namespace Moonlit.UI.Tests
                 var animator = (Animator)typeof(BattleRuntime).GetField("playerAnimator", PrivateInstance).GetValue(fixture.battle);
                 var relay = (CombatAnimationRelay)typeof(BattleRuntime).GetField("playerRelay", PrivateInstance).GetValue(fixture.battle);
                 double total = variant == 1 ? 101 : 97.2;
-                int count = variant == 1 ? 3 : 5;
+                int count = tier < 2 ? (variant == 2 ? 1 : tier == 0 ? 8 : 5) : variant == 1 ? 3 : 5;
+                Assert.AreEqual(count, SkillChoreography.HitTimes(tier, variant).Length, "The supplied early-era hit counts must not silently inherit later-era defaults.");
                 var strike = (IEnumerator)typeof(BattleRuntime).GetMethod("StrikeTier", PrivateInstance)
                     .Invoke(fixture.battle, new object[] { true, total, true, variant, tier });
                 Assert.IsTrue(strike.MoveNext());
@@ -465,20 +542,21 @@ namespace Moonlit.UI.Tests
                 animator.Update(.02f);
                 var combo = (CombatComboSequence)typeof(BattleRuntime).GetField("activeCombo", PrivateInstance).GetValue(fixture.battle);
                 Assert.AreEqual(count, combo.HitCount);
-                Assert.AreEqual(1, combo.ResolvedHits);
-                Assert.AreEqual(1000 - total / count * 1.15, target.Health, .000001);
-                Assert.AreEqual(1, fixture.battle.PlayerSkillActivationCount(0));
-                Assert.IsTrue(animation.MoveNext(), "The action must wait beyond its clip while later hits remain.");
                 var times = SkillChoreography.HitTimes(tier, variant);
-                float previous = 0;
-                for (int hit = 1; hit < count; hit++)
+                int atEvent = times[0] <= SkillChoreography.AttackLead ? 1 : 0;
+                Assert.AreEqual(atEvent, combo.ResolvedHits);
+                Assert.AreEqual(1000 - total / count * 1.15 * atEvent, target.Health, .000001);
+                Assert.AreEqual(1, fixture.battle.PlayerSkillActivationCount(0));
+                Assert.IsTrue(animation.MoveNext(), "The action must wait beyond its clip while contacts remain.");
+                float previous = SkillChoreography.AttackLead;
+                for (int hit = atEvent; hit < count; hit++)
                 {
                     double health = target.Health;
                     relay.OnCombatImpact(variant + 1);
                     Assert.AreEqual(health, target.Health, "A duplicate clip event cannot create another combo or hit.");
                     float gap = times[hit] - previous;
                     combo.Advance(gap * .5f);
-                    Assert.AreEqual(hit, combo.ResolvedHits, "No damage during the authored anticipation interval.");
+                    Assert.AreEqual(hit, combo.ResolvedHits, "No damage during formation, flight, or the interval between contacts.");
                     combo.Advance(gap * .5f + .000001f);
                     Assert.AreEqual(hit + 1, combo.ResolvedHits);
                     previous = times[hit];
@@ -512,8 +590,9 @@ namespace Moonlit.UI.Tests
                 var animator = (Animator)typeof(BattleRuntime).GetField("playerAnimator", PrivateInstance).GetValue(fixture.battle);
                 animator.Update(0); animator.Update(PrimitiveSkillEffects.AttackFlightDuration + .01f);
                 var combo = (CombatComboSequence)typeof(BattleRuntime).GetField("activeCombo", PrivateInstance).GetValue(fixture.battle);
+                combo.Advance(SkillChoreography.HitTimes(0, variant)[0] - SkillChoreography.AttackLead + .000001f);
                 Assert.AreEqual(1, combo.ResolvedHits);
-                Assert.IsTrue(combo.Cancelled); Assert.IsFalse(combo.Pending);
+                Assert.AreEqual(variant == 1, combo.Cancelled, "Only an unfinished multihit sequence is cancelled; a lethal single hit has completed."); Assert.IsFalse(combo.Pending);
                 Assert.AreEqual(0, victim.Health); Assert.AreEqual(51, attacker.Health, "Overkill cannot grant excess healing.");
                 var nextEnemy = new CombatActorState(new CombatStats { health = 200 });
                 typeof(BattleRuntime).GetProperty("EnemyState").SetValue(fixture.battle, nextEnemy);
@@ -555,9 +634,9 @@ namespace Moonlit.UI.Tests
                 var animator = (Animator)typeof(BattleRuntime).GetField("playerAnimator", PrivateInstance).GetValue(fixture.battle);
                 animator.Update(0); animator.Update(PrimitiveSkillEffects.AttackFlightDuration + .01f);
                 var combo = (CombatComboSequence)typeof(BattleRuntime).GetField("activeCombo", PrivateInstance).GetValue(fixture.battle);
-                Assert.IsTrue(combo.Pending); Assert.AreEqual(90, target.Health);
+                Assert.IsTrue(combo.Pending); Assert.AreEqual(100, target.Health, "An armed bone ring has not launched any hits yet.");
                 fixture.battle.enabled = false; combo.Advance(10);
-                Assert.IsTrue(combo.Cancelled); Assert.AreEqual(90, target.Health);
+                Assert.IsTrue(combo.Cancelled); Assert.AreEqual(100, target.Health);
             }
         }
 

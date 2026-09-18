@@ -131,36 +131,33 @@ namespace Moonlit.UI.Tests
                 Assert.IsNotNull(sprite);Assert.Less(sprite.transform.position.x,1);
                 actor.transform.position=Vector3.right*3;
                 yield return null;
-                Assert.Greater(sprite.transform.position.x,3,"The eating buff must travel with the actor walking in.");
+                Assert.AreEqual(3,sprite.transform.position.x,.001f,"The overhead food must travel with the actor walking in.");
             }
             finally { UnityEngine.Object.DestroyImmediate(root);UnityEngine.Object.DestroyImmediate(actor); }
         }
 
         [UnityTest]
-        public IEnumerator IllustratedStoneImpactUsesSpriteTextureInsteadOfWhiteSquareParticles()
+        public IEnumerator SingleRockImpactUsesActualTextureMeshFragmentsInsteadOfWholeRockClones()
         {
-            var root = new GameObject("Illustrated VFX fixture");
-            try
-            {
-                var effects = root.AddComponent<PrimitiveSkillEffects>();
+            var root=new GameObject("Actual rock fragment fixture");
+            try {
+                var effects=root.AddComponent<PrimitiveSkillEffects>();
                 effects.Initialize(Resources.Load<BattleAssetCatalog>("Moonlit/Combat/BattleAssets"));
-                effects.Play(0,1,Vector3.zero,Vector3.right*3);
-                var trail=root.GetComponentInChildren<TrailRenderer>();
-                Assert.AreEqual(.48f,trail.startWidth,.001f);
-                Assert.AreEqual(.5f,trail.time,.001f);
-                yield return new WaitForSeconds(PrimitiveSkillEffects.AttackFlightDuration+.03f);
-                var particles = root.GetComponentInChildren<ParticleSystem>();
-                Assert.IsNotNull(particles);
-                Assert.AreEqual(2.64f,particles.main.startSize.constant,.001f,"Stone fragments are three times the previous .88 size.");
-                var sheet = particles.textureSheetAnimation;
-                Assert.IsTrue(sheet.enabled);
-                Assert.AreEqual(ParticleSystemAnimationMode.Sprites,sheet.mode);
-                var art = PrimitiveSkillEffects.SkillSprite(0,1);
-                Assert.AreSame(art,sheet.GetSprite(0));
-                Assert.AreSame(art.texture,particles.GetComponent<ParticleSystemRenderer>().sharedMaterial.mainTexture);
-                Assert.AreEqual(30,particles.gameObject.layer);
-            }
-            finally { UnityEngine.Object.DestroyImmediate(root); }
+                effects.Play(0,2,Vector3.zero,Vector3.right*3);
+                effects.EarlyPlaybackTimeOverride=1.07f;
+                yield return null;yield return null;
+                var impact=root.transform.Find("Skill contact 0 2 hit 0");
+                Assert.IsNotNull(impact);
+                var fragments=impact.GetComponentsInChildren<MeshRenderer>();
+                Assert.AreEqual(6,fragments.Length);
+                Assert.IsEmpty(impact.GetComponentsInChildren<SpriteRenderer>(),"Each piece must be a cut mesh, never a scaled whole rock.");
+                var art=PrimitiveSkillEffects.SkillSprite(0,2);
+                foreach(var piece in fragments) {
+                    Assert.AreSame(art.texture,piece.sharedMaterial.mainTexture);
+                    Assert.Greater(piece.GetComponent<MeshFilter>().sharedMesh.triangles.Length,0);
+                    Assert.AreEqual(30,piece.gameObject.layer);
+                }
+            } finally {UnityEngine.Object.DestroyImmediate(root);}
         }
     }
 }

@@ -11,6 +11,7 @@ namespace Moonlit.UI
         readonly Func<bool> canContinue;
         readonly Action<int, double> impact;
         readonly Action<bool> stopped;
+        readonly float completionTime;
         float elapsed;
         public int ResolvedHits { get; private set; }
         public int HitCount => hitTimes.Length;
@@ -18,18 +19,34 @@ namespace Moonlit.UI
         public bool Cancelled { get; private set; }
 
         public CombatComboSequence(double totalDamage, float[] times, Func<bool> canContinue,
-            Action<int, double> impact, Action<bool> stopped = null)
+            Action<int, double> impact, Action<bool> stopped = null, float completionTime = -1)
         {
-            if (times == null || times.Length == 0 || times[0] != 0)
-                throw new ArgumentException("A combo needs its first impact at zero.", nameof(times));
+            if (times == null || times.Length == 0 || times[0] < 0 || float.IsNaN(times[0]) || float.IsInfinity(times[0]))
+                throw new ArgumentException("A combo needs a finite, nonnegative first impact time.", nameof(times));
             for (int i = 1; i < times.Length; i++)
                 if (float.IsNaN(times[i]) || float.IsInfinity(times[i]) || times[i] <= times[i - 1])
                     throw new ArgumentException("Combo impacts must have strictly increasing finite times.", nameof(times));
             hitTimes = (float[])times.Clone();
+            this.completionTime = completionTime < 0 ? hitTimes[hitTimes.Length - 1] : completionTime;
+            if (float.IsNaN(this.completionTime) || float.IsInfinity(this.completionTime) || this.completionTime < hitTimes[hitTimes.Length - 1])
+                throw new ArgumentException("Completion cannot precede the last impact.", nameof(completionTime));
             this.totalDamage = Math.Max(0, totalDamage);
             this.canContinue = canContinue ?? throw new ArgumentNullException(nameof(canContinue));
             this.impact = impact ?? throw new ArgumentNullException(nameof(impact));
             this.stopped = stopped;
+        }
+        // Animator events authorize the action; visual contact times remain relative to motion start.
+        public static float[] TimesAfterEvent(float[] motionTimes, float eventTime)
+        {
+            if (motionTimes == null) throw new ArgumentNullException(nameof(motionTimes));
+            var relative = new float[motionTimes.Length];
+            for (int i = 0; i < relative.Length; i++)
+            {
+                if (motionTimes[i] < eventTime - .00001f)
+                    throw new ArgumentException("A contact cannot precede its authorizing Animator event.", nameof(motionTimes));
+                relative[i] = Math.Max(0, motionTimes[i] - eventTime);
+            }
+            return relative;
         }
         public static double DamageForHit(double total, int hitIndex, int hitCount)
         {
@@ -49,8 +66,8 @@ namespace Moonlit.UI
                 impact(index, DamageForHit(totalDamage, index, hitTimes.Length));
                 if (!Pending) return;
                 if (!canContinue() && ResolvedHits < hitTimes.Length) { Cancel(); return; }
-                if (ResolvedHits == hitTimes.Length) Finish(false);
             }
+            if (Pending && ResolvedHits == hitTimes.Length && elapsed >= completionTime) Finish(false);
         }
         public void Cancel() { if (Pending) Finish(true); }
         void Finish(bool cancelled)

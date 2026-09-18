@@ -1,0 +1,8 @@
+{
+  "tool": "built-in image_gen",
+  "prompt": "Use case: stylized-concept. Asset type: one transparent PNG sprite for a side-view 2D cartoon medieval arrow skill in Unity. Generate EXACTLY ONE complete arrow, horizontal, arrowhead points RIGHT, feather fletching at LEFT, long straight wooden shaft. Bold clean black outline, simple cel-shaded warm brown wood, silver triangular steel arrowhead, cream feather fletching; playful chunky cartoon matching the reference chihuahua game's thick black outlines and flat readable colors. Use the reference ONLY for drawing style, do not depict the dog or its parts. Isolated one object centered with modest transparent padding, full arrow visible. True transparent alpha background. No bow, no quiver, no multiple arrows, no particles, no glow, no trail, no frame, no text, no shadow, no scene. Horizontal silhouette optimized to rotate along curved paths.",
+  "source": "C:/Users/user/.codex/generated_images/01a0b1a5-dba9-7ea0-9853-ffb90a4b9f17/exec-08fe70b4-6287-476f-9466-b009a6536a75.png",
+  "asset": "Assets/DarkFantasyUI/Resources/Moonlit/Combat/Skills/Focused/Arrow-v1.png",
+  "imageEdits": "None; original PNG bytes preserved",
+  "orientation": "Horizontal shaft, point right; rotate sprite to flight tangent"
+}

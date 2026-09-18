@@ -351,12 +351,17 @@ namespace Moonlit.UI.Tests
             slot.starLabel=Ui.Text("Star",go.transform,0,138,148,28,"",24,assets.font);
             slot.lockedBadge=Ui.Rect("Locked",go.transform,0,0,20,20).gameObject;
             slot.notificationBadge=Ui.Rect("Notification",go.transform,0,0,20,20).gameObject;
+            slot.selection=Ui.Rect("Selection",go.transform,0,0,148,148).gameObject;
             var definition=ScriptableObject.CreateInstance<ItemDefinition>();
             try {
                 ForgeState.Current.ascension=3;
                 foreach(int ascension in new[]{0,1,3}) {
                     slot.roll=new EquipmentRoll {id=1,ascension=ascension};
                     slot.Bind(definition,1);
+                    var rarityColor=slot.frame.color;
+                    slot.SetSelected(true);slot.Button.onClick.Invoke();
+                    Assert.IsFalse(slot.selection.activeSelf,"Inspecting equipment must not enable the green selection frame.");
+                    Assert.AreEqual(rarityColor,slot.frame.color);
                     Assert.AreEqual(ascension>0,slot.starLabel.gameObject.activeSelf);
                     Assert.AreEqual(ascension>0?EquipmentRules.AscensionStars(ascension):"",slot.starLabel.text);
                 }
