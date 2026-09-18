@@ -13,7 +13,7 @@ namespace Moonlit.UI
             registry.Register("wallet",ScreenPresentation.Modal,Wallet,false);
         }
         static Sprite hammer;
-        static Sprite HammerArt {
+        public static Sprite HammerArt {
             get {
                 if(hammer)return hammer;
                 var t=Resources.Load<Texture2D>("Moonlit/Forge/RewardHammer-v1");

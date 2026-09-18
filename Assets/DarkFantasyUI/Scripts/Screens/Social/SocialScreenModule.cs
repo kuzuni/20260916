@@ -493,9 +493,9 @@ namespace Moonlit.UI
             Ui.Image("Ribbon",card.transform,0,10,430,52,PopupSkin.RibbonArt,new Color(1,.22f,.16f));
             Ui.Text("Title", card.transform, 20, 2, 390, 56, title, 31, Font(c), Ui.Ivory, TextAnchor.MiddleLeft);
             var ticket=Resources.Load<Sprite>("Moonlit/Skills/SummonTicket-v1");
-            Sprite[] icons = artIndex==0 ? new[]{Icon(c,0),PopupSkin.RewardIcon(0),ticket,ticket,ticket,Icon(c,1)}
-                : artIndex==1 ? new[]{ticket,PopupSkin.RewardIcon(0),Icon(c,1)}
-                : new[]{PopupSkin.RewardIcon(5),PopupSkin.RewardIcon(3),PopupSkin.RewardIcon(2),PopupSkin.RewardIcon(4)};
+            Sprite[] icons = artIndex==0 ? new[]{Icon(c,0),RewardsScreenModule.HammerArt,ticket,ticket,ticket,Icon(c,1)}
+                : artIndex==1 ? new[]{ticket,RewardsScreenModule.HammerArt,Icon(c,1)}
+                : new[]{PopupSkin.RewardIcon(5),PopupSkin.RewardIcon(2),PopupSkin.RewardIcon(4),PopupSkin.RewardIcon(3)};
             string[] values=artIndex==0 ? new[]{"골드 1,000","망치 50","스킬권 200","펫권 50","탈것권 50","다이아 62"}
                 : artIndex==1 ? new[]{"펫권 660","망치 200","다이아 20"} : new[]{"망치 키 2","유령 키 2","침략 키 2","좀비 키 2"};
             for(int i=0;i<icons.Length;i++)
