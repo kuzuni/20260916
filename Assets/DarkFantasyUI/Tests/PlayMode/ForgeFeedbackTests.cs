@@ -59,6 +59,8 @@ namespace Moonlit.UI.Tests
 
         [Test] public void CollectionUpgradeUsesSameFeedbackAndOrdinaryToastRemainsIndependent()
         {
+            ForgeState.Current.equipped[0] = new EquipmentRoll { id = 1, part = EquipmentPart.Armor, level = 1 };
+            ForgeState.Current.equipped[5] = new EquipmentRoll { id = 2, part = EquipmentPart.Weapon, level = 1 };
             main.Refresh();
             var entry = CollectionProgression.Data.categories[0].entries[0];
             entry.unlocked = true; entry.fragments = 5;
