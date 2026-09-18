@@ -86,6 +86,8 @@ jobs:
             Assets/DarkFantasyUI/Resources/Moonlit/Companions*
             Assets/DarkFantasyUI/Resources/Moonlit/CompanionParts*
             Assets/DarkFantasyUI/Resources/Moonlit/Forge/CelestialThumbnails*
+            Assets/Art/ChihuahuaEquipmentThemes/Reference/Player.prefab
+            Assets/Art/ChihuahuaEquipmentThemes/Reference/Player.prefab.meta
           if-no-files-found: warn
 
   screenshots:
@@ -200,3 +202,4 @@ jobs:
           name: moonlit-evidence-skills-late-9x19
           path: Artifacts/Runtime-skill-[5-9]-*-9x19.png
           if-no-files-found: error
+
