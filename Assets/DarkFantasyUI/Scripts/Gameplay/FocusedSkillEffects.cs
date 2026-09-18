@@ -6,6 +6,27 @@ namespace Moonlit.UI
     public sealed partial class PrimitiveSkillEffects
     {
         public float EarlyPlaybackTimeOverride { get; set; } = -1;
+        readonly System.Collections.Generic.List<Object> focusedAssets=new System.Collections.Generic.List<Object>();
+        static bool FocusedHeadBounds(Transform motion,out Bounds bounds)
+        {
+            if(motion)foreach(var renderer in motion.GetComponentsInChildren<SpriteRenderer>())
+                if(renderer.enabled&&renderer.sprite&&renderer.sprite.name=="머리"){bounds=renderer.bounds;return true;}
+            bounds=default;return false;
+        }
+        public static Vector3 FocusedTarget(Transform motion,Vector3 bodyPoint)
+        {
+            if(!FocusedHeadBounds(motion,out var head))return bodyPoint;
+            return new Vector3(head.center.x,head.center.y-.5f,bodyPoint.z);
+        }
+        void ReleaseFocusedAsset(Object asset)
+        {
+            focusedAssets.Remove(asset);if(asset)Destroy(asset);
+        }
+        void ClearFocusedAssets()
+        {
+            foreach(var asset in focusedAssets)if(asset)Destroy(asset);
+            focusedAssets.Clear();
+        }
         IEnumerator AnimateEarly(int tier,int variant,Vector3 source,Vector3 target,Transform sourceAnchor,Transform targetAnchor,bool preview)
         {
             var art=Art(tier,variant);if(!art)yield break;
@@ -22,14 +43,21 @@ namespace Moonlit.UI
             float[] arrivals=SkillChoreography.HitTimes(tier,variant);
             float end=variant==0?SixSkillChoreography.BuffEnd:arrivals[arrivals.Length-1]+.03f;
             int next=0;bool aura=false;
-            for(float time=0;time<=end;time+=Time.deltaTime) {
-                if(EarlyPlaybackTimeOverride>=0)time=EarlyPlaybackTimeOverride;
+            for(float elapsed=0;;elapsed+=Time.deltaTime) {
+                float time=EarlyPlaybackTimeOverride>=0?EarlyPlaybackTimeOverride:elapsed;
+                if(EarlyPlaybackTimeOverride<0&&time>end)break;
                 if(version!=generation||!root)yield break;
                 if(sourceAnchor)source=sourceAnchor.position+sourceOffset;
-                if(targetAnchor)target=targetAnchor.position+targetOffset;
+                if(targetAnchor)target=FocusedTarget(targetAnchor,targetAnchor.position+targetOffset);
                 PlaybackElapsed=time;
                 if(variant==0) {
-                    var pose=SixSkillChoreography.Food(source,time);Pose(objects[0],pose,1.65f);
+                    var pose=SixSkillChoreography.Food(source,time);
+                    if(FocusedHeadBounds(sourceAnchor,out var head)) {
+                        float halfHeight=1.65f*1.28f*art.bounds.size.y/Mathf.Max(art.bounds.size.x,art.bounds.size.y)/2;
+                        var overhead=new Vector3(head.center.x,head.max.y+.3f+halfHeight,source.z-1);
+                        pose=new SkillVisualPose(overhead,pose.rotation,pose.scale.x,pose.scale.y,pose.alpha);
+                    }
+                    Pose(objects[0],pose,1.65f);
                     objects[0].enabled=time<SixSkillChoreography.FoodVanishTime;
                     if(!aura&&time>=SixSkillChoreography.FoodVanishTime) {
                         aura=true;StartCoroutine(GreenHealingAura(source,sourceAnchor,sourceOffset));
@@ -114,7 +142,8 @@ namespace Moonlit.UI
             const int pieces=6;
             float scale=3.3f/Mathf.Max(art.bounds.size.x,art.bounds.size.y);
             var transforms=new Transform[pieces];var centres=new Vector2[pieces];
-            var material=new Material(catalog.effectMaterial);material.mainTexture=art.texture;Destroy(material,1.1f);
+            var material=new Material(catalog.effectMaterial);material.mainTexture=art.texture;focusedAssets.Add(material);
+            var meshes=new System.Collections.Generic.List<Mesh>();
             for(int piece=0;piece<pieces;piece++) {
                 var triangles=new System.Collections.Generic.List<int>();
                 Vector2 centre=Vector2.zero;int count=0;
@@ -134,7 +163,7 @@ namespace Moonlit.UI
                 mesh.vertices=positions;mesh.uv=uv;mesh.colors=colors;mesh.SetTriangles(triangles,0);mesh.RecalculateBounds();
                 go.GetComponent<MeshFilter>().sharedMesh=mesh;
                 var renderer=go.GetComponent<MeshRenderer>();renderer.sharedMaterial=material;renderer.sortingOrder=155;
-                Destroy(mesh,1.1f);
+                meshes.Add(mesh);focusedAssets.Add(mesh);
             }
             for(float elapsed=0;;elapsed+=Time.deltaTime) {
                 if(!root)yield break;
@@ -151,7 +180,8 @@ namespace Moonlit.UI
                 material.color=new Color(1,1,1,1-p);
                 yield return null;
             }
-            Destroy(material);if(root)Destroy(root);
+            ReleaseFocusedAsset(material);foreach(var mesh in meshes)ReleaseFocusedAsset(mesh);
+            if(root)Destroy(root);
         }
     }
 }

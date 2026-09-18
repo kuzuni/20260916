@@ -39,7 +39,7 @@ namespace Moonlit.UI
         {
             generation++;IsPlaying=false;StopAllCoroutines();
             foreach(var item in owned)if(item)Destroy(item);
-            owned.Clear();playbacks.Clear();
+            owned.Clear();playbacks.Clear();ClearFocusedAssets();
         }
         public void CancelSkillPlayback()
         {

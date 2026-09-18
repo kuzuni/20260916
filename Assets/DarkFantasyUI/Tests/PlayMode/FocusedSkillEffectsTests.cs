@@ -58,6 +58,17 @@ namespace Moonlit.UI.Tests
             }
         }
         [Test]
+        public void RockRisesFastSlowsAtItsApexAndAcceleratesIntoItsOneImpact()
+        {
+            float fastRise=SixSkillChoreography.LobProgress(.2f)-SixSkillChoreography.LobProgress(0);
+            float apexDrift=SixSkillChoreography.LobProgress(.5f)-SixSkillChoreography.LobProgress(.4f);
+            float earlyFall=SixSkillChoreography.LobProgress(.8f)-SixSkillChoreography.LobProgress(.7f);
+            float lastFall=SixSkillChoreography.LobProgress(1)-SixSkillChoreography.LobProgress(.9f);
+            Assert.Greater(fastRise,.4f);Assert.Less(apexDrift,.025f);
+            Assert.Greater(lastFall,earlyFall*3);
+            Assert.AreEqual(1,SixSkillChoreography.LobProgress(1),.0001f);
+        }
+        [Test]
         public void FiveArrowsAreIndividualCurvedFlightsRatherThanOneFiveArrowImage()
         {
             Assert.AreEqual(1,Enumerable.Range(0,5).Count(i=>SixSkillChoreography.Arrow(Source,Target,i,.25f).alpha>0));
@@ -70,6 +81,57 @@ namespace Moonlit.UI.Tests
                 Assert.Less(Vector3.Distance(end.position,SixSkillChoreography.Head(Target)+Vector3.back),.001f);
                 Assert.AreEqual(0,SixSkillChoreography.Arrow(Source,Target,i,arrival+.01f).alpha);
             }
+        }
+        [UnityTest]
+        public IEnumerator FoodStaysAboveTheActualDoubledHeadWhileTheAuraStaysOnTheBody()
+        {
+            var root=new GameObject("Actual focused head fixture");
+            Sprite headSprite=null;
+            try {
+                var motion=new GameObject("Motion").transform;motion.SetParent(root.transform);
+                motion.position=new Vector3(-3,0,0);
+                var headObject=new GameObject("Head sprite",typeof(SpriteRenderer));headObject.transform.SetParent(motion,false);
+                headObject.transform.localPosition=Vector3.up*4.35f;headObject.transform.localScale=Vector3.one*1.5f;
+                headSprite=Sprite.Create(Texture2D.whiteTexture,new Rect(0,0,1,1),Vector2.one*.5f,1);
+                headSprite.name="머리";var head=headObject.GetComponent<SpriteRenderer>();head.sprite=headSprite;
+                var effects=root.AddComponent<PrimitiveSkillEffects>();
+                effects.Initialize(Resources.Load<BattleAssetCatalog>("Moonlit/Combat/BattleAssets"));
+                Vector3 body=motion.position+Vector3.up*2.4f;
+                Assert.AreEqual(5.1f,head.bounds.max.y,.001f);
+                Assert.Less(Vector3.Distance(head.bounds.center,SixSkillChoreography.Head(PrimitiveSkillEffects.FocusedTarget(motion,body))),.001f);
+                effects.Play(0,0,body,Target,motion,null,false);effects.EarlyPlaybackTimeOverride=.2f;
+                yield return null;yield return null;
+                var food=root.transform.Find("Primitive ancestral blessing/Overhead food").GetComponent<SpriteRenderer>();
+                Assert.GreaterOrEqual(food.bounds.min.y,head.bounds.max.y+.29f,"Peak food size must still leave a gap above the actual head.");
+                motion.position+=Vector3.right*2;
+                yield return null;yield return null;
+                Assert.AreEqual(head.bounds.center.x,food.bounds.center.x,.001f);
+                effects.EarlyPlaybackTimeOverride=1.3f;yield return null;yield return null;
+                var aura=root.transform.Find("Green healing body aura/Healing body glow");
+                Assert.IsNotNull(aura);Assert.AreEqual(motion.position.y+1.8f,aura.position.y,.001f);
+            } finally {Object.DestroyImmediate(root);if(headSprite)Object.DestroyImmediate(headSprite);}
+        }
+        [UnityTest]
+        public IEnumerator PausedLastFrameAndRockFragmentsSurviveUntilExplicitCleanup()
+        {
+            var root=new GameObject("Stable late focused capture");
+            try {
+                var effects=root.AddComponent<PrimitiveSkillEffects>();
+                effects.Initialize(Resources.Load<BattleAssetCatalog>("Moonlit/Combat/BattleAssets"));
+                effects.Play(0,2,Source,Target,null,null,true);
+                effects.EarlyPlaybackTimeOverride=1.07f;
+                yield return null;yield return null;
+                Assert.IsNotNull(root.transform.Find("Primitive falling boulder"),"A seek beyond the flight must not discard its playback on a slow frame.");
+                var impact=root.transform.Find("Skill contact 0 2 hit 0");Assert.IsNotNull(impact);
+                var meshes=impact.GetComponentsInChildren<MeshRenderer>();
+                Assert.AreEqual(6,meshes.Length);
+                yield return new WaitForSeconds(1.15f);
+                Assert.IsTrue(impact);
+                Assert.IsTrue(meshes.All(mesh=>mesh&&mesh.sharedMaterial&&mesh.GetComponent<MeshFilter>().sharedMesh),
+                    "Paused capture assets use effect lifetime, not a timed Destroy that can expire during rendering.");
+                effects.enabled=false;yield return null;
+                Assert.IsNull(root.transform.Find("Skill contact 0 2 hit 0"));
+            } finally {Object.DestroyImmediate(root);}
         }
         [UnityTest]
         public IEnumerator RuntimeSpawnsEightSeparateBonesFiveSeparateArrowsAndOneOverheadFood()
