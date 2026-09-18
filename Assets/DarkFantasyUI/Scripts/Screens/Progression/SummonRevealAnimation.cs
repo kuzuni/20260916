@@ -19,6 +19,7 @@ namespace Moonlit.UI
             cards = resultCards;
             positions = new Vector2[cards.Length];
             sequence = DOTween.Sequence().SetUpdate(true);
+            float stagger=Mathf.Min(Stagger,1f/Mathf.Max(1,cards.Length-1));
             for (int i = 0; i < cards.Length; i++)
             {
                 int index = i;
@@ -30,7 +31,7 @@ namespace Moonlit.UI
                 rect.localScale = Vector3.one * .68f;
                 rect.anchoredPosition = positions[i] + Vector2.down * 44;
                 float progress = 0;
-                sequence.Insert(i * Stagger, DOTween.To(() => progress, value => {
+                sequence.Insert(i * stagger, DOTween.To(() => progress, value => {
                     progress = value;
                     if (!card) return;
                     card.alpha = Mathf.Clamp01(value);
