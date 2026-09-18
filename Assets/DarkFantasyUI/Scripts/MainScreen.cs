@@ -16,7 +16,8 @@ namespace Moonlit.UI
         public Button forgeLevelButton, playerDetailsButton;
         public Image autoIcon;
         public Button[] navigation;
-        public Text oreText, powerText, goldText, gemText, autoText, stageText;
+        public Text oreText, powerText, goldText, gemText, autoText, stageText, roundText;
+        public Image[] waveNodes;
         public int ore = 1000;
         public int gems = 0;
         public int gold = 0;
@@ -47,7 +48,7 @@ namespace Moonlit.UI
             forgeButton.onClick.AddListener(Forge);
             if(forgeLevelButton) forgeLevelButton.onClick.AddListener(() => screens.Open("forge-probability"));
             if(playerDetailsButton) playerDetailsButton.onClick.AddListener(OpenLocalPlayerDetails);
-            autoButton.onClick.AddListener(() => screens.Open("auto-forge"));
+            autoButton.onClick.AddListener(() => { if(ForgeState.Current.autoEnabled) ForgeRuntime.Ensure(this).StopAuto(); else screens.Open("auto-forge"); });
             goldButton.onClick.AddListener(() => Currency(false));
             gemButton.onClick.AddListener(() => Currency(true));
             profileButton.onClick.AddListener(() => screens.Open("profile"));

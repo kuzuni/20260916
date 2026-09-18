@@ -10,6 +10,7 @@ namespace Moonlit.UI
         public MainScreen main;
         public bool Busy { get; private set; }
         public event Action HandRevealed;
+        bool awaitingComparison;
         readonly System.Random random=new System.Random();
         readonly Dictionary<int,ItemDefinition> definitions=new Dictionary<int,ItemDefinition>();
         public static ForgeRuntime Ensure(MainScreen main)
@@ -24,7 +25,9 @@ namespace Moonlit.UI
             main.autoForge=ForgeState.Current.autoEnabled;
             main.forgeLevel=ForgeState.Current.level;
             if(!Busy && ForgeState.Current.autoEnabled && main.screens!=null && main.screens.ModalDepth==0) {
-                if(ForgeState.Current.ShouldCompare) { ForgeState.Current.autoEnabled=false;main.screens.Open("forge-comparison"); }
+                if(awaitingComparison && ForgeState.Current.Pending!=null)return;
+                awaitingComparison=false;
+                if(ForgeState.Current.ShouldCompare) PresentComparison();
                 else StartCoroutine(Cycle(true));
             }
         }
@@ -36,14 +39,20 @@ namespace Moonlit.UI
             if(state.Pending!=null) { main.screens.Open("forge-comparison");return; }
             StartCoroutine(Cycle(false));
         }
+        void PresentComparison()
+        {
+            awaitingComparison=true;
+            if(main.screens.ModalDepth==0)main.screens.Open("forge-comparison");
+        }
         public void StartAuto()
         {
+            awaitingComparison=false;
             ForgeState.Current.autoEnabled=true;main.autoForge=true;main.Refresh();
         }
         public void StopAuto()
         {
             ForgeState.Current.autoEnabled=false;main.autoForge=false;main.Refresh();
-            if(!Busy && ForgeState.Current.Pending!=null && main.screens!=null && main.screens.ModalDepth==0)main.screens.Open("forge-comparison");
+            awaitingComparison=false;
         }
         IEnumerator Cycle(bool automatic)
         {
@@ -60,29 +69,34 @@ namespace Moonlit.UI
             for(int i=0;i<count;i++) { var item=state.Draw(random);items.Add(item);state.pending.Add(item); }
             if(automatic)state.TrackAutoBatch(items);
             main.successfulForges+=count;main.Refresh();
-            var anvil=main.forgeButton.transform;
-            var originalScale=anvil.localScale;
+            var hammer=ForgeHammerMotion.Play(main.forgeButton.transform);
             double anvilStarted=Time.realtimeSinceStartupAsDouble;
             while(Time.realtimeSinceStartupAsDouble-anvilStarted<1) {
-                float elapsed=(float)(Time.realtimeSinceStartupAsDouble-anvilStarted);
-                anvil.localScale=originalScale*(1+.07f*Mathf.Sin(elapsed*28)*Mathf.Sin(elapsed*Mathf.PI));
+                hammer.Sample(Time.realtimeSinceStartupAsDouble-anvilStarted);
                 yield return null;
             }
-            anvil.localScale=originalScale;
+            hammer.Sample(1);Destroy(hammer.gameObject);
             var host=(RectTransform)main.design;
             int columns=count<=12?count:count<=24?Mathf.CeilToInt(count/2f):22;
             int rows=Mathf.CeilToInt(count/(float)columns);
             float size=Mathf.Min(118,940/(1+(columns-1)*.5f)),cardHeight=size*1.4f,pitch=cardHeight*.75f;
-            var cards=Ui.Rect("Forged equipment hand",host,40,host.rect.height*.39f,1000,(rows-1)*pitch+cardHeight+60);
+            float handHeight=(rows-1)*pitch+cardHeight;
+            var anvilRect=(RectTransform)main.forgeButton.transform;
+            var corners=new Vector3[4];anvilRect.GetWorldCorners(corners);
+            float anvilTop=host.rect.yMax-host.InverseTransformPoint(corners[1]).y;
+            float revealY=Mathf.Max(24,anvilTop-handHeight-18);
+            var cards=Ui.Rect("Forged equipment hand",host,40,revealY,1000,handHeight+60);
             for(int i=0;i<count;i++) {
                 var item=items[i];int row=i/columns,col=i%columns,n=Math.Min(columns,count-row*columns);
                 float step=size*.5f,left=(1000-(n-1)*step-size)*.5f;
-                var card=Ui.Image("Forged card "+item.id,cards,left+col*step,row*pitch,size,cardHeight,PopupSkin.PanelArt,EquipmentRules.TierColor(item.tier));
+                var frame=main.equipment!=null && main.equipment.Length>0 && main.equipment[0] ? main.equipment[0].equipmentFrame : PopupSkin.PanelArt;
+                var card=Ui.Image("Forged card "+item.id,cards,left+col*step,row*pitch,size,cardHeight,frame);
+                EquipmentPictograms.TintFrame(card,EquipmentRules.TierColor(item.tier));
                 card.type=Image.Type.Sliced;card.pixelsPerUnitMultiplier=8;
                 Ui.Image("Equipment thumbnail",card.transform,8,8,size-16,size-16,EquipmentArt.Icon(item)).preserveAspect=true;
                 Ui.Text("Level",card.transform,2,size,size-4,cardHeight-size,"Lv."+item.level,Mathf.RoundToInt(size*.19f),main.font);
             }
-            Ui.Text("Batch count",cards,20,(rows-1)*pitch+cardHeight+8,940,44,count+"개 제작 · 보관 "+state.pending.Count+"개",28,main.font);
+
             HandRevealed?.Invoke();
             yield return new WaitForSecondsRealtime(.5f);
             Destroy(cards.gameObject);
@@ -91,8 +105,9 @@ namespace Moonlit.UI
                 sold=state.SettleAutoBatch(ref main.gold);
                 main.Refresh();
                 if(sold>0) {
+                    RewardVisuals.Absorb(main,RewardVisuals.Kind.Gold,sold,main.forgeButton.transform.position);
 
-                    var effect=Ui.Text("Gold sale effect",host,220,host.rect.height*.42f,640,80,"골드 +"+sold,44,main.font,Ui.Gold);
+                    var effect=Ui.Text("Gold sale effect",host,220,revealY,640,80,"골드 +"+sold,44,main.font,Ui.Gold);
                     var effectGroup=effect.gameObject.AddComponent<CanvasGroup>();effectGroup.blocksRaycasts=false;
                     var coinRoot=Ui.Rect("Gold coin burst",host,220,host.rect.height*.42f,640,130);
                     var coinGroup=coinRoot.gameObject.AddComponent<CanvasGroup>();coinGroup.blocksRaycasts=false;
@@ -118,10 +133,11 @@ namespace Moonlit.UI
                     Destroy(coinRoot.gameObject);Destroy(effect.gameObject);
                 }
             }
-            Busy=false;main.forgeButton.interactable=true;main.Refresh();
+            Busy=false;main.forgeButton.interactable=true;
+            if(main.ore==0){state.autoEnabled=false;main.autoForge=false;}
+            main.Refresh();
             if(!automatic || state.ShouldCompare || !state.autoEnabled || main.ore==0) {
-                state.autoEnabled=false;main.autoForge=false;
-                if(state.Pending!=null)main.screens.Open("forge-comparison");
+                if(state.Pending!=null)PresentComparison();
             }
         }
         public ItemDefinition Definition(EquipmentRoll item)

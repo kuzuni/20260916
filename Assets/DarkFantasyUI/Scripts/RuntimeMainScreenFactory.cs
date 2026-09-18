@@ -55,9 +55,9 @@ namespace Moonlit.UI
                 // so repeat bindings and domain-reload-free Play sessions never compound scaling.
                 slot.levelLabel.fontSize=Ui.ReadableFontSize(32);
                 slot.levelLabel.rectTransform.anchorMax=new Vector2(1,.38f);
+                slot.SetEmptyIcon(EquipmentPictograms.Icon(i));
                 slot.Bind(null); slots.Add(slot);
                 slot.name=i<6 ? new[]{"갑옷","귀걸이","모자","목걸이","반지","무기"}[i]+" Slot" : new[]{"엠블렘","날개","정령"}[i-6]+" Slot";
-                if(i>=6) Ui.Text("Demo slot",slot.transform,5,45,i==8?310:138,70,new[]{"엠블렘","날개","정령"}[i-6]+"\n준비 중",22,font);
             }
             main.equipment=slots.ToArray();
             int before=bottom.childCount;

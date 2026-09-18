@@ -7,6 +7,8 @@ namespace Moonlit.UI
         public int[] keys = { 2, 2, 2, 2 };
         public int[] highestCleared = { 0, 0, 0, 0 };
         public string refillDay = "";
+        public int pendingIndex = -1, pendingDifficulty;
+        public bool pendingClaim;
     }
     public static class DungeonProgression
     {
@@ -32,24 +34,34 @@ namespace Moonlit.UI
         public static bool BeginEntry(int index, int difficulty)
         {
             RefreshDay(DateTime.UtcNow);
-            if (activeIndex >= 0 || index < 0 || index >= 4 || difficulty < 1 ||
+            if (activeIndex >= 0 || Data.pendingClaim || index < 0 || index >= 4 || difficulty < 1 ||
                 difficulty > NextDifficulty(index) || Data.keys[index] < 1) return false;
-            Data.keys[index]--; activeIndex = index; activeDifficulty = difficulty; return true;
+            activeIndex = index; activeDifficulty = difficulty; return true;
         }
-        public static void CancelEntry() { if (activeIndex < 0) return; Data.keys[activeIndex]++; activeIndex = -1; }
+        public static void CancelEntry() { activeIndex = -1; }
         public static bool CompleteEntry(bool won, out int index, out int amount)
         {
             index = activeIndex; amount = 0;
             if (activeIndex < 0) return false;
             activeIndex = -1;
             if (!won) return false;
-            Data.highestCleared[index] = Math.Max(Data.highestCleared[index], activeDifficulty);
+            Data.pendingIndex=index;Data.pendingDifficulty=activeDifficulty;Data.pendingClaim=true;
             amount = Reward(index, activeDifficulty); return true;
+        }
+        public static bool ClaimEntry(out int index,out int amount)
+        {
+            index=Data.pendingIndex;amount=0;
+            if(!Data.pendingClaim || index<0 || index>=4 || Data.keys[index]<1)return false;
+            Data.keys[index]--;
+            Data.highestCleared[index]=Math.Max(Data.highestCleared[index],Data.pendingDifficulty);
+            amount=Reward(index,Data.pendingDifficulty);
+            Data.pendingClaim=false;Data.pendingIndex=-1;Data.pendingDifficulty=0;
+            return true;
         }
         public static bool TrySweep(int index, out int amount)
         {
             amount = 0; RefreshDay(DateTime.UtcNow);
-            if (index < 0 || index >= 4 || activeIndex >= 0 || Data.highestCleared[index] < 1 || Data.keys[index] < 1) return false;
+            if (index < 0 || index >= 4 || activeIndex >= 0 || Data.pendingClaim || Data.highestCleared[index] < 1 || Data.keys[index] < 1) return false;
             Data.keys[index]--; amount = Reward(index, SweepDifficulty(index)); return true;
         }
     }

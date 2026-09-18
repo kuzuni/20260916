@@ -379,6 +379,12 @@ namespace Moonlit.Editor
                 report.Add("FAIL real bootstrap did not progress into an animation-event combat turn");fail();yield break;
             }
             Canvas.ForceUpdateCanvases();
+            if(!battle.PlayerHud || !battle.EnemyHud || !battle.PlayerHud.HealthText || string.IsNullOrEmpty(battle.PlayerHud.HealthText.text)) {
+                report.Add("FAIL world health bars not ready");fail();yield break;
+            }
+            if(screen.roundText==null || !screen.roundText.text.StartsWith("라운드 ") || screen.waveNodes==null || screen.waveNodes.Length!=3) {
+                report.Add("FAIL stage nodes/round label binding");fail();yield break;
+            }
             if(screen.powerText.cachedTextGenerator.lineCount>1) {
                 report.Add("FAIL large power value wraps in the main HUD");fail();yield break;
             }
@@ -429,13 +435,13 @@ namespace Moonlit.Editor
                         safe.SetPreviewMetrics(new Vector2Int(1080,height),area);
                         host.SetPreviewMetrics(new Vector2Int(1080,height),area);
                         yield return null;yield return null;Canvas.ForceUpdateCanvases();
-                        for(int skill=0;skill<3;skill++) {
-                            battle.PreviewPrimitiveSkill(skill);
+                        for(int tier=0;tier<10;tier++) for(int skill=0;skill<3;skill++) {
+                            battle.PreviewSkill(tier,skill);
                             // Fixed simulation frames keep flight and impact visible even on slow hosted renderers.
                             for(int frame=0;frame<23;frame++)yield return null;
-                            SaveCamera(camera,"Artifacts/Runtime-primitive-skill-"+skill+"-"+(height==1920?"9x16":"9x19")+".png",1080,height);
+                            SaveCamera(camera,"Artifacts/Runtime-skill-"+tier+"-"+skill+"-flight-"+(height==1920?"9x16":"9x19")+".png",1080,height);
                             for(int frame=0;frame<21;frame++)yield return null;
-                            SaveCamera(camera,"Artifacts/Runtime-primitive-impact-"+skill+"-"+(height==1920?"9x16":"9x19")+".png",1080,height);
+                            SaveCamera(camera,"Artifacts/Runtime-skill-"+tier+"-"+skill+"-impact-"+(height==1920?"9x16":"9x19")+".png",1080,height);
                             for(int frame=0;frame<78;frame++)yield return null;
                         }
                     }
@@ -443,7 +449,7 @@ namespace Moonlit.Editor
                 }
             }
             finally {Time.captureFramerate=previousCaptureRate;Time.timeScale=previousTimeScale;}
-            report.Add("CAPTURE primitive buff/weak/strong previews; final artwork approval remains user review");
+            report.Add("CAPTURE all 30 themed skills in flight and at impact at both aspect ratios");
         }
 
         static void AssertInsideSafe(RectTransform rect,Camera camera,Rect safe)
