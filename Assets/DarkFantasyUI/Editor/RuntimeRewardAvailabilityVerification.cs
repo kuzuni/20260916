@@ -80,7 +80,11 @@ namespace Moonlit.Editor
                 for(int pixel=0;pixel<shown.Length;pixel++)
                     if(Math.Abs(shown[pixel].r-hidden[pixel].r)+Math.Abs(shown[pixel].g-hidden[pixel].g)+
                         Math.Abs(shown[pixel].b-hidden[pixel].b)>36)changed++;
-                if(changed<400)throw new InvalidOperationException("Shop reward exists but does not render visibly: "+changed+" changed pixels.");
+                if(changed<400) {
+                    SaveCamera(camera,"Artifacts/Runtime-shop-invisible-reward-"+aspect+".png",1080,height);
+                    throw new InvalidOperationException("Shop reward exists but does not render visibly: "+changed+
+                        " changed pixels. "+RewardRenderDiagnostics(particles[0],camera));
+                }
                 SaveCamera(camera,"Artifacts/Runtime-shop-diamond-absorption-"+aspect+".png",1080,height);
                 report.Add("PASS shop reward rendered "+changed+" distinct overlay pixels inside viewport "+height);
                 foreach(var life in particles)if(life)life.Resume();
@@ -97,6 +101,21 @@ namespace Moonlit.Editor
                 screen.Refresh();screen.GetComponent<RewardNotificationDots>().RefreshNow();
             }
         }
+        static string RewardRenderDiagnostics(RewardVisualLifetime effect,Camera camera)
+        {
+            var lines=new List<string>();
+            foreach(var canvas in effect.GetComponentsInParent<Canvas>(true))
+                lines.Add("canvas="+canvas.name+" enabled="+canvas.enabled+" root="+canvas.isRootCanvas+
+                    " mode="+canvas.renderMode+" override="+canvas.overrideSorting+" order="+canvas.sortingOrder+
+                    " camera="+(canvas.worldCamera?canvas.worldCamera.name:"none"));
+            foreach(var graphic in effect.GetComponentsInChildren<Graphic>(true))
+                lines.Add(graphic.name+" active="+graphic.gameObject.activeInHierarchy+" enabled="+graphic.enabled+
+                    " depth="+graphic.depth+" culled="+graphic.canvasRenderer.cull+
+                    " alpha="+graphic.canvasRenderer.GetInheritedAlpha()+" scale="+graphic.transform.lossyScale+
+                    " visibleLayer="+((camera.cullingMask&(1<<graphic.gameObject.layer))!=0));
+            return string.Join("; ",lines);
+        }
+
         static Color32[] ReadRewardPixels(Camera camera,int width,int height)
         {
             var previous=RenderTexture.active;

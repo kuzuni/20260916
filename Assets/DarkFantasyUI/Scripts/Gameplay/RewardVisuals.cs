@@ -23,7 +23,21 @@ namespace Moonlit.UI
             if(!main || !main.toastRoot || amount<=0)return;
             var root=(RectTransform)main.toastRoot;
             var layer=Ui.Rect("Reward absorption",root,0,0,root.rect.width,root.rect.height);
-            var canvas=layer.gameObject.AddComponent<CanvasGroup>();canvas.blocksRaycasts=false;canvas.interactable=false;
+            // Rewards are dynamically created after a page canvas is already batched. Give the
+            // effect its own sorting boundary and camera, rather than relying on an empty toast
+            // ancestor's batch being rebuilt above the opaque shop/page canvas.
+            var parentCanvas=root.GetComponentInParent<Canvas>();
+            if(parentCanvas)
+            {
+                var rewardCanvas=layer.gameObject.AddComponent<Canvas>();
+                rewardCanvas.overrideSorting=true;
+                rewardCanvas.sortingLayerID=parentCanvas.sortingLayerID;
+                rewardCanvas.sortingOrder=Mathf.Max(1100,parentCanvas.sortingOrder+1);
+                rewardCanvas.worldCamera=parentCanvas.rootCanvas.worldCamera;
+                layer.gameObject.layer=parentCanvas.gameObject.layer;
+            }
+            var canvas=layer.gameObject.AddComponent<CanvasGroup>();
+            canvas.alpha=1;canvas.ignoreParentGroups=true;canvas.blocksRaycasts=false;canvas.interactable=false;
             var life=layer.gameObject.AddComponent<RewardVisualLifetime>();
             // Particle anchors use the layer's top-left origin, while the safe-area root is centered.
             var source=origin.HasValue?(Vector2)layer.InverseTransformPoint(origin.Value):new Vector2(root.rect.width*.5f,-root.rect.height*.45f);
@@ -41,6 +55,8 @@ namespace Moonlit.UI
             for(int i=0;i<count;i++)
             {
                 var bit=Ui.Image("Reward particle "+i,layer,0,0,ParticleSize,ParticleSize,icon);bit.preserveAspect=true;
+                bit.gameObject.layer=layer.gameObject.layer;
+                bit.maskable=false; // A reward must remain visible after it leaves the shop scroll viewport.
                 var rect=bit.rectTransform;rect.pivot=Vector2.one*.5f;rect.anchoredPosition=source;
                 Vector2 spread=source+new Vector2(Mathf.Cos(i*2.4f)*85,Mathf.Sin(i*2.4f)*60);
                 var seq=life.Sequence();
@@ -51,6 +67,7 @@ namespace Moonlit.UI
                 seq.OnComplete(()=>{if(bit)Object.Destroy(bit.gameObject);});
             }
             var text=Ui.Text("Reward amount",layer,source.x-180,-source.y-75,360,60,"+"+amount.ToString("N0"),34,main.font,Ui.Gold);
+            text.gameObject.layer=layer.gameObject.layer;text.maskable=false;
             var label=text.rectTransform;
             var finish=life.Sequence();
             finish.Append(DOTween.To(()=>label.anchoredPosition,x=>label.anchoredPosition=x,label.anchoredPosition+Vector2.up*70,.75f));
