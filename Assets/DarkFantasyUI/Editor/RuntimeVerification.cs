@@ -572,6 +572,7 @@ namespace Moonlit.Editor
                         yield return CaptureBattleOverlay(screen,camera,height,report,fail);
                         yield return CaptureRewardAvailability(screen,camera,height,report,fail);
                         yield return CaptureAscension(screen,camera,height,report,fail);
+                        yield return CaptureCollectionAscensions(screen,camera,height,report,fail);
                         yield return CaptureDungeonClaims(screen,camera,height,report,fail);
                         for(int tier=0;tier<10;tier++) for(int skill=0;skill<3;skill++) {
                             battle.PreviewSkill(tier,skill);

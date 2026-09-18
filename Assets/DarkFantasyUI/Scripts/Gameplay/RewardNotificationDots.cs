@@ -43,7 +43,10 @@ namespace Moonlit.UI
                 case 1:
                     DungeonProgression.RefreshDay(DateTime.UtcNow);
                     return Array.Exists(DungeonProgression.Data.keys,k=>k>0);
-                case 2:return screen.skillTickets>0||screen.petTickets>0||screen.mountTickets>0;
+                case 2:
+                    for(int category=0;category<3;category++)
+                        if(CollectionProgression.HasUpgrade(category)||CollectionProgression.HasBetterEquip(category)||CollectionProgression.CanSummonWithTickets(screen,category))return true;
+                    return false;
                 case 3:return RewardState.Current.CanClaimDailyDiamonds;
                 default:return false;
             }

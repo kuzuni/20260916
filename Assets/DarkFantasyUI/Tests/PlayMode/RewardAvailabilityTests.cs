@@ -90,6 +90,14 @@ namespace Moonlit.UI.Tests
                 first.onClick.Invoke();dots.RefreshNow();
                 Assert.IsFalse(main.fairyButton.transform.Find("Notification").gameObject.activeSelf);
                 Assert.AreEqual(10,main.skillTickets);
+                main.skillTickets=main.petTickets=main.mountTickets=0;
+                var owned=CollectionProgression.Data.categories[0].entries[0];owned.unlocked=true;
+                Assert.IsTrue(RewardNotificationDots.NavigationAvailable(main,2),"Better equipment is actionable even without summon tickets.");
+                CollectionProgression.QuickEquip(0);Assert.IsFalse(RewardNotificationDots.NavigationAvailable(main,2));
+                owned.fragments=owned.Required;Assert.IsTrue(RewardNotificationDots.NavigationAvailable(main,2));
+                owned.Upgrade();Assert.IsFalse(RewardNotificationDots.NavigationAvailable(main,2));
+                main.skillTickets=1;CollectionProgression.Data.categories[0].summonLevel=100;
+                Assert.IsFalse(RewardNotificationDots.NavigationAvailable(main,2),"Tickets cannot summon past level 100.");
                 var forge=ForgeState.Current;var forgeDot=main.forgeLevelButton.transform.Find("Notification").gameObject;
                 main.gold=forge.SegmentCost-1;dots.RefreshNow();Assert.IsFalse(forgeDot.activeSelf);
                 main.gold=forge.SegmentCost;dots.RefreshNow();Assert.IsTrue(forgeDot.activeSelf);
