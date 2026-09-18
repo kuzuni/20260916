@@ -133,6 +133,7 @@ namespace Moonlit.UI.Tests
             RewardsScreenModule.Register(host.Registry);
             RewardState.Current=new RewardState();
             var screen=root.GetComponent<MainScreen>();
+            screen.design=root.transform;
             screen.highestClearedStage=4;
             assets.worldBackground=Resources.Load<Sprite>("Moonlit/Social/ProfileRuins-v1");
             int oreBefore=screen.ore, skillBefore=screen.skillTickets, petBefore=screen.petTickets, mountBefore=screen.mountTickets;
@@ -143,16 +144,25 @@ namespace Moonlit.UI.Tests
             var stages=pass.GetComponentsInChildren<Text>().Where(t=>t.name.StartsWith("Stage milestone ")).ToArray();
             Assert.AreEqual(100,stages.Length);
             Assert.AreEqual("스테이지 5",stages[0].text);Assert.AreEqual("스테이지 500",stages[99].text);
-            var cards=pass.GetComponentsInChildren<RectTransform>().Where(t=>t.name.StartsWith("Hammer reward ")||t.name.StartsWith("Ticket reward ")).ToArray();
-            Assert.AreEqual(200,cards.Length,"Each of 100 milestones has separate hammer and ticket columns");
+            var cards=pass.GetComponentsInChildren<RectTransform>().Where(t=>t.name.StartsWith("Free reward ")||t.name.StartsWith("Premium reward ")).ToArray();
+            Assert.AreEqual(200,cards.Length,"Every milestone restores the original free and locked premium columns");
             foreach(var card in cards) {
                 Assert.IsFalse(card.Find("Card rim").GetComponent<Image>().fillCenter);
                 Assert.IsNotNull(card.Find("Card painting crop/Card painting").GetComponent<Image>().sprite);
             }
-            Assert.AreEqual("망치 100",ChildText(cards.Single(t=>t.name=="Hammer reward 0"),"Amount").text);
-            Assert.AreEqual("스킬소환권\n10개",ChildText(cards.Single(t=>t.name=="Ticket reward 0"),"Amount").text);
-            Assert.AreEqual("펫소환권\n10개",ChildText(cards.Single(t=>t.name=="Ticket reward 1"),"Amount").text);
-            Assert.AreEqual("탈것소환권\n10개",ChildText(cards.Single(t=>t.name=="Ticket reward 2"),"Amount").text);
+            Assert.AreEqual(100,pass.GetComponentsInChildren<Image>(true).Count(i=>i.name=="Claimed reward check"));
+            Assert.AreEqual(100,pass.GetComponentsInChildren<Image>().Count(i=>i.name=="Timeline glow"));
+            Assert.AreEqual(100,pass.GetComponentsInChildren<Image>().Count(i=>i.name=="Premium lock"));
+            for(int i=0;i<3;i++) {
+                var free=cards.Single(t=>t.name=="Free reward "+i);
+                var amounts=free.GetComponentsInChildren<Text>().Where(t=>t.name=="Reward amount").Select(t=>t.text).ToArray();
+                CollectionAssert.AreEqual(new[]{"10","100"},amounts);
+                var icons=free.GetComponentsInChildren<Image>().Where(t=>t.name=="Reward icon").ToArray();
+                var expected=RewardVisuals.Ticket(i);
+                Assert.AreSame(expected.texture,icons[0].sprite.texture);
+                Assert.AreEqual(expected.rect,icons[0].sprite.rect);
+                Assert.AreSame(RewardsScreenModule.HammerArt,icons[1].sprite);
+            }
             var first=GameObject.Find("Claim milestone 0").GetComponent<Button>();
             Assert.IsFalse(first.interactable);first.onClick.Invoke();
             Assert.AreEqual(oreBefore,screen.ore,"Calling a disabled claim cannot bypass the stage gate");
@@ -165,12 +175,23 @@ namespace Moonlit.UI.Tests
             Assert.That(passScroll.verticalNormalizedPosition,Is.EqualTo(.43f).Within(.01f));
             Assert.AreEqual(oreBefore+300,screen.ore);Assert.AreEqual(skillBefore+10,screen.skillTickets);
             Assert.AreEqual(petBefore+10,screen.petTickets);Assert.AreEqual(mountBefore+10,screen.mountTickets);
-            Assert.IsFalse(first.interactable);Assert.AreEqual("완료",first.GetComponentInChildren<Text>().text);
+            Assert.IsFalse(first.interactable);Assert.IsFalse(first.gameObject.activeSelf);
+            Assert.IsTrue(first.transform.parent.Find("Claimed reward check").gameObject.activeSelf);
             host.CloseTop();yield return null;
             host.Registry.Open("progress-pass");yield return null;
-            for(int i=0;i<3;i++){var claim=GameObject.Find("Claim milestone "+i).GetComponent<Button>();Assert.IsFalse(claim.interactable);Assert.AreEqual("완료",claim.GetComponentInChildren<Text>().text);claim.onClick.Invoke();}
+            pass=GameObject.Find("Popup Layer progress-pass");
+            for(int i=0;i<3;i++) {
+                var claim=pass.GetComponentsInChildren<Button>(true).Single(x=>x.name=="Claim milestone "+i);
+                Assert.IsFalse(claim.interactable);Assert.IsFalse(claim.gameObject.activeSelf);
+                Assert.IsTrue(claim.transform.parent.Find("Claimed reward check").gameObject.activeSelf);
+                claim.onClick.Invoke();
+            }
             Assert.AreEqual(oreBefore+300,screen.ore,"Reopening and old callbacks cannot claim twice");
+            passScroll=pass.GetComponentInChildren<ScrollRect>();passScroll.verticalNormalizedPosition=0;
+            Canvas.ForceUpdateCanvases();yield return null;
             var last=GameObject.Find("Claim milestone 99").GetComponent<Button>();
+            var lastRect=(RectTransform)last.transform;
+            Assert.IsTrue(passScroll.viewport.rect.Contains(passScroll.viewport.InverseTransformPoint(lastRect.TransformPoint(lastRect.rect.center))));
             screen.highestClearedStage=499;last.onClick.Invoke();Assert.IsFalse(RewardState.Current.passClaimed[99]);
             screen.highestClearedStage=500;last.onClick.Invoke();last.onClick.Invoke();
             Assert.IsTrue(RewardState.Current.passClaimed[99]);
@@ -430,7 +451,7 @@ namespace Moonlit.UI.Tests
         {
             ForgeScreenModule.Register(host.Registry);RewardsScreenModule.Register(host.Registry);
             assets.interfaceIcons=new[]{PopupSkin.CloseArt};
-            var screen=root.GetComponent<MainScreen>();
+            var screen=root.GetComponent<MainScreen>();screen.design=root.transform;
             long start=System.DateTimeOffset.UtcNow.ToUnixTimeSeconds()+10000;
             var rewards=RewardState.Current=new RewardState{lastTickUtc=start};
             rewards.Advance(start+120);
@@ -438,24 +459,31 @@ namespace Moonlit.UI.Tests
             host.SetPreviewMetrics(new Vector2Int(1080,1920),new Rect(0,60,1080,1740));
             host.Registry.Open("offline-rewards");yield return null;
             var layer=GameObject.Find("Popup Layer offline-rewards");
-            var illustrations=layer.GetComponentsInChildren<Image>().Where(i=>i.name=="Offline gold illustration"||i.name=="Offline hammer illustration").ToArray();
+            var illustrations=layer.GetComponentsInChildren<Image>().Where(i=>i.name=="Reward illustration").ToArray();
             Assert.AreEqual(2,illustrations.Length);Assert.IsTrue(illustrations.All(i=>i.sprite && i.preserveAspect && !i.raycastTarget));
-            Assert.AreEqual("골드 1 / 초",GameObject.Find("Gold rate").GetComponent<Text>().text);
-            Assert.AreEqual("망치 1 / 분",GameObject.Find("Hammer rate").GetComponent<Text>().text);
-            Assert.AreEqual("골드 120",GameObject.Find("Gold total").GetComponent<Text>().text);
-            Assert.AreEqual("망치 2",GameObject.Find("Forge total").GetComponent<Text>().text);
+            Assert.IsNotNull(layer.GetComponentsInChildren<Image>().Single(i=>i.name=="Gold reward").sprite);
+            Assert.IsNotNull(layer.GetComponentsInChildren<Image>().Single(i=>i.name=="Forge reward").sprite);
+            Assert.AreEqual(2,layer.GetComponentsInChildren<Image>().Count(i=>i.name=="Reward divider"));
+            Assert.AreEqual(2,layer.GetComponentsInChildren<Image>().Count(i=>i.name=="Divider ornament"));
+            var rates=layer.GetComponentsInChildren<Text>().Where(t=>t.name=="Rate").ToArray();
+            CollectionAssert.AreEqual(new[]{"1/초","1/분"},rates.Select(t=>t.text).ToArray());
+            Assert.IsTrue(rates.All(t=>t.color.g>.9f));
+            Assert.IsNotNull(GameObject.Find("Gold total icon").GetComponent<Image>().sprite);
+            Assert.IsNotNull(GameObject.Find("Forge total icon").GetComponent<Image>().sprite);
+            Assert.AreEqual("120",GameObject.Find("Gold total").GetComponent<Text>().text);
+            Assert.AreEqual("2",GameObject.Find("Forge total").GetComponent<Text>().text);
             rewards.Advance(start+180);yield return new WaitForSecondsRealtime(.25f);
             Assert.AreSame(layer,GameObject.Find("Popup Layer offline-rewards"));
-            Assert.AreEqual("골드 180",GameObject.Find("Gold total").GetComponent<Text>().text);
-            Assert.AreEqual("망치 3",GameObject.Find("Forge total").GetComponent<Text>().text);
+            Assert.AreEqual("180",GameObject.Find("Gold total").GetComponent<Text>().text);
+            Assert.AreEqual("3",GameObject.Find("Forge total").GetComponent<Text>().text);
             var claim=GameObject.Find("Claim").GetComponent<Button>();claim.onClick.Invoke();claim.onClick.Invoke();
             yield return new WaitForSecondsRealtime(.25f);
             Assert.AreEqual(goldBefore+180,screen.gold);Assert.AreEqual(oreBefore+3,screen.ore);Assert.IsFalse(claim.interactable);
             host.CloseTop();yield return null;
             host.SetPreviewMetrics(new Vector2Int(1080,2280),new Rect(36,84,1008,2076));
             host.Registry.Open("offline-rewards");yield return null;
-            Assert.AreEqual("골드 0",GameObject.Find("Gold total").GetComponent<Text>().text);
-            Assert.AreEqual("망치 0",GameObject.Find("Forge total").GetComponent<Text>().text);
+            Assert.AreEqual("0",GameObject.Find("Gold total").GetComponent<Text>().text);
+            Assert.AreEqual("0",GameObject.Find("Forge total").GetComponent<Text>().text);
             Assert.IsFalse(GameObject.Find("Claim").GetComponent<Button>().interactable);
             rewards.Advance(start+240);yield return new WaitForSecondsRealtime(.25f);
             Assert.IsTrue(GameObject.Find("Claim").GetComponent<Button>().interactable);
