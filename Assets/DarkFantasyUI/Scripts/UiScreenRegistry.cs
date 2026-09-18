@@ -218,6 +218,8 @@ namespace Moonlit.UI
 
         static void Fit(RectTransform root, Vector2Int size, Rect safe)
         {
+            var motion=root.GetComponent<UiScreenMotion>();
+            if(motion)motion.Complete();
             root.anchorMin = new Vector2(safe.xMin / size.x, safe.yMin / size.y);
             root.anchorMax = new Vector2(safe.xMax / size.x, safe.yMax / size.y);
             root.pivot = new Vector2(.5f, .5f); root.offsetMin = root.offsetMax = Vector2.zero;
