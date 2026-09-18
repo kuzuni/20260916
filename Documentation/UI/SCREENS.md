@@ -1,6 +1,6 @@
 # 30-screen reference catalog
 
-> 2026-09-18 gameplay update: [current game rules](../Gameplay-20260918.md) supersede screenshot/demo economy, equipment, collection, combat and reward values. The 30 reference routes and safe-area contracts remain in effect. All 30 era-themed skills now have generated sprites and previews. Six primitive pet/mount illustrations and separated-part rig inputs are included; higher-era companion art remains deferred. Generated rig prefabs and their cloud validation remain pending for this revision. Summon currency icons use standalone egg/hoof artwork.
+> 2026-09-18 gameplay update: [current game rules](../Gameplay-20260918.md) supersede screenshot/demo economy, equipment, collection, combat and reward values. The 30 reference routes and safe-area contracts remain in effect. All 30 era-themed skills now have generated sprites and previews. Six primitive pet/mount illustrations and separated-part rig inputs are included; higher-era companion art remains deferred. Generated rig assets are committed in PR94; run109 passed210PlayMode tests. Assembled visual review and latest-source validation remain pending. Summon currency icons use standalone egg/hoof artwork.
 
 The user supplied 24 initial images and six additional profile/settings dialogs on 2026-09-17, explicitly making their filenames the screen and navigation requirements. Full original names are preserved in reference-manifest.json. Short ASCII filenames avoid Windows path limits. Reference PNGs are byte-for-byte copies, outside Assets so Unity does not import them into the player.
 
@@ -91,3 +91,5 @@ Main battle background override (2026-09-18, supersedes the forest request): use
 Preserve dark stone, thin ornate gold/bronze frames, silver-trim blue buttons, crimson circular close buttons, illustrated icons, readable Korean type and original layout proportions. No generic plain-list replacement for these detailed references. Existing generated main-screen art is the shared baseline. Gold is the crown coin, ruby is the elongated red diamond. No added frame around timed event buttons. Anvil remains a separate foreground button.
 
 Every screen must work at 1080x1920 and 1080x2280, including simulated top/bottom and side safe insets. Dim covers the full viewport; interactive content stays in the safe area. Scroll long content rather than squeezing type to illegibility.
+
+Latest user direction: stop companion rigging and leave the current committed rigs as-is. Known visual attachment gaps remain deferred; no rig/pivot/bone/part edits or regeneration are authorized. This is not a visual acceptance of the rigs. Skill choreography and general UI work continue.

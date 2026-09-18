@@ -30,7 +30,7 @@ namespace Moonlit.UI
         public double FixedHeal => category == 0 && variant == 0 ? EquipmentRules.FullSetStats(grade, level, ascension).health / 4d : 0d;
         public double FixedAttackBoost => category == 0 && variant == 0 ? EquipmentRules.FullSetStats(grade, level, ascension).attack / 5d : 0d;
         public double FixedDamage => category != 0 || variant == 0 ? 0d :
-            EquipmentRules.FullSetStats(grade, level, ascension).attack * (variant == 1 ? .5d : 1.5d);
+            EquipmentRules.FullSetStats(grade, level, ascension).attack * (variant == 1 ? .5d : 1.2d);
         public bool Upgrade()
         {
             if (!CanUpgrade) return false;

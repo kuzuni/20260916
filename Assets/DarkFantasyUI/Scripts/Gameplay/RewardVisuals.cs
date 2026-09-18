@@ -60,8 +60,13 @@ namespace Moonlit.UI
     public sealed class RewardVisualLifetime:MonoBehaviour
     {
         readonly System.Collections.Generic.List<Sequence> animations=new System.Collections.Generic.List<Sequence>();
-        double started;
-        void Awake(){started=Time.realtimeSinceStartupAsDouble;}
+        double previousFrame;
+        float displayedAge;
+        bool held;
+        // A reward must be displayed, not expire unseen during resource uploads or a slow render.
+        // At low frame rates retain the short burst and flight instead of jumping directly to destruction.
+        public const float MaximumFrameAdvance = .08f;
+        void Awake(){previousFrame=Time.realtimeSinceStartupAsDouble;}
         public Sequence Sequence()
         {
             // A tween born late in a slow render frame must not consume that entire frame's delta.
@@ -69,11 +74,29 @@ namespace Moonlit.UI
             var sequence=DOTween.Sequence().SetUpdate(UpdateType.Manual,true).SetTarget(this);
             animations.Add(sequence);return sequence;
         }
-        void Update(){SampleAge((float)(Time.realtimeSinceStartupAsDouble-started));}
+        void Update()
+        {
+            double now=Time.realtimeSinceStartupAsDouble;
+            float step=Mathf.Clamp((float)(now-previousFrame),0,MaximumFrameAdvance);
+            previousFrame=now;
+            if(!held)SampleAge(displayedAge+step);
+        }
         public void SampleAge(float seconds)
         {
+            displayedAge=Mathf.Max(0,seconds);
             foreach(var animation in animations)
-                if(animation.IsActive() && animation.IsPlaying())animation.Goto(Mathf.Max(0,seconds),true);
+                if(animation.IsActive() && animation.IsPlaying())animation.Goto(displayedAge,true);
+        }
+        public void HoldAt(float seconds)
+        {
+            held=true;displayedAge=Mathf.Max(0,seconds);
+            foreach(var animation in animations)
+                if(animation.IsActive())animation.Goto(displayedAge,false);
+        }
+        public void Resume()
+        {
+            held=false;previousFrame=Time.realtimeSinceStartupAsDouble;
+            foreach(var animation in animations)if(animation.IsActive())animation.Play();
         }
         void OnDestroy(){DOTween.Kill(this);animations.Clear();}
     }

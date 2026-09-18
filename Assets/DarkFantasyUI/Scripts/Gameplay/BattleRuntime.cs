@@ -60,6 +60,9 @@ namespace Moonlit.UI
         CombatHitFlash playerFlash, enemyFlash;
         PrimitiveSkillEffects effects;
         Coroutine battle;
+        CombatComboSequence activeCombo;
+        public bool IsSkillComboRunning => activeCombo != null && activeCombo.Pending;
+        public int ResolvedSkillHits => activeCombo == null ? 0 : activeCombo.ResolvedHits;
         Action<bool> externalCallback;
         readonly System.Random random = new System.Random();
         bool initialized, failedAnimation;
@@ -87,6 +90,7 @@ namespace Moonlit.UI
         void OnEnable() { StartBattleWhenReady(); }
         void OnDisable()
         {
+            CancelSkillCombo();
             StopAllCoroutines(); battle = null;
             if (playerRelay) playerRelay.Cancel();
             if (enemyRelay) enemyRelay.Cancel();
@@ -269,6 +273,7 @@ namespace Moonlit.UI
         }
         IEnumerator FightStage(int difficulty, int waves, Action<bool> complete)
         {
+            CancelSkillCombo();
             WaveCount = waves;
             // A stage is one continuous player encounter; only its first wave refreshes the build and heals.
             PlayerState = BuildPlayer(); playerSkillsUsedThisTurn.Clear(); playerSkillActivations.Clear();
@@ -355,30 +360,63 @@ namespace Moonlit.UI
         {
             var actor = isPlayer ? PlayerState : EnemyState;
             var target = isPlayer ? EnemyState : PlayerState;
-            // Launch with the motion; the clip's arrival event remains the only damage authority.
+            CombatComboSequence combo = null;
+            // Anticipation starts with the motion. Only its consumed event can arm the actual combo.
             if (skill) ShowSkill(isPlayer, variant, tier);
             yield return AnimatedAction(isPlayer, skill ? variant + 1 : 0, skill ? (variant == 1 ? "Weak" : "Strong") : "Basic", () => {
-                if (!skill) { if (isPlayer) PlayerResolvedBasicAttacks++; else EnemyResolvedBasicAttacks++; }
-                if (isPlayer && skill)
+                if (!skill)
+                {
+                    if (isPlayer) PlayerResolvedBasicAttacks++; else EnemyResolvedBasicAttacks++;
+                    ResolveStrike(isPlayer, actor, target, damage, false, variant, tier, 0);
+                    return;
+                }
+                if (isPlayer)
                     foreach (var equipped in actor.skills)
                         if (equipped.tier == tier && equipped.variant == variant) RecordPlayerSkill(equipped);
-                var victimMotion = (isPlayer ? enemy : player).transform.Find("Motion");
-                Vector3 impactPoint = victimMotion.position + Vector3.up * 2.4f;
-                if (!skill) effects.PlayBasicSlash(impactPoint, isPlayer);
-                var hit = CombatRules.Strike(actor, target, damage, skill, random.NextDouble);
-                if (!hit.evaded && hit.damage > 0)
-                {
-                    (isPlayer ? enemyFlash : playerFlash).Play();
-                    effects.PlayHitDust(impactPoint);
-                    if (skill) effects.PlayImpact(tier, variant, impactPoint);
-                    if (target.Alive) (isPlayer ? enemyAnimator : playerAnimator).Play("Hit", 0, 0);
-                    else PlayDeathOnce(!isPlayer);
-                }
-                (isPlayer ? EnemyHud : PlayerHud).Float(hit.evaded ? "회피" :
-                    Format(hit.damage),
-                    hit.critical ? new Color(1, .16f, .12f) : Color.white);
-                if (hit.healing > 0) (isPlayer ? PlayerHud : EnemyHud).Float("+" + Format(hit.healing), new Color(.4f, 1, .55f));
-            });
+                combo = new CombatComboSequence(damage, SkillChoreography.HitTimes(tier, variant),
+                    () => actor.Alive && target.Alive && ReferenceEquals(actor, isPlayer ? PlayerState : EnemyState) &&
+                        ReferenceEquals(target, isPlayer ? EnemyState : PlayerState) && isActiveAndEnabled,
+                    (hitIndex, portion) => ResolveStrike(isPlayer, actor, target, portion, true, variant, tier, hitIndex),
+                    cancelled => { if (cancelled && effects) effects.CancelSkillPlayback(); });
+                activeCombo = combo;
+                combo.Advance(0); // The first real hit is synchronous with this Animator event.
+                if (combo.Pending) StartCoroutine(AdvanceSkillCombo(combo));
+            }, () => combo != null && combo.Pending);
+        }
+        IEnumerator AdvanceSkillCombo(CombatComboSequence combo)
+        {
+            while (combo.Pending)
+            {
+                yield return null;
+                combo.Advance(Time.deltaTime);
+            }
+        }
+        void CancelSkillCombo()
+        {
+            activeCombo?.Cancel();
+            activeCombo = null;
+            if (effects) effects.CancelSkillPlayback();
+        }
+        void ResolveStrike(bool isPlayer, CombatActorState actor, CombatActorState target, double damage,
+            bool skill, int variant, int tier, int hitIndex)
+        {
+            var sourceMotion = (isPlayer ? player : enemy).transform.Find("Motion");
+            var victimMotion = (isPlayer ? enemy : player).transform.Find("Motion");
+            Vector3 sourcePoint = sourceMotion.position + Vector3.up * 2.4f;
+            Vector3 impactPoint = victimMotion.position + Vector3.up * 2.4f;
+            if (!skill) effects.PlayBasicSlash(impactPoint, isPlayer);
+            var hit = CombatRules.Strike(actor, target, damage, skill, random.NextDouble);
+            if (skill) effects.PlaySkillHit(tier, variant, hitIndex, sourcePoint, impactPoint, !hit.evaded && hit.damage > 0);
+            if (!hit.evaded && hit.damage > 0)
+            {
+                (isPlayer ? enemyFlash : playerFlash).Play();
+                effects.PlayHitDust(impactPoint);
+                if (target.Alive) (isPlayer ? enemyAnimator : playerAnimator).Play("Hit", 0, 0);
+                else PlayDeathOnce(!isPlayer);
+            }
+            (isPlayer ? EnemyHud : PlayerHud).Float(hit.evaded ? "회피" : Format(hit.damage),
+                hit.critical ? new Color(1, .16f, .12f) : Color.white);
+            if (hit.healing > 0) (isPlayer ? PlayerHud : EnemyHud).Float("+" + Format(hit.healing), new Color(.4f, 1, .55f));
         }
         void PlayDeathOnce(bool isPlayer)
         {
@@ -387,7 +425,7 @@ namespace Moonlit.UI
             (isPlayer ? playerRelay : enemyRelay).Cancel();
             (isPlayer ? playerAnimator : enemyAnimator).Play("Death", 0, 0);
         }
-        IEnumerator AnimatedAction(bool isPlayer, int kind, string state, Action impact)
+        IEnumerator AnimatedAction(bool isPlayer, int kind, string state, Action impact, Func<bool> pendingCombo = null)
         {
             if (failedAnimation) yield break;
             var relay = isPlayer ? playerRelay : enemyRelay;
@@ -397,11 +435,15 @@ namespace Moonlit.UI
             if (relay.Pending)
             {
                 // A missing animation event must never silently apply guessed damage.
-                relay.Cancel(); failedAnimation = true;
+                relay.Cancel(); CancelSkillCombo(); failedAnimation = true;
                 main.Toast("전투 일시 정지 · 애니메이션 이벤트 확인 필요");
                 Debug.LogError("[Moonlit] Missing OnCombatImpact event in Animator state " + state);
             }
-            else if ((isPlayer ? PlayerState : EnemyState).Alive) animator.Play("Idle", 0, 0);
+            else
+            {
+                while (pendingCombo != null && pendingCombo()) yield return null;
+                if ((isPlayer ? PlayerState : EnemyState).Alive) animator.Play("Idle", 0, 0);
+            }
         }
         void ShowSkill(bool isPlayer, int variant, int tier = 0, bool preview = false)
         {
@@ -429,6 +471,7 @@ namespace Moonlit.UI
         {
             if (!isActiveAndEnabled || !assets || !renderCamera || IsExternalBattle || failedAnimation) return false;
             if (battle != null) StopCoroutine(battle);
+            CancelSkillCombo();
             playerRelay.Cancel(); enemyRelay.Cancel();
             AwaitingExternalClaim = false;
             IsExternalBattle = true; externalCallback = callback; externalName = title; arenaRating = rating;
@@ -469,6 +512,7 @@ namespace Moonlit.UI
         static string Format(double value) => MainScreen.Compact(Math.Ceiling(value));
         void OnDestroy()
         {
+            CancelSkillCombo();
             externalCallback = null;
             if (renderCamera) renderCamera.targetTexture = null;
             if (texture) { texture.Release(); Destroy(texture); }
