@@ -11,6 +11,8 @@ namespace Moonlit.UI
         public int[] draws=new int[10];
         public EquipmentRoll[] equipped=new EquipmentRoll[6];
         public List<EquipmentRoll> pending=new List<EquipmentRoll>();
+        // Frozen sale decisions travel in the same save as the spent hammers and pending equipment.
+        public List<int> automaticSaleIds=new List<int>();
         public bool autoEnabled, continueAfterMatch=true, filterEnabled;
         public int batchSize=1, affixMask=511;
         public bool[] keepTiers={true,true,true,true,true,true,true,true,true,true};
@@ -69,15 +71,31 @@ namespace Moonlit.UI
             foreach(var affix in item.affixes)if((affixMask&(1<<(int)affix.kind))!=0)return true;
             return false;
         }
+        public void TrackAutoBatch(IReadOnlyList<EquipmentRoll> batch)
+        {
+            automaticSaleIds=new List<int>();
+            foreach(var item in batch)
+                if(item!=null && pending.Contains(item) && !Matches(item))automaticSaleIds.Add(item.id);
+        }
+        public int SettleAutoBatch(ref int walletGold)
+        {
+            // No yield/save between removing equipment and crediting its sale: the envelope is atomic.
+            var ids=new HashSet<int>(automaticSaleIds ?? new List<int>());
+            long sale=0;
+            for(int i=pending.Count-1;i>=0;i--) {
+                var item=pending[i];
+                if(item==null || !ids.Contains(item.id) || Array.Exists(equipped,e=>e!=null && e.id==item.id))continue;
+                sale+=EquipmentRules.SaleGold(item);pending.RemoveAt(i);
+            }
+            automaticSaleIds=new List<int>();
+            int before=walletGold;
+            walletGold=(int)Math.Min(int.MaxValue,(long)walletGold+sale);
+            return walletGold-before;
+        }
         public int CompleteAutoBatch(IReadOnlyList<EquipmentRoll> batch)
         {
-            int gold=0;
-            foreach(var item in batch) {
-                // Settlement is idempotent and never sells an already equipped item.
-                if(item==null || !pending.Contains(item) || Array.Exists(equipped,e=>e!=null && e.id==item.id))continue;
-                if(!Matches(item) && pending.Remove(item))gold+=EquipmentRules.SaleGold(item);
-            }
-            return gold;
+            TrackAutoBatch(batch);
+            int gold=0;SettleAutoBatch(ref gold);return gold;
         }
         public void NormalizeAfterLoad()
         {
@@ -117,7 +135,7 @@ namespace Moonlit.UI
             }
             item.affixes=affixes.ToArray();
         }
-        public bool ShouldCompare => pending.Count>0 && (!continueAfterMatch || pending.Count>=25);
+        public bool ShouldCompare => pending.Count>0 && (!continueAfterMatch || pending.Count>=Math.Max(1,batchSize));
         public EquipmentRoll Pending => pending.Count>0 ? pending[0] : null;
         // The two compared cards swap ownership each click; selling always resolves the lower unequipped card.
         public bool ToggleEquip(int id)

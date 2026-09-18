@@ -100,6 +100,7 @@ namespace Moonlit.UI
                     float x=15+n%4*180,y=top+82+n/4*151;
                     var slot=Action(c,content,x,y,155,112,"",()=>c.Open("forge-item-details",item),EquipmentRules.TierColor(tier));
                     slot.name="Equipment "+item.tier+" "+item.variant+" "+item.part;
+                    var frame=(Image)slot.targetGraphic;frame.sprite=PopupSkin.PanelArt;frame.color=EquipmentRules.TierColor(tier);
                     var icon=EquipmentArt.Icon(item);
                     if(icon)Ui.Image("Thumbnail",slot.transform,14,7,126,92,icon).preserveAspect=true;
                     else Ui.Text("Pending art",slot.transform,6,20,143,74,"썸네일\n준비 중",21,Font(c));
@@ -184,7 +185,7 @@ namespace Moonlit.UI
             Action(c,b,612,1220,60,65,"+",()=>{s.batchSize=Math.Min(99,s.batchSize+1);amount.text=s.batchSize.ToString();});
             var continuing=Check(c,b,650,1325,s.continueAfterMatch);
             continuing.onValueChanged.AddListener(value=>s.continueAfterMatch=value);
-            Ui.Text("Continue label",b,10,1310,624,88,"목표 장비를 찾아도 제련 계속하기\n25개 이상 보관 시 배치 완료 후 비교",24,Font(c),Ui.Ivory,TextAnchor.MiddleLeft);
+            Ui.Text("Continue label",b,10,1310,624,88,"목표 장비를 찾아도 제련 계속하기\n설정한 망치 수만큼 보관한 배치가 끝나면 비교",24,Font(c),Ui.Ivory,TextAnchor.MiddleLeft);
             Ui.Text("Filter help",b,12,1410,690,120,"체크한 등급과 옵션이 일치하는 장비만 보관합니다.\n그 외 장비는 골드로 자동 판매합니다.\n원시 / 중세 장비는 추가 옵션이 없습니다.",23,Font(c),Ui.Ivory,TextAnchor.UpperLeft);
             Action(c,b,174,1570,370,100,s.autoEnabled?"정지":"시작",()=>{
                 if(s.autoEnabled){var runtime=ForgeRuntime.Ensure(c.Main);runtime.StopAuto();c.Close();if(!runtime.Busy && s.Pending!=null)c.Open("forge-comparison");return;}

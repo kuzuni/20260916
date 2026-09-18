@@ -120,8 +120,8 @@ namespace Moonlit.UI
             view.currency.text=tickets.ToString(); view.cost.text="권 "+use+(diamonds>0?" + 다이아 "+diamonds:"");
             view.summonLabel.text="소환 x"+view.quantity; view.quantityLabel.text="x"+view.quantity;
             view.level.text="소환 Lv."+category.summonLevel; ClearChildren(view.experience);
-            Progress(view.experience,0,0,200,36,category.summonLevel>=100?1:category.experience/(float)category.ExperienceRequired,
-                category.summonLevel>=100?"최대":category.experience+"/"+category.ExperienceRequired,view.context.Assets.font);
+            Progress(view.experience,0,0,200,36,category.experience/(float)category.ExperienceRequired,
+                category.experience+"/"+category.ExperienceRequired,view.context.Assets.font);
             for(int i=0;i<3;i++) PopupSkin.Select(view.tabs[i],i==view.tab);
             foreach(var refresh in view.refreshCards) refresh();
             ClearChildren(view.equipped); int slot=0;

@@ -84,11 +84,11 @@ namespace Moonlit.UI.Tests
             state.upgradeEndsUtcTicks=now.AddDays(1).AddHours(1).Ticks;Assert.IsTrue(state.FreeSkip(now.AddDays(1)));
             Assert.AreEqual(1,state.freeSkipsUsed);
         }
-        [Test] public void ContinueQueueWaitsUntilTwentyFiveAndFiltersAreApplied()
+        [Test] public void ContinueQueueUsesConfiguredBatchSizeAndFiltersAreApplied()
         {
-            var state=new ForgeState{continueAfterMatch=true};
-            for(int i=0;i<24;i++)state.pending.Add(new EquipmentRoll{id=i+1});
-            Assert.IsFalse(state.ShouldCompare);state.pending.Add(new EquipmentRoll{id=25});Assert.IsTrue(state.ShouldCompare);
+            var state=new ForgeState{continueAfterMatch=true,batchSize=22};
+            for(int i=0;i<21;i++)state.pending.Add(new EquipmentRoll{id=i+1});
+            Assert.IsFalse(state.ShouldCompare);state.pending.Add(new EquipmentRoll{id=22});Assert.IsTrue(state.ShouldCompare);
             state.filterEnabled=true;state.affixMask=1<<(int)EquipmentAffixKind.DoubleChance;
             Assert.IsFalse(state.Matches(new EquipmentRoll()));
             var match=new EquipmentRoll{affixes=new[]{new EquipmentAffix{kind=EquipmentAffixKind.DoubleChance,percent=1}}};
@@ -116,7 +116,7 @@ namespace Moonlit.UI.Tests
         }
         [Test] public void ThreeTwentyTwoItemBatchesRetainTenElevenFiveBeforeComparison()
         {
-            var state=new ForgeState {continueAfterMatch=true,keepTiers=new bool[10]};
+            var state=new ForgeState {continueAfterMatch=true,batchSize=22,keepTiers=new bool[10]};
             state.keepTiers[2]=true;
             var random=new System.Random(811);
             int[] keepCounts={10,11,5},totals={10,21,26};
@@ -165,6 +165,50 @@ namespace Moonlit.UI.Tests
             Assert.AreEqual(19,restored.DrawTier(1,new System.Random(2)).id);
             var empty=JsonUtility.FromJson<ForgeState>(JsonUtility.ToJson(new ForgeState()));
             empty.NormalizeAfterLoad();Assert.IsTrue(empty.equipped.All(item=>item==null));Assert.AreEqual(0,empty.TotalStats.health);
+        }
+
+        [TestCase(1)] [TestCase(2)] [TestCase(22)] [TestCase(99)]
+        public void ContinueTargetTracksBatchSizeAndImmediateModeStopsAtFirstMatch(int batchSize)
+        {
+            var state=new ForgeState {batchSize=batchSize,continueAfterMatch=true};
+            Assert.IsFalse(state.ShouldCompare);
+            for(int i=1;i<batchSize;i++)state.pending.Add(new EquipmentRoll{id=i});
+            Assert.IsFalse(state.ShouldCompare);
+            state.pending.Add(new EquipmentRoll{id=batchSize});Assert.IsTrue(state.ShouldCompare);
+            state.pending.Clear();state.pending.Add(new EquipmentRoll{id=100});
+            state.continueAfterMatch=false;Assert.IsTrue(state.ShouldCompare);
+        }
+        [Test] public void InterruptedBatchSaveSettlesFrozenSalesOnceWithoutTouchingEarlierItems()
+        {
+            var state=new ForgeState {batchSize=22,keepTiers=new bool[10]};
+            state.keepTiers[2]=true;var random=new System.Random(234);
+            var previous=state.DrawTier(0,random);state.pending.Add(previous);
+            var equipped=state.DrawTier(0,random);state.equipped[(int)equipped.part]=equipped;
+            var batch=new EquipmentRoll[22];int expectedSale=0;
+            for(int i=0;i<batch.Length;i++) {
+                batch[i]=state.DrawTier(i<10?2:0,random);state.pending.Add(batch[i]);
+                if(i>=10)expectedSale+=EquipmentRules.SaleGold(batch[i]);
+            }
+            state.TrackAutoBatch(batch);
+            Assert.AreEqual(12,state.automaticSaleIds.Count);
+            state.keepTiers[0]=true; // A later UI setting does not change the committed batch decision.
+            var envelope=new GameplaySave {gold=73,hammers=978,successfulForges=22,forge=JsonUtility.ToJson(state)};
+            var restoredEnvelope=JsonUtility.FromJson<GameplaySave>(JsonUtility.ToJson(envelope));
+            var restored=JsonUtility.FromJson<ForgeState>(restoredEnvelope.forge);restored.NormalizeAfterLoad();
+            Assert.AreEqual(expectedSale,restored.SettleAutoBatch(ref restoredEnvelope.gold));
+            Assert.AreEqual(73+expectedSale,restoredEnvelope.gold);
+            Assert.AreEqual(11,restored.pending.Count);
+            Assert.IsTrue(restored.pending.Any(item=>item.id==previous.id));
+            Assert.AreEqual(equipped.id,restored.equipped[(int)equipped.part].id);
+            Assert.AreEqual(978,restoredEnvelope.hammers);Assert.AreEqual(22,restoredEnvelope.successfulForges);
+            Assert.AreEqual(state.draws,restored.draws);
+            Assert.AreEqual(0,restored.SettleAutoBatch(ref restoredEnvelope.gold));
+            restoredEnvelope.forge=JsonUtility.ToJson(restored);
+            var secondEnvelope=JsonUtility.FromJson<GameplaySave>(JsonUtility.ToJson(restoredEnvelope));
+            var second=JsonUtility.FromJson<ForgeState>(secondEnvelope.forge);second.NormalizeAfterLoad();
+            Assert.AreEqual(0,second.SettleAutoBatch(ref secondEnvelope.gold));
+            Assert.AreEqual(73+expectedSale,secondEnvelope.gold);Assert.AreEqual(11,second.pending.Count);
+            Assert.AreEqual(0,second.automaticSaleIds.Count);
         }
 
     }
