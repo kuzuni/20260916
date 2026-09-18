@@ -62,9 +62,9 @@ namespace Moonlit.UI
             main.successfulForges+=count;main.Refresh();
             var anvil=main.forgeButton.transform;
             var originalScale=anvil.localScale;
-            float anvilStarted=Time.unscaledTime;
-            while(Time.unscaledTime-anvilStarted<1) {
-                float elapsed=Time.unscaledTime-anvilStarted;
+            double anvilStarted=Time.realtimeSinceStartupAsDouble;
+            while(Time.realtimeSinceStartupAsDouble-anvilStarted<1) {
+                float elapsed=(float)(Time.realtimeSinceStartupAsDouble-anvilStarted);
                 anvil.localScale=originalScale*(1+.07f*Mathf.Sin(elapsed*28)*Mathf.Sin(elapsed*Mathf.PI));
                 yield return null;
             }
