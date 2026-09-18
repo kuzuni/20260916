@@ -141,7 +141,7 @@ namespace Moonlit.UI.Tests
                             if(entry.grade==0){
                                 var icon=cards[i].transform.Find("Icon");
                                 Assert.IsNotNull(icon,"Primitive companions have authored artwork rather than a pending-art label.");
-                                Assert.AreSame(CompanionRigCatalog.Icon(category,entry.grade,entry.variant),icon.GetComponent<Image>().sprite);
+                                Assert.AreSame(FlatCompanionCatalog.Icon(category,entry.grade,entry.variant),icon.GetComponent<Image>().sprite);
                                 Assert.IsNotNull(icon.GetComponent<Image>().sprite);
                                 Assert.IsNull(cards[i].transform.Find("Art pending"));
                                 Assert.AreEqual(entry.Name,grade.GetComponent<Text>().text);
