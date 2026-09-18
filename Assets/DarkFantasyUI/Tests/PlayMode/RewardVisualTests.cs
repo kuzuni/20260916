@@ -1,4 +1,6 @@
 using System.Linq;
+using System.Collections;
+using UnityEngine.TestTools;
 using DG.Tweening;
 using NUnit.Framework;
 using UnityEngine;
@@ -14,6 +16,35 @@ namespace Moonlit.UI.Tests
         public void TearDown()
         {
             if(root)Object.DestroyImmediate(root);
+        }
+
+
+        [UnityTest]
+        public IEnumerator NewRewardDoesNotConsumeTheRenderFramesPreviousTime()
+        {
+            root=new GameObject("Reward clock test",typeof(RectTransform),typeof(Canvas));
+            var design=(RectTransform)root.transform;design.sizeDelta=new Vector2(1080,1920);
+            var main=root.AddComponent<MainScreen>();main.enabled=false;
+            main.toastRoot=design;main.font=Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            main.forgeButton=Ui.ArtButton("Hammer target",design,480,1400,120,100);
+            // Simulate a long camera render before creating the effect in the same frame.
+            // Its preceding work must not be charged against the new particle's lifetime.
+            var watch=System.Diagnostics.Stopwatch.StartNew();
+            while(watch.Elapsed.TotalSeconds<.9) { }
+            RewardVisuals.Absorb(main,RewardVisuals.Kind.Hammer,100,design.TransformPoint(new Vector3(0,-600,0)));
+            var life=design.GetComponentInChildren<RewardVisualLifetime>();
+            var first=life.transform.Find("Reward particle 0");
+            yield return null;
+            Assert.IsNotNull(first,"The first particle must survive its first frame after an expensive render.");
+            Assert.IsNotNull(life);
+            Assert.AreEqual(13,DOTween.TweensByTarget(life,false).Count,"No particle sequence may auto-complete from time spent before it existed.");
+            foreach(var tween in DOTween.TweensByTarget(life,false))tween.Goto(.16f,false);
+            var particle=first.GetComponent<Image>();
+            Assert.IsNotNull(particle.sprite);Assert.Greater(particle.color.a,0);
+            Assert.AreEqual("+100",life.GetComponentsInChildren<Text>().Single(label=>label.name=="Reward amount").text);
+            DOTween.Play(life);life.SampleAge(1.3f);
+            yield return null;
+            Assert.IsTrue(life==null,"The independent real-time clock must still clean up a completed reward.");
         }
 
         [TestCase(RewardVisuals.Kind.HammerKey,5)]

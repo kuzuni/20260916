@@ -27,14 +27,14 @@ namespace Moonlit.UI
                 new[] { "Buff", "Weak", "Strong" }[Mathf.Clamp(variant, 0, 2)];
         public static Sprite SkillSprite(int tier, int variant) => Resources.Load<Sprite>(ResourceKey(tier, variant));
         public void Play(int variant, Vector3 source, Vector3 target) => Play(0, variant, source, target);
-        public void Play(int tier, int variant, Vector3 source, Vector3 target, Transform sourceAnchor = null, Transform targetAnchor = null)
+        public void Play(int tier, int variant, Vector3 source, Vector3 target, Transform sourceAnchor = null, Transform targetAnchor = null, bool burstOnArrival = true)
         {
-            if (catalog) StartCoroutine(Animate(Mathf.Clamp(tier, 0, 9), Mathf.Clamp(variant, 0, 2), source, target, sourceAnchor, targetAnchor));
+            if (catalog) StartCoroutine(Animate(Mathf.Clamp(tier, 0, 9), Mathf.Clamp(variant, 0, 2), source, target, sourceAnchor, targetAnchor, burstOnArrival));
         }
         static string EffectName(int tier, int variant)
             => tier == 0 ? new[] { "Primitive ancestral blessing", "Primitive stone crescent", "Primitive falling boulder" }[variant]
                 : "Era " + tier + " skill " + variant;
-        IEnumerator Animate(int tier, int variant, Vector3 source, Vector3 target, Transform sourceAnchor, Transform targetAnchor)
+        IEnumerator Animate(int tier, int variant, Vector3 source, Vector3 target, Transform sourceAnchor, Transform targetAnchor, bool burstOnArrival)
         {
             Vector3 sourceOffset = sourceAnchor ? source - sourceAnchor.position : Vector3.zero;
             Vector3 targetOffset = targetAnchor ? target - targetAnchor.position : Vector3.zero;
@@ -74,7 +74,7 @@ namespace Moonlit.UI
             if (sourceAnchor) source = sourceAnchor.position + sourceOffset;
             if (targetAnchor) target = targetAnchor.position + targetOffset;
             root.transform.position = Position(tier, variant, source, target, 1);
-            Burst(art, tier, variant, root.transform.position, color);
+            if (burstOnArrival) Burst(art, tier, variant, root.transform.position, color);
             sprite.enabled = false; trail.emitting = false;
             Destroy(root, .5f);
         }
@@ -112,15 +112,23 @@ namespace Moonlit.UI
             if (tier == 3 || tier == 4 || tier == 8 || tier == 9) return 0;
             return variant == 1 && (tier == 1 || tier == 2 || tier == 5 || tier == 7) ? 0 : t*(tier==6?-270:210);
         }
+        // Production hits invoke this only from the consumed Animator event; previews may burst on arrival.
+        public void PlayImpact(int tier, int variant, Vector3 point)
+        {
+            tier = Mathf.Clamp(tier, 0, 9); variant = Mathf.Clamp(variant, 0, 2);
+            var art = SkillSprite(tier, variant);
+            if (!art && tier == 0 && catalog) art = variant == 2 ? catalog.strongSprite : catalog.weakSprite;
+            if (catalog && art) Burst(art, tier, variant, point + Vector3.back, Colors[tier]);
+        }
         void Burst(Sprite art, int tier, int variant, Vector3 point, Color color)
         {
             var dust = new GameObject("Era " + tier + " illustrated impact fragments").AddComponent<ParticleSystem>();
-            owned.Add(dust.gameObject);
+            owned.RemoveAll(item => !item); owned.Add(dust.gameObject);
             dust.gameObject.layer = 30; dust.transform.SetParent(transform,false); dust.transform.position = point;
             dust.Stop(true,ParticleSystemStopBehavior.StopEmittingAndClear);
             var main = dust.main; main.loop = false; main.duration = .65f; main.startLifetime = .55f;
             main.startSpeed = (variant == 0 ? .6f : variant == 2 ? 2.6f : 1.6f) * VisualScale;
-            main.startSize = (variant == 0 ? .14f : tier <= 3 ? .22f : .15f) * VisualScale * 2;
+            main.startSize = (variant == 0 ? .14f : tier <= 3 ? .22f : .15f) * VisualScale * 2 * 3;
             main.startRotation = new ParticleSystem.MinMaxCurve(-Mathf.PI,Mathf.PI);
             main.startColor = Color.white; main.gravityModifier = (variant == 0 ? -.1f : tier <= 3 ? .8f : .05f) * VisualScale;
             main.simulationSpace = ParticleSystemSimulationSpace.World; main.maxParticles = 50;

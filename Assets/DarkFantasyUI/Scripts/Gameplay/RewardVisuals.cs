@@ -43,7 +43,7 @@ namespace Moonlit.UI
                 var bit=Ui.Image("Reward particle "+i,layer,0,0,ParticleSize,ParticleSize,icon);bit.preserveAspect=true;
                 var rect=bit.rectTransform;rect.pivot=Vector2.one*.5f;rect.anchoredPosition=source;
                 Vector2 spread=source+new Vector2(Mathf.Cos(i*2.4f)*85,Mathf.Sin(i*2.4f)*60);
-                var seq=DOTween.Sequence().SetUpdate(true).SetTarget(life);
+                var seq=life.Sequence();
                 seq.Append(DOTween.To(()=>rect.anchoredPosition,x=>rect.anchoredPosition=x,spread,.18f).SetEase(Ease.OutQuad));
                 seq.AppendInterval(.08f+i*.025f);
                 seq.Append(DOTween.To(()=>rect.anchoredPosition,x=>rect.anchoredPosition=x,destination,.55f).SetEase(Ease.InQuad));
@@ -52,13 +52,29 @@ namespace Moonlit.UI
             }
             var text=Ui.Text("Reward amount",layer,source.x-180,-source.y-75,360,60,"+"+amount.ToString("N0"),34,main.font,Ui.Gold);
             var label=text.rectTransform;
-            var finish=DOTween.Sequence().SetUpdate(true).SetTarget(life);
+            var finish=life.Sequence();
             finish.Append(DOTween.To(()=>label.anchoredPosition,x=>label.anchoredPosition=x,label.anchoredPosition+Vector2.up*70,.75f));
             finish.AppendInterval(.45f);finish.OnComplete(()=>{if(layer)Object.Destroy(layer.gameObject);});
         }
     }
     public sealed class RewardVisualLifetime:MonoBehaviour
     {
-        void OnDestroy(){DOTween.Kill(this);}
+        readonly System.Collections.Generic.List<Sequence> animations=new System.Collections.Generic.List<Sequence>();
+        double started;
+        void Awake(){started=Time.realtimeSinceStartupAsDouble;}
+        public Sequence Sequence()
+        {
+            // A tween born late in a slow render frame must not consume that entire frame's delta.
+            // Manual sampling counts only real time since this effect was actually created.
+            var sequence=DOTween.Sequence().SetUpdate(UpdateType.Manual,true).SetTarget(this);
+            animations.Add(sequence);return sequence;
+        }
+        void Update(){SampleAge((float)(Time.realtimeSinceStartupAsDouble-started));}
+        public void SampleAge(float seconds)
+        {
+            foreach(var animation in animations)
+                if(animation.IsActive() && animation.IsPlaying())animation.Goto(Mathf.Max(0,seconds),true);
+        }
+        void OnDestroy(){DOTween.Kill(this);animations.Clear();}
     }
 }
