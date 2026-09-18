@@ -475,6 +475,40 @@ namespace Moonlit.UI.Tests
         }
 
 
+        [TestCase(0)]
+        [TestCase(1)]
+        public void EarlyWeakSkillActualContactUsesTheDoubledVictimsHead(int tier)
+        {
+            using (var fixture = new Fixture())
+            {
+                typeof(BattleRuntime).GetProperty("PlayerState").SetValue(fixture.battle,
+                    new CombatActorState(new CombatStats { health = 100 }));
+                typeof(BattleRuntime).GetProperty("EnemyState").SetValue(fixture.battle,
+                    new CombatActorState(new CombatStats { health = 100 }));
+                var motion = fixture.battle.EnemyHud.Actor.Find("Motion");
+                var head = motion.GetComponentsInChildren<SpriteRenderer>().First(r => r.sprite && r.sprite.name == "머리");
+                Vector3 legacyPoint = motion.position + Vector3.up * 2.4f;
+                Vector3 resolvedTarget = PrimitiveSkillEffects.FocusedTarget(motion, legacyPoint);
+                Assert.AreEqual(head.bounds.center.y, resolvedTarget.y + .5f, .0001f);
+                Assert.AreEqual(head.bounds.center.x, resolvedTarget.x, .0001f);
+                var strike = (IEnumerator)typeof(BattleRuntime).GetMethod("StrikeTier", PrivateInstance)
+                    .Invoke(fixture.battle, new object[] { true, 16d, true, 1, tier });
+                strike.MoveNext(); ((IEnumerator)strike.Current).MoveNext();
+                var animator = (Animator)typeof(BattleRuntime).GetField("playerAnimator", PrivateInstance).GetValue(fixture.battle);
+                animator.Update(0); animator.Update(SkillChoreography.AttackLead + .001f);
+                var combo = (CombatComboSequence)typeof(BattleRuntime).GetField("activeCombo", PrivateInstance).GetValue(fixture.battle);
+                combo.Advance(SkillChoreography.HitTimes(tier, 1)[0] - SkillChoreography.AttackLead + .000001f);
+                var effects = (PrimitiveSkillEffects)typeof(BattleRuntime).GetField("effects", PrivateInstance).GetValue(fixture.battle);
+                var contact = effects.transform.Find("Skill contact " + tier + " 1 hit 0");
+                Assert.IsNotNull(contact);
+                var spark = contact.GetComponentInChildren<SpriteRenderer>();
+                Assert.AreEqual(head.bounds.center.x, spark.transform.position.x, .0001f);
+                Assert.AreEqual(head.bounds.center.y, spark.transform.position.y, .0001f,
+                    "The real damage contact must reach the actual doubled head, not the old body-height point.");
+                Assert.AreEqual(1, combo.ResolvedHits);
+            }
+        }
+
         static System.Collections.Generic.IEnumerable<object[]> AllAttackChoreographies()
         {
             for (int tier = 0; tier < 10; tier++)

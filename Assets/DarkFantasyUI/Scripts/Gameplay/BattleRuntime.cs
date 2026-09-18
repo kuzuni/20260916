@@ -490,7 +490,9 @@ namespace Moonlit.UI
             Vector3 impactPoint = victimMotion.position + Vector3.up * 2.4f;
             if (!skill) effects.PlayBasicSlash(impactPoint, isPlayer);
             var hit = CombatRules.Strike(actor, target, damage, skill, random.NextDouble);
-            if (skill) effects.PlaySkillHit(tier, variant, hitIndex, sourcePoint, impactPoint, !hit.evaded && hit.damage > 0);
+            if (skill) effects.PlaySkillHit(tier, variant, hitIndex, sourcePoint,
+                tier <= 1 ? PrimitiveSkillEffects.FocusedTarget(victimMotion, impactPoint) : impactPoint,
+                !hit.evaded && hit.damage > 0);
             if (!hit.evaded && hit.damage > 0)
             {
                 (isPlayer ? enemyFlash : playerFlash).Play();
